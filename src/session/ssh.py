@@ -24,11 +24,13 @@ class SSH(Session):
         item = None
         sock = self._channel
         inQ, outQ = self._inQ, self._outQ
+        to_send = ''
         while True:
-            if not self._outQ.empty():
-                sock.send(s)
-            self._send(self)
-            self._recv(self)
+            if not outQ.empty():
+                to_send += outQ.get()
+            if to_send:
+                to_send = to_send[sock.send(to_send):]
+            
     
 class MissingHostKeyPolicy(paramiko.MissingHostKeyPolicy):
     pass
