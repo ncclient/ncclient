@@ -8,11 +8,14 @@ class SSH(Session):
     
     BUFSIZE = 4096
     
+    DELIM = ']]>>]]>'
+    
     def __init__(self, loadKnownHosts=True, hostname=None, port=22, authType=None, authInfo=None):
         Session.__init__(self)
         self._client = paramiko.SSHClient()
         self._client.load_system_host_keys()
         self._channel = None
+        self._buffer = ''
         self._send_buffer
     
     def _connect(self):
@@ -22,7 +25,11 @@ class SSH(Session):
         pass
     
     def _this_just_in(self, data):
-        pass
+        buffer += data
+        pos = buffer.find(DELIM)
+        if pos != -1:
+            cb(data[:pos])
+            buffer = buffer[pos + len(DELIM)]
     
     def connect(self):
         self._connect()
@@ -34,12 +41,12 @@ class SSH(Session):
         item = None
         sock = self._channel
         sock.setblocking(0)
-        inQ, outQ = self._inQ, self._outQ
+        outQ = self._outQ
         while True:
             (r, w, e) = select([sock], [sock], [], 60)
             if w:
                 if not outQ.empty():
-                    to_send += outQ.get()
+                    to_send += ( outQ.get() + DELIM )
                 if to_send:
                     to_send = to_send[sock.send(to_send):]
             if r:
