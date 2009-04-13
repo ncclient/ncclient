@@ -8,7 +8,6 @@ class SSH(Session):
         Session.__init__(self)
         self._client = paramiko.SSHClient()
         self._client.load_system_host_keys()
-        # will be a socket-like object
         self._channel = None
         self._send_buffer
     
@@ -24,14 +23,12 @@ class SSH(Session):
     def run(self):
         item = None
         sock = self._channel
+        inQ, outQ = self._inQ, self._outQ
         while True:
             if not self._outQ.empty():
-                sock.send()
-            
+                sock.send(s)
             self._send(self)
             self._recv(self)
-        
-            
     
 class MissingHostKeyPolicy(paramiko.MissingHostKeyPolicy):
     pass
