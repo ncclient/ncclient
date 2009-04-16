@@ -17,9 +17,11 @@ import paramiko
 
 from select import select as select
 
-from .session import Session, SessionError
+from session import Session, SessionError
 
 logger = logging.getLogger('ncclient.ssh')
+
+class SSHError(SessionError): pass
 
 class SSHSession(Session):
     
@@ -39,8 +41,7 @@ class SSHSession(Session):
         self._client.set_missing_host_key_policy(host_key_policy)
         
     def _greet_cb(self, reply):
-        self._parse_hello()
-        connected = True
+        self._init(reply)
         self._cb = self._real_cb
         
     def _greet(self):
@@ -105,4 +106,4 @@ class CallbackPolicy(paramiko.MissingHostKeyPolicy):
     
     def missing_host_key(self, client, hostname, key):
         if not self._cb(hostname, key):
-            raise SessionError
+            raise SSHError

@@ -30,10 +30,14 @@ class Session(threading.Thread):
         self.connected = False
     
     def _make_hello(self):
+        # <capabilities> should be repr(capabilities['client'])
+        # rest, hmm..
         pass
     
-    def _parse_hello(self, msg):
-        pass
+    def _init(self, msg):
+        # session-id = 
+        # capabilities['server'] = 
+        self.connected = True
     
     def connect(self):
         self.start()
