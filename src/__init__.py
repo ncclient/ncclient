@@ -13,3 +13,5 @@
 # limitations under the License.
 
 __version__ = "0.01"
+
+class NETCONFClientError(Exception): pass

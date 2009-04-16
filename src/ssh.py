@@ -17,11 +17,9 @@ import paramiko
 
 from select import select as select
 
-from .session import Session
+from .session import Session, SessionError
 
 logger = logging.getLogger('ncclient.ssh')
-
-class SomeError(Exception): pass
 
 class SSHSession(Session):
     
@@ -98,7 +96,7 @@ class SSHSession(Session):
                     connected = False
                     # it's not an error if we asked for it
                     # via CloseSession -- need a way to know this
-                    raise SomeError
+                    raise SessionError
                     
 class CallbackPolicy(paramiko.MissingHostKeyPolicy):
     
@@ -107,4 +105,4 @@ class CallbackPolicy(paramiko.MissingHostKeyPolicy):
     
     def missing_host_key(self, client, hostname, key):
         if not self._cb(hostname, key):
-            raise SomeError
+            raise SessionError

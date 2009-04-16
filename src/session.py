@@ -14,6 +14,8 @@
 
 import threading
 
+class SessionError(NETCONFClientError): pass
+
 class Session(threading.Thread):
     
     def __init__(self, capabilities, reply_cb):
@@ -26,7 +28,13 @@ class Session(threading.Thread):
         self._cb = reply_cb
         self.id = None # session-id
         self.connected = False
-        
+    
+    def _make_hello(self):
+        pass
+    
+    def _parse_hello(self, msg):
+        pass
+    
     def connect(self):
         self.start()
         
@@ -34,21 +42,9 @@ class Session(threading.Thread):
         raise NotImplementedError
         
     def send(self, msg):
-        if not self.connected:
+        if self.connected:
             self._q.add(msg)
-
-    def expectClose(self, val=True):
-        '''operations.CloseSession must call this before a call to send(),
-        so that the remote endpoint closing the connection does not result
-        in an exception'''
-        self._expectClose = val
-
-    @property
-    def id(self):
-        'Session ID'
-        return self._id
-    
-    # Preferred way is to access the attributes directly,
-    # but here goes:
-    
-    # TODO
+        else:
+            raise SessionError('''Attempted to send message before
+                               NETCONF session initialisation''')
+            
