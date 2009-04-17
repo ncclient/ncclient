@@ -28,27 +28,30 @@ class Session(Thread, Subject, Listener):
         self.client_capabilities = capabilities
         self.server_capabilities = None # yet
         self.id = None # session-id
-        self.is_connected = False
+        self.connected = False
+        self.initialised = False
         self._q = Queue.Queue()
-    
-    def _make_hello(self):
-        pass
-    
+        
     def _init(self, id, capabilities):
         self.id = id
         self.capabilities[SERVER] = capabilities
-        self.is_connected = True
+        self.initialised = True
+    
+    def _greet(self):
+        self._q.add(make_hello())
     
     @override
     def _close(self):
         raise NotImplementedError
     
+    @override
     def connect(self):
+        'call Session.connect() at the end'
         self._greet()
         Thread.start()
     
     def send(self, msg):
-        if self.is_connected:
+        if self.connected and self.initialised:
             self._q.add(msg)
         else:
             raise SessionError('Attempted to send message while not connected')
@@ -62,7 +65,7 @@ class Session(Thread, Subject, Listener):
     ### Subject methods
     
     def add_listener(self, listener):
-        if not self.is_connected:
+        if not self.initialised:
             raise SessionError('Listeners may only be added after session initialisation')
         else:
             Subject.add_listner(self, listener)
