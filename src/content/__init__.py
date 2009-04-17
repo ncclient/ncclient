@@ -12,13 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__version__ = "0.01"
+from .. import ncclientError, NETCONFError
 
+class ContentError(ncclientError): pass
 
-class ncclientError(Exception): pass
-
-class NETCONFError(ncclientError): pass
-
-# Decorators
-
-def override(func): func

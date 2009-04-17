@@ -20,7 +20,7 @@ class Subject:
     def has_listener(self, listener):
         return (listener in self._listeners)
     
-    def add_listner(self, listener):
+    def add_listener(self, listener):
             self._listeners.append(listener)
 
     def remove_listener(self, listener):

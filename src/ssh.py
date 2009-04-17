@@ -26,11 +26,10 @@ class SSHError(SessionError): pass
 class SSHSession(Session):
     
     BUF_SIZE = 4096
-    
     MSG_DELIM = ']]>>]]>'
+    MSG_DELIM_LEN = len(MSG_DELIM)
     
-    def __init__(self, capabilities, reply_cb=None,
-                 load_known_hosts=True,
+    def __init__(self, capabilities, load_known_hosts=True,
                  missing_host_key_policy=paramiko.RejectPolicy):
         Session.__init__(self, capabilities)
         self._inBuf = ''
@@ -38,25 +37,13 @@ class SSHSession(Session):
         self._client = SSHClient()
         if load_known_hosts:
             self._client.load_system_host_keys()
-        self._client.set_missing_host_key_policy(host_key_policy)
-        
-    def _greet_cb(self, reply):
-        self._init(reply)
-        self._cb = self._real_cb
-        
-    def _greet(self):
-        self._real_cb = self._cb
-        self._cb = self._greet_cb
-        self._q.add(self._make_hello())
-        
+        self._client.set_missing_host_key_policy(missing_host_key_policy)
+    
     def load_host_keys(self, filename):
         self._client.load_host_keys(filename)
-        
+    
     def set_missing_host_key_policy(self, policy):
         self._client.set_missing_host_key_policy(policy)
-        
-    def set_reply_callback(self, cb):
-        self._cb = cb
     
     def connect(self, hostname, port=830, username=None, password=None,
                 key_filename=None, timeout=None, allow_agent=True,
@@ -69,7 +56,10 @@ class SSHSession(Session):
         self._channel = transport.open_session()
         self._channel.invoke_subsystem('netconf')
         self._greet()
-        Session.connect(self) # starts thread
+        self.start()
+
+    def _close(self):
+        self._channel.shutdown(2)
     
     def run(self):
         sock = self._channel
@@ -87,18 +77,17 @@ class SSHSession(Session):
                 data = sock.recv(BUF_SIZE)
                 if data:
                     self._inBuf += data
-                    # probably not very efficient:
-                    pos = self._inBuf.find(DELIM)
-                    if pos != -1:
-                        msg = self._inBuf[:pos]
-                        self._inBuf = self._inBuf[(pos + len(DELIM)):]
-                        self._reply_cb(msg)
+                    (before, _, after) = self._inBuf.partition(MSG_DELIM)
+                    if after:
+                         # we don't want this thread to ground to a halt
+                         # because of an error dispatching one reply...
+                        try: self.dispatch('reply', before)
+                        except: pass
+                        self._inBuf = after
                 else:
-                    connected = False
-                    # it's not an error if we asked for it
-                    # via CloseSession -- need a way to know this
-                    raise SessionError
-                    
+                    self.dispatch('error', self._inBuf)
+
+
 class CallbackPolicy(paramiko.MissingHostKeyPolicy):
     
     def __init__(self, cb):

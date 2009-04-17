@@ -12,43 +12,74 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import threading
+from content import Creator, Parser
 
-class SessionError(NETCONFClientError): pass
+from threading import Thread
+from listener import Subject, Listener
 
-class Session(threading.Thread):
+class SessionError(ncclientError): pass
+
+class Session(Thread, Subject, Listener):
     
-    def __init__(self, capabilities, reply_cb):
-        Thread.__init__(self)
-        self.capabilities = {
-            'client': capabilities,
-            'server': None #yet
-            }
-        self._q = Queue.Queue()
-        self._cb = reply_cb
+    def __init__(self, capabilities=None):
+        Thread.__init__(self, name='session')
+        Subject.__init__(self, listeners=[self])
+        Thread.setDaemon(True)
+        self.client_capabilities = capabilities
+        self.server_capabilities = None # yet
         self.id = None # session-id
-        self.connected = False
+        self.is_connected = False
+        self._q = Queue.Queue()
     
     def _make_hello(self):
-        # <capabilities> should be repr(capabilities['client'])
-        # rest, hmm..
         pass
     
-    def _init(self, msg):
-        # session-id = 
-        # capabilities['server'] = 
-        self.connected = True
+    def _init(self, id, capabilities):
+        self.id = id
+        self.capabilities[SERVER] = capabilities
+        self.is_connected = True
+    
+    @override
+    def _close(self):
+        raise NotImplementedError
     
     def connect(self):
-        self.start()
-        
-    def run(self):
-        raise NotImplementedError
-        
+        self._greet()
+        Thread.start()
+    
     def send(self, msg):
-        if self.connected:
+        if self.is_connected:
             self._q.add(msg)
         else:
-            raise SessionError('''Attempted to send message before
-                               NETCONF session initialisation''')
-            
+            raise SessionError('Attempted to send message while not connected')
+        
+    ### Thread methods
+
+    @override
+    def run(self):
+        raise NotImplementedError
+    
+    ### Subject methods
+    
+    def add_listener(self, listener):
+        if not self.is_connected:
+            raise SessionError('Listeners may only be added after session initialisation')
+        else:
+            Subject.add_listner(self, listener)
+    
+    ### Listener methods
+    # these are relevant for the initial greeting only
+    
+    def reply(self, data):
+        p = Parser(data)
+        s = p['session']
+        id = s['@id']
+        capabilities = Capabilities()
+        capabilities.fromXML(p['capabilities'])
+        self._init(id, capabilities)
+        self.remove_listener(self)
+    
+    def error(self, data):
+        self._close()
+        raise SSHError('Session initialization failed')
+    
