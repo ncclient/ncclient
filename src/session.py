@@ -21,24 +21,34 @@ class SessionError(ncclientError): pass
 
 class Session(Thread, Subject, Listener):
     
-    def __init__(self, capabilities=None):
+    CLIENT, SERVER = range(2)
+    
+    def __init__(self, capabilities=None, listeners=[]):
         Thread.__init__(self, name='session')
-        Subject.__init__(self, listeners=[self])
+        listeners.append(self)
+        Subject.__init__(self, listeners=listeners)
         Thread.setDaemon(True)
-        self.client_capabilities = capabilities
-        self.server_capabilities = None # yet
-        self.id = None # session-id
-        self.connected = False
-        self.initialised = False
+        self._capabilities = {
+            CLIENT: capabilities,
+            SERVER: None # yet
+        }
+        self._id = None # session-id
+        self._connected = False
+        self._initialised = False
         self._q = Queue.Queue()
         
     def _init(self, id, capabilities):
-        self.id = id
-        self.capabilities[SERVER] = capabilities
-        self.initialised = True
+        if isinstance(id, int) and isinstance(capabilities, Capabilities):
+            self.id = id
+            self.capabilities[SERVER] = capabilities
+            self.initialised = True
+        else:
+            raise ValueError
     
     def _greet(self):
-        self._q.add(make_hello())
+        hello = Creator()
+        # ...
+        self._q.add(hello)
     
     @override
     def _close(self):
@@ -46,43 +56,53 @@ class Session(Thread, Subject, Listener):
     
     @override
     def connect(self):
-        'call Session.connect() at the end'
-        self._greet()
-        Thread.start()
+        raise NotImplementedError
     
-    def send(self, msg):
-        if self.connected and self.initialised:
-            self._q.add(msg)
+
+    def send(self, message):
+        if self.ready:
+            self._q.add(message)
         else:
-            raise SessionError('Attempted to send message while not connected')
-        
+            raise SessionError('Session not ready')
+    
     ### Thread methods
 
     @override
     def run(self):
         raise NotImplementedError
     
-    ### Subject methods
-    
-    def add_listener(self, listener):
-        if not self.initialised:
-            raise SessionError('Listeners may only be added after session initialisation')
-        else:
-            Subject.add_listner(self, listener)
-    
-    ### Listener methods
-    # these are relevant for the initial greeting only
+    ### Listener methods - these are relevant for the initial greeting only
     
     def reply(self, data):
-        p = Parser(data)
-        s = p['session']
-        id = s['@id']
-        capabilities = Capabilities()
-        capabilities.fromXML(p['capabilities'])
-        self._init(id, capabilities)
-        self.remove_listener(self)
+        id, capabilities = None, None
+        try:
+            p = Parser()
+            # ...
+            self._init(id, capabilities)
+        except: # ...
+            pass
+        finally:
+            self.remove_listener(self)
     
     def error(self, data):
         self._close()
         raise SSHError('Session initialization failed')
+
+    ### Getter methods and properties
+
+    def get_capabilities(self, whose):
+        return self._capabilities[whose]
     
+    @property
+    def ready(self): self._connected and self._initialised
+    
+    @property
+    def id(self): self._id    
+    
+    @property
+    def client_capabilities(self):
+        return self._capabilities[CLIENT]
+    
+    @property
+    def server_capabilities(self):
+        return self._capabilities[SERVER]
