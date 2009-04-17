@@ -80,10 +80,7 @@ class SSHSession(Session):
                     self._inBuf += data
                     (before, _, after) = self._inBuf.partition(MSG_DELIM)
                     if after:
-                         # we don't want this thread to ground to a halt
-                         # because of an error dispatching one reply...
-                        try: self.dispatch('reply', before)
-                        except: pass
+                        self.dispatch('reply', before)
                         self._inBuf = after
                 else:
                     self.dispatch('error', self._inBuf)

@@ -42,7 +42,7 @@ class Session(Thread, Subject, Listener):
             self.id = id
             self.capabilities[SERVER] = capabilities
             self.initialised = True
-        else:
+        else: # there was an error in parsing or such
             raise ValueError
     
     def _greet(self):
