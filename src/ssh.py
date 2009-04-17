@@ -55,6 +55,7 @@ class SSHSession(Session):
         transport = self._client.get_transport()
         self._channel = transport.open_session()
         self._channel.invoke_subsystem('netconf')
+        self.connected = True
         self._greet()
         self.start()
 

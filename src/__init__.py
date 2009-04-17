@@ -18,7 +18,3 @@ __version__ = "0.01"
 class ncclientError(Exception): pass
 
 class NETCONFError(ncclientError): pass
-
-# Decorators
-
-def override(func): func

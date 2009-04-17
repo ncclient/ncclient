@@ -50,14 +50,11 @@ class Session(Thread, Subject, Listener):
         # ...
         self._q.add(hello)
     
-    @override
     def _close(self):
         raise NotImplementedError
     
-    @override
     def connect(self):
         raise NotImplementedError
-    
 
     def send(self, message):
         if self.ready:
@@ -67,7 +64,6 @@ class Session(Thread, Subject, Listener):
     
     ### Thread methods
 
-    @override
     def run(self):
         raise NotImplementedError
     
@@ -93,16 +89,10 @@ class Session(Thread, Subject, Listener):
     def get_capabilities(self, whose):
         return self._capabilities[whose]
     
-    @property
-    def ready(self): self._connected and self._initialised
+    ready = property(lambda self: self._connected and self._initialised)
     
-    @property
-    def id(self): self._id    
+    id = property(lambda self: self._id)
     
-    @property
-    def client_capabilities(self):
-        return self._capabilities[CLIENT]
+    client_capabilities = property(lambda self: self._capabilities[CLIENT])
     
-    @property
-    def server_capabilities(self):
-        return self._capabilities[SERVER]
+    server_capabilities = property(lambda self: self._capabilities[SERVER])
