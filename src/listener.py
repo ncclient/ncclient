@@ -12,29 +12,46 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from threading import Lock
+
 class Subject:
+    
+    'Thread-safe abstact class for event-dispatching subjects'
     
     def __init__(self, listeners=[]):
         self._listeners = listeners
-        
+        self._lock = Lock()
+    
     def has_listener(self, listener):
-        return (listener in self._listeners)
+        with self._lock:
+            return (listener in self._listeners)
     
     def add_listener(self, listener):
+        with self._lock:
             self._listeners.append(listener)
-
+    
     def remove_listener(self, listener):
-        self._listeners.remove(listener)
-
+        with self._lock:
+            try:
+                self._listeners.remove(listener)
+            except ValueError:
+                pass
+    
     def dispatch(self, event, *args, **kwds):
         try:
             func = getattr(Listener, event)
-            for l in listeners:
-                func(l, data)
+            with self._lock:
+                for l in listeners:
+                    func(l, *args, **kwds)
         except AttributeError:
             pass
 
 class Listener:
+    
+    """Abstract class for NETCONF protocol message listeners, defining 2 events:
+    - reply
+    - error
+    """
     
     @override
     def reply(self, *args, **kwds):

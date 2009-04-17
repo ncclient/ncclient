@@ -35,15 +35,13 @@ class Session(Thread, Subject, Listener):
         self._id = None # session-id
         self._connected = False
         self._initialised = False
+        self._error = False
         self._q = Queue.Queue()
         
     def _init(self, id, capabilities):
-        if isinstance(id, int) and isinstance(capabilities, Capabilities):
-            self.id = id
-            self.capabilities[SERVER] = capabilities
-            self.initialised = True
-        else: # there was an error in parsing or such
-            raise ValueError
+        self.id = id
+        self.capabilities[SERVER] = capabilities
+        self.initialised = True
     
     def _greet(self):
         hello = Creator()
@@ -57,42 +55,46 @@ class Session(Thread, Subject, Listener):
         raise NotImplementedError
 
     def send(self, message):
-        if self.ready:
-            self._q.add(message)
+        'Blocks if session not initialised yet'
+        while not (self.ready or self._error):
+            time.sleep(0.1)
+        if self._error:
+            raise SessionError
         else:
-            raise SessionError('Session not ready')
-    
-    ### Thread methods
+            self._q.add(message)
 
     def run(self):
         raise NotImplementedError
     
-    ### Listener methods - these are relevant for the initial greeting only
+    ### Listener methods - relevant for the initial greeting
     
-    def reply(self, data):
+    def reply(self, data, *args, **kwds):
         id, capabilities = None, None
         try:
             p = Parser()
             # ...
             self._init(id, capabilities)
-        except: # ...
-            pass
+        except:
+            self._error = True
         finally:
             self.remove_listener(self)
     
-    def error(self, data):
+    def error(self, data, *args, **kwds):
         self._close()
-        raise SSHError('Session initialization failed')
+        self.remove_listener(self)
+        self._error = True
+    
+    ### Properties
 
-    ### Getter methods and properties
-
-    def get_capabilities(self, whose):
-        return self._capabilities[whose]
+    @property
+    def client_capabilities(self): return self._capabilities[CLIENT]
     
-    ready = property(lambda self: self._connected and self._initialised)
+    @property
+    def serve_capabilities(self): return self._capabilities[SERVER]
     
-    id = property(lambda self: self._id)
+    @property
+    def ready(self): return (self._connected and self._initialised)
     
-    client_capabilities = property(lambda self: self._capabilities[CLIENT])
+    @property
+    def id(self): return self._id
     
-    server_capabilities = property(lambda self: self._capabilities[SERVER])
