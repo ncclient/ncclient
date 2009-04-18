@@ -14,6 +14,10 @@
 
 from threading import Lock
 
+import logging
+
+logger = logging.getLogger('ncclient.listener')
+
 class Subject:
     
     'Thread-safe abstact class for event-dispatching subjects'
@@ -38,25 +42,26 @@ class Subject:
                 pass
     
     def dispatch(self, event, *args, **kwds):
-        try:
-            func = getattr(Listener, event)
-            with self._lock:
-                for l in listeners:
-                    func(l, *args, **kwds)
-        except AttributeError:
-            pass
+        with self._lock:
+            for l in self._listeners:
+                try:
+                    getattr(l, event)(*args, **kwds)
+                except Exception as e:
+                    logger.warning(e)
 
-class Listener:
+if __name__=="__main__":
     
-    """Abstract class for NETCONF protocol message listeners, defining 2 events:
-    - reply
-    - error
-    """
+    logging.basicConfig(level=logging.DEBUG)
     
-    @override
-    def reply(self, *args, **kwds):
-        raise NotImplementedError
+    class Listener:
+        def reply(self, data):
+            print data
+        def error(self, err_info):
+            print err_info
     
-    @override
-    def error(self, *args, **kwds):
-        raise NotImplementedError
+    subject = Subject()        
+    subject.add_listener(Listener())
+    
+    subject.dispatch('reply', 'hello world')
+    subject.dispatch('error', 'bye world')
+    subject.dispatch('undefined', 'happy deliverin')
