@@ -12,15 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import content
+
 from threading import Event
 
-from listener import Listener
-
-from content import MessageIDParser
+from listener import RPCReplyListener
 
 class RPC:
     
-    cur_id = {}
+    current_id = {}
+    listeners = {}
 
     def __init__(self, session=None, async=False):
         self._session = None
@@ -33,46 +34,44 @@ class RPC:
         if self._event.isSet():
             return self._reply
     
-    def do(self, session, async=False):
+    def do(self, async=False):
         self._async = async
     
-    def deliver(self, reply):
+    def _deliver(self, reply):
         self._reply = reply
         self._event.set()
 
     @property
-    def has_reply(self): return self._event.isSet()
+    def has_reply(self):
+        return self._event.isSet()
     
     @property
-    def async(self): return self._async
+    def is_async(self):
+        return self._async
     
     @property
-    def listener(self): return self._listener
+    def listener(self):
+        if RPC.listeners[self._sid] is None:
+            RPC.listeners[self.sid] = listener.RPCReplyListener()
+        return RPC.listeners[self._sid]
+    
+    @property
+    def ok(self):
+        pass
     
     def _next_id(self):
-        cur_id[self._sid] = cur_id.get(self._sid, 0) + 1
-        return cur_id[self._sid]
+        RPC.current_id[self._session.id] = RPC.current_id.get(self._session.id, 0) + 1
+        return RPC.current_id[self._sid]
     
 class RPCReply:
     
-    def __init__(self, raw):
+    def __init__(self, id, raw):
+        self._id = id
         self._raw = raw
     
-    def get_id(self):
-        return content.rpc.parse_msg_id(raw)
-
+    @property
+    def id(self):
+        return self._id
+    
 class RPCError(NETCONFError):
-    
     pass
-
-class ReplyListener(Listener):
-    
-    def __init__(self):
-        self._id2rpc = {}
-    
-    def reply(self, msg):
-        reply = RPCReply(msg)
-        id2rpc[reply.get_id()].deliver(reply)
-    
-    def error(self, buf):
-        pass

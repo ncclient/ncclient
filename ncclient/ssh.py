@@ -62,11 +62,7 @@ class SSHSession(Session):
         self._channel = transport.open_session()
         self._channel.invoke_subsystem('netconf')
         self._channel.set_name('netconf')
-        self._init()
-
-    def _close(self):
-        self._channel.close()
-        Session._close(self)
+        self._connect()
     
     def run(self):
         
@@ -105,6 +101,11 @@ class SSHSession(Session):
         
         logger.debug('** broke out of main loop **')
         self.dispatch('close', SessionCloseError(self._in_buf, self._out_buf))
+    
+    def _close(self):
+        self._channel.close()
+        Session._close(self)
+
 
 class MissingHostKeyPolicy(paramiko.MissingHostKeyPolicy):
     

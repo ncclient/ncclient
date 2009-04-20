@@ -34,6 +34,8 @@ class Capabilities:
             shorthand = Capabilities.guess_shorthand(uri)
         self._dict[uri] = shorthand
     
+    set = add
+    
     def remove(self, key):
         if key in self._dict:
             del self._dict[key]
@@ -42,11 +44,12 @@ class Capabilities:
                 if self._dict[uri] == key:
                     del self._dict[uri]
                     break
-    
+        
     @staticmethod
     def guess_shorthand(uri):
         if uri.startswith('urn:ietf:params:netconf:capability:'):
             return (':' + uri.split(':')[5])
+
     
 CAPABILITIES = Capabilities([
     'urn:ietf:params:netconf:base:1.0',

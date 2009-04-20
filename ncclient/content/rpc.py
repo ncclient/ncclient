@@ -12,26 +12,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
 from xml.etree import cElementTree as ElementTree
-
-logging.getLogger('ncclient.content.hello')
 
 from . import NETCONF_NS
 from .util import qualify as _
-from ..capability import Capabilities
 
-def make(capabilities):
-    return '<hello xmlns="%s">%s</hello>' % (NETCONF_NS, capabilities)
+def make(id, op):
+    return '<rpc message-id="%s" xmlns="%s">%s</rpc>' % (id, NETCONF_NS, op)
 
-def parse(raw):
-    id, capabilities = 0, Capabilities()
-    root = ElementTree.fromstring(raw)
-    if root.tag == _('hello'):
-        for child in hello.getchildren():
-            if child.tag == _('session-id'):
-                id = int(child.text)
-            elif child.tag == _('capabilities'):
-                for cap in child.getiterator(_('capability')):
-                    capabilities.add(cap.text)
-    return id, capabilities
+#def parse(raw):
+#    
+#    class RootElementParser:
+#        
+#        def __init__(self):
+#            self.id = 0
+#            self.is_notification = False
+#            
+#        def start(self, tag, attrib):
+#            if tag == _('rpc'):
+#                self.id = int(attrib['message-id'])
+#            elif tag == _('notification'):
+#                self.is_notification = True
+#    
+#    target = RootElementParser()
+#    parser = ElementTree.XMLTreeBuilder(target=target)
+#    parser.feed(raw)
+#    return target.id, target.is_notification
+#

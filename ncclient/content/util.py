@@ -12,5 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-NETCONF_NS = 'urn:ietf:params:xml:ns:netconf:base:1.0'
+from . import NETCONF_NS
 
+def qualify(tag, ns=NETCONF_NS):
+    return '{%s}%s' % (ns, tag)

@@ -13,18 +13,19 @@
 # limitations under the License.
 
 import logging
-
 from threading import Thread, Event
 from Queue import Queue
 
-from error import ClientError
-from content import hello
-from listener import Subject
 from capability import CAPABILITIES
+from content import hello
+from error import ClientError
+from subject import Subject
 
 logger = logging.getLogger('ncclient.session')
 
-class SessionError(ClientError): pass
+class SessionError(ClientError):
+    
+    pass
 
 class Session(Thread, Subject):
     
@@ -39,22 +40,6 @@ class Session(Thread, Subject):
         self._init_event = Event()
         self._q = Queue()
     
-    def _close(self):
-        self._connected = False
-    
-    def _init(self):
-        self._connected = True
-        # start the subclass' main loop
-        self.start()
-        # queue client's hello message for sending
-        self.send(hello.make(self._client_capabilities))
-        # we expect server's hello message, wait for _init_event to be set by HelloListener
-        self._init_event.wait()
-        # there may have been an error
-        if self._error:
-            self._close()
-            raise self._error
-
     def connect(self):
         raise NotImplementedError
 
@@ -69,16 +54,20 @@ class Session(Thread, Subject):
     ### Properties
 
     @property
-    def client_capabilities(self): return self._client_capabilities
+    def client_capabilities(self):
+        return self._client_capabilities
     
     @property
-    def serve_capabilities(self): return self._server_capabilities
+    def serve_capabilities(self):
+        return self._server_capabilities
     
     @property
-    def connected(self): return self._connected
+    def connected(self):
+        return self._connected
     
     @property
-    def id(self): return self._id    
+    def id(self):
+        return self._id    
 
     class HelloListener:
         
@@ -106,3 +95,21 @@ class Session(Thread, Subject):
         
         def close(self, err):
             self._done(err)
+    
+    ### Methods for which subclasses should call super after they are done
+    
+    def _connect(self):
+        self._connected = True
+        # start the subclass' main loop
+        self.start()
+        # queue client's hello message for sending
+        self.send(hello.make(self._client_capabilities))
+        # we expect server's hello message, wait for _init_event to be set by HelloListener
+        self._init_event.wait()
+        # there may have been an error
+        if self._error:
+            self._close()
+            raise self._error
+    
+    def _close(self):
+        self._connected = False

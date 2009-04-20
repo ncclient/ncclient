@@ -12,39 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from threading import Lock
+from content import rpc
 
-import logging
+class SessionListener:
 
-logger = logging.getLogger('ncclient.listener')
-
-class Subject:
-        
-    def __init__(self, listeners=[]):
-        self._listeners = listeners
-        self._lock = Lock()
+    def __init__(self):
+        self._id2rpc = {}
+        self._subscription_id = None # notifications are delivered to the rpc
+                                    # that created the subscription
     
-    def has_listener(self, listener):
-        with self._lock:
-            return (listener in self._listeners)
+    def set_subscription(self, id):
+        self._subscription = id
     
-    def add_listener(self, listener):
-        with self._lock:
-            self._listeners.append(listener)
+    def reply(self, raw):
+        id, is_notification = rpc.parse(raw)
+        if is_notification:
+            self._id2rpc[self._subscription_id].event(raw)
+        else:
+            self._id2rpc[id]._deliver(raw)
+            del self._id2rpc[id]
     
-    def remove_listener(self, listener):
-        with self._lock:
-            try:
-                self._listeners.remove(listener)
-            except ValueError:
-                pass
-    
-    def dispatch(self, event, *args, **kwds):
-        with self._lock:
-            listeners = list(self._listeners)
-        for l in listeners:
-            logger.debug('dispatching [%s] to [%s]' % (event, l.__class__))
-            try:
-                getattr(l, event)(*args, **kwds)
-            except Exception as e:
-                logger.warning(e)
+    def error(self, buf):
+        pass
