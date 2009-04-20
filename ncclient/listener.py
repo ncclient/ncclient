@@ -18,19 +18,25 @@ class SessionListener:
 
     def __init__(self):
         self._id2rpc = {}
-        self._subscription_id = None # notifications are delivered to the rpc
-                                    # that created the subscription
+        self._sub_id = None # message-id of <create-subscription> request
     
     def set_subscription(self, id):
         self._subscription = id
     
-    def reply(self, raw):
-        id, is_notification = rpc.parse(raw)
-        if is_notification:
-            self._id2rpc[self._subscription_id].event(raw)
-        else:
-            self._id2rpc[id]._deliver(raw)
-            del self._id2rpc[id]
+    def register(self, id, op):
+        self._id2rpc[id] = op
     
-    def error(self, buf):
-        pass
+    def unregister(self, id):
+        del self._id2prc[id]
+    
+    ### Events
+    
+    def reply(self, raw):
+        id = rpc.parse(raw)
+        if id:
+            self._id2rpc[id]._deliver(raw)
+        else:
+            self._id2rpc[self._sub_id]._notify(raw)
+    
+    def close(self, buf):
+        pass # TODO

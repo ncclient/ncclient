@@ -13,11 +13,13 @@
 # limitations under the License.
 
 import logging
+
+import content
+
 from threading import Thread, Event
 from Queue import Queue
 
 from capability import CAPABILITIES
-from content import hello
 from error import ClientError
 from subject import Subject
 
@@ -80,12 +82,10 @@ class Session(Thread, Subject):
             self._session.remove_listener(self)
             self._session._init_event.set()
         
-        ### Events
-        
         def reply(self, data):
             err = None
             try:
-                id, capabilities = hello.parse(data)
+                id, capabilities = content.parse_hello(data)
                 logger.debug('session_id: %s | capabilities: \n%s', id, capabilities)
                 self._session._id, self._session.capabilities = id, capabilities
             except Exception as e:
@@ -103,7 +103,7 @@ class Session(Thread, Subject):
         # start the subclass' main loop
         self.start()
         # queue client's hello message for sending
-        self.send(hello.make(self._client_capabilities))
+        self.send(content.make_hello(self._client_capabilities))
         # we expect server's hello message, wait for _init_event to be set by HelloListener
         self._init_event.wait()
         # there may have been an error

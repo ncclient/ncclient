@@ -16,7 +16,7 @@ from threading import Lock
 
 import logging
 
-logger = logging.getLogger('ncclient.listener')
+logger = logging.getLogger('ncclient.subject')
 
 class Subject:
         
