@@ -48,17 +48,3 @@ class Subject:
                 getattr(l, event)(*args, **kwds)
             except Exception as e:
                 logger.warning(e)
-
-
-class SessionListener:
-
-    def __init__(self):
-        self._id2rpc = {}
-        self._subscription = None
-
-    def reply(self, raw):
-        reply = RPCReply(msg)
-        id2rpc[reply.id]._deliver(reply)
-    
-    def error(self, buf):
-        pass
