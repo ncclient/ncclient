@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from content import rpc
+import content
 
 class SessionListener:
 
@@ -32,7 +32,7 @@ class SessionListener:
     ### Events
     
     def reply(self, raw):
-        id = rpc.parse(raw)
+        id = content.parse_message(raw)
         if id:
             self._id2rpc[id]._deliver(raw)
         else:
