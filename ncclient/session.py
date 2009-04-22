@@ -19,6 +19,7 @@ from Queue import Queue
 import content
 from capabilities import Capabilities, CAPABILITIES
 from error import ClientError
+from listeners import HelloListener
 from subject import Subject
 
 logger = logging.getLogger('ncclient.session')
@@ -29,32 +30,35 @@ class Session(Thread, Subject):
     
     def __init__(self):
         Thread.__init__(self, name='session')
-        Subject.__init__(self, listeners=[HelloListener(self)])
+        Subject.__init__(self)
         self._client_capabilities = CAPABILITIES
         self._server_capabilities = None # yet
         self._id = None # session-id
         self._error = None
         self._init_event = Event()
         self._q = Queue()
-        self._connected = False # to be set/cleared by subclass
+        self._connected = False # to be set/cleared by subclass implementation
     
     def _post_connect(self):
         # start the subclass' main loop
+        listener = HelloListener(self)
+        self.add_listener(listener)
         self.start()
         # queue client's hello message for sending
         self.send(content.Hello.build(self._client_capabilities))
-        # we expect server's hello message, wait for _init_event to be set by HelloListener
+        # we expect server's hello message, wait for _init_event to be set
         self._init_event.wait()
+        self.remove_listener(listener)
         # there may have been an error
         if self._error:
             self._close()
             raise self._error
     
-    def initialize(self, id, capabilities):
+    def hello(self, id, capabilities):
         self._id, self._capabilities = id, Capabilities(capabilities)
         self._init_event.set()
     
-    def initialize_error(self, err):
+    def hello_error(self, err):
         self._error = err
         self._init_event.set()
     

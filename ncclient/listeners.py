@@ -16,10 +16,13 @@ import logging
 from weakref import WeakValueDictionary
 
 import content
+from session import SessionCloseError
 
 logger = logging.getLogger('ncclient.listeners')
 
-session_listeners = {}
+################################################################################
+
+session_listeners = WeakValueDictionary
 def session_listener_factory(session):
     try:
         return session_listeners[session]
@@ -27,7 +30,7 @@ def session_listener_factory(session):
         session_listeners[session] = SessionListener()
         return session_listeners[session]
 
-class SessionListener(object):
+class SessionListener:
     
     def __init__(self):
         self._id2rpc = WeakValueDictionary()
@@ -36,8 +39,6 @@ class SessionListener(object):
     
     def __str__(self):
         return 'SessionListener'
-    
-    
     
     def expect_close(self):
         self._expecting_close = True
@@ -60,13 +61,13 @@ class SessionListener(object):
             logger.warning(e)
     
     def error(self, err):
-        from ssh import SessionCloseError
         if err is SessionCloseError:
-            logger.debug('received session close, expecting_close=%s' %
+            logger.debug('session closed by remote endpoint, expecting_close=%s' %
                          self._expecting_close)
             if not self._expecting_close:
                 raise err
 
+################################################################################
 
 class HelloListener:
     
@@ -75,6 +76,8 @@ class HelloListener:
         
     def __init__(self, session):
         self._session = session
+    
+    ### Events
     
     def reply(self, data):
         try:
@@ -87,14 +90,9 @@ class HelloListener:
     def error(self, err):
         self._session.initialize_error(err)
 
+################################################################################
 
 class DebugListener:
-    
-    def __str__(self):
-        return 'DebugListener'
-    
-    def reply(self, raw):
-        logger.debug('DebugListener:reply:\n%s' % raw)
-    
-    def error(self, err):
-        logger.debug('DebugListener:error:\n%s' % err)
+    def __str__(self): return 'DebugListener'
+    def reply(self, raw): logger.debug('DebugListener:reply:\n%s' % raw)
+    def error(self, err): logger.debug('DebugListener:error:\n%s' % err)
