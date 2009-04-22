@@ -75,24 +75,22 @@ class SSHSession(Session):
         chan = self._channel
         chan.setblocking(0)
         q = self._q
-        bufsize = SSHSession.BUF_SIZE
-        delim = SSHSession.MSG_DELIM
         try:
             while True:    
                 if chan.closed:
                     raise SessionCloseError(self._in_buf.getvalue())         
                 if chan.send_ready() and not q.empty():
-                    data = q.get() + delim
+                    data = q.get() + SSHSession.MSG_DELIM
                     while data:
                         n = chan.send(data)
                         if n <= 0:
                             raise SessionCloseError(self._in_buf.getvalue(), data)
                         data = data[n:]
                 if chan.recv_ready():
-                    data = chan.recv(bufsize)
+                    data = chan.recv(SSHSession.BUF_SIZE)
                     if data:
                         self._in_buf.write(data)
-                        self._parse()
+                        self._fresh_data()
                     else:
                         raise SessionCloseError(self._in_buf.getvalue())
         except Exception as e:
@@ -103,7 +101,7 @@ class SSHSession(Session):
         self._channel.close()
         self._connected = False
     
-    def _parse(self):
+    def _fresh_data(self):
         delim = SSHSession.MSG_DELIM
         n = len(delim) - 1
         state = self._parsing_state
