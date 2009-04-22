@@ -1,4 +1,4 @@
-                                                                                                                                    # Copyright 2009 Shikhar Bhushan
+# Copyright 2009 Shikhar Bhushan
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,49 +13,60 @@
 # limitations under the License.
 
 import logging
-import weakref
-
-logger = logging.getLogger('ncclient.listeners')
+from weakref import WeakValueDictionary
 
 import content
 
+logger = logging.getLogger('ncclient.listeners')
+
+session_listeners = {}
+def session_listener_factory(session):
+    try:
+        return session_listeners[session]
+    except KeyError:
+        session_listeners[session] = SessionListener()
+        return session_listeners[session]
+
 class SessionListener(object):
     
-    'A multiton - one listener per session'
-    
-    instances = weakref.WeakValueDictionary()
-    
-    def __new__(cls, sid):
-        if sid in instances:# not been gc'd
-            return cls.instances[sid]
-        else:
-            inst = object.__new__(cls)
-            cls.instances[sid] = inst
-            return inst
+    def __init__(self):
+        self._id2rpc = WeakValueDictionary()
+        self._expecting_close = False
+        self._subscription = None
     
     def __str__(self):
         return 'SessionListener'
     
-    def set_subscription(self, id):     
+    def set_subscription(self, id):   
         self._subscription = id
+    
+    def expect_close(self):
+        self._expecting_close = True
     
     def register(self, id, op):
         self._id2rpc[id] = op
     
-    def unregister(self, id):
-        del self._id2prc[id]
-    
     ### Events
     
     def reply(self, raw):
-        id = content.parse_message(raw)
-        if id:
-            self._id2rpc[id]._deliver(raw)
-        else:
-            self._id2rpc[self._sub_id]._notify(raw)
+        try:
+            id = content.parse_message_root(raw)
+            if id is None:
+                pass
+            elif id == 'notification':
+                self._id2rpc[self._sub_id]._notify(raw)
+            else:
+                self._id2rpc[id]._response_cb(raw)
+        except Exception as e:
+            logger.warning(e)
     
-    def close(self, buf):
-        pass # TODO
+    def error(self, err):
+        from ssh import SessionCloseError
+        if err is SessionCloseError:
+            logger.debug('received session close, expecting_close=%s' %
+                         self._expecting_close)
+            if not self._expecting_close:
+                raise err
 
 class DebugListener:
     
@@ -63,7 +74,7 @@ class DebugListener:
         return 'DebugListener'
     
     def reply(self, raw):
-        logger.debug('reply:\n%s' % raw)
+        logger.debug('DebugListener:reply:\n%s' % raw)
     
     def error(self, err):
-        logger.debug(err)
+        logger.debug('DebugListener:error:\n%s' % err)

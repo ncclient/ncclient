@@ -13,47 +13,62 @@
 # limitations under the License.
 
 from threading import Event, Lock
-
-from listener import SessionListener
-
 from uuid import uuid1
+
+import content
+from listeners import session_listener_factory
 
 class RPC:
     
-    def __init__(self, session, async=False):
+    def __init__(self, session, async=False, parse=True):
         self._session = session
         self._async = async
+        self._id = uuid1().urn
+        self._listener = session_listener_factory(self._session)
+        listener.register(self._id, self)
+        session.add_listener(self._listener)
         self._reply = None
         self._reply_event = Event()
-        self._id = uuid1().urn
 
-    def _listener(self):
-        if not RPC.listeners.has_key(self._session.id):
-            RPC.listeners[self._session.id] = SessionListener()
-        return RPC.listeners[self._session.id]
-
-    def request(self, async=False):
-        self._async = async
-        listener = SessionListener(self._session.id)
-        session.add_listener(listener)
-        listener.register(self._id, self)
-        self._session.send(self.to_xml())
-    
-    def response_cb(self, reply):
-        self._reply = reply # does callback parse??
+    def _response_cb(self, reply):
+        self._reply = reply
         self._event.set()
+    
+    def _do_request(self, op):
+        self._session.send(content.make_rpc(self._id, op))
+        if not self._async:
+            self._reply_event.wait()
+        return self._reply
+    
+    def request(self):
+        raise NotImplementedError
+    
+    def wait_for_reply(self, timeout=None):
+        self._reply_event.wait(timeout)
     
     @property
     def has_reply(self):
         return self._reply_event.isSet()
-    
-    def wait_on_reply(self, timeout=None):
-        self._reply_event.wait(timeout)
     
     @property
     def is_async(self):
         return self._async
     
     @property
+    def reply(self):
+        return self._reply
+    
+    @property
     def id(self):
         return self._id
+    
+    @property
+    def session(self):
+        return self._session
+
+
+class RPCReply:
+    pass
+
+class RPCError:
+    pass

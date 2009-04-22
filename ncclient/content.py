@@ -12,23 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 from xml.etree import cElementTree as ElementTree
 
-NAMESPACE = 'urn:ietf:params:xml:ns:netconf:base:1.0'
+logger = logging.getLogger('ncclient.content')
 
-def qualify(tag, ns=NAMESPACE):
+BASE_NS = 'urn:ietf:params:xml:ns:netconf:base:1.0'
+NOTIFICATION_NS = 'urn:ietf:params:xml:ns:netconf:notification:1.0'
+
+def qualify(tag, ns=BASE_NS):
     return '{%s}%s' % (ns, tag)
 
 _ = qualify
 
 def make_hello(capabilities):
-    return '<hello xmlns="%s">%s</hello>' % (NAMESPACE, capabilities)
+    return '<hello xmlns="%s">%s</hello>' % (BASE_NS, capabilities)
 
 def make_rpc(id, op):
-    return '<rpc message-id="%s" xmlns="%s">%s</rpc>' % (id, NAMESPACE, op)
+    return '<rpc message-id="%s" xmlns="%s">%s</rpc>' % (id, BASE_NS, op)
 
 def parse_hello(raw):
-    from capability import Capabilities
+    from capabilities import Capabilities
     id, capabilities = 0, Capabilities()
     root = ElementTree.fromstring(raw)
     if root.tag == _('hello'):
@@ -40,9 +44,13 @@ def parse_hello(raw):
                     capabilities.add(cap.text)
     return id, capabilities
 
-def parse_message_type(raw):
-    
-    target = RootElementParser()
-    parser = ElementTree.XMLTreeBuilder(target=target)
-    parser.feed(raw)
-    return target.id
+def parse_message_root(raw):
+    from cStringIO import StringIO
+    fp = StringIO(raw)
+    for event, element in ElementTree.iterparse(fp, events=('start',)):
+        if element.tag == _('rpc'):
+            return element.attrib['message-id']
+        elif element.tag == _('notification', NOTIFICATION_NS):
+            return 'notification'
+        else:
+            return None

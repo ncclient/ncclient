@@ -13,21 +13,17 @@
 # limitations under the License.
 
 import logging
-
-import content
-
 from threading import Thread, Event
 from Queue import Queue
 
-from capability import CAPABILITIES
+import content
+from capabilities import CAPABILITIES
 from error import ClientError
 from subject import Subject
 
 logger = logging.getLogger('ncclient.session')
 
-class SessionError(ClientError):
-    
-    pass
+class SessionError(ClientError): pass
 
 class Session(Thread, Subject):
     
@@ -37,13 +33,26 @@ class Session(Thread, Subject):
         self._client_capabilities = CAPABILITIES
         self._server_capabilities = None # yet
         self._id = None # session-id
-        self._connected = False # subclasses should set this
         self._error = None
         self._init_event = Event()
         self._q = Queue()
+        self._connected = False # to be set/cleared by subclass
+    
+    def _post_connect(self):
+        # start the subclass' main loop
+        self.start()
+        # queue client's hello message for sending
+        self.send(content.make_hello(self._client_capabilities))
+        # we expect server's hello message, wait for _init_event to be set by HelloListener
+        self._init_event.wait()
+        # there may have been an error
+        if self._error:
+            self._close()
+            raise self._error
     
     def send(self, message):
-        message = (u'<?xml version="1.0" encoding="UTF-8"?>%s' % message).encode('utf-8')
+        message = (u'<?xml version="1.0" encoding="UTF-8"?>%s' %
+                   message).encode('utf-8')
         logger.debug('queueing message: \n%s' % message)
         self._q.put(message)
     
@@ -60,7 +69,7 @@ class Session(Thread, Subject):
         return self._client_capabilities
     
     @property
-    def serve_capabilities(self):
+    def server_capabilities(self):
         return self._server_capabilities
     
     @property
@@ -70,18 +79,6 @@ class Session(Thread, Subject):
     @property
     def id(self):
         return self._id
-    
-    def _post_connect(self):
-        # start the subclass' main loop
-        self.start()
-        # queue client's hello message for sending
-        self.send(content.make_hello(self._client_capabilities))
-        # we expect server's hello message, wait for _init_event to be set by HelloListener
-        self._init_event.wait()
-        # there may have been an error
-        if self._error:
-            self._close()
-            raise self._error
     
     class HelloListener:
         

@@ -13,10 +13,10 @@
 # limitations under the License.
 
 import logging
-import paramiko
-
-from os import SEEK_CUR
 from cStringIO import StringIO
+from os import SEEK_CUR
+
+import paramiko
 
 from session import Session, SessionError
 
@@ -42,6 +42,7 @@ class SSHSession(Session):
                  missing_host_key_policy=paramiko.RejectPolicy):
         Session.__init__(self)
         self._client = paramiko.SSHClient()
+        self._channel = None
         if load_known_hosts:
             self._client.load_system_host_keys()
         self._client.set_missing_host_key_policy(missing_host_key_policy)
@@ -49,6 +50,49 @@ class SSHSession(Session):
         self._parsing_state = 0
         self._parsing_pos = 0
     
+    def _close(self):
+        self._channel.close()
+        self._connected = False
+    
+    def _fresh_data(self):
+        delim = SSHSession.MSG_DELIM
+        n = len(delim) - 1
+        state = self._parsing_state
+        buf = self._in_buf
+        buf.seek(self._parsing_pos)
+        while True:
+            x = buf.read(1)
+            if not x: # done reading
+                break
+            elif x == delim[state]:
+                state += 1
+            else:
+                continue
+            # loop till last delim char expected, break if other char encountered
+            for i in range(state, n):
+                x = buf.read(1)
+                if not x: # done reading
+                    break
+                if x==delim[i]: # what we expected
+                    state += 1 # expect the next delim char
+                else:
+                    state = 0 # reset
+                    break
+            else: # if we didn't break out of above loop, full delim parsed
+                till = buf.tell() - n
+                buf.seek(0)
+                msg = buf.read(till)
+                self.dispatch('reply', msg)
+                buf.seek(n+1, SEEK_CUR)
+                rest = buf.read()
+                buf = StringIO()
+                buf.write(rest)
+                buf.seek(0)
+                state = 0
+        self._in_buf = buf
+        self._parsing_state = state
+        self._parsing_pos = self._in_buf.tell()
+
     def load_host_keys(self, filename):
         self._client.load_host_keys(filename)
     
@@ -96,49 +140,6 @@ class SSHSession(Session):
         except Exception as e:
             logger.debug('*** broke out of main loop ***')
             self.dispatch('error', e)
-    
-    def _close(self):
-        self._channel.close()
-        self._connected = False
-    
-    def _fresh_data(self):
-        delim = SSHSession.MSG_DELIM
-        n = len(delim) - 1
-        state = self._parsing_state
-        buf = self._in_buf
-        buf.seek(self._parsing_pos)
-        while True:
-            x = buf.read(1)
-            if not x: # done reading
-                break
-            elif x == delim[state]:
-                state += 1
-            else:
-                continue
-            # loop till last delim char expected, break if other char encountered
-            for i in range(state, n):
-                x = buf.read(1)
-                if not x: # done reading
-                    break
-                if x==delim[i]: # what we expected
-                    state += 1 # expect the next delim char
-                else:
-                    state = 0 # reset
-                    break
-            else: # if we didn't break out of above loop, full delim parsed
-                till = buf.tell() - n
-                buf.seek(0)
-                msg = buf.read(till)
-                self.dispatch('reply', msg)
-                buf.seek(n+1, SEEK_CUR)
-                rest = buf.read()
-                buf = StringIO()
-                buf.write(rest)
-                buf.seek(0)
-                state = 0
-        self._in_buf = buf
-        self._parsing_state = state
-        self._parsing_pos = self._in_buf.tell()
 
 class MissingHostKeyPolicy(paramiko.MissingHostKeyPolicy):
     
