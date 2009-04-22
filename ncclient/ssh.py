@@ -28,7 +28,7 @@ class SessionCloseError(SessionError):
     def __str__(self):
         return 'RECEIVED: %s | UNSENT: %s' % (self._in_buf, self._out_buf)
     
-    def __init__(self, in_buf, out_buf):
+    def __init__(self, in_buf=None, out_buf=None):
         SessionError.__init__(self)
         self._in_buf, self._out_buf = in_buf, out_buf
 
@@ -81,37 +81,49 @@ class SSHSession(Session):
         chan = self._channel
         chan.setblocking(0)
         q = self._q
+        bufin = self._in_buf
+        bufout = self._out_buf
+        bufsize = SSHSession.BUF_SIZE
+        delim = SSHSession.MSG_DELIM
+        unsent_data = False
         
-        while True:
-            if chan.closed:
-                break
-            if chan.recv_ready():
-                data = chan.recv(SSHSession.BUF_SIZE)
-                if data:
-                    self._in_buf.write(data)
-                    self._parse()
-                else:
-                    break
-            if chan.send_ready():
+        try:
+            
+            while True:
+                
+                if chan.closed:
+                    raise SessionCloseError(bufin.getvalue(), bufout.getvalue())
+                
                 if not q.empty():
-                    self._out_buf.write(q.get() + SSHSession.MSG_DELIM)
-                    self._dump()
+                    bufout.write(q.get() + delim)
+                    unsent_data = True
+                
+                if unsent_data and chan.send_ready():
+                    data = bufout.getvalue()
+                    while data:
+                        n = chan.send(data)
+                        if n <= 0:
+                            raise SessionCloseError(bufin.getvalue(),
+                                                    bufout.getvalue())
+                        data = data[n:]
+                    unsent_data = False
+                
+                if chan.recv_ready():
+                    data = chan.recv()
+                    if data:
+                        bufin.write(data)
+                        self._parse()
+                    else:
+                        raise SessionCloseError(bufin.getvalue(),
+                                                bufout.getvalue())
         
-        logger.debug('** broke out of main loop **')
-        self.dispatch('close', SessionCloseError(self._in_buf, self._out_buf))
-    
+        except Exception as e:
+            logger.debug('broke out of main loop: %s' % e)
+            self.dispatch('error', e)
     
     def _close(self):
         self._channel.close()
         Session._close(self)
-    
-    def _dump(self):
-        for line in self._out_buf:
-            while line:
-                n = chan.send(line)
-                if n <= 0:
-                    break
-                line = self._out_buf[n:]
     
     def _parse(self):
         delim = SSHSession.MSG_DELIM
