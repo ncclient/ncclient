@@ -24,9 +24,9 @@ class RPC:
         self._session = session
         self._async = async
         self._id = uuid1().urn
-        self._listener = session_listener_factory(self._session)
+        listener = session_listener_factory(self._session)
         listener.register(self._id, self)
-        session.add_listener(self._listener)
+        session.add_listener(listener)
         self._reply = None
         self._reply_event = Event()
 
