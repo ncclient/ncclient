@@ -26,6 +26,41 @@ def qualify(tag, ns=None):
         return '{%s}%s' % (ns, tag)
 _ = qualify
 
+################################################################################
+
+class Hello:
+    
+    NS = 'urn:ietf:params:xml:ns:netconf:base:1.0'
+    
+    @staticmethod
+    def build(capabilities, encoding='utf-8'):
+        hello = ElementTree.Element(_('hello', Hello.NS))
+        caps = ElementTree.Element('capabilities')
+        for uri in capabilities:
+            cap = ElementTree.Element('capability')
+            cap.text = uri
+            caps.append(cap)
+        hello.append(caps)
+        tree = ElementTree.ElementTree(hello)
+        fp = StringIO()
+        tree.write(fp, encoding)
+        return fp.getvalue()
+    
+    @staticmethod
+    def parse(raw):
+        'Returns tuple of (session-id, ["capability_uri", ...])'
+        id, capabilities = 0, []
+        root = ElementTree.fromstring(raw)
+        if root.tag == _('hello', Hello.NS):
+            for child in root.getchildren():
+                if child.tag == _('session-id', Hello.NS):
+                    id = int(child.text)
+                elif child.tag == _('capabilities', Hello.NS):
+                    for cap in child.getiterator(_('capability', Hello.NS)):
+                        capabilities.append(cap.text)
+        return id, capabilities
+
+################################################################################
 
 class RootElementParser:
     
@@ -62,62 +97,23 @@ class RootElementParser:
         return None
 
 
-###########
+################################################################################
 
 class XMLBuilder:
     
     @staticmethod
-    def _element(node):
-        element = ElementTree.Element( _(node.get('tag'),
-                                         node.get('namespace', None)),
-                                      node.get('attributes', {}))
-        if node.has_key('children'):
-            for child in node['children']:
-                element.append(_make_element(child))
-        else:
-            return element
+    def _element(spec):
+        element = ElementTree.Element(spec['tag'], spec.get('attrib', {}))
+        for child in spec.get('children', []):
+            element.append(XMLBuilder._element(child))
+        return element
     
     @staticmethod
-    def _etree(tree_dict):
-        return ElementTree.ElementTree(XMLBuilder._element(tree_dict))
+    def _etree(spec):
+        return ElementTree.ElementTree(XMLBuilder._element(spec))
     
     @staticmethod
-    def to_xml(tree_dict, encoding='utf-8'):
+    def build(spec, encoding='utf-8'):
         fp = StringIO()
-        self._etree(tree_dict).write(fp, encoding)
+        XMLBuilder._etree(spec).write(fp, encoding)
         return fp.get_value()
-
-
-### Hello exchange
-
-class Hello:
-    
-    NS = 'urn:ietf:params:xml:ns:netconf:base:1.0'
-    
-    @staticmethod
-    def build(capabilities, encoding='utf-8'):
-        hello = ElementTree.Element(_('hello', Hello.NS))
-        caps = ElementTree.Element('capabilities')
-        for uri in capabilities:
-            cap = ElementTree.Element('capability')
-            cap.text = uri
-            caps.append(cap)
-        hello.append(caps)
-        tree = ElementTree.ElementTree(hello)
-        fp = StringIO()
-        tree.write(fp, encoding)
-        return fp.getvalue()
-    
-    @staticmethod
-    def parse(raw):
-        'Returns tuple of (session-id, ["capability_uri", ...])'
-        id, capabilities = 0, []
-        root = ElementTree.fromstring(raw)
-        if root.tag == _('hello', Hello.NS):
-            for child in root.getchildren():
-                if child.tag == _('session-id', Hello.NS):
-                    id = int(child.text)
-                elif child.tag == _('capabilities', Hello.NS):
-                    for cap in child.getiterator(_('capability', Hello.NS)):
-                        capabilities.append(cap.text)
-        return id, capabilities
