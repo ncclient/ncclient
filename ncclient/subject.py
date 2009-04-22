@@ -21,7 +21,7 @@ logger = logging.getLogger('ncclient.subject')
 class Subject:
         
     def __init__(self, listeners=[]):
-        self._listeners = listeners
+        self._listeners = set(listeners)
         self._lock = Lock()
     
     def has_listener(self, listener):
@@ -30,21 +30,20 @@ class Subject:
     
     def add_listener(self, listener):
         with self._lock:
-            self._listeners.append(listener)
+            self._listeners.add(listener)
     
     def remove_listener(self, listener):
         with self._lock:
-            try:
-                self._listeners.remove(listener)
-            except ValueError:
-                pass
+            self._listeners.discard(listener)
     
     def dispatch(self, event, *args, **kwds):
+        # holding the lock while doing callbacks could lead to a deadlock
+        # if one of the above methods is called
         with self._lock:
             listeners = list(self._listeners)
         for l in listeners:
-            logger.debug('dispatching [%s] to [%s]' % (event, l.__class__))
             try:
+                logger.debug('dispatching [%s] to [%s]' % (event, l))
                 getattr(l, event)(*args, **kwds)
             except Exception as e:
                 logger.warning(e)

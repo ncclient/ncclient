@@ -28,7 +28,7 @@ class SessionCloseError(SessionError):
     def __str__(self):
         return 'RECEIVED: %s | UNSENT: %s' % (self._in_buf, self._out_buf)
     
-    def __init__(self, in_buf=None, out_buf=None):
+    def __init__(self, in_buf, out_buf=None):
         SessionError.__init__(self)
         self._in_buf, self._out_buf = in_buf, out_buf
 
@@ -36,8 +36,7 @@ class SessionCloseError(SessionError):
 class SSHSession(Session):
 
     BUF_SIZE = 4096
-    MSG_DELIM = ']]>>]]'
-    
+    MSG_DELIM = ']]>]]>'
     
     def __init__(self, load_known_hosts=True,
                  missing_host_key_policy=paramiko.RejectPolicy):
@@ -47,18 +46,14 @@ class SSHSession(Session):
             self._client.load_system_host_keys()
         self._client.set_missing_host_key_policy(missing_host_key_policy)
         self._in_buf = StringIO()
-        self._out_buf = StringIO()
-        self._parsing_state = -1
+        self._parsing_state = 0
         self._parsing_pos = 0
-    
     
     def load_host_keys(self, filename):
         self._client.load_host_keys(filename)
     
-    
     def set_missing_host_key_policy(self, policy):
         self._client.set_missing_host_key_policy(policy)
-    
     
     # paramiko exceptions ok?
     # user might be looking for ClientError
@@ -73,57 +68,40 @@ class SSHSession(Session):
         self._channel = transport.open_session()
         self._channel.invoke_subsystem('netconf')
         self._channel.set_name('netconf')
-        self._connect()
-    
+        self._connected = True
+        self._post_connect()
     
     def run(self):
-        
         chan = self._channel
         chan.setblocking(0)
         q = self._q
-        bufin = self._in_buf
-        bufout = self._out_buf
         bufsize = SSHSession.BUF_SIZE
         delim = SSHSession.MSG_DELIM
-        unsent_data = False
-        
         try:
-            
-            while True:
-                
+            while True:    
                 if chan.closed:
-                    raise SessionCloseError(bufin.getvalue(), bufout.getvalue())
-                
-                if not q.empty():
-                    bufout.write(q.get() + delim)
-                    unsent_data = True
-                
-                if unsent_data and chan.send_ready():
-                    data = bufout.getvalue()
+                    raise SessionCloseError(self._in_buf.getvalue())         
+                if chan.send_ready() and not q.empty():
+                    data = q.get() + delim
                     while data:
                         n = chan.send(data)
                         if n <= 0:
-                            raise SessionCloseError(bufin.getvalue(),
-                                                    bufout.getvalue())
+                            raise SessionCloseError(self._in_buf.getvalue(), data)
                         data = data[n:]
-                    unsent_data = False
-                
                 if chan.recv_ready():
-                    data = chan.recv()
+                    data = chan.recv(bufsize)
                     if data:
-                        bufin.write(data)
+                        self._in_buf.write(data)
                         self._parse()
                     else:
-                        raise SessionCloseError(bufin.getvalue(),
-                                                bufout.getvalue())
-        
+                        raise SessionCloseError(self._in_buf.getvalue())
         except Exception as e:
-            logger.debug('broke out of main loop: %s' % e)
+            logger.debug('*** broke out of main loop ***')
             self.dispatch('error', e)
     
     def _close(self):
         self._channel.close()
-        Session._close(self)
+        self._connected = False
     
     def _parse(self):
         delim = SSHSession.MSG_DELIM
@@ -131,9 +109,7 @@ class SSHSession(Session):
         state = self._parsing_state
         buf = self._in_buf
         buf.seek(self._parsing_pos)
-        
         while True:
-            
             x = buf.read(1)
             if not x: # done reading
                 break
@@ -162,9 +138,8 @@ class SSHSession(Session):
                 buf.write(rest)
                 buf.seek(0)
                 state = 0
-        
-        self._parsing_state = state
         self._in_buf = buf
+        self._parsing_state = state
         self._parsing_pos = self._in_buf.tell()
 
 class MissingHostKeyPolicy(paramiko.MissingHostKeyPolicy):

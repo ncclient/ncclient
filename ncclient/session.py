@@ -37,18 +37,18 @@ class Session(Thread, Subject):
         self._client_capabilities = CAPABILITIES
         self._server_capabilities = None # yet
         self._id = None # session-id
-        self._connected = False
+        self._connected = False # subclasses should set this
         self._error = None
         self._init_event = Event()
         self._q = Queue()
     
-    def connect(self):
-        raise NotImplementedError
-
     def send(self, message):
         message = (u'<?xml version="1.0" encoding="UTF-8"?>%s' % message).encode('utf-8')
         logger.debug('queueing message: \n%s' % message)
         self._q.put(message)
+    
+    def connect(self):
+        raise NotImplementedError
 
     def run(self):
         raise NotImplementedError
@@ -69,9 +69,24 @@ class Session(Thread, Subject):
     
     @property
     def id(self):
-        return self._id    
-
+        return self._id
+    
+    def _post_connect(self):
+        # start the subclass' main loop
+        self.start()
+        # queue client's hello message for sending
+        self.send(content.make_hello(self._client_capabilities))
+        # we expect server's hello message, wait for _init_event to be set by HelloListener
+        self._init_event.wait()
+        # there may have been an error
+        if self._error:
+            self._close()
+            raise self._error
+    
     class HelloListener:
+        
+        def __str__(self):
+            return 'HelloListener'
         
         def __init__(self, session):
             self._session = session
@@ -93,23 +108,5 @@ class Session(Thread, Subject):
             finally:
                 self._done(err)
         
-        def close(self, err):
+        def error(self, err):
             self._done(err)
-    
-    ### Methods for which subclasses should call super after they are done
-    
-    def _connect(self):
-        self._connected = True
-        # start the subclass' main loop
-        self.start()
-        # queue client's hello message for sending
-        self.send(content.make_hello(self._client_capabilities))
-        # we expect server's hello message, wait for _init_event to be set by HelloListener
-        self._init_event.wait()
-        # there may have been an error
-        if self._error:
-            self._close()
-            raise self._error
-    
-    def _close(self):
-        self._connected = False

@@ -1,4 +1,4 @@
-# Copyright 2009 Shikhar Bhushan
+                                                                                                                                    # Copyright 2009 Shikhar Bhushan
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,15 +12,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+import weakref
+
+logger = logging.getLogger('ncclient.listeners')
+
 import content
 
-class SessionListener:
-
-    def __init__(self):
-        self._id2rpc = {}
-        self._sub_id = None # message-id of <create-subscription> request
+class SessionListener(object):
     
-    def set_subscription(self, id):
+    'A multiton - one listener per session'
+    
+    instances = weakref.WeakValueDictionary()
+    
+    def __new__(cls, sid):
+        if sid in instances:# not been gc'd
+            return cls.instances[sid]
+        else:
+            inst = object.__new__(cls)
+            cls.instances[sid] = inst
+            return inst
+    
+    def __str__(self):
+        return 'SessionListener'
+    
+    def set_subscription(self, id):     
         self._subscription = id
     
     def register(self, id, op):
@@ -40,3 +56,14 @@ class SessionListener:
     
     def close(self, buf):
         pass # TODO
+
+class DebugListener:
+    
+    def __str__(self):
+        return 'DebugListener'
+    
+    def reply(self, raw):
+        logger.debug('reply:\n%s' % raw)
+    
+    def error(self, err):
+        logger.debug(err)

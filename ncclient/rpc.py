@@ -12,47 +12,48 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from threading import Event
+from threading import Event, Lock
 
 from listener import SessionListener
 
+from uuid import uuid1
+
 class RPC:
     
-    current_id = {}
-    listeners = {}
-
-    def __init__(self, session=None, async=False):
-        self._session = None
-        self._async = None
-        self._reply = None
-        self._event = Event()
-    
-    def get_reply(self, timeout=2.0):
-        self._event.wait(timeout)
-        if self._event.isSet():
-            return self._reply
-    
-    def do(self, async=False):
+    def __init__(self, session, async=False):
+        self._session = session
         self._async = async
-    
-    def _deliver(self, reply):
-        self._reply = reply
-        self._event.set()
+        self._reply = None
+        self._reply_event = Event()
+        self._id = uuid1().urn
 
+    def _listener(self):
+        if not RPC.listeners.has_key(self._session.id):
+            RPC.listeners[self._session.id] = SessionListener()
+        return RPC.listeners[self._session.id]
+
+    def request(self, async=False):
+        self._async = async
+        listener = SessionListener(self._session.id)
+        session.add_listener(listener)
+        listener.register(self._id, self)
+        self._session.send(self.to_xml())
+    
+    def response_cb(self, reply):
+        self._reply = reply # does callback parse??
+        self._event.set()
+    
     @property
     def has_reply(self):
-        return self._event.isSet()
+        return self._reply_event.isSet()
+    
+    def wait_on_reply(self, timeout=None):
+        self._reply_event.wait(timeout)
     
     @property
     def is_async(self):
         return self._async
     
     @property
-    def listener(self):
-        if RPC.listeners[self._sid] is None:
-            RPC.listeners[self.sid] = SessionListener()
-        return RPC.listeners[self._sid]
-
-    def _next_id(self):
-        RPC.current_id[self._session.id] = RPC.current_id.get(self._session.id, 0) + 1
-        return RPC.current_id[self._sid]
+    def id(self):
+        return self._id

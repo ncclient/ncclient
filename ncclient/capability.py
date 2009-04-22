@@ -26,8 +26,7 @@ class Capabilities:
         return ( key in self._dict ) or ( key in self._dict.values() )
     
     def __repr__(self):
-        elems = ['<capability>%s</capability>' % uri for uri in self._dict]
-        return ('<capabilities>%s</capabilities>' % ''.join(elems))
+        return self.to_xml()
     
     def add(self, uri, shorthand=None):
         if shorthand is None:
@@ -44,7 +43,11 @@ class Capabilities:
                 if self._dict[uri] == key:
                     del self._dict[uri]
                     break
-        
+    
+    def to_xml(self):
+        elems = ['<capability>%s</capability>' % uri for uri in self._dict]
+        return ('<capabilities>%s</capabilities>' % ''.join(elems))
+    
     @staticmethod
     def guess_shorthand(uri):
         if uri.startswith('urn:ietf:params:netconf:capability:'):

@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from xml.etree import cElementTree as ElementTree
+
 NAMESPACE = 'urn:ietf:params:xml:ns:netconf:base:1.0'
 
 def qualify(tag, ns=NAMESPACE):
@@ -30,7 +32,7 @@ def parse_hello(raw):
     id, capabilities = 0, Capabilities()
     root = ElementTree.fromstring(raw)
     if root.tag == _('hello'):
-        for child in hello.getchildren():
+        for child in root.getchildren():
             if child.tag == _('session-id'):
                 id = int(child.text)
             elif child.tag == _('capabilities'):
@@ -39,18 +41,6 @@ def parse_hello(raw):
     return id, capabilities
 
 def parse_message_type(raw):
-    'returns 0 if notification, message-id if rpc-reply'
-    
-    class RootElementParser:
-        
-        def __init__(self):
-            self.id = None
-            
-        def start(self, tag, attrib):
-            if tag == _('rpc'):
-                self.id = int(attrib['message-id'])
-            elif tag == _('notification'):
-                self.id = 0
     
     target = RootElementParser()
     parser = ElementTree.XMLTreeBuilder(target=target)
