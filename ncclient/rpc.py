@@ -20,6 +20,11 @@ from listeners import session_listener_factory
 
 class RPC:
     
+    metadata = {
+        'tag': 'rpc',
+        'xmlns': 'urn:ietf:params:xml:ns:netconf:base:1.0',
+        }
+    
     def __init__(self, session, async=False, parse=True):
         self._session = session
         self._async = async
@@ -36,6 +41,7 @@ class RPC:
     
     def _do_request(self, op):
         self._session.send(content.make_rpc(self._id, op))
+        # content.make(RPC, attrs={'message-id': self._id}, children=(op,))
         if not self._async:
             self._reply_event.wait()
         return self._reply
@@ -66,9 +72,8 @@ class RPC:
     def session(self):
         return self._session
 
-
 class RPCReply:
-    pass
-
-class RPCError:
-    pass
+    
+    class RPCError:
+        
+        pass

@@ -14,43 +14,110 @@
 
 import logging
 from xml.etree import cElementTree as ElementTree
+from cStringIO import StringIO
 
 logger = logging.getLogger('ncclient.content')
 
-BASE_NS = 'urn:ietf:params:xml:ns:netconf:base:1.0'
-NOTIFICATION_NS = 'urn:ietf:params:xml:ns:netconf:notification:1.0'
 
-def qualify(tag, ns=BASE_NS):
-    return '{%s}%s' % (ns, tag)
-
+def qualify(tag, ns=None):
+    if ns is None:
+        return tag
+    else:
+        return '{%s}%s' % (ns, tag)
 _ = qualify
 
-def make_hello(capabilities):
-    return '<hello xmlns="%s">%s</hello>' % (BASE_NS, capabilities)
 
-def make_rpc(id, op):
-    return '<rpc message-id="%s" xmlns="%s">%s</rpc>' % (id, BASE_NS, op)
+class RootElementParser:
+    
+    '''Parse the root element of an XML document. The tag and namespace of
+    recognized elements, and attributes of interest can be customized.
+    
+    RootElementParser does not parse any sub-elements.
+    '''
+    
+    def __init__(self, recognize=[]):
+        self._recognize = recognize
+    
+    def recognize(self, element):
+        '''Specify an element that should be successfully parsed.
+        
+        element should be a string that represents a qualified name of the form
+        *{namespace}tag*.
+        '''
+        self._recognize.append((element, attrs))
+    
+    def parse(self, raw):
+        '''Parse the root element from a string representing an XML document.
+        
+        Returns a (tag, attributes) tuple. tag is a string representing
+        the qualified name of the recognized element. attributes is a
+        {'attr': value} dictionary.
+        '''
+        fp = StringIO(raw)
+        for event, element in ElementTree.iterparse(fp, events=('start',)):
+            for e in self._recognize:
+                if element.tag == e:
+                    return (element.tag, element.attrib)
+            break
+        return None
 
-def parse_hello(raw):
-    from capabilities import Capabilities
-    id, capabilities = 0, Capabilities()
-    root = ElementTree.fromstring(raw)
-    if root.tag == _('hello'):
-        for child in root.getchildren():
-            if child.tag == _('session-id'):
-                id = int(child.text)
-            elif child.tag == _('capabilities'):
-                for cap in child.getiterator(_('capability')):
-                    capabilities.add(cap.text)
-    return id, capabilities
 
-def parse_message_root(raw):
-    from cStringIO import StringIO
-    fp = StringIO(raw)
-    for event, element in ElementTree.iterparse(fp, events=('start',)):
-        if element.tag == _('rpc'):
-            return element.attrib['message-id']
-        elif element.tag == _('notification', NOTIFICATION_NS):
-            return 'notification'
+###########
+
+class XMLBuilder:
+    
+    @staticmethod
+    def _element(node):
+        element = ElementTree.Element( _(node.get('tag'),
+                                         node.get('namespace', None)),
+                                      node.get('attributes', {}))
+        if node.has_key('children'):
+            for child in node['children']:
+                element.append(_make_element(child))
         else:
-            return None
+            return element
+    
+    @staticmethod
+    def _etree(tree_dict):
+        return ElementTree.ElementTree(XMLBuilder._element(tree_dict))
+    
+    @staticmethod
+    def to_xml(tree_dict, encoding='utf-8'):
+        fp = StringIO()
+        self._etree(tree_dict).write(fp, encoding)
+        return fp.get_value()
+
+
+### Hello exchange
+
+class Hello:
+    
+    NS = 'urn:ietf:params:xml:ns:netconf:base:1.0'
+    
+    @staticmethod
+    def build(capabilities, encoding='utf-8'):
+        hello = ElementTree.Element(_('hello', Hello.NS))
+        caps = ElementTree.Element('capabilities')
+        for uri in capabilities:
+            cap = ElementTree.Element('capability')
+            cap.text = uri
+            caps.append(cap)
+        hello.append(caps)
+        tree = ElementTree.ElementTree(hello)
+        fp = StringIO()
+        tree.write(fp, encoding)
+        return fp.getvalue()
+    
+    @staticmethod
+    def parse(raw):
+        'Returns tuple of (session-id, ["capability_uri", ...])'
+        id, capabilities = 0, []
+        root = ElementTree.fromstring(raw)
+        if root.tag == _('hello', Hello.NS):
+            for child in root.getchildren():
+                if child.tag == _('session-id', Hello.NS):
+                    id = int(child.text)
+                elif child.tag == _('capabilities', Hello.NS):
+                    for cap in child.getiterator(_('capability', Hello.NS)):
+                        capabilities.append(cap.text)
+        return id, capabilities

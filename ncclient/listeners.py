@@ -32,13 +32,12 @@ class SessionListener(object):
     def __init__(self):
         self._id2rpc = WeakValueDictionary()
         self._expecting_close = False
-        self._subscription = None
+        sself._notification_rpc_id = None
     
     def __str__(self):
         return 'SessionListener'
     
-    def set_subscription(self, id):   
-        self._subscription = id
+    
     
     def expect_close(self):
         self._expecting_close = True
@@ -67,6 +66,27 @@ class SessionListener(object):
                          self._expecting_close)
             if not self._expecting_close:
                 raise err
+
+
+class HelloListener:
+    
+    def __str__(self):
+        return 'HelloListener'
+        
+    def __init__(self, session):
+        self._session = session
+    
+    def reply(self, data):
+        try:
+            id, capabilities = content.Hello.parse(data)
+            logger.debug('HelloListener: session_id: %s; capabilities: %s', id, capabilities)
+            self._session.initialize(id, capabilities)
+        except Exception as e:
+            self._session.initialize_error(e)
+    
+    def error(self, err):
+        self._session.initialize_error(err)
+
 
 class DebugListener:
     

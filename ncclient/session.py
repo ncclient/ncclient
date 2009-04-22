@@ -17,7 +17,7 @@ from threading import Thread, Event
 from Queue import Queue
 
 import content
-from capabilities import CAPABILITIES
+from capabilities import Capabilities, CAPABILITIES
 from error import ClientError
 from subject import Subject
 
@@ -29,7 +29,7 @@ class Session(Thread, Subject):
     
     def __init__(self):
         Thread.__init__(self, name='session')
-        Subject.__init__(self, listeners=[Session.HelloListener(self)])
+        Subject.__init__(self, listeners=[HelloListener(self)])
         self._client_capabilities = CAPABILITIES
         self._server_capabilities = None # yet
         self._id = None # session-id
@@ -42,7 +42,7 @@ class Session(Thread, Subject):
         # start the subclass' main loop
         self.start()
         # queue client's hello message for sending
-        self.send(content.make_hello(self._client_capabilities))
+        self.send(content.Hello.build(self._client_capabilities))
         # we expect server's hello message, wait for _init_event to be set by HelloListener
         self._init_event.wait()
         # there may have been an error
@@ -50,9 +50,15 @@ class Session(Thread, Subject):
             self._close()
             raise self._error
     
+    def initialize(self, id, capabilities):
+        self._id, self._capabilities = id, Capabilities(capabilities)
+        self._init_event.set()
+    
+    def initialize_error(self, err):
+        self._error = err
+        self._init_event.set()
+    
     def send(self, message):
-        message = (u'<?xml version="1.0" encoding="UTF-8"?>%s' %
-                   message).encode('utf-8')
         logger.debug('queueing message: \n%s' % message)
         self._q.put(message)
     
@@ -61,9 +67,15 @@ class Session(Thread, Subject):
 
     def run(self):
         raise NotImplementedError
+        
+    def capabilities(self, whose='client'):
+        if whose == 'client':
+            return self._client_capabilities
+        elif whose == 'server':
+            return self._server_capabilities
     
     ### Properties
-
+    
     @property
     def client_capabilities(self):
         return self._client_capabilities
@@ -79,31 +91,3 @@ class Session(Thread, Subject):
     @property
     def id(self):
         return self._id
-    
-    class HelloListener:
-        
-        def __str__(self):
-            return 'HelloListener'
-        
-        def __init__(self, session):
-            self._session = session
-        
-        def _done(self, err=None):
-            if err is not None:
-                self._session._error = err
-            self._session.remove_listener(self)
-            self._session._init_event.set()
-        
-        def reply(self, data):
-            err = None
-            try:
-                id, capabilities = content.parse_hello(data)
-                logger.debug('session_id: %s | capabilities: \n%s', id, capabilities)
-                self._session._id, self._session.capabilities = id, capabilities
-            except Exception as e:
-                err = e
-            finally:
-                self._done(err)
-        
-        def error(self, err):
-            self._done(err)

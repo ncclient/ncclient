@@ -15,8 +15,10 @@
 import logging
 from cStringIO import StringIO
 from os import SEEK_CUR
+import socket
 
 import paramiko
+
 
 from session import Session, SessionError
 
@@ -39,7 +41,7 @@ class SSHSession(Session):
     MSG_DELIM = ']]>]]>'
     
     def __init__(self, load_known_hosts=True,
-                 missing_host_key_policy=paramiko.RejectPolicy):
+                 missing_host_key_policy=paramiko.RejectPolicy()):
         Session.__init__(self)
         self._client = paramiko.SSHClient()
         self._channel = None
@@ -93,27 +95,30 @@ class SSHSession(Session):
         self._parsing_state = state
         self._parsing_pos = self._in_buf.tell()
 
-    def load_host_keys(self, filename):
-        self._client.load_host_keys(filename)
-    
-    def set_missing_host_key_policy(self, policy):
-        self._client.set_missing_host_key_policy(policy)
-    
-    # paramiko exceptions ok?
-    # user might be looking for ClientError
+    #def load_host_keys(self, filename):
+    #    self._client.load_host_keys(filename)
+    #
+    #def set_missing_host_key_policy(self, policy):
+    #    self._client.set_missing_host_key_policy(policy)
+    #
+    #def connect(self, hostname, port=830, username=None, password=None,
+    #            key_filename=None, timeout=None, allow_agent=True,
+    #            look_for_keys=True):
+    #    self._client.connect(hostname, port=port, username=username,
+    #                        password=password, key_filename=key_filename,
+    #                        timeout=timeout, allow_agent=allow_agent,
+    #                        look_for_keys=look_for_keys)    
+    #    transport = self._client.get_transport()
+    #    self._channel = transport.open_session()
+    #    self._channel.invoke_subsystem('netconf')
+    #    self._channel.set_name('netconf')
+    #    self._connected = True
+    #    self._post_connect()
+
     def connect(self, hostname, port=830, username=None, password=None,
                 key_filename=None, timeout=None, allow_agent=True,
                 look_for_keys=True):
-        self._client.connect(hostname, port=port, username=username,
-                            password=password, key_filename=key_filename,
-                            timeout=timeout, allow_agent=allow_agent,
-                            look_for_keys=look_for_keys)    
-        transport = self._client.get_transport()
-        self._channel = transport.open_session()
-        self._channel.invoke_subsystem('netconf')
-        self._channel.set_name('netconf')
-        self._connected = True
-        self._post_connect()
+        self._transport = paramiko.Transport()
     
     def run(self):
         chan = self._channel

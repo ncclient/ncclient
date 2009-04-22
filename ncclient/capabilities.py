@@ -25,8 +25,11 @@ class Capabilities:
     def __contains__(self, key):
         return ( key in self._dict ) or ( key in self._dict.values() )
     
+    def __iter__(self):
+        return self._dict.keys().__iter__()
+    
     def __repr__(self):
-        return self.to_xml()
+        return repr(self._dict.keys())
     
     def add(self, uri, shorthand=None):
         if shorthand is None:
@@ -43,10 +46,6 @@ class Capabilities:
                 if self._dict[uri] == key:
                     del self._dict[uri]
                     break
-    
-    def to_xml(self):
-        elems = ['<capability>%s</capability>' % uri for uri in self._dict]
-        return ('<capabilities>%s</capabilities>' % ''.join(elems))
     
     @staticmethod
     def guess_shorthand(uri):
@@ -70,4 +69,3 @@ CAPABILITIES = Capabilities([
 
 if __name__ == "__main__":
     assert(':validate' in CAPABILITIES) # test __contains__
-    print CAPABILITIES # test __repr__
