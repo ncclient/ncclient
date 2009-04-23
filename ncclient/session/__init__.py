@@ -12,11 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from session import SessionError, SessionCloseError
+import logging
+logger = logging.getLogger('ncclient.session')
+
+from session import DebugListener, SessionError, SessionCloseError
 from ssh import SSHSession
+from capabilities import CAPABILITIES, Capabilities
 
 __all__ = [
+    'DebugListener'
+    'Session'
     'SSHSession',
     'SessionError',
     'SessionCloseError',
+    'Capabilities',
+    'CAPABILITIES'
 ]

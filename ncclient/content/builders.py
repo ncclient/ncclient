@@ -23,7 +23,7 @@ class TreeBuilder:
     '''
     
     def __init__(self, spec):
-        self._root = Builder.build(spec)
+        self._root = TreeBuilder.build(spec)
         
     def to_string(self, encoding='utf-8'):
         return ET.tostring(self._root, encoding)
@@ -39,7 +39,7 @@ class TreeBuilder:
             ele = ET.Element(spec.get('tag'), spec.get('attributes', {}))
             ele.text = spec.get('text', '')
             for child in spec.get('children', []):
-                ele.append(Builder.build(child))
+                ele.append(TreeBuilder.build(child))
             return ele
         elif spec.has_key('comment'):
             return ET.Comment(spec.get('comment'))
@@ -53,7 +53,7 @@ class HelloBuilder:
     def build(capabilities, encoding='utf-8'):
         children = [{'tag': 'capability', 'text': uri } for uri in capabilities]
         spec = {
-            'tag': _('hello', Hello.NS),
+            'tag': _('hello', BASE_NS),
             'children': [{
                         'tag': 'capabilities',
                         'children': children
@@ -65,11 +65,18 @@ class HelloBuilder:
 class RPCBuilder:
     
     @staticmethod
+    def build(msgid, op, encoding='utf-8'):
+        if isinstance(opspec, basestring):
+            return build_from_string(msgid, op, encoding)
+        else:
+            return build_from_spec(msgid, op, encoding)
+    
+    @staticmethod
     def build_from_spec(msgid, opspec, encoding='utf-8'):
         if isinstance(opspec, dict):
             opspec = [opspec]
         return TreeBuilder({
-                'tag': _('rpc', RPC.NS),
+                'tag': _('rpc', BASE_NS),
                 'attributes': {'message-id': msgid},
                 'children': opspec
                 }).to_string(encoding)

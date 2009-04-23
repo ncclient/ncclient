@@ -14,24 +14,25 @@
 
 'NETCONF Remote Procedure Calls (RPC) and protocol operations'
 
-from ncclient import content
-from ncclient.capabilities import CAPABILITIES
-from rpc import RPC, RPCReply, RPCError
+import logging
+logger = logging.getLogger('ncclient.operations')
 
-from retrieve import Get, GetConfig
-from edit import EditConfig, DeleteConfig
-from session import CloseSession, KillSession
-from lock import Lock, Unlock
-from notification import CreateSubscription
-
-__all__ = [
-    'Get',
-    'GetConfig',
-    'EditConfig',
-    'DeleteConfig',
-    'Lock',
-    'Unlock',
-    'CloseSession',
-    'KillSession',
-    'CreateSubscription',
-    ]
+#from ncclient.session import CAPABILITIES
+#
+#from retrieve import Get, GetConfig
+#from edit import EditConfig, DeleteConfig
+#from session import CloseSession, KillSession
+#from lock import Lock, Unlock
+#from notification import CreateSubscription
+#
+#__all__ = [
+#    'Get',
+#    'GetConfig',
+#    'EditConfig',
+#    'DeleteConfig',
+#    'Lock',
+#    'Unlock',
+#    'CloseSession',
+#    'KillSession',
+#    'CreateSubscription',
+#    ]

@@ -13,12 +13,12 @@
 # limitations under the License.
 
 import logging
-from threading import Thread, Event
+from threading import Thread, Lock, Event
 from Queue import Queue
 
 from capabilities import Capabilities, CAPABILITIES
 
-logger = logging.getLogger('ncclient.session.session')
+logger = logging.getLogger('ncclient.session')
 
 class SessionError(Exception):
     
@@ -26,13 +26,18 @@ class SessionError(Exception):
 
 class SessionCloseError(SessionError):
     
-    def __str__(self):
-        return 'RECEIVED: %s | UNSENT: %s' % (self._in_buf, self._out_buf)
-    
     def __init__(self, in_buf, out_buf=None):
         SessionError.__init__(self)
         self._in_buf, self._out_buf = in_buf, out_buf
-
+        
+    def __str__(self):
+        msg = 'Session closed by remote endpoint.'
+        if self._in_buf:
+            msg += '\nIN_BUFFER: %s' % self._in_buf
+        if self._out_buf:
+            msg += '\nOUT_BUFFER: %s' % self._out_buf
+        return msg
+    
 class Session(Thread):
     
     def __init__(self):
@@ -42,7 +47,7 @@ class Session(Thread):
         self._id = None # session-id
         self._q = Queue()
         self._connected = False # to be set/cleared by subclass implementation
-        self._listeners = set(listeners)
+        self._listeners = set([])
         self._lock = Lock()
     
     def _post_connect(self):
@@ -67,7 +72,7 @@ class Session(Thread):
         proceed.wait()
         # received hello message or an error happened
         self.remove_listener(listener)
-        if self._error:
+        if error:
             self._close()
             raise self._error
     
@@ -135,7 +140,7 @@ class Session(Thread):
 class HelloListener:
     
     def __init__(self, init_cb, error_cb):
-        self._init_cb, self._error_cb = reply_cb, error_cb
+        self._init_cb, self._error_cb = init_cb, error_cb
     
     def __str__(self):
         return 'HelloListener'
@@ -153,3 +158,15 @@ class HelloListener:
     
     def error(self, err):
         self._error_cb(err)
+
+
+class DebugListener:
+    
+    def __str__(self):
+        return 'DebugListener'
+    
+    def reply(self, raw):
+        logger.debug('DebugListener:reply:%s' % raw)
+    
+    def error(self, err):
+        logger.debug('DebugListener:error:%s' % err)

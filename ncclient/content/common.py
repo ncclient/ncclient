@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+BASE_NS = 'urn:ietf:params:xml:ns:netconf:base:1.0'
+
 def qualify(tag, namespace=None):
     'Returns qualified name of form `{namespace}tag`'
     if namespace is None:
         return tag
     else:
         return '{%s}%s' % (namespace, tag)
-
-BASE_NS = 'urn:ietf:params:xml:ns:netconf:base:1.0'

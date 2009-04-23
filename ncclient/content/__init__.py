@@ -13,3 +13,6 @@
 # limitations under the License.
 
 'This module serves as an XML abstraction layer'
+
+import logging
+logger = logging.getLogger('ncclient.content')

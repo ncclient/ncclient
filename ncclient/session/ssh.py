@@ -12,16 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
 from cStringIO import StringIO
 from os import SEEK_CUR
 import socket
 
 import paramiko
 
+from . import logger
 from session import Session, SessionError, SessionCloseError
-
-logger = logging.getLogger('ncclient.ssh')
 
 BUF_SIZE = 4096
 MSG_DELIM = ']]>]]>'
