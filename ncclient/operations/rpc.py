@@ -12,28 +12,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+'Remote Procedure Call'
+
 from threading import Event, Lock
 from uuid import uuid1
 
-import content
-from listeners import session_listener_factory
+_listeners = WeakValueDictionary()
+
+def get_listener(session):
+    try:
+        return _listeners[session]
+    except KeyError:
+        _listeners[session] = MessageListener()
+        return _listeners[session]
 
 class RPC:
-    
-    metadata = {
-        'tag': 'rpc',
-        'xmlns': 'urn:ietf:params:xml:ns:netconf:base:1.0',
-        }
     
     def __init__(self, session, async=False, parse=True):
         self._session = session
         self._async = async
         self._id = uuid1().urn
-        listener = session_listener_factory(self._session)
-        listener.register(self._id, self)
-        session.add_listener(listener)
         self._reply = None
         self._reply_event = Event()
+        self.listener.register(self._id, self)
+        session.add_listener(self.listener)
 
     def _response_cb(self, reply):
         self._reply = reply
@@ -69,6 +71,10 @@ class RPC:
         return self._id
     
     @property
+    def listener(self):
+        listener = get_listener(self._session)
+
+    @property
     def session(self):
         return self._session
 
@@ -77,3 +83,39 @@ class RPCReply:
     class RPCError:
         
         pass
+    
+
+class MessageListener:
+    
+    def __init__(self):
+        # {message-id: RPC}
+        self._rpc = WeakValueDictionary()
+        # if the session gets closed by remote endpoint,
+        # need to know if it is an error event or was requested through
+        # a NETCONF operation i.e. CloseSession
+        self._expecting_close = False
+        # other recognized names and behavior on receiving them
+        self._recognized = []
+    
+    def __str__(self):
+        return 'MessageListener'
+    
+    def expect_close(self):
+        self._expecting_close = True
+    
+    def register(self, id, op):
+        self._id2rpc[id] = op
+    
+    ### Events
+    
+    def reply(self, raw):
+        pass
+    
+    def error(self, err):
+        from ncclient.session.session import SessionCloseError
+        if err is SessionCloseError:
+            logger.debug('session closed by remote endpoint, expecting_close=%s' %
+                         self._expecting_close)
+            if not self._expecting_close:
+                raise err
+

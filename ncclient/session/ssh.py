@@ -19,27 +19,15 @@ import socket
 
 import paramiko
 
-
-from session import Session, SessionError
+from session import Session, SessionError, SessionCloseError
 
 logger = logging.getLogger('ncclient.ssh')
 
-
-class SessionCloseError(SessionError):
-    
-    def __str__(self):
-        return 'RECEIVED: %s | UNSENT: %s' % (self._in_buf, self._out_buf)
-    
-    def __init__(self, in_buf, out_buf=None):
-        SessionError.__init__(self)
-        self._in_buf, self._out_buf = in_buf, out_buf
-
+BUF_SIZE = 4096
+MSG_DELIM = ']]>]]>'
 
 class SSHSession(Session):
 
-    BUF_SIZE = 4096
-    MSG_DELIM = ']]>]]>'
-    
     def __init__(self, load_known_hosts=True,
                  missing_host_key_policy=paramiko.RejectPolicy()):
         Session.__init__(self)
@@ -57,7 +45,7 @@ class SSHSession(Session):
         self._connected = False
     
     def _fresh_data(self):
-        delim = SSHSession.MSG_DELIM
+        delim = MSG_DELIM
         n = len(delim) - 1
         state = self._parsing_state
         buf = self._in_buf
@@ -95,48 +83,44 @@ class SSHSession(Session):
         self._parsing_state = state
         self._parsing_pos = self._in_buf.tell()
 
-    #def load_host_keys(self, filename):
-    #    self._client.load_host_keys(filename)
-    #
-    #def set_missing_host_key_policy(self, policy):
-    #    self._client.set_missing_host_key_policy(policy)
-    #
-    #def connect(self, hostname, port=830, username=None, password=None,
-    #            key_filename=None, timeout=None, allow_agent=True,
-    #            look_for_keys=True):
-    #    self._client.connect(hostname, port=port, username=username,
-    #                        password=password, key_filename=key_filename,
-    #                        timeout=timeout, allow_agent=allow_agent,
-    #                        look_for_keys=look_for_keys)    
-    #    transport = self._client.get_transport()
-    #    self._channel = transport.open_session()
-    #    self._channel.invoke_subsystem('netconf')
-    #    self._channel.set_name('netconf')
-    #    self._connected = True
-    #    self._post_connect()
+    def load_host_keys(self, filename):
+        self._client.load_host_keys(filename)
+
+    def set_missing_host_key_policy(self, policy):
+        self._client.set_missing_host_key_policy(policy)
 
     def connect(self, hostname, port=830, username=None, password=None,
                 key_filename=None, timeout=None, allow_agent=True,
                 look_for_keys=True):
-        self._transport = paramiko.Transport()
+        self._client.connect(hostname, port=port, username=username,
+                            password=password, key_filename=key_filename,
+                            timeout=timeout, allow_agent=allow_agent,
+                            look_for_keys=look_for_keys)    
+        transport = self._client.get_transport()
+        self._channel = transport.open_session()
+        self._channel.invoke_subsystem('netconf')
+        self._channel.set_name('netconf')
+        self._connected = True
+        self._post_connect()
+    
     
     def run(self):
         chan = self._channel
         chan.setblocking(0)
         q = self._q
         try:
-            while True:    
+            while True:
                 if chan.closed:
                     raise SessionCloseError(self._in_buf.getvalue())         
                 if chan.send_ready() and not q.empty():
-                    data = q.get() + SSHSession.MSG_DELIM
+                    data = q.get() + MSG_DELIM
                     while data:
                         n = chan.send(data)
                         if n <= 0:
                             raise SessionCloseError(self._in_buf.getvalue(), data)
                         data = data[n:]
                 if chan.recv_ready():
-                    data = chan.recv(SSHSession.BUF_SIZE)
+                    data = chan.recv(BUF_SIZE)
                     if data:
                         self._in_buf.write(data)
                         self._fresh_data()
@@ -145,12 +129,3 @@ class SSHSession(Session):
         except Exception as e:
             logger.debug('*** broke out of main loop ***')
             self.dispatch('error', e)
-
-class MissingHostKeyPolicy(paramiko.MissingHostKeyPolicy):
-    
-    def __init__(self, cb):
-        self._cb = cb
-    
-    def missing_host_key(self, client, hostname, key):
-        if not self._cb(hostname, key):
-            raise SSHError

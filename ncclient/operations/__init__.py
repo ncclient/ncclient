@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+'NETCONF Remote Procedure Calls (RPC) and protocol operations'
+
 from ncclient import content
-from ncclient import rpc
 from ncclient.capabilities import CAPABILITIES
+from rpc import RPC, RPCReply, RPCError
 
 from retrieve import Get, GetConfig
 from edit import EditConfig, DeleteConfig

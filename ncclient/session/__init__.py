@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
+from session import SessionError, SessionCloseError
+from ssh import SSHSession
 
-if sys.version_info < (2, 5):
-    raise RuntimeError('You need python 2.5 for this module.')
-
-__version__ = "0.05"
+__all__ = [
+    'SSHSession',
+    'SessionError',
+    'SessionCloseError',
+]

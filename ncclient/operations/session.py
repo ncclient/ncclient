@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-class ClientError(Exception):
+'Session-related NETCONF operations'
+
+class CloseSession(RPC):
     
     pass
 
-class NETCONFError(ClientError):
+class KillSession(RPC):
     
     pass
