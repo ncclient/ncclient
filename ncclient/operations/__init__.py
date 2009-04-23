@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ncclient import content as content
+from ncclient import content
+from ncclient import rpc
 from ncclient.capabilities import CAPABILITIES
 
 from retrieve import Get, GetConfig

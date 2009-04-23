@@ -22,6 +22,7 @@ logger = logging.getLogger('ncclient.listeners')
 
 ################################################################################
 
+# {session-id: SessionListener}
 session_listeners = WeakValueDictionary
 def session_listener_factory(session):
     try:
@@ -33,9 +34,14 @@ def session_listener_factory(session):
 class SessionListener:
     
     def __init__(self):
-        self._id2rpc = WeakValueDictionary()
+        # {message-id: RPC}
+        self._rpc = WeakValueDictionary()
+        # if the session gets closed by remote endpoint,
+        # need to know if it is an error event or was requested through
+        # a NETCONF operation i.e. CloseSession
         self._expecting_close = False
-        sself._notification_rpc_id = None
+        # other recognized names 
+        self._recognized = []
     
     def __str__(self):
         return 'SessionListener'
