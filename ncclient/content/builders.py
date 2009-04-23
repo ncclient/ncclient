@@ -75,15 +75,16 @@ class RPCBuilder:
     def build_from_spec(msgid, opspec, encoding='utf-8'):
         if isinstance(opspec, dict):
             opspec = [opspec]
-        return TreeBuilder({
-                'tag': _('rpc', BASE_NS),
-                'attributes': {'message-id': msgid},
-                'children': opspec
-                }).to_string(encoding)
+        spec = {
+            'tag': _('rpc', BASE_NS),
+            'attributes': {'message-id': msgid},
+            'children': opspec
+            }
+        return TreeBuilder(spec).to_string(encoding)
     
     @staticmethod
     def build_from_string(msgid, opstr, encoding='utf-8'):
         decl = '<?xml version="1.0" encoding="%s"?>' % encoding
         doc = (u'''<rpc message-id="%s" xmlns="%s">%s</rpc>''' %
-               (msgid, RPC.NS, opstr)).encode(encoding)
+               (msgid, BASE_NS, opstr)).encode(encoding)
         return (decl + doc)
