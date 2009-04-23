@@ -36,7 +36,8 @@ class HelloParser:
 
 class RootParser:
     '''Parser for the top-level element of an XML document. Does not look at any
-    sub-elements. It is useful for determining the type of received messages.
+    sub-elements. It is useful for efficiently determining the type of received
+    messages.
     '''
     
     def __init__(self, recognize=[]):
@@ -59,7 +60,7 @@ class RootParser:
         '''
         fp = StringIO(raw)
         for event, element in ET.iterparse(fp, events=('start',)):
-            for ele in self._recognize:
+            for ele in self._recognized:
                 if element.tag == ele:
                     return (element.tag, element.attrib)
             break
