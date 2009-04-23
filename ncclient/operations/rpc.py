@@ -39,9 +39,9 @@ class RPC:
         self._reply = reply
         self._event.set()
     
-    def _do_request(self, op):
-        self._session.send(content.make_rpc(self._id, op))
-        # content.make(RPC, attrs={'message-id': self._id}, children=(op,))
+    def _do_request(self, operation):
+        'operation is xml string'
+        self._session.send(content.RPC.make(self._id, operation))
         if not self._async:
             self._reply_event.wait()
         return self._reply
