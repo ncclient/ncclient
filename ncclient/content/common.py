@@ -12,4 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-'This module serves as an XML abstraction layer'
+def qualify(tag, namespace=None):
+    'Returns qualified name of form `{namespace}tag`'
+    if namespace is None:
+        return tag
+    else:
+        return '{%s}%s' % (namespace, tag)
+
+BASE_NS = 'urn:ietf:params:xml:ns:netconf:base:1.0'
