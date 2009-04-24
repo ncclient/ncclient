@@ -52,7 +52,7 @@ class Capabilities:
         if uri.startswith('urn:ietf:params:netconf:capability:'):
             return (':' + uri.split(':')[5])
 
-    
+
 CAPABILITIES = Capabilities([
     'urn:ietf:params:netconf:base:1.0',
     'urn:ietf:params:netconf:capability:writable-running:1.0',

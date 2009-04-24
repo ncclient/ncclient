@@ -66,10 +66,10 @@ class RPCBuilder:
     
     @staticmethod
     def build(msgid, op, encoding='utf-8'):
-        if isinstance(opspec, basestring):
-            return build_from_string(msgid, op, encoding)
+        if isinstance(op, basestring):
+            return RPCBuilder.build_from_string(msgid, op, encoding)
         else:
-            return build_from_spec(msgid, op, encoding)
+            return RPCBuilder.build_from_spec(msgid, op, encoding)
     
     @staticmethod
     def build_from_spec(msgid, opspec, encoding='utf-8'):

@@ -24,11 +24,13 @@ class HelloParser:
         'Returns tuple of (session-id, ["capability_uri", ...])'
         sid, capabilities = 0, []
         root = ET.fromstring(raw)
-        if root.tag == _('hello', BASE_NS):
+        if root.tag in ('hello', _('hello', BASE_NS)):
             for child in root.getchildren():
-                if child.tag == _('session-id', BASE_NS):
+                if child.tag in ('session-id', _('session-id', BASE_NS)):
                     sid = child.text
-                elif child.tag == _('capabilities', BASE_NS):
+                elif child.tag in ('capabilities', _('capabilities', BASE_NS)):
+                    for cap in child.getiterator('capability'): 
+                        capabilities.append(cap.text)
                     for cap in child.getiterator(_('capability', BASE_NS)):
                         capabilities.append(cap.text)
         return sid, capabilities

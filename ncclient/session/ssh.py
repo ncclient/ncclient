@@ -12,40 +12,37 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+import socket
+from binascii import hexlify
 from cStringIO import StringIO
-from os import SEEK_CUR
 from select import select
 
 import paramiko
 
+import session
 from . import logger
-from session import Session, SessionError, SessionCloseError
+from error import SSHError, SSHUnknownHostError, SSHAuthenticationError, RemoteClosedError
+from session import Session
 
 BUF_SIZE = 4096
 MSG_DELIM = ']]>]]>'
-
-# TODO:
-# chuck SSHClient and use paramiko low-level api to get cisco compatibility
-# and finer control over host key verification, authentication, and error
-# handling
+TICK = 0.1
 
 class SSHSession(Session):
 
-    def __init__(self, load_known_hosts=True,
-                 missing_host_key_policy=paramiko.RejectPolicy()):
+    def __init__(self):
         Session.__init__(self)
-        self._client = paramiko.SSHClient()
-        self._channel = None
-        if load_known_hosts:
-            self._client.load_system_host_keys()
-        self._client.set_missing_host_key_policy(missing_host_key_policy)
-        self._in_buf = StringIO()
-        self._parsing_state = 0
-        self._parsing_pos = 0
-    
-    def _close(self):
-        self._channel.close()
+        self._system_host_keys = paramiko.HostKeys()
+        self._host_keys = paramiko.HostKeys()
+        self._host_keys_filename = None
+        self._transport = None
         self._connected = False
+        self._channel = None
+        self._buffer = StringIO() # for incoming data
+        # parsing-related, see _fresh_data()
+        self._parsing_state = 0 
+        self._parsing_pos = 0
     
     def _fresh_data(self):
         '''The buffer could have grown by a maximum of BUF_SIZE bytes everytime 
@@ -55,7 +52,7 @@ class SSHSession(Session):
         delim = MSG_DELIM
         n = len(delim) - 1
         state = self._parsing_state
-        buf = self._in_buf
+        buf = self._buffer
         buf.seek(self._parsing_pos)
         while True:
             x = buf.read(1)
@@ -79,36 +76,179 @@ class SSHSession(Session):
                 till = buf.tell() - n
                 buf.seek(0)
                 msg = buf.read(till)
-                self.dispatch('reply', msg)
-                buf.seek(n+1, SEEK_CUR)
+                self.dispatch('received', msg)
+                buf.seek(n+1, os.SEEK_CUR)
                 rest = buf.read()
                 buf = StringIO()
                 buf.write(rest)
                 buf.seek(0)
                 state = 0
-        self._in_buf = buf
+        self._buffer = buf
         self._parsing_state = state
-        self._parsing_pos = self._in_buf.tell()
-
+        self._parsing_pos = self._buffer.tell()
+    
+    def load_system_host_keys(self, filename=None):
+        if filename is None:
+            # try the user's .ssh key file, and mask exceptions
+            filename = os.path.expanduser('~/.ssh/known_hosts')
+            try:
+                self._system_host_keys.load(filename)
+            except IOError:
+                pass
+            return
+        self._system_host_keys.load(filename)
+    
     def load_host_keys(self, filename):
-        self._client.load_host_keys(filename)
+        self._host_keys_filename = filename
+        self._host_keys.load(filename)
 
-    def set_missing_host_key_policy(self, policy):
-        self._client.set_missing_host_key_policy(policy)
-
-    def connect(self, hostname, port=830, username=None, password=None,
-                key_filename=None, timeout=None, allow_agent=True,
-                look_for_keys=True):
-        self._client.connect(hostname, port=port, username=username,
-                            password=password, key_filename=key_filename,
-                            timeout=timeout, allow_agent=allow_agent,
-                            look_for_keys=look_for_keys)    
-        transport = self._client.get_transport()
-        self._channel = transport.open_session()
-        self._channel.invoke_subsystem('netconf')
-        self._channel.set_name('netconf')
-        self._connected = True
-        self._post_connect()
+    def add_host_key(self, key):
+        self._host_keys.add(key)
+    
+    def save_host_keys(self, filename):
+        f = open(filename, 'w')
+        for hostname, keys in self._host_keys.iteritems():
+            for keytype, key in keys.iteritems():
+                f.write('%s %s %s\n' % (hostname, keytype, key.get_base64()))
+        f.close()    
+    
+    def close(self):
+        if self._transport.is_active():
+            self._transport.close()
+        self._connected = False
+    
+    def connect(self, hostname, port=830, timeout=None,
+                unknown_host_cb=None, username=None, password=None,
+                key_filename=None, allow_agent=True, look_for_keys=True,
+                authtypes=['publickey', 'password', 'keyboard-interactive']):
+        
+        assert(username is not None)
+        
+        for (family, socktype, proto, canonname, sockaddr) in \
+        socket.getaddrinfo(hostname, port):
+            if socktype==socket.SOCK_STREAM:
+                af = family
+                addr = sockaddr
+                break
+        else:
+            raise SSHError('No suitable address family for %s' % hostname)
+        sock = socket.socket(af, socket.SOCK_STREAM)
+        sock.settimeout(timeout)
+        sock.connect(addr)
+        t = self._transport = paramiko.Transport(sock)
+        t.set_log_channel(logger.name)
+        
+        try:
+            t.start_client()
+        except paramiko.SSHException:
+            raise SSHError('Negotiation failed')
+        
+        # host key verification
+        server_key = t.get_remote_server_key()
+        known_host = self._host_keys.check(hostname, server_key) or \
+                        self._system_host_keys.check(hostname, server_key)
+        
+        if unknown_host_cb is None:
+            unknown_host_cb = lambda *args: False
+        if not known_host and not unknown_host_cb(hostname, server_key):
+                raise SSHUnknownHostError(hostname, server_key)
+        
+        if key_filename is None:
+            key_filenames = []
+        elif isinstance(key_filename, basestring):
+            key_filenames = [ key_filename ]
+        else:
+            key_filenames = key_filename
+        
+        self._auth(username, password, key_filenames, allow_agent, look_for_keys)
+        
+        self._connected = True # there was no error authenticating
+        
+        c = self._channel = self._transport.open_session()
+        c.invoke_subsystem('netconf')
+        c.set_name('netconf')
+        
+        Session._post_connect(self)
+    
+    # on the lines of paramiko.SSHClient._auth()
+    def _auth(self, username, password, key_filenames, allow_agent,
+              look_for_keys):
+        saved_exception = None
+        
+        allowed = ['publickey', 'keyboard-interactive', 'password']
+        
+        for key_filename in key_filenames:
+            if 'publickey' not in allowed:
+                    break
+            for cls in (paramiko.RSAKey, paramiko.DSSKey):
+                try:
+                    key = cls.from_private_key_file(key_filename, password)
+                    logger.debug('Trying key %s from %s' %
+                              (hexlify(key.get_fingerprint()), key_filename))
+                    self._transport.auth_publickey(username, key)
+                    return
+                except paramiko.BadAuthenticationType as e:
+                    allowed = e.allowed_types
+                    logger.debug(e)
+                except Exception as e:
+                    saved_exception = e
+                    logger.debug(e)
+        
+        if allow_agent:
+            for key in paramiko.Agent().get_keys():
+                if 'publickey' not in allowed:
+                    break
+                try:
+                    logger.debug('Trying SSH agent key %s' %
+                                 hexlify(key.get_fingerprint()))
+                    logger.error( self._transport.auth_publickey(username, key) )
+                    return
+                except paramiko.BadAuthenticationType as e:
+                    allowed = e.allowed_types
+                    logger.debug(e)
+                except Exception as e:
+                    saved_exception = e
+                    logger.debug(e)
+        
+        keyfiles = []
+        if look_for_keys and 'publickey' in allowed:
+            rsa_key = os.path.expanduser('~/.ssh/id_rsa')
+            dsa_key = os.path.expanduser('~/.ssh/id_dsa')
+            if os.path.isfile(rsa_key):
+                keyfiles.append((paramiko.RSAKey, rsa_key))
+            if os.path.isfile(dsa_key):
+                keyfiles.append((paramiko.DSSKey, dsa_key))
+            # look in ~/ssh/ for windows users:
+            rsa_key = os.path.expanduser('~/ssh/id_rsa')
+            dsa_key = os.path.expanduser('~/ssh/id_dsa')
+            if os.path.isfile(rsa_key):
+                keyfiles.append((paramiko.RSAKey, rsa_key))
+            if os.path.isfile(dsa_key):
+                keyfiles.append((paramiko.DSSKey, dsa_key))
+        
+        for cls, filename in keyfiles:
+            try:
+                key = cls.from_private_key_file(filename, password)
+                logger.debug('Trying discovered key %s in %s' %
+                          (hexlify(key.get_fingerprint()), filename))
+                allowed = self._transport.auth_publickey(username, key)
+                return
+            except Exception as e:
+                saved_exception = e
+                logger.debug(e)
+        
+        if password is not None:
+            try:
+                self._transport.auth_password(username, password)
+                return
+            except Exception as e:
+                saved_exception = e
+                logger.debug(e)
+        
+        if saved_exception is not None:
+            raise SSHAuthenticationError(saved_exception)
+        
+        raise SSHAuthenticationError('No authentication methods available')
     
     def run(self):
         chan = self._channel
@@ -119,21 +259,28 @@ class SSHSession(Session):
                 # select on a paramiko ssh channel object does not ever
                 # return it in the writable list, so it does not exactly
                 # emulate the socket api
-                r, w, e = select([chan], [], [], 0.1)
+                r, w, e = select([chan], [], [], TICK)
+                # will wakeup evey TICK seconds to check if something
+                # to send, more if something to read (due to select returning chan
+                # in readable list)
                 if r:
                     data = chan.recv(BUF_SIZE)
                     if data:
-                        self._in_buf.write(data)
+                        self._buffer.write(data)
                         self._fresh_data()
                     else:
-                        raise SessionCloseError(self._in_buf.getvalue())
+                        raise RemoteClosedError(self._buffer.getvalue())
                 if not q.empty() and chan.send_ready():
                     data = q.get() + MSG_DELIM
                     while data:
                         n = chan.send(data)
                         if n <= 0:
-                            raise SessionCloseError(self._in_buf.getvalue(), data)
+                            raise RemoteClosedError(self._buffer.getvalue(), data)
                         data = data[n:]
         except Exception as e:
+            self.close()
             logger.debug('*** broke out of main loop ***')
             self.dispatch('error', e)
+    
+    def set_keepalive(self, interval=0):
+        self._transport.set_keepalive()

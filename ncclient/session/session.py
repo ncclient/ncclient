@@ -12,88 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
 from threading import Thread, Lock, Event
 from Queue import Queue
 
+from . import logger
 from capabilities import Capabilities, CAPABILITIES
 
-logger = logging.getLogger('ncclient.session')
 
-class SessionError(Exception):
-    
-    pass
+class Subject:
 
-class SessionCloseError(SessionError):
-    
-    def __init__(self, in_buf, out_buf=None):
-        SessionError.__init__(self)
-        self._in_buf, self._out_buf = in_buf, out_buf
-        
-    def __str__(self):
-        msg = 'Session closed by remote endpoint.'
-        if self._in_buf:
-            msg += '\nIN_BUFFER: %s' % self._in_buf
-        if self._out_buf:
-            msg += '\nOUT_BUFFER: %s' % self._out_buf
-        return msg
-    
-class Session(Thread):
-    
     def __init__(self):
-        Thread.__init__(self, name='session')
-        self._client_capabilities = CAPABILITIES
-        self._server_capabilities = None # yet
-        self._id = None # session-id
-        self._q = Queue()
-        self._connected = False # to be set/cleared by subclass implementation
         self._listeners = set([])
         self._lock = Lock()
-    
-    def _post_connect(self):
-        from ncclient.content.builders import HelloBuilder
-        # queue client's hello message for sending
-        self.send(HelloBuilder.build(self._client_capabilities))
         
-        error = None
-        proceed = Event()
-        def ok_cb(id, capabilities):
-            self._id, self._capabilities = id, Capabilities(capabilities)
-            proceed.set()
-        def err_cb(err):
-            error = err
-            proceed.set()
-        listener = HelloListener(ok_cb, err_cb)
-        self.add_listener(listener)
-        
-        # start the subclass' main loop
-        self.start()        
-        # we expect server's hello message
-        proceed.wait()
-        # received hello message or an error happened
-        self.remove_listener(listener)
-        if error:
-            self._close()
-            raise self._error
-    
-    def send(self, message):
-        logger.debug('queueing message: \n%s' % message)
-        self._q.put(message)
-    
-    def connect(self):
-        raise NotImplementedError
-
-    def run(self):
-        raise NotImplementedError
-        
-    def capabilities(self, whose='client'):
-        if whose == 'client':
-            return self._client_capabilities
-        elif whose == 'server':
-            return self._server_capabilities
-    
-    ### Session is a subject for arbitary listeners
-    
     def has_listener(self, listener):
         with self._lock:
             return (listener in self._listeners)
@@ -116,7 +47,58 @@ class Session(Thread):
                 logger.debug('dispatching [%s] to [%s]' % (event, l))
                 getattr(l, event)(*args, **kwds)
             except Exception as e:
-                logger.warning(e)
+                pass # if a listener doesn't care for some event we don't care
+
+
+class Session(Thread, Subject):
+    
+    def __init__(self):
+        Thread.__init__(self, name='session')
+        Subject.__init__(self)
+        self._client_capabilities = CAPABILITIES
+        self._server_capabilities = None # yet
+        self._id = None # session-id
+        self._q = Queue()
+        self._connected = False # to be set/cleared by subclass implementation
+    
+    def _post_connect(self):
+        from ncclient.content.builders import HelloBuilder
+        self.send(HelloBuilder.build(self._client_capabilities))
+        error = None
+        init_event = Event()
+        def ok_cb(id, capabilities):
+            self._id, self._capabilities = id, Capabilities(capabilities)
+            init_event.set()
+        def err_cb(err):
+            error = err
+            init_event.set()
+        listener = HelloListener(ok_cb, err_cb)
+        self.add_listener(listener)
+        # start the subclass' main loop
+        self.start()        
+        # we expect server's hello message
+        init_event.wait()
+        # received hello message or an error happened
+        self.remove_listener(listener)
+        if error:
+            raise error
+        logger.debug('initialized:session-id:%s' % self._id)
+    
+    def send(self, message):
+        logger.debug('queueing:%s' % message)
+        self._q.put(message)
+    
+    def connect(self):
+        raise NotImplementedError
+
+    def run(self):
+        raise NotImplementedError
+        
+    def capabilities(self, whose='client'):
+        if whose == 'client':
+            return self._client_capabilities
+        elif whose == 'server':
+            return self._server_capabilities
     
     ### Properties
     
@@ -147,7 +129,8 @@ class HelloListener:
     
     ### Events
     
-    def reply(self, raw):
+    def received(self, raw):
+        logger.debug(raw)
         from ncclient.content.parsers import HelloParser
         try:
             id, capabilities = HelloParser.parse(raw)
@@ -165,8 +148,8 @@ class DebugListener:
     def __str__(self):
         return 'DebugListener'
     
-    def reply(self, raw):
-        logger.debug('DebugListener:reply:%s' % raw)
+    def received(self, raw):
+        logger.debug('DebugListener:[received]:%s' % raw)
     
     def error(self, err):
-        logger.debug('DebugListener:error:%s' % err)
+        logger.debug('DebugListener:[error]:%s' % err)

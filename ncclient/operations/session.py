@@ -15,9 +15,7 @@
 'Session-related NETCONF operations'
 
 class CloseSession(RPC):
-    
     pass
 
 class KillSession(RPC):
-    
     pass
