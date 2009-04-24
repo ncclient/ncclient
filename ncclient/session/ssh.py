@@ -119,8 +119,7 @@ class SSHSession(Session):
     
     def connect(self, hostname, port=830, timeout=None,
                 unknown_host_cb=None, username=None, password=None,
-                key_filename=None, allow_agent=True, look_for_keys=True,
-                authtypes=['publickey', 'password', 'keyboard-interactive']):
+                key_filename=None, allow_agent=True, look_for_keys=True):
         
         assert(username is not None)
         
@@ -283,4 +282,4 @@ class SSHSession(Session):
             self.dispatch('error', e)
     
     def set_keepalive(self, interval=0):
-        self._transport.set_keepalive()
+        self._transport.set_keepalive(interval)
