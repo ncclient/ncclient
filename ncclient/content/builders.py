@@ -17,6 +17,16 @@ from xml.etree import cElementTree as ET
 from common import BASE_NS
 from common import qualify as _
 
+try:
+    register_namespace = ET.register_namespace
+except AttributeError:
+    def register_namespace(prefix, uri):
+        from xml.etree import ElementTree
+        # cElementTree uses ElementTree's _namespace_map
+        ElementTree._namespace_map[uri] = prefix
+
+register_namespace('netconf', BASE_NS)
+
 class TreeBuilder:
     '''Build an ElementTree.Element instance from an XML tree specification
     based on nested dictionaries.
@@ -26,7 +36,10 @@ class TreeBuilder:
         self._root = TreeBuilder.build(spec)
         
     def to_string(self, encoding='utf-8'):
-        return ET.tostring(self._root, encoding)
+        # etree does not include the <?xml..?> processing instruction
+        # if encoding is utf-8. this is a problem with cisco routers.
+        prepend = '<?xml version="1.0" encoding="UTF-8"?>' if encoding=='utf-8' else ''
+        return prepend + ET.tostring(self._root, encoding)
     
     @property
     def tree(self):
@@ -38,7 +51,10 @@ class TreeBuilder:
         if spec.has_key('tag'):
             ele = ET.Element(spec.get('tag'), spec.get('attributes', {}))
             ele.text = spec.get('text', '')
-            for child in spec.get('children', []):
+            children = spec.get('children', [])
+            if isinstance(children, dict):
+                children = [children]
+            for child in children:
                 ele.append(TreeBuilder.build(child))
             return ele
         elif spec.has_key('comment'):
@@ -55,12 +71,11 @@ class HelloBuilder:
         spec = {
             'tag': _('hello', BASE_NS),
             'children': [{
-                        'tag': 'capabilities',
+                        'tag': u'capabilities',
                         'children': children
                         }]
             }
         return TreeBuilder(spec).to_string(encoding)
-
 
 class RPCBuilder:
     
@@ -73,8 +88,6 @@ class RPCBuilder:
     
     @staticmethod
     def build_from_spec(msgid, opspec, encoding='utf-8'):
-        if isinstance(opspec, dict):
-            opspec = [opspec]
         spec = {
             'tag': _('rpc', BASE_NS),
             'attributes': {'message-id': msgid},
