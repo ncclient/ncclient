@@ -24,11 +24,15 @@ class HelloParser:
         'Returns tuple of (session-id, ["capability_uri", ...])'
         sid, capabilities = 0, []
         root = ET.fromstring(raw)
-        if root.tag in ('hello', _('hello', BASE_NS)):
+        # cisco spews un-namespaced xml
+        htag = ('hello', _('hello', BASE_NS))
+        stag = ('session-id', _('session-id', BASE_NS))
+        ctag = ('capabilities', _('capabilities', BASE_NS))
+        if root.tag in htag:
             for child in root.getchildren():
-                if child.tag in ('session-id', _('session-id', BASE_NS)):
+                if child.tag in stag:
                     sid = child.text
-                elif child.tag in ('capabilities', _('capabilities', BASE_NS)):
+                elif child.tag in ctag:
                     for cap in child.getiterator('capability'): 
                         capabilities.append(cap.text)
                     for cap in child.getiterator(_('capability', BASE_NS)):
