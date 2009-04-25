@@ -21,7 +21,7 @@ from select import select
 import paramiko
 
 from . import logger
-from error import SSHError, SSHUnknownHostError, SSHAuthenticationError, SSHSessionClosedError
+from errors import SSHError, SSHUnknownHostError, SSHAuthenticationError, SSHSessionClosedError
 from session import Session
 
 BUF_SIZE = 4096
