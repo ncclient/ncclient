@@ -17,23 +17,6 @@ from ncclient import ClientError
 class SessionError(ClientError):
     pass
 
-class RemoteClosedError(SessionError):
-    
-    def __init__(self, in_buf, out_buf=None):
-        SessionError.__init__(self)
-        self._in_buf, self._out_buf = in_buf, out_buf
-        
-    def __str__(self):
-        msg = 'Session closed by remote endpoint.'
-        if self._in_buf:
-            msg += '\nIN_BUFFER: %s' % self._in_buf
-        if self._out_buf:
-            msg += '\nOUT_BUFFER: %s' % self._out_buf
-        return msg
-
-class AuthenticationError(SessionError):
-    pass
-
 class SSHError(SessionError):
     pass
 
@@ -48,11 +31,19 @@ class SSHUnknownHostError(SSHError):
         return ('Unknown host key [%s] for [%s]' %
                 (hexlify(self.key.get_fingerprint()), self.hostname))
 
-class SSHAuthenticationError(AuthenticationError, SSHError):
-    'wraps a paramiko exception that occured during auth'
+class SSHAuthenticationError(SSHError):
+    pass
+
+class SSHSessionClosedError(SSHError):
     
-    def __init__(self, ex):
-        self.ex = ex
-    
-    def __repr__(self):
-        return repr(ex)
+    def __init__(self, in_buf, out_buf=None):
+        SessionError.__init__(self, "Unexpected session close.")
+        self._in_buf, self._out_buf = in_buf, out_buf
+        
+    def __str__(self):
+        msg = SessionError(self).__str__()
+        if self._in_buf:
+            msg += '\nIN_BUFFER: %s' % self._in_buf
+        if self._out_buf:
+            msg += '\nOUT_BUFFER: %s' % self._out_buf
+        return msg
