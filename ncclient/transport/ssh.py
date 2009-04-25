@@ -20,7 +20,6 @@ from select import select
 
 import paramiko
 
-import session
 from . import logger
 from error import SSHError, SSHUnknownHostError, SSHAuthenticationError, SSHSessionClosedError
 from session import Session
