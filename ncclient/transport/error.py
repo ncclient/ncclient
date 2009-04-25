@@ -12,38 +12,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ncclient import ClientError
+from ncclient import TransportError
 
-class SessionError(ClientError):
+class SSHError(TransportError):
     pass
 
-class SSHError(SessionError):
+class SSHAuthenticationError(SSHError):
     pass
 
 class SSHUnknownHostError(SSHError):
     
     def __init__(self, hostname, key):
+        from binascii import hexlify
+        SSHError(self, 'Unknown host key [%s] for [%s]'
+                 % (hexlify(key.get_fingerprint()), hostname))
         self.hostname = hostname
         self.key = key
     
-    def __str__(self):
-        from binascii import hexlify
-        return ('Unknown host key [%s] for [%s]' %
-                (hexlify(self.key.get_fingerprint()), self.hostname))
-
-class SSHAuthenticationError(SSHError):
-    pass
-
 class SSHSessionClosedError(SSHError):
     
     def __init__(self, in_buf, out_buf=None):
-        SessionError.__init__(self, "Unexpected session close.")
-        self._in_buf, self._out_buf = in_buf, out_buf
-        
-    def __str__(self):
-        msg = SessionError(self).__str__()
-        if self._in_buf:
-            msg += '\nIN_BUFFER: %s' % self._in_buf
-        if self._out_buf:
-            msg += '\nOUT_BUFFER: %s' % self._out_buf
-        return msg
+        msg = 'Unexpected session close.'
+        if in_buf:
+            msg += '\nIN_BUFFER: %s' % in_buf
+        if out_buf:
+            msg += '\nOUT_BUFFER: %s' % out_buf
+        SSHError.__init__(self, msg)

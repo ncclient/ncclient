@@ -33,9 +33,8 @@ class SSHSession(Session):
 
     def __init__(self):
         Session.__init__(self)
-        self._system_host_keys = paramiko.HostKeys()
         self._host_keys = paramiko.HostKeys()
-        self._host_keys_filename = None
+        self._system_host_keys = paramiko.HostKeys()
         self._transport = None
         self._connected = False
         self._channel = None
@@ -83,24 +82,27 @@ class SSHSession(Session):
                 buf = StringIO()
                 buf.write(rest)
                 buf.seek(0)
-                state = 0
+                expect = 0
         self._buffer = buf
         self._parsing_state = expect
         self._parsing_pos = self._buffer.tell()
     
     def load_system_host_keys(self, filename=None):
         if filename is None:
-            # try the user's .ssh key file, and mask exceptions
             filename = os.path.expanduser('~/.ssh/known_hosts')
             try:
                 self._system_host_keys.load(filename)
             except IOError:
-                pass
+                # for windows
+                filename = os.path.expanduser('~/ssh/known_hosts')
+                try:
+                    self._system_host_keys.load(filename)
+                except IOError:
+                    pass
             return
         self._system_host_keys.load(filename)
     
     def load_host_keys(self, filename):
-        self._host_keys_filename = filename
         self._host_keys.load(filename)
 
     def add_host_key(self, key):
@@ -234,9 +236,9 @@ class SSHSession(Session):
                 logger.debug(e)
         
         if saved_exception is not None:
-            raise AuthenticationError(repr(saved_exception))
+            raise SSHAuthenticationError(repr(saved_exception))
         
-        raise AuthenticationError('No authentication methods available')
+        raise SSHAuthenticationError('No authentication methods available')
     
     def run(self):
         chan = self._channel

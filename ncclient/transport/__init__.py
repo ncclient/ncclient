@@ -13,4 +13,4 @@
 # limitations under the License.
 
 import logging
-logger = logging.getLogger('ncclient.session')
+logger = logging.getLogger('ncclient.transport')

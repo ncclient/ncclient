@@ -16,7 +16,7 @@ from threading import Thread, Lock, Event
 from Queue import Queue
 
 from . import logger
-from capabilities import Capabilities, CAPABILITIES
+from ncclient.capabilities import Capabilities, CAPABILITIES
 
 
 class Subject:
@@ -149,7 +149,7 @@ class DebugListener:
         return 'DebugListener'
     
     def received(self, raw):
-        logger.debug('DebugListener:[received]:%s' % raw)
+        logger.info('DebugListener:[received]:%s' % raw)
     
     def error(self, err):
-        logger.debug('DebugListener:[error]:%s' % err)
+        logger.info('DebugListener:[error]:%s' % err)

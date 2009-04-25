@@ -19,5 +19,14 @@ if sys.version_info < (2, 5):
 
 __version__ = "0.05"
 
-class ClientError(Exception):
+class NCClientError(Exception):
+    pass
+
+class TransportError(NCClientError):
+    pass
+
+class OperationError(NCClientError):
+    pass
+
+class ContentError(NCClientError):
     pass
