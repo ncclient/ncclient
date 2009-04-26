@@ -18,6 +18,7 @@ from weakref import WeakKeyDictionary
 
 from listener import SessionListener
 from ncclient.content.builders import RPCBuilder
+from ncclient.content.parsers import RPCReplyParser
 
 class RPC:
     
@@ -84,17 +85,17 @@ class RPCReply:
     def __init__(self, raw):
         self._raw = raw
         self._parsed = False
-        self._ok = None
         self._errs = []
     
     def __str__(self):
         return self._raw
     
     def parse(self):
-        #errs = RPCParser.parse(self._raw)
-        #for raw, err_dict in errs:
-        #    self._errs.append(RPCError(raw, err_dict))
-        self._parsed = True
+        if not self._parsed:
+            errs = RPCReplyParser.parse(self._raw)
+            for raw, err_dict in errs:
+                self._errs.append(RPCError(raw, err_dict))
+            self._parsed = True
     
     @property
     def raw(self):
@@ -111,10 +112,6 @@ class RPCReply:
     @property
     def errors(self):
         return self._errs
-    
-    @property
-    def raw(self):
-        return self._raw
 
 class RPCError(Exception): # raise it if you like
     
