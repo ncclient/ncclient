@@ -15,7 +15,7 @@
 'Locking-related NETCONF operations'
 
 from rpc import RPC
-from ncclient.content.common import qualify as _
+
 
 class Lock(RPC):
     
@@ -23,6 +23,19 @@ class Lock(RPC):
         RPC.__init__(self)
         self.spec = {
             'tag': 'lock',
+            'children': [ { 'tag': 'target', 'text': None } ]
+            }
+    
+    def request(self, target='running', reply_event=None):
+        self.spec['children'][0]['text'] = target
+        self._do_request(self.spec, reply_event)
+
+class Unock(RPC):
+    
+    def __init__(self):
+        RPC.__init__(self)
+        self.spec = {
+            'tag': 'unlock',
             'children': [ { 'tag': 'target', 'text': None } ]
             }
     
