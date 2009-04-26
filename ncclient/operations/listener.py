@@ -21,6 +21,8 @@ from ncclient.content.common import qualify as _
 from ncclient.content.common import unqualify as __
 from ncclient.content.common import BASE_NS, CISCO_BS
 
+q_rpcreply = [_('rpc-reply', BASE_NS), _('rpc-reply', CISCO_BS)]
+
 class SessionListener:
     
     '''This is the glue between received data and the object it should be
@@ -56,7 +58,7 @@ class SessionListener:
     
     @property
     def _recognized_elements(self):
-        elems = [ 'rpc-reply' ] 
+        elems = q_rpcreply
         with self._lock:
             elems.extend(self._tag2obj.keys())
         return elems
@@ -67,18 +69,21 @@ class SessionListener:
     def received(self, raw):
         res = RootParser.parse(raw, self._recognized_elements)
         if res is not None:
-            (tag, attrs) = res
+            tag, attrs = res # unpack
         else:
             return
         logger.debug('SessionListener.reply: parsed (%r, %r)' % res)
         try:
-            cb = None
-            if tag == 'rpc-reply':
-                id = attrs.get('message-id', None)
-                if id is None:
-                    logger.warning('<rpc-reply> w/o message-id attr received: %s' % raw)
+            obj = None
+            if tag in q_rpcreply:
+                for key in attrs:
+                    if __(key) == 'message-id':
+                        id = attrs[key]
+                        break
                 else:
-                    obj = self._id2rpc.get(id, None)
+                    logger.warning('<rpc-reply> without message-id received: %s'
+                                   % raw)
+                obj = self._id2rpc.get(id, None)
             else:
                 obj = self._tag2obj.get(tag, None)
             if obj is not None:
