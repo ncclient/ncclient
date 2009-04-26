@@ -21,7 +21,7 @@ from select import select
 import paramiko
 
 from . import logger
-from errors import SSHError, SSHUnknownHostError, SSHAuthenticationError, SSHSessionClosedError
+from errors import SSHError, SSHUnknownHostError, SSHAuthenticationError, SessionCloseError
 from session import Session
 
 BUF_SIZE = 4096
@@ -258,13 +258,13 @@ class SSHSession(Session):
                         self._buffer.write(data)
                         self._parse()
                     else:
-                        raise SSHSessionClosedError(self._buffer.getvalue())
+                        raise SessionCloseError(self._buffer.getvalue())
                 if not q.empty() and chan.send_ready():
                     data = q.get() + MSG_DELIM
                     while data:
                         n = chan.send(data)
                         if n <= 0:
-                            raise SSHSessionClosedError(self._buffer.getvalue(), data)
+                            raise SessionCloseError(self._buffer.getvalue(), data)
                         data = data[n:]
         except Exception as e:
             self.close()

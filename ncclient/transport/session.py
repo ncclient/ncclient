@@ -66,8 +66,9 @@ class Session(Thread, Subject):
         self.send(HelloBuilder.build(self._client_capabilities))
         error = None
         init_event = Event()
+        # callbacks
         def ok_cb(id, capabilities):
-            self._id, self._capabilities = id, Capabilities(capabilities)
+            self._id, self._server_capabilities = id, Capabilities(capabilities)
             init_event.set()
         def err_cb(err):
             error = err
@@ -75,14 +76,15 @@ class Session(Thread, Subject):
         listener = HelloListener(ok_cb, err_cb)
         self.add_listener(listener)
         # start the subclass' main loop
-        self.start()        
+        self.start()
         # we expect server's hello message
         init_event.wait()
         # received hello message or an error happened
         self.remove_listener(listener)
         if error:
             raise error
-        logger.debug('initialized:session-id:%s' % self._id)
+        logger.info('initialized: session-id=%s | server_capabilities=%s' %
+                     (self.id, self.server_capabilities))
     
     def send(self, message):
         logger.debug('queueing:%s' % message)
@@ -93,12 +95,6 @@ class Session(Thread, Subject):
 
     def run(self):
         raise NotImplementedError
-        
-    def capabilities(self, whose='client'):
-        if whose == 'client':
-            return self._client_capabilities
-        elif whose == 'server':
-            return self._server_capabilities
     
     ### Properties
     
@@ -141,15 +137,3 @@ class HelloListener:
     
     def error(self, err):
         self._error_cb(err)
-
-
-class DebugListener:
-    
-    def __str__(self):
-        return 'DebugListener'
-    
-    def received(self, raw):
-        logger.info('DebugListener:[received]:%s' % raw)
-    
-    def error(self, err):
-        logger.info('DebugListener:[error]:%s' % err)
