@@ -43,11 +43,13 @@ class Subject:
         with self._lock:
             listeners = list(self._listeners)
         for l in listeners:
+            logger.debug('dispatching [%s] to [%s]' % (event, l))
             try:
-                logger.debug('dispatching [%s] to [%s]' % (event, l))
                 getattr(l, event)(*args, **kwds)
+            except AttributeError as e:
+                logger.debug('Subject.dispatch: %r' % e)
             except Exception as e:
-                pass # if a listener doesn't care for some event we don't care
+                logger.warning('Subject.dispatch: %r' % e)
 
 
 class Session(Thread, Subject):
@@ -90,7 +92,7 @@ class Session(Thread, Subject):
         logger.debug('queueing:%s' % message)
         self._q.put(message)
     
-    def connect(self):
+    def connect(self, *args, **kwds):
         raise NotImplementedError
 
     def run(self):

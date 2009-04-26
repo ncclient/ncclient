@@ -13,9 +13,11 @@
 # limitations under the License.
 
 from xml.etree import cElementTree as ET
+from cStringIO import StringIO
 
 from common import BASE_NS
 from common import qualify as _
+from common import unqualify as __
 
 class HelloParser:
 
@@ -24,21 +26,17 @@ class HelloParser:
         'Returns tuple of (session-id, ["capability_uri", ...])'
         sid, capabilities = 0, []
         root = ET.fromstring(raw)
-        # cisco spews un-namespaced xml
-        htag = ('hello', _('hello', BASE_NS))
-        stag = ('session-id', _('session-id', BASE_NS))
-        ctag = ('capabilities', _('capabilities', BASE_NS))
-        if root.tag in htag:
+        # cisco's too posh to namespace its hello
+        if __(root.tag) == 'hello':
             for child in root.getchildren():
-                if child.tag in stag:
+                if __(child.tag) == 'session-id':
                     sid = child.text
-                elif child.tag in ctag:
+                elif __(child.tag) == 'capabilities':
                     for cap in child.getiterator('capability'): 
                         capabilities.append(cap.text)
                     for cap in child.getiterator(_('capability', BASE_NS)):
                         capabilities.append(cap.text)
         return sid, capabilities
-
 
 class RootParser:
     '''Parser for the top-level element of an XML document. Does not look at any
@@ -46,19 +44,14 @@ class RootParser:
     messages.
     '''
     
-    def __init__(self, recognize=[]):
-        self._recognized = recognize
-    
-    def recognize(self, element):
-        '''Specify an element that should be successfully parsed.
-        
-        element should be a string that represents a qualified name of the form
-        `{namespace}tag`.
-        '''
-        self._recognized.append(element)
-    
-    def parse(self, raw):
+    @staticmethod
+    def parse(raw, recognized=[]):
         '''Parse the top-level element from a string representing an XML document.
+        
+        recognized is a list of tag names that will be successfully parsed.
+        The tag names should not be qualified. This is for simplicity of parsing
+        where the NETCONF implementation is non-compliant (e.g. cisco's which 
+        uses an incorrect namespace)
         
         Returns a `(tag, attributes)` tuple, where `tag` is a string representing
         the qualified name of the recognized element and `attributes` is an
@@ -66,8 +59,17 @@ class RootParser:
         '''
         fp = StringIO(raw)
         for event, element in ET.iterparse(fp, events=('start',)):
-            for ele in self._recognized:
-                if element.tag == ele:
-                    return (element.tag, element.attrib)
+            for ele in recognized:
+                if __(element.tag) == ele:
+                    attrs = {}
+                    for attr in element.attrib:
+                        attrs[__(attr)] = element.attrib[attr]
+                    return (ele, attrs)
             break
-        return None
+
+
+class RPCReplyParser:
+    
+    @staticmethod
+    def parse(raw):
+        pass

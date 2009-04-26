@@ -13,10 +13,13 @@
 # limitations under the License.
 
 BASE_NS = 'urn:ietf:params:xml:ns:netconf:base:1.0'
+CISCO_BS = 'urn:ietf:params:netconf:base:1.0'
 
 def qualify(tag, namespace=None):
     'Returns qualified name of form `{namespace}tag`'
-    if namespace is None:
-        return tag
-    else:
+    if namespace is not None:
         return '{%s}%s' % (namespace, tag)
+    else:
+        return tag
+
+unqualify = lambda tag: tag[tag.rfind('}')+1:]

@@ -20,7 +20,7 @@ class DebugListener:
         return 'DebugListener'
     
     def received(self, raw):
-        logger.debug('DebugListener:[received]:%s' % raw)
+        logger.debug('DebugListener:[received]:||%s||' % raw)
     
     def error(self, err):
         logger.debug('DebugListener:[error]:%r' % err)

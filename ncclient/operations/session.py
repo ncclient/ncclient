@@ -14,30 +14,30 @@
 
 'Session-related NETCONF operations'
 
-from ncclient.content.parsers import RPCParser
 from rpc import RPC
 
 
 class CloseSession(RPC):
     
-    def __init__(self):
-        RPC.__init__(self)
+    def __init__(self, session):
+        RPC.__init__(self, session)
         self.spec = { 'tag': 'close-session' }
     
-    def _response_cb(self, reply):
-        RPC._response_cb(self, reply)
-        if RPCParser.parse_ok(reply):
+    def deliver(self, reply):
+        RPC.deliver(self, reply)
+        self._reply.parse()
+        if self._reply.ok:
             self._listener.expect_close()
         self._session.close()
     
-    def request(self, *args, **kwds):
-        self._do_request(spec, *args, **kwds)
+    def request(self, reply_event=None):
+        self._do_request(self.spec, reply_event)
 
 
 class KillSession(RPC):
     
-    def __init__(self):
-        RPC.__init__(self)
+    def __init__(self, session):
+        RPC.__init__(self, session)
         self.spec = {
             'tag': 'kill-session',
             'children': [ { 'tag': 'session-id', 'text': None} ]

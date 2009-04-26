@@ -74,8 +74,7 @@ class SSHSession(Session):
             else: # if we didn't break out of the loop, full delim was parsed
                 msg_till = buf.tell() - n
                 buf.seek(0)
-                msg = buf.read(msg_till)
-                self.dispatch('received', msg)
+                self.dispatch('received', buf.read(msg_till).strip())
                 buf.seek(n+1, os.SEEK_CUR)
                 rest = buf.read()
                 buf = StringIO()

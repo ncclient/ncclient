@@ -19,26 +19,27 @@ from rpc import RPC
 
 class Lock(RPC):
     
-    def __init__(self):
-        RPC.__init__(self)
+    def __init__(self, session):
+        RPC.__init__(self, session)
         self.spec = {
             'tag': 'lock',
-            'children': [ { 'tag': 'target', 'text': None } ]
+            'children': { 'tag': 'target', 'children': {'tag': None} }
             }
     
     def request(self, target='running', reply_event=None):
-        self.spec['children'][0]['text'] = target
+        self.spec['children']['children']['tag'] = target
         self._do_request(self.spec, reply_event)
 
-class Unock(RPC):
+
+class Unlock(RPC):
     
-    def __init__(self):
-        RPC.__init__(self)
+    def __init__(self, session):
+        RPC.__init__(self, session)
         self.spec = {
             'tag': 'unlock',
-            'children': [ { 'tag': 'target', 'text': None } ]
+            'children': { 'tag': 'target', 'children': {'tag': None} }
             }
     
     def request(self, target='running', reply_event=None):
-        self.spec['children'][0]['text'] = target
+        self.spec['children']['children']['tag'] = target
         self._do_request(self.spec, reply_event)
