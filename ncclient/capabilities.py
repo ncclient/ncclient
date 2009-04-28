@@ -12,9 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 class Capabilities:
     
+    """Represent the capabilities of client or server. Also facilitates using
+    abbreviated capability names in addition to complete URI.
+    """
+    
     def __init__(self, capabilities=None):
+        "TODO: docstring"
         self._dict = {}
         if isinstance(capabilities, dict):
             self._dict = capabilities
@@ -23,15 +29,19 @@ class Capabilities:
                 self._dict[uri] = Capabilities.guess_shorthand(uri)
     
     def __contains__(self, key):
+        "TODO: docstring"
         return ( key in self._dict ) or ( key in self._dict.values() )
     
     def __iter__(self):
+        "TODO: docstring"
         return self._dict.keys().__iter__()
     
     def __repr__(self):
+        "TODO: docstring"
         return repr(self._dict.keys())
     
     def add(self, uri, shorthand=None):
+        "TODO: docstring"
         if shorthand is None:
             shorthand = Capabilities.guess_shorthand(uri)
         self._dict[uri] = shorthand
@@ -39,6 +49,7 @@ class Capabilities:
     set = add
     
     def remove(self, key):
+        "TODO: docstring"
         if key in self._dict:
             del self._dict[key]
         else:
@@ -49,23 +60,21 @@ class Capabilities:
     
     @staticmethod
     def guess_shorthand(uri):
+        "TODO: docstring"
         if uri.startswith('urn:ietf:params:netconf:capability:'):
             return (':' + uri.split(':')[5])
 
 
 CAPABILITIES = Capabilities([
-    'urn:ietf:params:netconf:base:1.0',
-    'urn:ietf:params:netconf:capability:writable-running:1.0',
-    'urn:ietf:params:netconf:capability:candidate:1.0',
-    'urn:ietf:params:netconf:capability:confirmed-commit:1.0',
-    'urn:ietf:params:netconf:capability:rollback-on-error:1.0',
-    'urn:ietf:params:netconf:capability:startup:1.0',
-    'urn:ietf:params:netconf:capability:url:1.0',
-    'urn:ietf:params:netconf:capability:validate:1.0',
-    'urn:ietf:params:netconf:capability:xpath:1.0',
-    'urn:ietf:params:netconf:capability:notification:1.0',
-    'urn:ietf:params:netconf:capability:interleave:1.0'
+    'urn:ietf:params:netconf:base:1.0', # TODO
+    'urn:ietf:params:netconf:capability:writable-running:1.0', # TODO
+    'urn:ietf:params:netconf:capability:candidate:1.0', # TODO
+    'urn:ietf:params:netconf:capability:confirmed-commit:1.0', # TODO
+    'urn:ietf:params:netconf:capability:rollback-on-error:1.0', # TODO
+    'urn:ietf:params:netconf:capability:startup:1.0', # TODO
+    'urn:ietf:params:netconf:capability:url:1.0', # TODO
+    'urn:ietf:params:netconf:capability:validate:1.0', # TODO
+    'urn:ietf:params:netconf:capability:xpath:1.0', # TODO
+    'urn:ietf:params:netconf:capability:notification:1.0', # TODO
+    'urn:ietf:params:netconf:capability:interleave:1.0' # TODO
     ])
-
-if __name__ == "__main__":
-    assert(':validate' in CAPABILITIES) # test __contains__
