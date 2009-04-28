@@ -12,26 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-'NETCONF protocol operations'
+from rpc import RPC
 
-import logging
-logger = logging.getLogger('ncclient.operations')
+class EditConfig(RPC):
+    pass
 
-from retrieve import Get, GetConfig
-from edit import EditConfig, DeleteConfig
-from session import CloseSession, KillSession
-from lock import Lock, Unlock
-from subscribe import CreateSubscription
+class DeleteConfig(RPC):
+    pass
 
-__all__ = [
-    'Get',
-    'GetConfig',
-    'EditConfig',
-    'DeleteConfig',
-    'Lock',
-    'Unlock',
-    'CloseSession',
-    'KillSession',
-    'CreateSubscription',
-    # hmm
-]

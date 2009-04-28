@@ -19,8 +19,8 @@ from rpc import RPC
 
 class CloseSession(RPC):
     
-    def __init__(self, session):
-        RPC.__init__(self, session)
+    def __init__(self, *args, **kwds):
+        RPC.__init__(self, *args, **kwds)
         self.spec = { 'tag': 'close-session' }
     
     def deliver(self, reply):
@@ -28,24 +28,24 @@ class CloseSession(RPC):
         # can't be too huge a reply, should be ok to parse in callback
         self._reply.parse()
         if self._reply.ok:
-            self._listener.expect_close()
+            self._session.expect_close()
         self._session.close()
     
     def request(self, reply_event=None):
-        self._do_request(self.spec, reply_event)
+        self._request(self.spec, reply_event)
 
 
 class KillSession(RPC):
     
-    def __init__(self, session):
-        RPC.__init__(self, session)
+    def __init__(self, *args, **kwds):
+        RPC.__init__(self, *args, **kwds)
         self.spec = {
             'tag': 'kill-session',
             'children': [ { 'tag': 'session-id', 'text': None} ]
             }
     
-    def request(self, session_id, reply_event=None):
+    def request(self, session_id):
         if not isinstance(session_id, basestring): # just make sure...
             session_id = str(session_id)
         self.spec['children'][0]['text'] = session_id
-        self._do_request(self.spec, reply_event)
+        self._request(self.spec)
