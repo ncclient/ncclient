@@ -16,8 +16,8 @@
 
 from xml.etree import cElementTree as ET
 
-################################################################################
-# Namespace-related
+
+### Namespace-related ###
 
 BASE_NS = 'urn:ietf:params:xml:ns:netconf:base:1.0'
 
@@ -39,8 +39,8 @@ qualify = lambda tag, ns: '{%s}%s' % (namespace, tag)
 
 unqualify = lambda tag: tag[tag.rfind('}')+1:]
 
-################################################################################
-# Build XML using Python data structures :-)
+
+### Build XML using Python data structures :-) ###
 
 class TreeBuilder:
     """Build an ElementTree.Element instance from an XML tree specification
@@ -82,5 +82,3 @@ class TreeBuilder:
             return ET.Comment(spec.get('comment'))
         else:
             raise ValueError('Invalid tree spec')
-
-################################################################################
