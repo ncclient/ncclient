@@ -46,7 +46,7 @@ class Subject:
         with self._lock:
             listeners = list(self._listeners)
         for l in listeners:
-            l.deliver(root, raw)
+            l.callback(root, raw)
     
     def _dispatch_error(self, err):
         "TODO: docstring"
@@ -73,7 +73,9 @@ class Subject:
 
 class Listener:
     
-    def deliver(self, raw):
+    "TODO: docstring"
+    
+    def callback(self, root, raw):
         raise NotImplementedError
     
     def errback(self, err):
