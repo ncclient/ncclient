@@ -16,9 +16,9 @@ from threading import Thread, Event
 
 from ncclient.capabilities import Capabilities, CAPABILITIES
 from ncclient.glue import Subject
-from ncclient.transport import logger
 
-import hello
+from . import logger
+from hello import HelloHandler
 
 class Session(Thread, Subject):
     
@@ -36,7 +36,7 @@ class Session(Thread, Subject):
     
     def _post_connect(self):
         "TODO: docstring"
-        self.send(hello.build(self._client_capabilities))
+        self.send(HelloHandler.build(self._client_capabilities))
         error = None
         init_event = Event()
         # callbacks
@@ -46,7 +46,7 @@ class Session(Thread, Subject):
         def err_cb(err):
             error = err
             init_event.set()
-        listener = hello.HelloListener(ok_cb, err_cb)
+        listener = HelloHandler(ok_cb, err_cb)
         self.add_listener(listener)
         # start the subclass' main loop
         self.start()

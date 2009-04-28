@@ -21,35 +21,7 @@ from ncclient.content import TreeBuilder, BASE_NS
 from ncclient.content import qualify as _
 from ncclient.content import unqualify as __
 
-def build(capabilities, encoding='utf-8'):
-    "Given a list of capability URI's returns encoded <hello> message"
-    spec = {
-        'tag': _('hello', BASE_NS),
-        'children': [{
-            'tag': 'capabilities',
-            'children': # this is fun :-)
-                [{ 'tag': 'capability', 'text': uri} for uri in capabilities]
-            }]
-        }
-    return TreeBuilder(spec).to_string(encoding)
-
-def parse(raw):
-    "Returns tuple of (session-id, ['capability_uri', ...])"
-    sid, capabilities = 0, []
-    root = ET.fromstring(raw)
-    for child in root.getchildren():
-        if __(child.tag) == 'session-id':
-            sid = child.text
-        elif __(child.tag) == 'capabilities':
-            for cap in child.getiterator(_('capability', BASE_NS)):
-                capabilities.append(cap.text)
-            # cisco doesn't namespace hello message
-            for cap in child.getiterator('capability'): 
-                capabilities.append(cap.text)
-    return sid, capabilities
-
-
-class HelloListener(Listener):
+class HelloHandler(Listener):
     
     def __init__(self, init_cb, error_cb):
         self._init_cb, self._error_cb = init_cb, error_cb
@@ -68,3 +40,32 @@ class HelloListener(Listener):
     
     def errback(self, err):
         self._error_cb(err)
+    
+    @staticmethod
+    def build(capabilities, encoding='utf-8'):
+        "Given a list of capability URI's returns encoded <hello> message"
+        spec = {
+            'tag': _('hello', BASE_NS),
+            'children': [{
+                'tag': 'capabilities',
+                'children': # this is fun :-)
+                    [{ 'tag': 'capability', 'text': uri} for uri in capabilities]
+                }]
+            }
+        return TreeBuilder(spec).to_string(encoding)
+    
+    @staticmethod
+    def parse(raw):
+        "Returns tuple of ('session-id', ['capability_uri', ...])"
+        sid, capabilities = 0, []
+        root = ET.fromstring(raw)
+        for child in root.getchildren():
+            if __(child.tag) == 'session-id':
+                sid = child.text
+            elif __(child.tag) == 'capabilities':
+                for cap in child.getiterator(_('capability', BASE_NS)):
+                    capabilities.append(cap.text)
+                # cisco doesn't namespace hello message
+                for cap in child.getiterator('capability'): 
+                    capabilities.append(cap.text)
+        return sid, capabilities
