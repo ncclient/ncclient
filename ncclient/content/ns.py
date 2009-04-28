@@ -12,14 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"Namespacing"
+
 BASE_NS = 'urn:ietf:params:xml:ns:netconf:base:1.0'
+
+# cisco devices return incorrectly-namespaced xml
 CISCO_BS = 'urn:ietf:params:netconf:base:1.0'
 
-def qualify(tag, namespace=None):
-    'Returns qualified name of form `{namespace}tag`'
-    if namespace is not None:
-        return '{%s}%s' % (namespace, tag)
-    else:
-        return tag
+qualify = lambda tag, ns: '{%s}%s' % (namespace, tag)
 
 unqualify = lambda tag: tag[tag.rfind('}')+1:]
