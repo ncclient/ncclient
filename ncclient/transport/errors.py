@@ -27,7 +27,7 @@ class SessionCloseError(TransportError):
 class SSHError(TransportError):
     pass
 
-class SSHAuthenticationError(SSHError):
+class AuthenticationError(TransportError):
     pass
 
 class SSHUnknownHostError(SSHError):

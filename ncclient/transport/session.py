@@ -12,60 +12,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from threading import Thread, Lock, Event
-from Queue import Queue
-
-from . import logger
+from threading import Thread, Event
 from ncclient.capabilities import Capabilities, CAPABILITIES
 
-
-class Subject:
-
-    def __init__(self):
-        self._listeners = set([])
-        self._lock = Lock()
-        
-    def has_listener(self, listener):
-        with self._lock:
-            return (listener in self._listeners)
-    
-    def add_listener(self, listener):
-        with self._lock:
-            self._listeners.add(listener)
-    
-    def remove_listener(self, listener):
-        with self._lock:
-            self._listeners.discard(listener)
-    
-    def dispatch(self, event, *args, **kwds):
-        # holding the lock while doing callbacks could lead to a deadlock
-        # if one of the above methods is called
-        with self._lock:
-            listeners = list(self._listeners)
-        for l in listeners:
-            logger.debug('dispatching [%s] to [%s]' % (event, l))
-            try:
-                getattr(l, event)(*args, **kwds)
-            except AttributeError as e:
-                logger.debug('Subject.dispatch: %r' % e)
-            except Exception as e:
-                logger.warning('Subject.dispatch: %r' % e)
-
+import hello
+from . import logger
+from ncclient.glue import Subject
 
 class Session(Thread, Subject):
     
+    "TODO: docstring"
+    
     def __init__(self):
-        Thread.__init__(self, name='session')
+        "TODO: docstring"
         Subject.__init__(self)
+        Thread.__init__(self, name='session')
+        self.setDaemon(True)
         self._client_capabilities = CAPABILITIES
         self._server_capabilities = None # yet
         self._id = None # session-id
-        self._q = Queue()
         self._connected = False # to be set/cleared by subclass implementation
     
     def _post_connect(self):
-        from ncclient.content.builders import HelloBuilder
-        self.send(HelloBuilder.build(self._client_capabilities))
+        "TODO: docstring"
+        self.send(hello.build(self._client_capabilities))
         error = None
         init_event = Event()
         # callbacks
@@ -75,7 +45,7 @@ class Session(Thread, Subject):
         def err_cb(err):
             error = err
             init_event.set()
-        listener = HelloListener(ok_cb, err_cb)
+        listener = hello.HelloListener(ok_cb, err_cb)
         self.add_listener(listener)
         # start the subclass' main loop
         self.start()
@@ -88,11 +58,8 @@ class Session(Thread, Subject):
         logger.info('initialized: session-id=%s | server_capabilities=%s' %
                      (self.id, self.server_capabilities))
     
-    def send(self, message):
-        logger.debug('queueing:%s' % message)
-        self._q.put(message)
-    
     def connect(self, *args, **kwds):
+        "TODO: docstring"
         raise NotImplementedError
 
     def run(self):
@@ -115,27 +82,3 @@ class Session(Thread, Subject):
     @property
     def id(self):
         return self._id
-
-
-class HelloListener:
-    
-    def __init__(self, init_cb, error_cb):
-        self._init_cb, self._error_cb = init_cb, error_cb
-    
-    def __str__(self):
-        return 'HelloListener'
-    
-    ### Events
-    
-    def received(self, raw):
-        logger.debug(raw)
-        from ncclient.content.parsers import HelloParser
-        try:
-            id, capabilities = HelloParser.parse(raw)
-        except Exception as e:
-            self._error_cb(e)
-        else:
-            self._init_cb(id, capabilities)
-    
-    def error(self, err):
-        self._error_cb(err)
