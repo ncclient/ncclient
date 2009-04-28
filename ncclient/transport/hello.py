@@ -16,10 +16,10 @@
 
 from xml.etree import cElementTree as ET
 
-from ncclient.content import TreeBuilder
-from ncclient.content import BASE_NS
+from ncclient.glue import Listener
+from ncclient.content import TreeBuilder, BASE_NS
 from ncclient.content import qualify as _
-
+from ncclient.content import unqualify as __
 
 def build(capabilities, encoding='utf-8'):
     "Given a list of capability URI's returns encoded <hello> message"

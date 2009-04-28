@@ -13,11 +13,12 @@
 # limitations under the License.
 
 from threading import Thread, Event
+
 from ncclient.capabilities import Capabilities, CAPABILITIES
+from ncclient.glue import Subject
+from ncclient.transport import logger
 
 import hello
-from . import logger
-from ncclient.glue import Subject
 
 class Session(Thread, Subject):
     

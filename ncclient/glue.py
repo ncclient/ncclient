@@ -36,10 +36,10 @@ class Subject:
 
     def __init__(self):
         "TODO: docstring"
+        self._q = Queue()
         self._listeners = set([])
-        self._outQ = Queue()
         self._lock = Lock()
-
+    
     def _dispatch_received(self, raw):
         "TODO: docstring"
         root = parse_root(raw)
@@ -68,7 +68,7 @@ class Subject:
     def send(self, message):
         "TODO: docstring"
         logger.debug('queueing:%s' % message)
-        self._outQ.put(message)
+        self._q.put(message)
 
 
 class Listener:

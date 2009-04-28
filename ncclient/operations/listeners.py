@@ -16,14 +16,9 @@ from threading import Lock
 from weakref import WeakValueDictionary
 
 from . import logger
-from ncclient.content.parsers import RootParser
-from ncclient.content.common import qualify as _
-from ncclient.content.common import unqualify as __
-from ncclient.content.common import BASE_NS, CISCO_BS
 
-q_rpcreply = [_('rpc-reply', BASE_NS), _('rpc-reply', CISCO_BS)]
 
-class SessionListener:
+class RPCReplyListener(Listener):
     
     '''This is the glue between received data and the object it should be
     forwarded to.
@@ -103,3 +98,8 @@ class SessionListener:
             logger.error('SessionListener.error: %r' % err)
             if self._errback is not None:
                 errback(err)
+
+
+class NotificationListener(Listener):
+    
+    pass

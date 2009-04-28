@@ -24,7 +24,6 @@ BASE_NS = 'urn:ietf:params:xml:ns:netconf:base:1.0'
 # cisco returns incorrectly namespaced xml
 CISCO_BS = 'urn:ietf:params:netconf:base:1.0'
 
-# we'd like BASE_NS to be prefixed as "netconf"
 try:
     register_namespace = ET.register_namespace
 except AttributeError:
@@ -33,12 +32,12 @@ except AttributeError:
         # cElementTree uses ElementTree's _namespace_map, so that's ok
         ElementTree._namespace_map[uri] = prefix
 
+# we'd like BASE_NS to be prefixed as "netconf"
 register_namespace('netconf', BASE_NS)
 
 qualify = lambda tag, ns: '{%s}%s' % (namespace, tag)
 
 unqualify = lambda tag: tag[tag.rfind('}')+1:]
-
 
 ################################################################################
 # Build XML using Python data structures :-)

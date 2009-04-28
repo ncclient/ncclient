@@ -16,15 +16,20 @@ from threading import Event, Lock
 from uuid import uuid1
 from weakref import WeakKeyDictionary
 
+from . import logger
 from listener import SessionListener
 from ncclient.content.builders import RPCBuilder
 from ncclient.content.parsers import RPCReplyParser
 
+_listeners = WeakKeyDictionary()
+_lock = Lock()
+
+def get_listener(session):
+    with self._lock:
+        return _listeners.setdefault(session, ReplyListener())
+
 class RPC:
-    
-    _listeners = WeakKeyDictionary()
-    _lock = Lock()
-    
+        
     def __init__(self, session):
         self._session = session
         self._id = None
@@ -32,16 +37,10 @@ class RPC:
         self._reply_event = None
     
     @property
-    def _listener(self):
-        with self._lock:
-            return self._listeners.setdefault(self._session, SessionListener())
     
-    def deliver(self, raw):
-        self._reply = RPCReply(raw)
-        self._reply_event.set()
-    
-    def _do_request(self, op, reply_event=None):
+    def _request(self, op):
         self._id = uuid1().urn
+        self._reply = RPCReply()
         # get the listener instance for this session
         # <rpc-reply> with message id will reach response_cb
         self._listener.register(self._id, self)
@@ -56,7 +55,7 @@ class RPC:
             self._reply_event = Event()
             self._reply_event.wait()
             self._reply.parse()
-            return self._reply
+        return self._reply
     
     def request(self, *args, **kwds):
         raise NotImplementedError
@@ -82,10 +81,10 @@ class RPC:
 
 class RPCReply:
     
-    def __init__(self, raw):
-        self._raw = raw
-        self._parsed = False
-        self._errs = []
+    def __init__(self, event):
+        self._delivery_event = event
+        self._raw = None
+        self._errs = None
     
     def __str__(self):
         return self._raw
@@ -96,6 +95,14 @@ class RPCReply:
             for raw, err_dict in errs:
                 self._errs.append(RPCError(raw, err_dict))
             self._parsed = True
+    
+    def deliver(self, raw):
+        self._raw = raw
+        self._delivery_event.set()
+    
+    def received(self, timeout=None):
+        self._delivery_event.wait(timeout)
+        return True
     
     @property
     def raw(self):
@@ -153,3 +160,46 @@ class RPCError(Exception): # raise it if you like
     @property
     def info(self):
         return self._dict.get('info', None)
+
+class Notification:
+    
+    pass
+
+
+
+from builder import TreeBuilder
+from common import BASE_NS
+from common import qualify as _
+
+################################################################################
+
+_ = qualify
+
+def build(msgid, op, encoding='utf-8'):
+    "TODO: docstring"
+    if isinstance(op, basestring):
+        return RPCBuilder.build_from_string(msgid, op, encoding)
+    else:
+        return RPCBuilder.build_from_spec(msgid, op, encoding)
+
+def build_from_spec(msgid, opspec, encoding='utf-8'):
+    "TODO: docstring"
+    spec = {
+        'tag': _('rpc', BASE_NS),
+        'attributes': {'message-id': msgid},
+        'children': opspec
+        }
+    return TreeBuilder(spec).to_string(encoding)
+
+def build_from_string(msgid, opstr, encoding='utf-8'):
+    "TODO: docstring"
+    decl = '<?xml version="1.0" encoding="%s"?>' % encoding
+    doc = (u'''<rpc message-id="%s" xmlns="%s">%s</rpc>''' %
+           (msgid, BASE_NS, opstr)).encode(encoding)
+    return (decl + doc)
+
+################################################################################
+
+# parsing stuff TODO
+
+

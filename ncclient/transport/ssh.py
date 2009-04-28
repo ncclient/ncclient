@@ -29,7 +29,7 @@ MSG_DELIM = ']]>]]>'
 TICK = 0.1
 
 class SSHSession(Session):
-
+    
     def __init__(self):
         Session.__init__(self)
         self._host_keys = paramiko.HostKeys()
@@ -74,7 +74,7 @@ class SSHSession(Session):
             else: # if we didn't break out of the loop, full delim was parsed
                 msg_till = buf.tell() - n
                 buf.seek(0)
-                self.dispatch('received', buf.read(msg_till).strip())
+                self._dispatch_received(buf.read(msg_till).strip())
                 buf.seek(n+1, os.SEEK_CUR)
                 rest = buf.read()
                 buf = StringIO()
@@ -268,11 +268,12 @@ class SSHSession(Session):
         except Exception as e:
             self.close()
             logger.debug('*** broke out of main loop ***')
-            self.dispatch('error', e)
+            self._dispatch_error(e)
     
     @property
     def transport(self):
-        '''Get underlying paramiko.transport object; this is provided so methods
-        like transport.set_keepalive can be called.
+        '''Get underlying paramiko transport object; this is provided so methods
+        like set_keepalive can be called on it. See paramiko.Transport
+        documentation for details.
         '''
         return self._transport
