@@ -32,7 +32,7 @@ def parse_root(raw):
         return (element.tag, element.attrib)
 
 
-class Subject:
+class Subject(object):
 
     def __init__(self):
         "TODO: docstring"
@@ -65,13 +65,22 @@ class Subject:
         with self._lock:
             self._listeners.discard(listener)
     
+    def get_listener_instance(self, cls):
+        '''This is useful when we want to maintain one listener of a particular
+        type per subject i.e. a multiton.
+        '''
+        with self._lock:
+            for listener in self._listeners:
+                if isinstance(listener, cls):
+                    return listener
+    
     def send(self, message):
         "TODO: docstring"
         logger.debug('queueing:%s' % message)
         self._q.put(message)
 
 
-class Listener:
+class Listener(object):
     
     "TODO: docstring"
     
