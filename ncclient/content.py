@@ -16,6 +16,7 @@
 
 from xml.etree import cElementTree as ET
 
+
 ### Namespace-related ###
 
 BASE_NS = 'urn:ietf:params:xml:ns:netconf:base:1.0'
@@ -34,9 +35,13 @@ except AttributeError:
 # we'd like BASE_NS to be prefixed as "netconf"
 register_namespace('netconf', BASE_NS)
 
-qualify = lambda tag, ns: '{%s}%s' % (namespace, tag)
+qualify = lambda tag, ns=BASE_NS: '{%s}%s' % (ns, tag)
+
+# i would have written a def if lambdas weren't so much fun
+multiqualify = lambda tag, nslist=(BASE_NS, CISCO_BS): [qualify(tag, ns) for ns in nslist]
 
 unqualify = lambda tag: tag[tag.rfind('}')+1:]
+
 
 ### Build XML using Python data structures ###
 
@@ -67,7 +72,7 @@ class TreeBuilder:
     @staticmethod
     def build(spec):
         "TODO: docstring"
-        if spec.has_key('tag'):
+        if 'tag' in spec:
             ele = ET.Element(spec.get('tag'), spec.get('attributes', {}))
             ele.text = spec.get('text', '')
             children = spec.get('children', [])
@@ -76,7 +81,7 @@ class TreeBuilder:
             for child in children:
                 ele.append(TreeBuilder.build(child))
             return ele
-        elif spec.has_key('comment'):
+        elif 'comment' in spec:
             return ET.Comment(spec.get('comment'))
         else:
             raise ValueError('Invalid tree spec')

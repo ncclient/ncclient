@@ -33,11 +33,13 @@ def parse_root(raw):
 
 
 class Subject(object):
+    
+    'Meant for subclassing by transport.Session'
 
     def __init__(self):
         "TODO: docstring"
         self._q = Queue()
-        self._listeners = set([])
+        self._listeners = set()
         self._lock = Lock()
     
     def _dispatch_received(self, raw):
