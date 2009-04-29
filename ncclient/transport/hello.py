@@ -32,7 +32,7 @@ class HelloHandler(Listener):
     def callback(self, root, raw):
         if __(root[0]) == 'hello':
             try:
-                id, capabilities = parse(raw)
+                id, capabilities = HelloHandler.parse(raw)
             except Exception as e:
                 self._error_cb(e)
             else:

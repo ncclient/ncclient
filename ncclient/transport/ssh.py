@@ -37,10 +37,12 @@ class SSHSession(Session):
         self._transport = None
         self._connected = False
         self._channel = None
+        self._expecting_close = False
         self._buffer = StringIO() # for incoming data
         # parsing-related, see _parse()
         self._parsing_state = 0 
         self._parsing_pos = 0
+        logger.debug('[SSHSession object created]')
     
     def _parse(self):
         '''Messages ae delimited by MSG_DELIM. The buffer could have grown by a
@@ -84,6 +86,9 @@ class SSHSession(Session):
         self._buffer = buf
         self._parsing_state = expect
         self._parsing_pos = self._buffer.tell()
+    
+    def expect_close(self):
+        self._expecting_close = True
     
     def load_system_host_keys(self, filename=None):
         if filename is None:
@@ -266,9 +271,10 @@ class SSHSession(Session):
                             raise SessionCloseError(self._buffer.getvalue(), data)
                         data = data[n:]
         except Exception as e:
-            self.close()
             logger.debug('*** broke out of main loop ***')
-            self._dispatch_error(e)
+            self.close()
+            if not (isinstance(e, SessionCloseError) and self._expecting_close):
+                self._dispatch_error(e)
     
     @property
     def transport(self):

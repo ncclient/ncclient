@@ -12,15 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from . import logger
+from ncclient.glue import Listener
 
-class DebugListener:
+import logging
+logger = logging.getLogger('DebugListener')
+
+class DebugListener(Listener):
     
     def __str__(self):
         return 'DebugListener'
     
     def received(self, raw):
-        logger.debug('DebugListener:[received]:||%s||' % raw)
+        logger.debug('[received]:||%s||' % raw)
     
-    def error(self, err):
-        logger.debug('DebugListener:[error]:%r' % err)
+    def errback(self, err):
+        logger.debug('[error]:%r' % err)

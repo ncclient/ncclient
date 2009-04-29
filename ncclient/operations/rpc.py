@@ -14,8 +14,11 @@
 
 from threading import Event, Lock
 from uuid import uuid1
+from weakref import WeakValueDictionary
 
-from ncclient.content import TreeBuilder, BASE_NS
+from ncclient.content import TreeBuilder
+from ncclient.content import qualify as _
+from ncclient.content import unqualify as __
 from ncclient.glue import Listener
 
 from . import logger
@@ -26,6 +29,7 @@ class RPC(object):
     
     def __init__(self, session, async=False):
         self._session = session
+        self._async = async
         self._id = uuid1().urn
         self._listener = RPCReplyListener(session)
         self._listener.register(self._id, self)
@@ -41,7 +45,7 @@ class RPC(object):
     def _request(self, op):
         req = self._build(op)
         self._session.send(req)
-        if async:
+        if self._async:
             self._reply_event.wait()
             self._reply.parse()
             return self._reply
@@ -74,7 +78,7 @@ class RPC(object):
     def build_from_spec(msgid, opspec, encoding='utf-8'):
         "TODO: docstring"
         spec = {
-            'tag': _('rpc', BASE_NS),
+            'tag': _('rpc'),
             'attributes': {'message-id': msgid},
             'children': opspec
             }

@@ -30,8 +30,8 @@ class CloseSession(RPC):
             self._session.expect_close()
         self._session.close()
     
-    def request(self, reply_event=None):
-        self._request(self.spec, reply_event)
+    def request(self):
+        self._request(self.spec)
 
 
 class KillSession(RPC):

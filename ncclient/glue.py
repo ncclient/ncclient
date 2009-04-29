@@ -15,10 +15,13 @@
 "TODO: docstring"
 
 from cStringIO import StringIO
+from threading import Thread
 from Queue import Queue
 from threading import Lock
 from xml.etree import cElementTree as ET
 
+import logging
+logger = logging.getLogger('ncclient.glue')
 
 def parse_root(raw):
     '''Parse the top-level element from a string representing an XML document.
@@ -32,14 +35,15 @@ def parse_root(raw):
         return (element.tag, element.attrib)
 
 
-class Subject(object):
+class Subject(Thread):
     
     'Meant for subclassing by transport.Session'
 
     def __init__(self):
         "TODO: docstring"
+        Thread.__init__(self)
         self._q = Queue()
-        self._listeners = set()
+        self._listeners = set() # TODO(?) weakref
         self._lock = Lock()
     
     def _dispatch_received(self, raw):
@@ -48,6 +52,7 @@ class Subject(object):
         with self._lock:
             listeners = list(self._listeners)
         for l in listeners:
+            logger.debug('[dispatching] message to %s' % l)
             l.callback(root, raw)
     
     def _dispatch_error(self, err):
@@ -55,15 +60,18 @@ class Subject(object):
         with self._lock:
             listeners = list(self._listeners)
         for l in listeners:
+            logger.debug('[dispatching] error to %s' % l)
             l.errback(err)
     
     def add_listener(self, listener):
         "TODO: docstring"
+        logger.debug('[installing listener] %r' % listener)
         with self._lock:
             self._listeners.add(listener)
     
     def remove_listener(self, listener):
         "TODO: docstring"
+        logger.debug('[discarding listener] %r' % listener)
         with self._lock:
             self._listeners.discard(listener)
     
@@ -78,7 +86,7 @@ class Subject(object):
     
     def send(self, message):
         "TODO: docstring"
-        logger.debug('queueing:%s' % message)
+        logger.debug('[queueing] %s' % message)
         self._q.put(message)
 
 
