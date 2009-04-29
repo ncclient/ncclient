@@ -12,12 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from glue import Listener
 
 class Notification:
-    
-    pass
-
-class NotificationListener(Listener):
     
     pass

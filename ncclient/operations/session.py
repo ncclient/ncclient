@@ -25,9 +25,8 @@ class CloseSession(RPC):
     
     def deliver(self, reply):
         RPC.deliver(self, reply)
-        # can't be too huge a reply, should be ok to parse in callback
-        self._reply.parse()
-        if self._reply.ok:
+        # can't be too huge, should be ok to parse in callback
+        if self._reply.ok: # (implicitly parse)
             self._session.expect_close()
         self._session.close()
     

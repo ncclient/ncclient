@@ -12,127 +12,116 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-def parse():
-    
-    pass
+from xml.etree import cElementTree as ET
 
+from ncclient.content import multiqualify as _
+from ncclient.content import unqualify as __
 
 class RPCReply:
     
-    def __init__(self, event):
+    def __init__(self, raw):
         self._raw = None
-        self._errs = None
+        self._parsed = False
+        self._errors = []
     
-    def __str__(self):
+    def __repr__(self):
         return self._raw
     
     def parse(self):
-        if not self._parsed:
-            ok = RPCReplyParser.parse(self._raw)
-            for err in errs:
-                self._errs.append(RPCError(*err))
-            self._parsed = True
+        root = ET.fromstring(raw) # <rpc-reply> element
+        
+        # per rfc 4741 an <ok/> tag is sent when there are no errors or warnings
+        oktags = _('ok')
+        for oktag in oktags:
+            if root.find(oktag) is not None:
+                return
+        
+        # create RPCError objects from <rpc-error> elements
+        errtags = _('rpc-error')
+        for errtag in errtags:
+            for err in root.getiterator(errtag): # a particular <rpc-error>
+                d = {}
+                for err_detail in err.getchildren(): # <error-type> etc..
+                    d[__(err_detail)] = err_detail.text
+                self._errors.append(RPCError(d))
+            if self._errors:
+                break
     
     @property
     def raw(self):
         return self._raw
     
     @property
-    def parsed(self):
-        return self._parsed
-    
-    @property
     def ok(self):
-        return True if self._parsed and not self._errs else False
+        if not self._parsed:
+            self.parse()
+        return bool(self._errors) # empty list = false
     
     @property
     def errors(self):
-        return self._errs
+        'List of RPCError objects. Will be empty if no <rpc-error> elements in reply.'
+        if not self._parsed:
+            self.parse()
+        return self._errors
 
 
 class RPCError(Exception): # raise it if you like
     
-    def __init__(self, raw, err_dict):
-        self._raw = raw
+    def __init__(self, err_dict):
         self._dict = err_dict
-    
-    def __str__(self):
-        # TODO
-        return self._raw
-    
-    def __dict__(self):
-        return self._dict
+        if self.message is not None:
+            Exception.__init__(self, self.message)
+        else:
+            Exception.__init__(self)
     
     @property
     def raw(self):
-        return self._raw
+        return self._element.tostring()
     
     @property
     def type(self):
-        return self._dict.get('type', None)
+        return self.get('error-type', None)
     
     @property
     def severity(self):
-        return self._dict.get('severity', None)
+        return self.get('error-severity', None)
     
     @property
     def tag(self):
-        return self._dict.get('tag', None)
+        return self.get('error-tag', None)
     
     @property
     def path(self):
-        return self._dict.get('path', None)
+        return self.get('error-path', None)
     
     @property
     def message(self):
-        return self._dict.get('message', None)
+        return self.get('error-message', None)
     
     @property
     def info(self):
-        return self._dict.get('info', None)
+        return self.get('error-info', None)
 
-
-class RPCReplyListener(Listener):
+    ## dictionary interface
     
-    # TODO - determine if need locking
+    __getitem__ = lambda self, key: self._dict.__getitem__(key)
     
-    # one instance per subject    
-    def __new__(cls, subject):
-        instance = subject.get_listener_instance(cls)
-        if instance is None:
-            instance = object.__new__(cls)
-            instance._id2rpc = WeakValueDictionary()
-            instance._errback = None
-            subject.add_listener(instance)
-        return instance
+    __iter__ = lambda self: self._dict.__iter__()
     
-    def __str__(self):
-        return 'RPCReplyListener'
+    __contains__ = lambda self, key: self._dict.__contains__(key)
     
-    def set_errback(self, errback):
-        self._errback = errback
-
-    def register(self, msgid, rpc):
-        self._id2rpc[msgid] = rpc
+    keys = lambda self: self._dict.keys()
     
-    def callback(self, root, raw):
-        tag, attrs = root
-        if __(tag) != 'rpc-reply':
-            return
-        for key in attrs:
-            if __(key) == 'message-id':
-                id = attrs[key]
-                try:
-                    rpc = self._id2rpc[id]
-                    rpc.deliver(raw)
-                except:
-                    logger.warning('RPCReplyListener.callback: no RPC '
-                                   + 'registered for message-id: [%s]' % id)
-                break
-        else:
-            logger.warning('<rpc-reply> without message-id received: %s' % raw)
+    get = lambda self, key, default: self._dict.get(key, default)
+        
+    iteritems = lambda self: self._dict.iteritems()
     
-    def errback(self, err):
-        logger.error('RPCReplyListener.errback: %r' % err)
-        if self._errback is not None:
-            self._errback(err)
+    iterkeys = lambda self: self._dict.iterkeys()
+    
+    itervalues = lambda self: self._dict.itervalues()
+    
+    values = lambda self: self._dict.values()
+    
+    items = lambda self: self._dict.items()
+    
+    __repr__ = lambda self: repr(self._dict)

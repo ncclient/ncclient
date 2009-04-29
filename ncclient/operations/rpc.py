@@ -15,9 +15,12 @@
 from threading import Event, Lock
 from uuid import uuid1
 
-from . import logger
 from ncclient.content import TreeBuilder, BASE_NS
-from reply import RPCReply, RPCReplyListener
+from ncclient.glue import Listener
+
+from . import logger
+from reply import RPCReply
+
 
 class RPC(object):
     
@@ -26,37 +29,30 @@ class RPC(object):
         self._id = uuid1().urn
         self._listener = RPCReplyListener(session)
         self._listener.register(self._id, self)
-        self._reply = RPCReply()
+        self._reply = None
         self._reply_event = Event()
     
     def _build(self, op, encoding='utf-8'):
         if isinstance(op, dict):
             return self.build_from_spec(self._id, op, encoding)
-        elif isinstance(op, basestring): 
-            return self.build_from_string(self._id, op, encoding)
         else:
-            raise ValueError('Inappropriate value of tree spec.')
+            return self.build_from_string(self._id, op, encoding)
     
     def _request(self, op):
         req = self._build(op)
         self._session.send(req)
-        if reply_event is not None: # if we were provided an Event to use
-            self._reply_event = reply_event
-        else: # otherwise, block till response received and return it
-            self._reply_event = Event()
+        if async:
             self._reply_event.wait()
             self._reply.parse()
-        return self._reply
+            return self._reply
     
-    def request(self, *args, **kwds):
-        raise NotImplementedError
+    def deliver(self, raw):
+        self._reply = RPCReply(raw)
+        self._reply_event.set()
     
     @property
     def has_reply(self):
-        try:
-            return self._reply_event.isSet()
-        except TypeError: # reply_event is None
-            return False
+        return self._reply_event.isSet()
     
     @property
     def reply(self):
@@ -69,6 +65,10 @@ class RPC(object):
     @property
     def session(self):
         return self._session
+    
+    @property
+    def reply_event(self):
+        return self._reply_event
     
     @staticmethod
     def build_from_spec(msgid, opspec, encoding='utf-8'):
@@ -87,3 +87,49 @@ class RPC(object):
         doc = (u'<rpc message-id="%s" xmlns="%s">%s</rpc>' %
                (msgid, BASE_NS, opstr)).encode(encoding)
         return '%s%s' % (decl, doc)
+
+
+class RPCReplyListener(Listener):
+    
+    # TODO - determine if need locking
+    
+    # one instance per subject    
+    def __new__(cls, subject):
+        instance = subject.get_listener_instance(cls)
+        if instance is None:
+            instance = object.__new__(cls)
+            instance._id2rpc = WeakValueDictionary()
+            instance._errback = None
+            subject.add_listener(instance)
+        return instance
+    
+    def __str__(self):
+        return 'RPCReplyListener'
+    
+    def set_errback(self, errback):
+        self._errback = errback
+
+    def register(self, msgid, rpc):
+        self._id2rpc[msgid] = rpc
+    
+    def callback(self, root, raw):
+        tag, attrs = root
+        if __(tag) != 'rpc-reply':
+            return
+        for key in attrs:
+            if __(key) == 'message-id':
+                id = attrs[key]
+                try:
+                    rpc = self._id2rpc[id]
+                    rpc.deliver(raw)
+                except:
+                    logger.warning('RPCReplyListener.callback: no RPC '
+                                   + 'registered for message-id: [%s]' % id)
+                break
+        else:
+            logger.warning('<rpc-reply> without message-id received: %s' % raw)
+    
+    def errback(self, err):
+        logger.error('RPCReplyListener.errback: %r' % err)
+        if self._errback is not None:
+            self._errback(err)

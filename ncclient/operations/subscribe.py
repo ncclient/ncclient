@@ -14,6 +14,15 @@
 
 from rpc import RPC
 
+from ncclient.glue import Listener
+
+from notification import Notification
+
 class CreateSubscription(RPC):    
+    
     pass
 
+
+class NotificationListener(Listener):
+    
+    pass
