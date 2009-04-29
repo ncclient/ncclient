@@ -20,9 +20,11 @@ from select import select
 
 import paramiko
 
-from . import logger
 from errors import AuthenticationError, SessionCloseError, SSHError, SSHUnknownHostError
 from session import Session
+
+import logging
+logger = logging.getLogger('ncclient.transport.ssh')
 
 BUF_SIZE = 4096
 MSG_DELIM = ']]>]]>'
@@ -42,7 +44,6 @@ class SSHSession(Session):
         # parsing-related, see _parse()
         self._parsing_state = 0 
         self._parsing_pos = 0
-        logger.debug('[SSHSession object created]')
     
     def _parse(self):
         '''Messages ae delimited by MSG_DELIM. The buffer could have grown by a
@@ -76,7 +77,8 @@ class SSHSession(Session):
             else: # if we didn't break out of the loop, full delim was parsed
                 msg_till = buf.tell() - n
                 buf.seek(0)
-                self._dispatch_received(buf.read(msg_till).strip())
+                logger.debug('parsed new message')
+                self._dispatch_message(buf.read(msg_till).strip())
                 buf.seek(n+1, os.SEEK_CUR)
                 rest = buf.read()
                 buf = StringIO()
@@ -170,8 +172,8 @@ class SSHSession(Session):
         self._connected = True # there was no error authenticating
         
         c = self._channel = self._transport.open_session()
-        c.invoke_subsystem('netconf')
         c.set_name('netconf')
+        c.invoke_subsystem('netconf')
         
         self._post_connect()
     
@@ -264,6 +266,7 @@ class SSHSession(Session):
                     else:
                         raise SessionCloseError(self._buffer.getvalue())
                 if not q.empty() and chan.send_ready():
+                    logger.debug('sending message')
                     data = q.get() + MSG_DELIM
                     while data:
                         n = chan.send(data)
@@ -271,7 +274,7 @@ class SSHSession(Session):
                             raise SessionCloseError(self._buffer.getvalue(), data)
                         data = data[n:]
         except Exception as e:
-            logger.debug('*** broke out of main loop ***')
+            logger.debug('broke out of main loop')
             self.close()
             if not (isinstance(e, SessionCloseError) and self._expecting_close):
                 self._dispatch_error(e)

@@ -17,10 +17,13 @@ from xml.etree import cElementTree as ET
 from ncclient.content import multiqualify as _
 from ncclient.content import unqualify as __
 
+import logging
+logger = logging.getLogger('ncclient.operations.reply')
+
 class RPCReply:
     
     def __init__(self, raw):
-        self._raw = None
+        self._raw = raw
         self._parsed = False
         self._errors = []
     
@@ -28,12 +31,14 @@ class RPCReply:
         return self._raw
     
     def parse(self):
-        root = ET.fromstring(raw) # <rpc-reply> element
+        root = ET.fromstring(self._raw) # <rpc-reply> element
         
         # per rfc 4741 an <ok/> tag is sent when there are no errors or warnings
         oktags = _('ok')
         for oktag in oktags:
             if root.find(oktag) is not None:
+                logger.debug('found %s' % oktag)
+                self._parsed = True
                 return
         
         # create RPCError objects from <rpc-error> elements
@@ -46,6 +51,7 @@ class RPCReply:
                 self._errors.append(RPCError(d))
             if self._errors:
                 break
+        self._parsed = True
     
     @property
     def raw(self):
@@ -53,15 +59,13 @@ class RPCReply:
     
     @property
     def ok(self):
-        if not self._parsed:
-            self.parse()
-        return bool(self._errors) # empty list = false
+        if not self._parsed: self.parse()
+        return not bool(self._errors) # empty list = false
     
     @property
     def errors(self):
         'List of RPCError objects. Will be empty if no <rpc-error> elements in reply.'
-        if not self._parsed:
-            self.parse()
+        if not self._parsed: self.parse()
         return self._errors
 
 

@@ -17,27 +17,28 @@ from threading import Event
 from ncclient.capabilities import Capabilities, CAPABILITIES
 from ncclient.glue import Subject
 
-from . import logger
 from hello import HelloHandler
+
+import logging
+logger = logging.getLogger('ncclient.transport.session')
 
 class Session(Subject):
     
     "TODO: docstring"
     
     def __init__(self):
-        "TODO: docstring"
+        "Subclass constructor should call this"
         Subject.__init__(self)
         self.setName('session')
-        self.setDaemon(True) #hmm
         self._client_capabilities = CAPABILITIES
         self._server_capabilities = None # yet
         self._id = None # session-id
         self._connected = False # to be set/cleared by subclass implementation
-        logger.debug('[session object created] client_capabilities=%r' %
-                     self._client_capabilities)
+        logger.debug('%r created: client_capabilities=%r' %
+                     (self, self._client_capabilities))
     
     def _post_connect(self):
-        "TODO: docstring"
+        "Greeting stuff"
         init_event = Event()
         error = [None] # so that err_cb can bind error[0]. just how it is.
         # callbacks
@@ -51,7 +52,7 @@ class Session(Subject):
         listener = HelloHandler(ok_cb, err_cb)
         self.add_listener(listener)
         self.send(HelloHandler.build(self._client_capabilities))
-        logger.debug('[starting main loop]')
+        logger.debug('starting main loop')
         self.start()
         # we expect server's hello message
         init_event.wait()
@@ -63,10 +64,11 @@ class Session(Subject):
                      (self._id, self._server_capabilities))
     
     def connect(self, *args, **kwds):
-        "TODO: docstring"
+        "Subclass implements"
         raise NotImplementedError
 
     def run(self):
+        "Subclass implements"
         raise NotImplementedError
     
     ### Properties

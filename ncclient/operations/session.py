@@ -16,22 +16,20 @@
 
 from rpc import RPC
 
-
 class CloseSession(RPC):
+    
+    'CloseSession is always synchronous'
     
     def __init__(self, *args, **kwds):
         RPC.__init__(self, *args, **kwds)
         self.spec = { 'tag': 'close-session' }
     
-    def deliver(self, reply):
-        RPC.deliver(self, reply)
-        # can't be too huge, should be ok to parse in callback
-        if self._reply.ok: # (implicitly parse)
-            self._session.expect_close()
-        self._session.close()
+    def _delivery_hook(self):
+        if self.reply.ok:
+            self.session.expect_close()
     
     def request(self):
-        self._request(self.spec)
+        return self._request(self.spec)
 
 
 class KillSession(RPC):
@@ -47,4 +45,4 @@ class KillSession(RPC):
         if not isinstance(session_id, basestring): # just make sure...
             session_id = str(session_id)
         self.spec['children'][0]['text'] = session_id
-        self._request(self.spec)
+        return self._request(self.spec)

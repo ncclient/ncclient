@@ -15,15 +15,13 @@
 from ncclient.glue import Listener
 
 import logging
-logger = logging.getLogger('DebugListener')
+logger = logging.getLogger('PrintListener')
 
-class DebugListener(Listener):
+class PrintListener(Listener):
     
-    def __str__(self):
-        return 'DebugListener'
-    
-    def received(self, raw):
-        logger.debug('[received]:||%s||' % raw)
+    def callback(self, root, raw):
+        tag, attrs = root
+        print '\n$ RECEIVED MESSAGE with root=[tag=%r, attrs=%r]:\n%r\n' % (tag, attrs, raw)
     
     def errback(self, err):
-        logger.debug('[error]:%r' % err)
+        print '\n$ RECEIVED ERROR:\n%r\n' % err

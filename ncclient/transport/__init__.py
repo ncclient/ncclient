@@ -14,5 +14,6 @@
 
 "TODO: docstring"
 
-import logging
-logger = logging.getLogger('ncclient.transport')
+from ssh import SSHSession
+
+__all__ = ['SSHSession']

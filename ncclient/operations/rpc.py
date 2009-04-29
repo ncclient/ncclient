@@ -46,13 +46,26 @@ class RPC(object):
         req = self._build(op)
         self._session.send(req)
         if self._async:
+            return self._reply_event
+        else:
             self._reply_event.wait()
             self._reply.parse()
             return self._reply
     
-    def deliver(self, raw):
+    def _set_reply(self, raw):
         self._reply = RPCReply(raw)
+    
+    def _set_reply_event(self):
         self._reply_event.set()
+    
+    def _delivery_hook(self):
+        'For subclasses'
+        pass
+    
+    def deliver(self, raw):
+        self._set_reply(raw)
+        self._delivery_hook()
+        self._set_reply_event()
     
     @property
     def has_reply(self):
@@ -61,6 +74,10 @@ class RPC(object):
     @property
     def reply(self):
         return self._reply
+    
+    @property
+    def is_async(self):
+        return self._async
     
     @property
     def id(self):
@@ -113,8 +130,8 @@ class RPCReplyListener(Listener):
     def set_errback(self, errback):
         self._errback = errback
 
-    def register(self, msgid, rpc):
-        self._id2rpc[msgid] = rpc
+    def register(self, id, rpc):
+        self._id2rpc[id] = rpc
     
     def callback(self, root, raw):
         tag, attrs = root
@@ -126,14 +143,17 @@ class RPCReplyListener(Listener):
                 try:
                     rpc = self._id2rpc[id]
                     rpc.deliver(raw)
-                except:
-                    logger.warning('RPCReplyListener.callback: no RPC '
+                except KeyError:
+                    logger.warning('[RPCReplyListener.callback] no RPC '
                                    + 'registered for message-id: [%s]' % id)
+                    logger.debug('[RPCReplyListener.callback] registered: %r '
+                                 % dict(self._id2rpc))
+                except Exception as e:
+                    logger.debug('[RPCReplyListener.callback] error - %r' % e)
                 break
         else:
             logger.warning('<rpc-reply> without message-id received: %s' % raw)
     
     def errback(self, err):
-        logger.error('RPCReplyListener.errback: %r' % err)
         if self._errback is not None:
             self._errback(err)

@@ -46,32 +46,38 @@ class Subject(Thread):
         self._listeners = set() # TODO(?) weakref
         self._lock = Lock()
     
-    def _dispatch_received(self, raw):
+    def _dispatch_message(self, raw):
         "TODO: docstring"
         root = parse_root(raw)
         with self._lock:
             listeners = list(self._listeners)
         for l in listeners:
-            logger.debug('[dispatching] message to %s' % l)
-            l.callback(root, raw)
+            logger.debug('dispatching message to %r' % l)
+            try:
+                l.callback(root, raw)
+            except Exception as e:
+                logger.warning('[error] %r' % e)
     
     def _dispatch_error(self, err):
         "TODO: docstring"
         with self._lock:
             listeners = list(self._listeners)
         for l in listeners:
-            logger.debug('[dispatching] error to %s' % l)
-            l.errback(err)
+            logger.debug('dispatching error to %r' % l)
+            try:
+                l.errback(err)
+            except Exception as e:
+                logger.warning('error %r' % e)
     
     def add_listener(self, listener):
         "TODO: docstring"
-        logger.debug('[installing listener] %r' % listener)
+        logger.debug('installing listener %r' % listener)
         with self._lock:
             self._listeners.add(listener)
     
     def remove_listener(self, listener):
         "TODO: docstring"
-        logger.debug('[discarding listener] %r' % listener)
+        logger.debug('discarding listener %r' % listener)
         with self._lock:
             self._listeners.discard(listener)
     
@@ -86,7 +92,7 @@ class Subject(Thread):
     
     def send(self, message):
         "TODO: docstring"
-        logger.debug('[queueing] %s' % message)
+        logger.debug('queueing %s' % message)
         self._q.put(message)
 
 
