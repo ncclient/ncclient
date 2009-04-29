@@ -16,30 +16,29 @@ from threading import Event, Lock
 from uuid import uuid1
 
 from . import logger
+from ncclient.content import TreeBuilder, BASE_NS
+from reply import RPCReply, RPCReplyListener
 
-class RPC:
-        
+class RPC(object):
+    
     def __init__(self, session, async=False):
         self._session = session
         self._id = uuid1().urn
+        self._listener = RPCReplyListener(session)
+        self._listener.register(self._id, self)
         self._reply = RPCReply()
         self._reply_event = Event()
     
     def _build(self, op, encoding='utf-8'):
-        if isinstance(op, basestring):
-            return RPCBuilder.build_from_string(self._id, op, encoding)
+        if isinstance(op, dict):
+            return self.build_from_spec(self._id, op, encoding)
+        elif isinstance(op, basestring): 
+            return self.build_from_string(self._id, op, encoding)
         else:
-            return RPCBuilder.build_from_spec(self._id, op, encoding)
+            raise ValueError('Inappropriate value of tree spec.')
     
     def _request(self, op):
-        self._reply = RPCReply()
-        # get the listener instance for this session
-        # <rpc-reply> with message id will reach response_cb
-        self._listener.register(self._id, self)
-        # only effective the first time, transport.session.Subject internally
-        # uses a set type for listeners
-        self._session.add_listener(self._listener)
-        req = RPCBuilder.build(self._id, op)
+        req = self._build(op)
         self._session.send(req)
         if reply_event is not None: # if we were provided an Event to use
             self._reply_event = reply_event
@@ -85,6 +84,6 @@ class RPC:
     def build_from_string(msgid, opstr, encoding='utf-8'):
         "TODO: docstring"
         decl = '<?xml version="1.0" encoding="%s"?>' % encoding
-        doc = (u'''<rpc message-id="%s" xmlns="%s">%s</rpc>''' %
+        doc = (u'<rpc message-id="%s" xmlns="%s">%s</rpc>' %
                (msgid, BASE_NS, opstr)).encode(encoding)
-        return (decl + doc)
+        return '%s%s' % (decl, doc)
