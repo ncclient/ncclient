@@ -58,20 +58,14 @@ class RPC(object):
             self._reply.parse()
             return self._reply
     
-    def _set_reply(self, raw):
-        self._reply = RPCReply(raw)
-    
-    def _set_reply_event(self):
-        self._reply_event.set()
-    
     def _delivery_hook(self):
         'For subclasses'
         pass
     
     def deliver(self, raw):
-        self._set_reply(raw)
+        self._reply = RPCReply(raw)
         self._delivery_hook()
-        self._set_reply_event()
+        self._reply_event.set()
     
     @property
     def has_reply(self):
