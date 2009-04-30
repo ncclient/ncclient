@@ -20,8 +20,8 @@ logger = logging.getLogger('PrintListener')
 class PrintListener(Listener):
     
     def callback(self, root, raw):
-        tag, attrs = root
-        print '\n$ RECEIVED MESSAGE with root=[tag=%r, attrs=%r]:\n%r\n' % (tag, attrs, raw)
+        print('\n# RECEIVED MESSAGE with root=[tag=%r, attrs=%r] #\n%r\n' %
+              (root[0], root[1], raw))
     
     def errback(self, err):
-        print '\n$ RECEIVED ERROR:\n%r\n' % err
+        print('\n# RECEIVED ERROR #\n%r\n' % err)

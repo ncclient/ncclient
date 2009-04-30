@@ -24,10 +24,16 @@ from ncclient.glue import Listener
 from . import logger
 from reply import RPCReply
 
+# Cisco does not include message-id attribute in <rpc-reply> in case of an error.
+# This is messed up however we have to deal with it.
+# So essentially, there can be only one operation at a time if we are talking to
+# a Cisco device.
 
 class RPC(object):
     
     def __init__(self, session, async=False):
+        if session.is_remote_cisco and async:
+            raise UserWarning('Asynchronous mode not supported for Cisco devices')
         self._session = session
         self._async = async
         self._id = uuid1().urn
@@ -114,14 +120,15 @@ class RPCReplyListener(Listener):
     
     # TODO - determine if need locking
     
-    # one instance per subject    
-    def __new__(cls, subject):
-        instance = subject.get_listener_instance(cls)
+    # one instance per session
+    def __new__(cls, session):
+        instance = session.get_listener_instance(cls)
         if instance is None:
             instance = object.__new__(cls)
             instance._id2rpc = WeakValueDictionary()
+            instance._cisco = session.is_remote_cisco
             instance._errback = None
-            subject.add_listener(instance)
+            session.add_listener(instance)
         return instance
     
     def __str__(self):
@@ -137,22 +144,27 @@ class RPCReplyListener(Listener):
         tag, attrs = root
         if __(tag) != 'rpc-reply':
             return
+        rpc = None
         for key in attrs:
             if __(key) == 'message-id':
                 id = attrs[key]
                 try:
-                    rpc = self._id2rpc[id]
-                    rpc.deliver(raw)
+                    rpc = self._id2rpc.pop(id)
                 except KeyError:
-                    logger.warning('[RPCReplyListener.callback] no RPC '
+                    logger.warning('[RPCReplyListener.callback] no object '
                                    + 'registered for message-id: [%s]' % id)
-                    logger.debug('[RPCReplyListener.callback] registered: %r '
-                                 % dict(self._id2rpc))
                 except Exception as e:
                     logger.debug('[RPCReplyListener.callback] error - %r' % e)
                 break
         else:
-            logger.warning('<rpc-reply> without message-id received: %s' % raw)
+            if self._cisco:
+                assert(len(self._id2rpc) == 1)
+                rpc = self._id2rpc.values()[0]
+                self._id2rpc.clear()
+            else:
+                logger.warning('<rpc-reply> without message-id received: %s' % raw)
+        logger.debug('[RPCReplyListener.callback] delivering to %r' % rpc)
+        rpc.deliver(raw)
     
     def errback(self, err):
         if self._errback is not None:

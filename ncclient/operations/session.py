@@ -27,6 +27,7 @@ class CloseSession(RPC):
     def _delivery_hook(self):
         if self.reply.ok:
             self.session.expect_close()
+        self.session.close()
     
     def request(self):
         return self._request(self.spec)

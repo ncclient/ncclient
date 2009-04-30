@@ -31,13 +31,14 @@ class RPCReply:
         return self._raw
     
     def parse(self):
+        if self._parsed: return
         root = ET.fromstring(self._raw) # <rpc-reply> element
         
         # per rfc 4741 an <ok/> tag is sent when there are no errors or warnings
         oktags = _('ok')
         for oktag in oktags:
             if root.find(oktag) is not None:
-                logger.debug('found %s' % oktag)
+                logger.debug('parsed [%s]' % oktag)
                 self._parsed = True
                 return
         
@@ -45,9 +46,10 @@ class RPCReply:
         errtags = _('rpc-error')
         for errtag in errtags:
             for err in root.getiterator(errtag): # a particular <rpc-error>
+                logger.debug('parsed [%s]' % errtag)
                 d = {}
                 for err_detail in err.getchildren(): # <error-type> etc..
-                    d[__(err_detail)] = err_detail.text
+                    d[__(err_detail.tag)] = err_detail.text
                 self._errors.append(RPCError(d))
             if self._errors:
                 break

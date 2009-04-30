@@ -241,6 +241,7 @@ class SSHSession(Session):
                 logger.debug(e)
         
         if saved_exception is not None:
+            # need pep-3134 to do this right
             raise SSHAuthenticationError(repr(saved_exception))
         
         raise SSHAuthenticationError('No authentication methods available')
@@ -286,3 +287,7 @@ class SSHSession(Session):
         documentation for details.
         '''
         return self._transport
+    
+    @property
+    def is_remote_cisco(self):
+        return 'Cisco' in self._transport.remote_version
