@@ -38,7 +38,8 @@ register_namespace('netconf', BASE_NS)
 qualify = lambda tag, ns=BASE_NS: '{%s}%s' % (ns, tag)
 
 # i would have written a def if lambdas weren't so much fun
-multiqualify = lambda tag, nslist=(BASE_NS, CISCO_BS): [qualify(tag, ns) for ns in nslist]
+multiqualify = lambda tag, nslist=(BASE_NS, CISCO_BS): [qualify(tag, ns)
+                                                        for ns in nslist]
 
 unqualify = lambda tag: tag[tag.rfind('}')+1:]
 

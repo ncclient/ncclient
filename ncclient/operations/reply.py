@@ -53,11 +53,12 @@ class RPCReply:
                 d = {}
                 for err_detail in err.getchildren(): # <error-type> etc..
                     tag = __(err_detail.tag)
-                    d[tag] = (err_detail.text if tag != 'error-info'
+                    d[tag] = (err_detail.text.strip() if tag != 'error-info'
                               else ET.tostring(err_detail, 'utf-8'))
                 self._errors.append(RPCError(d))
             if self._errors:
                 break
+        
         self._parsed = True
     
     @property
@@ -67,7 +68,7 @@ class RPCReply:
     @property
     def ok(self):
         if not self._parsed: self.parse()
-        return not bool(self._errors) # empty list = false
+        return not self._errors # empty list => false
     
     @property
     def errors(self):
