@@ -34,7 +34,8 @@ class RPCReply:
         if self._parsed: return
         root = ET.fromstring(self._raw) # <rpc-reply> element
         
-        # check if root is <rpc-reply> ??
+        if __(root.tag) != 'rpc-reply':
+            raise ValueError('Root element is not RPC reply')
         
         # per rfc 4741 an <ok/> tag is sent when there are no errors or warnings
         oktags = _('ok')
@@ -51,7 +52,9 @@ class RPCReply:
                 logger.debug('parsed [%s]' % errtag)
                 d = {}
                 for err_detail in err.getchildren(): # <error-type> etc..
-                    d[__(err_detail.tag)] = err_detail.text
+                    tag = __(err_detail.tag)
+                    d[tag] = (err_detail.text if tag != 'error-info'
+                              else ET.tostring(err_detail, 'utf-8'))
                 self._errors.append(RPCError(d))
             if self._errors:
                 break

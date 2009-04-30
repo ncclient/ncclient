@@ -15,7 +15,10 @@
 from rpc import RPC
 
 class Get(RPC):
-    pass
+    SPEC = {
+        'tag': 'get',
+        'children': None
+    }
 
 class GetConfig(RPC):
     pass
