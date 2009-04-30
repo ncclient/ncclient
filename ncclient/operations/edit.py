@@ -14,9 +14,30 @@
 
 from rpc import RPC
 
+# TODO
+
+
+'''
+notes
+-> editconfig and copyconfig <running> target depends on :writable-running
+-> 
+
+'''
+
 class EditConfig(RPC):
+    pass
+
+class CopyConfig(RPC):
     pass
 
 class DeleteConfig(RPC):
     pass
 
+class Validate(RPC):
+    pass
+
+class Commit(RPC):
+    pass # .confirm() !
+
+class DiscardChanges(RPC):
+    pass

@@ -24,15 +24,22 @@ from ncclient.glue import Listener
 from . import logger
 from reply import RPCReply
 
+
 # Cisco does not include message-id attribute in <rpc-reply> in case of an error.
 # This is messed up however we have to deal with it.
 # So essentially, there can be only one operation at a time if we are talking to
 # a Cisco device.
 
+def cisco_check(session):
+    try:
+        return session.is_remote_cisco
+    except AttributeError:
+        return False
+
 class RPC(object):
     
     def __init__(self, session, async=False):
-        if session.is_remote_cisco and async:
+        if cisco_check(session) and async:
             raise UserWarning('Asynchronous mode not supported for Cisco devices')
         self._session = session
         self._async = async
@@ -120,7 +127,7 @@ class RPCReplyListener(Listener):
         if instance is None:
             instance = object.__new__(cls)
             instance._id2rpc = WeakValueDictionary()
-            instance._cisco = session.is_remote_cisco
+            instance._cisco = cisco_check(session)
             instance._errback = None
             session.add_listener(instance)
         return instance

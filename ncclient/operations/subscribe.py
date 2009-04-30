@@ -12,15 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# TODO...
+
 from rpc import RPC
 
 from ncclient.glue import Listener
-
-from notification import Notification
+from ncclient.content import NOTIFICATION_NS
+from ncclient.content import qualify as _
 
 class CreateSubscription(RPC):    
     
-    pass
+    SPEC = {
+        'tag': _('create-subscription', NOTIFICATION_NS),
+        'startTime': None,
+        'stream': None
+    }
 
 
 class NotificationListener(Listener):

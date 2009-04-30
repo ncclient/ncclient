@@ -20,8 +20,8 @@ from xml.etree import cElementTree as ET
 ### Namespace-related ###
 
 BASE_NS = 'urn:ietf:params:xml:ns:netconf:base:1.0'
-
-# cisco returns incorrectly namespaced xml
+NOTIFICATION_NS = 'urn:ietf:params:xml:ns:netconf:notification:1.0'
+# and this is BASE_NS according to cisco devices...
 CISCO_BS = 'urn:ietf:params:netconf:base:1.0'
 
 try:

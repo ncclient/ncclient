@@ -19,4 +19,3 @@ class Get(RPC):
 
 class GetConfig(RPC):
     pass
-

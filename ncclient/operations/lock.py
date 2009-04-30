@@ -14,32 +14,38 @@
 
 'Locking-related NETCONF operations'
 
-from rpc import RPC
+# TODO - a context manager around some <target> would be real neat
 
+from rpc import RPC
+from copy import deepcopy
 
 class Lock(RPC):
     
-    def __init__(self, *args, **kwds):
-        RPC.__init__(self, *args, **kwds)
-        self.spec = {
-            'tag': 'lock',
-            'children': { 'tag': 'target', 'children': {'tag': None} }
-            }
+    SPEC = {
+        'tag': 'lock',
+        'children': {
+            'tag': 'target',
+            'children': {'tag': None }
+        }
+    }
     
     def request(self, target='running'):
-        self.spec['children']['children']['tag'] = target
-        self._request(self.spec)
+        spec = deepcopy(Lock.SPEC)
+        spec['children']['children']['tag'] = target
+        return self._request(spec)
 
 
 class Unlock(RPC):
     
-    def __init__(self, *args, **kwds):
-        RPC.__init__(self, *args, **kwds)
-        self.spec = {
-            'tag': 'unlock',
-            'children': { 'tag': 'target', 'children': {'tag': None} }
-            }
+    SPEC = {
+        'tag': 'unlock',
+        'children': {
+            'tag': 'target',
+            'children': {'tag': None }
+        }
+    }
     
     def request(self, target='running'):
-        self.spec['children']['children']['tag'] = target
-        self._request(self.spec)
+        spec = deepcopy(Unlock.SPEC)
+        spec['children']['children']['tag'] = target
+        return self._request(self.spec)

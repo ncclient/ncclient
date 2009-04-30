@@ -34,6 +34,8 @@ class RPCReply:
         if self._parsed: return
         root = ET.fromstring(self._raw) # <rpc-reply> element
         
+        # check if root is <rpc-reply> ??
+        
         # per rfc 4741 an <ok/> tag is sent when there are no errors or warnings
         oktags = _('ok')
         for oktag in oktags:

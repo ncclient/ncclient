@@ -15,14 +15,13 @@
 'Session-related NETCONF operations'
 
 from rpc import RPC
+from copy import deepcopy
 
 class CloseSession(RPC):
     
     'CloseSession is always synchronous'
     
-    def __init__(self, *args, **kwds):
-        RPC.__init__(self, *args, **kwds)
-        self.spec = { 'tag': 'close-session' }
+    SPEC = { 'tag': 'close-session' }
     
     def _delivery_hook(self):
         if self.reply.ok:
@@ -30,20 +29,19 @@ class CloseSession(RPC):
         self.session.close()
     
     def request(self):
-        return self._request(self.spec)
+        return self._request(CloseSession.SPEC)
 
 
 class KillSession(RPC):
     
-    def __init__(self, *args, **kwds):
-        RPC.__init__(self, *args, **kwds)
-        self.spec = {
-            'tag': 'kill-session',
-            'children': [ { 'tag': 'session-id', 'text': None} ]
-            }
+    SPEC = {
+        'tag': 'kill-session',
+        'children': [ { 'tag': 'session-id', 'text': None} ]
+    }
     
     def request(self, session_id):
-        if not isinstance(session_id, basestring): # just make sure...
+        if not isinstance(session_id, basestring): # just making sure...
             session_id = str(session_id)
-        self.spec['children'][0]['text'] = session_id
-        return self._request(self.spec)
+        spec = deepcopy(SPEC)
+        spec['children'][0]['text'] = session_id
+        return self._request(spec)

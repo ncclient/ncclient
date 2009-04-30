@@ -18,7 +18,7 @@ import logging
 logger = logging.getLogger('ncclient.operations')
 
 from retrieve import Get, GetConfig
-from edit import EditConfig, DeleteConfig
+from edit import EditConfig, CopyConfig, DeleteConfig, Validate, Commit, DiscardChanges
 from session import CloseSession, KillSession
 from lock import Lock, Unlock
 from subscribe import CreateSubscription
@@ -27,6 +27,10 @@ __all__ = [
     'Get',
     'GetConfig',
     'EditConfig',
+    'CopyConfig',
+    'Validate',
+    'Commit',
+    'DiscardChanges',
     'DeleteConfig',
     'Lock',
     'Unlock',
