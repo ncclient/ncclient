@@ -54,7 +54,7 @@ class TreeBuilder:
     def __init__(self, spec):
         "TODO: docstring"
         self._root = TreeBuilder.build(spec)
-        
+    
     def to_string(self, encoding='utf-8'):
         "TODO: docstring"
         xml = ET.tostring(self._root, encoding)
@@ -86,3 +86,14 @@ class TreeBuilder:
             return ET.Comment(spec.get('comment'))
         else:
             raise ValueError('Invalid tree spec')
+
+class Parser:
+    pass
+
+class PartialParser(Parser):
+    
+    pass
+
+class RootParser(Parser):
+    
+    pass

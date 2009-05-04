@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO...
+# TODO when can actually test it...
 
 from rpc import RPC
 
@@ -28,7 +28,8 @@ class CreateSubscription(RPC):
         'stream': None
     }
 
+class Notification:
+    pass
 
 class NotificationListener(Listener):
-    
     pass
