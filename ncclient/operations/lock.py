@@ -14,10 +14,11 @@
 
 'Locking-related NETCONF operations'
 
-# TODO - a context manager around some <target> would be real neat
-
-from rpc import RPC
 from copy import deepcopy
+
+from ncclient.rpc import RPC
+
+# TODO - a context manager around some <target> would be real neat
 
 class Lock(RPC):
     

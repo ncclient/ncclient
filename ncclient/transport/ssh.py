@@ -289,5 +289,8 @@ class SSHSession(Session):
         return self._transport
     
     @property
-    def is_remote_cisco(self):
-        return 'Cisco' in self._transport.remote_version
+    def can_pipeline(self):
+        if 'Cisco' in self._transport.remote_version:
+            return False
+        # elif ..
+        return True

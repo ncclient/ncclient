@@ -40,6 +40,9 @@ class Capabilities:
         "TODO: docstring"
         return repr(self._dict.keys())
     
+    def __list__(self):
+        return self._dict.keys()
+    
     def add(self, uri, shorthand=None):
         "TODO: docstring"
         if shorthand is None:

@@ -18,13 +18,14 @@ from ncclient.content import multiqualify as _
 from ncclient.content import unqualify as __
 
 import logging
-logger = logging.getLogger('ncclient.operations.reply')
+logger = logging.getLogger('ncclient.rpc.reply')
 
 class RPCReply:
     
     def __init__(self, raw):
         self._raw = raw
         self._parsed = False
+        self._root = None
         self._errors = []
     
     def __repr__(self):
@@ -32,7 +33,7 @@ class RPCReply:
     
     def parse(self):
         if self._parsed: return
-        root = ET.fromstring(self._raw) # <rpc-reply> element
+        root = self._root = ET.fromstring(self._raw) # <rpc-reply> element
         
         if __(root.tag) != 'rpc-reply':
             raise ValueError('Root element is not RPC reply')
@@ -64,6 +65,10 @@ class RPCReply:
     @property
     def raw(self):
         return self._raw
+    
+    @property
+    def root(self):
+        return self._root
     
     @property
     def ok(self):

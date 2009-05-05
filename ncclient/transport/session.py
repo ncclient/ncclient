@@ -88,3 +88,7 @@ class Session(Subject):
     @property
     def id(self):
         return self._id
+    
+    @property
+    def can_pipeline(self):
+        return True

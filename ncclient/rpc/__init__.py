@@ -12,24 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
+from rpc import RPC
+from reply import RPCReply
 
-if sys.version_info < (2, 6):
-    raise RuntimeError('You need Python 2.6+ for this module.')
-
-__version__ = "0.05"
-
-class NCClientError(Exception):
+class ReplyTimeoutError(Exception):
     pass
 
-class TransportError(NCClientError):
-    pass
-
-class OperationError(NCClientError):
-    pass
-
-class OperationError(NCClientError):
-    pass
-
-class ContentError(NCClientError):
-    pass
+__all__ = [
+    'RPC',
+    'RPCReply',
+    'ReplyTimeoutError'
+]

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from rpc import RPC
+from ncclient.rpc import RPC
 
 # TODO
 
@@ -25,19 +25,61 @@ notes
 '''
 
 class EditConfig(RPC):
-    pass
+    
+    SPEC = {
+        'tag': 'edit-config',
+        'children': [
+            { 'target': None }
+        ]
+    }
+    
+    def request(self):
+        pass
 
 class CopyConfig(RPC):
-    pass
+    
+    SPEC = {
+        
+    }
+    
+    def request(self):
+        pass
 
 class DeleteConfig(RPC):
-    pass
+    
+    SPEC = {
+        'tag': 'delete-config',
+        'children': [
+            'tag': 'target',
+            'children': {'tag': None }
+        ]
+    }
+    
+    def request(self, target=None, targeturl=None):
+        spec = deepcopy(DeleteConfig.SPEC)
+        
 
 class Validate(RPC):
-    pass
+    
+    DEPENDS = ['urn:ietf:params:netconf:capability:validate:1.0']
+    SPEC = {}
+    
+    def request(self):
+        pass
+
 
 class Commit(RPC):
-    pass # .confirm() !
+    
+    SPEC = {'tag': 'commit'}
+    
+    def request(self):
+        return self._request(Commit.SPEC)
+
 
 class DiscardChanges(RPC):
-    pass
+    
+    DEPENDS = ['urn:ietf:params:netconf:capability:candidate:1.0']
+    SPEC = {'tag': 'discard-changes'}
+    
+    def request(self):
+        return self._request(DiscardChanges.SPEC)

@@ -20,7 +20,6 @@ from xml.etree import cElementTree as ET
 ### Namespace-related ###
 
 BASE_NS = 'urn:ietf:params:xml:ns:netconf:base:1.0'
-NOTIFICATION_NS = 'urn:ietf:params:xml:ns:netconf:notification:1.0'
 # and this is BASE_NS according to cisco devices...
 CISCO_BS = 'urn:ietf:params:netconf:base:1.0'
 
@@ -43,25 +42,25 @@ multiqualify = lambda tag, nslist=(BASE_NS, CISCO_BS): [qualify(tag, ns)
 
 unqualify = lambda tag: tag[tag.rfind('}')+1:]
 
-
 ### Build XML using Python data structures ###
 
-class TreeBuilder:
+class XMLConverter:
     """Build an ElementTree.Element instance from an XML tree specification
     based on nested dictionaries. TODO: describe spec
     """
     
     def __init__(self, spec):
         "TODO: docstring"
-        self._root = TreeBuilder.build(spec)
+        self._root = XMLConverter.build(spec)
     
     def to_string(self, encoding='utf-8'):
         "TODO: docstring"
         xml = ET.tostring(self._root, encoding)
-        # some etree versions don't always include xml decl
+        # some etree versions don't always include xml decl e.g. with utf-8
         # this is a problem with some devices
         if not xml.startswith('<?xml'):
-            return '<?xml version="1.0" encoding="%s"?>%s' % (encoding, xml)
+            return ((u'<?xml version="1.0" encoding="%s"?>'
+                     % encoding).encode(encoding) + xml)
         else:
             return xml
     
@@ -82,18 +81,9 @@ class TreeBuilder:
             for child in children:
                 ele.append(TreeBuilder.build(child))
             return ele
+        elif 'xml' in spec:
+            return ET.XML(spec['xml'])
         elif 'comment' in spec:
             return ET.Comment(spec.get('comment'))
         else:
             raise ValueError('Invalid tree spec')
-
-class Parser:
-    pass
-
-class PartialParser(Parser):
-    
-    pass
-
-class RootParser(Parser):
-    
-    pass

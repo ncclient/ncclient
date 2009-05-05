@@ -14,7 +14,7 @@
 
 'Session-related NETCONF operations'
 
-from rpc import RPC
+from ncclient.rpc import RPC
 from copy import deepcopy
 
 class CloseSession(RPC):
