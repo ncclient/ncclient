@@ -31,3 +31,14 @@ def store_or_url(store, url):
         node['tag'] = 'url'
         node['text'] = url
     return node
+
+def build_filter(spec, type, criteria):
+    filter = {
+        'tag': 'filter',
+        'attributes': {'type': type}
+    }
+    if type == 'subtree':
+        filter['children'] = [criteria]
+    elif type == 'xpath':
+        filter['attributes']['select'] = criteria
+    return filter

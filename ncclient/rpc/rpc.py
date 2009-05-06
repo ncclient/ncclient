@@ -38,7 +38,7 @@ class RPC(object):
         self._session = session
         try:
             for cap in self.DEPENDS:
-                self.assert_capability(cap)
+                self._assert(cap)
         except AttributeError:
             pass        
         self._async = async

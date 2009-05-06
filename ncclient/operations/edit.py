@@ -120,5 +120,4 @@ class DiscardChanges(RPC):
     
     SPEC = {'tag': 'discard-changes'}
     
-    def request(self):
-        return self._request(DiscardChanges.SPEC)
+    request = lambda self: self._request(DiscardChanges.SPEC)

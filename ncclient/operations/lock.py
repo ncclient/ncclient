@@ -14,13 +14,11 @@
 
 'Locking-related NETCONF operations'
 
-from copy import deepcopy
-
 from ncclient.rpc import RPC
 
-# TODO - a context manager around some <target> would be real neat
+import util
 
-class Lock(RPC): # x
+class Lock(RPC):
     
     SPEC = {
         'tag': 'lock',
@@ -33,12 +31,12 @@ class Lock(RPC): # x
     def request(self, target='running'):
         if target=='candidate':
             self._assert(':candidate')
-        spec = deepcopy(Lock.SPEC)
+        spec = Lock.SPEC.copy()
         spec['children']['children']['tag'] = target
         return self._request(spec)
 
 
-class Unlock(RPC): # x
+class Unlock(RPC):
     
     SPEC = {
         'tag': 'unlock',
@@ -51,9 +49,9 @@ class Unlock(RPC): # x
     def request(self, target='running'):
         if target=='candidate':
             self._assert(':candidate')
-        spec = deepcopy(Unlock.SPEC)
+        spec = Unlock.SPEC.copy()
         spec['children']['children']['tag'] = target
-        return self._request(self.spec)
+        return self._request(spec)
 
 
 class LockContext:

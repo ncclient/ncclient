@@ -41,6 +41,7 @@ class Subject(Thread):
     def __init__(self):
         "TODO: docstring"
         Thread.__init__(self)
+        self.setDaemon(True)
         self._listeners = set() # TODO(?) weakref
         self._lock = Lock()
     

@@ -25,7 +25,7 @@ class MissingCapabilityError(OperationError):
 from retrieve import Get, GetConfig
 from edit import EditConfig, CopyConfig, DeleteConfig, Validate, Commit, DiscardChanges
 from session import CloseSession, KillSession
-from lock import Lock, Unlock
+from lock import Lock, Unlock, LockContext
 from subscribe import CreateSubscription
 
 
@@ -42,6 +42,7 @@ __all__ = [
     'DeleteConfig',
     'Lock',
     'Unlock',
+    'LockContext',
     'CloseSession',
     'KillSession',
     'CreateSubscription',

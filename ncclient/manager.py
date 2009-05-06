@@ -54,7 +54,7 @@ class Manager:
         else:
             return reply.data
 
-    def request(op, *args, **kwds):
+    def do(self, op, *args, **kwds):
         op = OPERATIONS[op](self._session)
         reply = op.request(*args, **kwds)
         if not reply.ok:
@@ -62,31 +62,31 @@ class Manager:
         return reply
 
     def locked(self, target='running'):
-        return LockContext(self._session, target)
+        return operations.LockContext(self._session, target)
     
     get = lambda self, *args, **kwds: self._get('get')
     
     get_config = lambda self, *args, **kwds: self._get('get-config')
     
-    edit_config = lambda self, *args, **kwds: self.request('edit-config', *args, **kwds)
+    edit_config = lambda self, *args, **kwds: self.do('edit-config', *args, **kwds)
     
-    copy_config = lambda self, *args, **kwds: self.request('copy-config', *args, **kwds)
+    copy_config = lambda self, *args, **kwds: self.do('copy-config', *args, **kwds)
     
-    validate = lambda self, *args, **kwds: self.request('validate', *args, **kwds)
+    validate = lambda self, *args, **kwds: self.do('validate', *args, **kwds)
     
-    commit = lambda self, *args, **kwds: self.request('commit', *args, **kwds)
+    commit = lambda self, *args, **kwds: self.do('commit', *args, **kwds)
     
-    discard_changes = lambda self, *args, **kwds: self.request('discard-changes', *args, **kwds)
+    discard_changes = lambda self, *args, **kwds: self.do('discard-changes', *args, **kwds)
     
-    delete_config = lambda self, *args, **kwds: self.request('delete-config', *args, **kwds)
+    delete_config = lambda self, *args, **kwds: self.do('delete-config', *args, **kwds)
     
-    lock = lambda self, *args, **kwds: self.request('lock', *args, **kwds)
+    lock = lambda self, *args, **kwds: self.do('lock', *args, **kwds)
     
-    unlock = lambda self, *args, **kwds: self.request('unlock', *args, **kwds)
+    unlock = lambda self, *args, **kwds: self.do('unlock', *args, **kwds)
     
-    close_session = lambda self, *args, **kwds: self.request('close-session', *args, **kwds)
+    close_session = lambda self, *args, **kwds: self.do('close-session', *args, **kwds)
     
-    kill_session = lambda self, *args, **kwds: self.request('kill-session', *args, **kwds)
+    kill_session = lambda self, *args, **kwds: self.do('kill-session', *args, **kwds)
     
     def close(self):
         try:

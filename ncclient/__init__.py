@@ -17,12 +17,8 @@ NOTES
 =====
 
 - operations complete
-- make operational again
-- LockContext
-- op specfic reply objects
-- manager testing and augmenting
-parse into dicts??
-
+- parse into dicts??
+- code freeze and reST doc
 '''
 
 import sys

@@ -14,21 +14,16 @@
 
 from ncclient.rpc import RPC, RPCReply
 
-def build_filter(spec, type, criteria):
-    filter = {
-        'tag': 'filter',
-        'attributes': {'type': type}
-    }
-    if type == 'subtree':
-        filter['children'] = [criteria]
-    elif type == 'xpath':
-        filter['attributes']['select'] = criteria
-    return filter
+import util
 
 class GetReply(RPCReply):
     
     def parse(self):
         RPCReply.parse(self)
+    
+    @property
+    def data(self):
+        return None
 
 class Get(RPC):
     
@@ -42,36 +37,23 @@ class Get(RPC):
     def request(self, filter=None):
         spec = Get.SPEC.copy()
         if filter is not None:
-            #if filter[0] == 'xpath':
-            #    self._assert(':xpath')
-            spec['children'].append(build_filter(*filter))
+            spec['children'].append(util.build_filter(*filter))
         return self._request(spec)
 
-class GetReply(RPCReply):
-    
-    def parse(self):
-        RPCReply.parse(self)
-
-class GetConfig(RPC): # xx
+class GetConfig(RPC):
     
     SPEC = {
         'tag': 'get-config',
-        'children': [ { 'tag': 'source', 'children': {'tag': None } } ]
+        'children': []
     }
     
     REPLY_CLS = GetReply
     
     def request(self, source=None, source_url=None, filter=None):
-        self._one_of(source, source_url)
+        util.one_of(source, source_url)
         spec = GetConfig.SPEC.copy()
-        if source is not None:
-            spec['children'][0]['children']['tag'] = source
-        if source_url is not None:
-            #self._assert(':url')
-            spec['children'][0]['children']['tag'] = 'url'
-            spec['children'][0]['children']['text'] = source_url        
+        children = spec['children']
+        children.append({'tag': 'source', 'children': util.store_or_url(source, source_url)})
         if filter is not None:
-            #if filter[0] == 'xpath':
-            #    self._assert(':xpath')
-            spec['children'].append(build_filter(*filter))
+            children.append(util.build_filter(*filter))
         return self._request(spec)
