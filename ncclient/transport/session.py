@@ -15,7 +15,7 @@
 from threading import Event
 from Queue import Queue
 
-from ncclient.capabilities import Capabilities, CAPABILITIES
+from ncclient.capabilities import Capabilities
 from ncclient.glue import Subject
 
 from hello import HelloHandler
@@ -27,12 +27,12 @@ class Session(Subject):
     
     "TODO: docstring"
     
-    def __init__(self):
+    def __init__(self, capabilities):
         "Subclass constructor should call this"
         Subject.__init__(self)
         self.setName('session')
         self._q = Queue()
-        self._client_capabilities = CAPABILITIES
+        self._client_capabilities = capabilities
         self._server_capabilities = None # yet
         self._id = None # session-id
         self._connected = False # to be set/cleared by subclass implementation

@@ -25,7 +25,12 @@ def build_filter(spec, type, criteria):
         filter['attributes']['select'] = criteria
     return filter
 
-class Get(RPC): # xx
+class GetReply(RPCReply):
+    
+    def parse(self):
+        RPCReply.parse(self)
+
+class Get(RPC):
     
     SPEC = {
         'tag': 'get',
@@ -54,7 +59,7 @@ class GetConfig(RPC): # xx
         'children': [ { 'tag': 'source', 'children': {'tag': None } } ]
     }
     
-    REPLY_CLS = GetConfigReply
+    REPLY_CLS = GetReply
     
     def request(self, source=None, source_url=None, filter=None):
         self._one_of(source, source_url)
@@ -70,8 +75,3 @@ class GetConfig(RPC): # xx
             #    self._assert(':xpath')
             spec['children'].append(build_filter(*filter))
         return self._request(spec)
-
-class GetReply(RPCReply):
-    
-    def parse(self):
-        RPCReply.parse(self)

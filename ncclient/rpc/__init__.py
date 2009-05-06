@@ -13,14 +13,16 @@
 # limitations under the License.
 
 from rpc import RPC
-from reply import RPCReply
+from reply import RPCReply, RPCError
 
-from ncclient import RPCError
+import ncclient
 
-class ReplyTimeoutError(RPCError): pass
+class ReplyTimeoutError(ncclient.RPCError):
+    pass
 
 __all__ = [
     'RPC',
     'RPCReply',
+    'RPCError',
     'ReplyTimeoutError'
 ]

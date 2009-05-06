@@ -16,7 +16,7 @@ from threading import Event, Lock
 from uuid import uuid1
 from weakref import WeakValueDictionary
 
-from ncclient.content import TreeBuilder
+from ncclient.content import XMLConverter
 from ncclient.content import qualify as _
 from ncclient.content import unqualify as __
 from ncclient.glue import Listener
@@ -49,14 +49,14 @@ class RPC(object):
         self._reply = None
         self._reply_event = Event()
     
-    def _build(opspec, encoding='utf-8'):
+    def _build(self, opspec, encoding='utf-8'):
         "TODO: docstring"
         spec = {
             'tag': _('rpc'),
             'attributes': {'message-id': self._id},
             'children': opspec
             }
-        return TreeBuilder(spec).to_string(encoding)
+        return XMLConverter(spec).to_string(encoding)
     
     def _request(self, op):
         req = self._build(op)

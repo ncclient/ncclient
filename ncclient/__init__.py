@@ -38,7 +38,7 @@ class NCClientError(Exception):
 class TransportError(NCClientError):
     pass
 
-class OperationError(NCClientError):
+class RPCError(NCClientError):
     pass
 
 class OperationError(NCClientError):

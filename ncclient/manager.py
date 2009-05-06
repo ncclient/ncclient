@@ -16,10 +16,6 @@ import capabilities
 import operations
 import transport
 
-SESSION_TYPES = {
-    'ssh': transport.SSHSession
-}
-
 OPERATIONS = {
     'get': operations.Get,
     'get-config': operations.GetConfig,
@@ -35,36 +31,66 @@ OPERATIONS = {
     'kill-session': operations.KillSession,
 }
 
-class Manager(type):
+def connect_ssh(*args, **kwds):
+    session = transport.SSHSession(capabilities.CAPABILITIES)
+    session.load_system_host_keys()
+    session.connect(*args, **kwds)
+    return Manager(session)
+
+connect = connect_ssh # default
+
+class Manager:
     
     'Facade for the API'
     
-    def connect(self, session_type, *args, **kwds):
-        self._session = SESSION_TYPES[session_type](capabilities.CAPABILITIES)
-        self._session.connect(*args, **kwds)
+    def __init__(self, session):
+        self._session = session
     
-    def __getattr__(self, name):
-        name = name.replace('_', '-')
-        if name in OPERATIONS:
-            return OPERATIONS[name](self._session).request
-        else:
-            raise AttributeError
-    
-    def get(self, *args, **kwds):
-        g = operations.Get(self._session)
-        reply = g.request(*args, **kwds)
-        if reply.errors:
-            raise RPCError(reply.errors)
-        else:
-            return reply.data
-    
-    def get_config(self, *args, **kwds):
-        gc = operations.GetConfig(self._session)
-        reply = gc.request(*args, **kwds)
-        if reply.errors:
-            raise RPCError(reply.errors)
+    def _get(self, type, *args, **kwds):
+        op = OPERATIONS[type](self._session)
+        reply = op.request(*args, **kwds)
+        if not reply.ok:
+            raise reply.errors[0]
         else:
             return reply.data
 
+    def request(op, *args, **kwds):
+        op = OPERATIONS[op](self._session)
+        reply = op.request(*args, **kwds)
+        if not reply.ok:
+            raise reply.errors[0]
+        return reply
+
     def locked(self, target='running'):
         return LockContext(self._session, target)
+    
+    get = lambda self, *args, **kwds: self._get('get')
+    
+    get_config = lambda self, *args, **kwds: self._get('get-config')
+    
+    edit_config = lambda self, *args, **kwds: self.request('edit-config', *args, **kwds)
+    
+    copy_config = lambda self, *args, **kwds: self.request('copy-config', *args, **kwds)
+    
+    validate = lambda self, *args, **kwds: self.request('validate', *args, **kwds)
+    
+    commit = lambda self, *args, **kwds: self.request('commit', *args, **kwds)
+    
+    discard_changes = lambda self, *args, **kwds: self.request('discard-changes', *args, **kwds)
+    
+    delete_config = lambda self, *args, **kwds: self.request('delete-config', *args, **kwds)
+    
+    lock = lambda self, *args, **kwds: self.request('lock', *args, **kwds)
+    
+    unlock = lambda self, *args, **kwds: self.request('unlock', *args, **kwds)
+    
+    close_session = lambda self, *args, **kwds: self.request('close-session', *args, **kwds)
+    
+    kill_session = lambda self, *args, **kwds: self.request('kill-session', *args, **kwds)
+    
+    def close(self):
+        try:
+            self.close_session()
+        except:
+            self._session.expect_close()
+            self._session.close()

@@ -14,8 +14,13 @@
 
 'NETCONF protocol operations'
 
-import logging
-logger = logging.getLogger('ncclient.operations')
+from ncclient import NCClientError
+
+class OperationError(NCClientError):
+    pass
+
+class MissingCapabilityError(OperationError):
+    pass
 
 from retrieve import Get, GetConfig
 from edit import EditConfig, CopyConfig, DeleteConfig, Validate, Commit, DiscardChanges
@@ -23,7 +28,10 @@ from session import CloseSession, KillSession
 from lock import Lock, Unlock
 from subscribe import CreateSubscription
 
+
 __all__ = [
+    'OperationError',
+    'MissingCapabilityError',
     'Get',
     'GetConfig',
     'EditConfig',
@@ -37,5 +45,4 @@ __all__ = [
     'CloseSession',
     'KillSession',
     'CreateSubscription',
-    # hmm
 ]

@@ -17,7 +17,7 @@
 from xml.etree import cElementTree as ET
 
 from ncclient.glue import Listener
-from ncclient.content import TreeBuilder, BASE_NS
+from ncclient.content import XMLConverter, BASE_NS
 from ncclient.content import qualify as _
 from ncclient.content import unqualify as __
 
@@ -43,7 +43,7 @@ class HelloHandler(Listener):
         self._error_cb(err)
     
     @staticmethod
-    def build(capabilities, encoding='utf-8'):
+    def build(capabilities):
         "Given a list of capability URI's returns encoded <hello> message"
         spec = {
             'tag': _('hello', BASE_NS),
@@ -53,7 +53,7 @@ class HelloHandler(Listener):
                     [{ 'tag': 'capability', 'text': uri} for uri in capabilities]
                 }]
             }
-        return TreeBuilder(spec).to_string(encoding)
+        return XMLConverter(spec).to_string()
     
     @staticmethod
     def parse(raw):

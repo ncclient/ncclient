@@ -16,6 +16,7 @@
 
 from xml.etree import cElementTree as ET
 
+iselement = ET.iselement
 
 ### Namespace-related ###
 
@@ -58,11 +59,8 @@ class XMLConverter:
         xml = ET.tostring(self._root, encoding)
         # some etree versions don't include xml decl with utf-8
         # this is a problem with some devices
-        if encoding == 'utf-8':
-            return ((u'<?xml version="1.0" encoding="utf-8"?>'
-                     % encoding).encode(encoding) + xml)
-        else:
-            return xml
+        return (xml if xml.startswith('<?xml')
+                else '<?xml version="1.0" encoding="%s"?>%s' % (encoding, xml))
     
     @property
     def tree(self):
@@ -76,14 +74,15 @@ class XMLConverter:
             return spec
         elif isinstance(spec, basestring):
             return ET.XML(spec)
-        # assume isinstance(spec, dict)
-        elif 'tag' in spec:
+        ## assume isinstance(spec, dict)
+        if 'tag' in spec:
             ele = ET.Element(spec.get('tag'), spec.get('attributes', {}))
-            ele.text = str(spec.get('text', ''))
+            ele.text = spec.get('text', '')
             children = spec.get('children', [])
-            if isinstance(children, dict): children = [children]
+            if isinstance(children, dict):
+                children = [children]
             for child in children:
-                ET.SubElement(ele, TreeBuilder.build(child))
+                ele.append(XMLConverter.build(child))
             return ele
         elif 'comment' in spec:
             return ET.Comment(spec.get('comment'))

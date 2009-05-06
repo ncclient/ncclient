@@ -14,7 +14,7 @@
 
 # TODO when can actually test it...
 
-from rpc import RPC
+from ncclient.rpc import RPC
 
 from ncclient.glue import Listener
 from ncclient.content import qualify as _

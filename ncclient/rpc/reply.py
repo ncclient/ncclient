@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import ncclient
+
 from xml.etree import cElementTree as ET
 
 from ncclient.content import multiqualify as _
@@ -32,7 +34,9 @@ class RPCReply:
         return self._raw
     
     def parse(self):
-        if self._parsed: return
+        if self._parsed:
+            return
+        
         root = self._root = ET.fromstring(self._raw) # <rpc-reply> element
         
         if __(root.tag) != 'rpc-reply':
@@ -60,10 +64,6 @@ class RPCReply:
                 if self._errors:
                     break
         
-        if self.ok:
-            # TODO: store children in some way...
-            pass
-        
         self._parsed = True
     
     @property
@@ -86,14 +86,14 @@ class RPCReply:
         return self._errors
 
 
-class RPCError(Exception): # raise it if you like
+class RPCError(ncclient.RPCError): # raise it if you like
     
     def __init__(self, err_dict):
         self._dict = err_dict
         if self.message is not None:
-            Exception.__init__(self, self.message)
+            ncclient.RPCError.__init__(self, self.message)
         else:
-            Exception.__init__(self)
+            ncclient.RPCError.__init__(self)
     
     @property
     def raw(self):

@@ -16,4 +16,11 @@
 
 from ssh import SSHSession
 
-__all__ = ['SSHSession']
+__all__ = [
+    'TransportError',
+    'AuthenticationError',
+    'SessionCloseError',
+    'SSHError',
+    'SSHUnknownHostError',
+    'SSHSession'
+]

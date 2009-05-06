@@ -15,6 +15,9 @@
 from threading import Lock
 from weakref import WeakValueDictionary
 
+from ncclient.glue import Listener
+from ncclient.content import unqualify as __
+
 import logging
 logger = logging.getLogger('ncclient.rpc.listener')
 

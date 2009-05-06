@@ -32,8 +32,8 @@ TICK = 0.1
 
 class SSHSession(Session):
     
-    def __init__(self):
-        Session.__init__(self)
+    def __init__(self, *args, **kwds):
+        Session.__init__(self, *args, **kwds)
         self._host_keys = paramiko.HostKeys()
         self._system_host_keys = paramiko.HostKeys()
         self._transport = None

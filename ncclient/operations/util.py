@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 
-'boilerplate'
+'Boilerplate'
 
 from ncclient import OperationError
 
-class MissingCapabilityError(OperationError):
-    pass
+from . import MissingCapabilityError
 
 def one_of(self, *args):
     for i, arg in enumerate(args):
@@ -20,7 +19,7 @@ def one_of(self, *args):
 
 def assert_capability(key, capabilities):
     if key not in capabilities:
-        raise MissingCapabilityError
+        raise MissingCapabilityError('[%s] capability is required for this operation' % key)
 
 
 def store_or_url(store, url):

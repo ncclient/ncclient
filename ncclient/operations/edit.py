@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ncclient.capabilities import URI
 from ncclient.rpc import RPC
+from ncclient.content import iselement
 
 import util
 
@@ -21,16 +21,24 @@ class EditConfig(RPC):
     
     SPEC = {
         'tag': 'edit-config',
-        'children': [
-            { 'target': None }
-        ]
+        'children': [ ]
     }
     
-    def request(self):
-        pass
+    def request(self, target=None, target_url=None, config=None,
+                default_operation=None, test_option=None, error_option=None):
+        util.one_of(target, target_url)
+        spec = EditConfig.SPEC.copy()
+        params = spec['children']
+        params.append({'tag': 'target', 'children': util.store_or_url(target, target_url)})
+        params.append({'tag': 'config', 'children': config})
+        if default_operation is not None:
+            params.append({'tag': 'default-operation', 'text': default_operation})
+        if test_option is not None:
+            params.append({'tag': 'test-option', 'text': test_option})
+        if error_option is not None:
+            params.append({'tag': 'test-option', 'text': test_option})
 
-
-class DeleteConfig(RPC): # x
+class DeleteConfig(RPC):
     
     SPEC = {
         'tag': 'delete-config',
@@ -43,7 +51,7 @@ class DeleteConfig(RPC): # x
         return self._request(spec)
 
 
-class CopyConfig(RPC): # x
+class CopyConfig(RPC):
     
     SPEC = {
         'tag': 'copy-config',
@@ -60,7 +68,9 @@ class CopyConfig(RPC): # x
         return self._request(spec)
 
 
-class Validate(RPC): # xxxxx
+class Validate(RPC):
+    
+    'config attr shd not include <config> root'
     
     DEPENDS = [':validate']
     
@@ -70,42 +80,18 @@ class Validate(RPC): # xxxxx
     }
     
     def request(self, source=None, config=None):
-        #self.either_or(source, config)
-        #
-        #if source is None and config is None:
-        #    raise OperationError('Insufficient parameters')
-        #if source is not None and config is not None:
-        #    raise OperationError('Too many parameters')
-        #spec = Validate.SPEC.copy()
-        #
         util.one_of(source, capability)
+        spec = SPEC.copy()
         if source is not None:
             spec['children'].append({
-                'tag': 'source',
-                'children': {'tag': source}
+                'tag': 'source', 'children': {'tag': source}
                 })
-        #
-        #else:
-        #    if isinstance(config, dict):
-        #        if config['tag'] != 'config':
-        #            child['tag'] = 'config'
-        #            child['children'] = config
-        #        else:
-        #            child = config
-        #    elif isinstance(config, Element):
-        #        pass
-        #    else:
-        #        from xml.etree import cElementTree as ET
-        #        ele = ET.XML(unicode(config))
-        #        if __(ele.tag) != 'config':
-        #            pass
-        #        else:
-        #            pass
-        #    spec['children'].append(child)
-        #
+        else:
+            spec['children'].append({'tag': 'config', 'children': config})
         return self._request(spec)
 
-class Commit(RPC): # x
+
+class Commit(RPC):
     
     DEPENDS = [':candidate']
     
@@ -128,7 +114,7 @@ class Commit(RPC): # x
         return self._request(Commit.SPEC)
 
 
-class DiscardChanges(RPC): # x
+class DiscardChanges(RPC):
     
     DEPENDS = [':candidate']
     
