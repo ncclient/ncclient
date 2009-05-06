@@ -15,9 +15,8 @@
 'Session-related NETCONF operations'
 
 from ncclient.rpc import RPC
-from copy import deepcopy
 
-class CloseSession(RPC):
+class CloseSession(RPC): # x
     
     'CloseSession is always synchronous'
     
@@ -32,16 +31,16 @@ class CloseSession(RPC):
         return self._request(CloseSession.SPEC)
 
 
-class KillSession(RPC):
+class KillSession(RPC): # x
     
     SPEC = {
         'tag': 'kill-session',
-        'children': [ { 'tag': 'session-id', 'text': None} ]
+        'children': { 'tag': 'session-id', 'text': None}
     }
     
     def request(self, session_id):
         if not isinstance(session_id, basestring): # just making sure...
             session_id = str(session_id)
-        spec = deepcopy(SPEC)
+        spec = KillSession.SPEC.copy()
         spec['children'][0]['text'] = session_id
         return self._request(spec)

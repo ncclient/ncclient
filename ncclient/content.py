@@ -56,10 +56,10 @@ class XMLConverter:
     def to_string(self, encoding='utf-8'):
         "TODO: docstring"
         xml = ET.tostring(self._root, encoding)
-        # some etree versions don't always include xml decl e.g. with utf-8
+        # some etree versions don't include xml decl with utf-8
         # this is a problem with some devices
-        if not xml.startswith('<?xml'):
-            return ((u'<?xml version="1.0" encoding="%s"?>'
+        if encoding == 'utf-8':
+            return ((u'<?xml version="1.0" encoding="utf-8"?>'
                      % encoding).encode(encoding) + xml)
         else:
             return xml
@@ -72,17 +72,19 @@ class XMLConverter:
     @staticmethod
     def build(spec):
         "TODO: docstring"
-        if 'tag' in spec:
+        if ET.iselement(spec):
+            return spec
+        elif isinstance(spec, basestring):
+            return ET.XML(spec)
+        # assume isinstance(spec, dict)
+        elif 'tag' in spec:
             ele = ET.Element(spec.get('tag'), spec.get('attributes', {}))
-            ele.text = spec.get('text', '')
+            ele.text = str(spec.get('text', ''))
             children = spec.get('children', [])
-            if isinstance(children, dict):
-                children = [children]
+            if isinstance(children, dict): children = [children]
             for child in children:
-                ele.append(TreeBuilder.build(child))
+                ET.SubElement(ele, TreeBuilder.build(child))
             return ele
-        elif 'xml' in spec:
-            return ET.XML(spec['xml'])
         elif 'comment' in spec:
             return ET.Comment(spec.get('comment'))
         else:

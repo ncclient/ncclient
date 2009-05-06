@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from threading import Event
+from Queue import Queue
 
 from ncclient.capabilities import Capabilities, CAPABILITIES
 from ncclient.glue import Subject
@@ -30,6 +31,7 @@ class Session(Subject):
         "Subclass constructor should call this"
         Subject.__init__(self)
         self.setName('session')
+        self._q = Queue()
         self._client_capabilities = CAPABILITIES
         self._server_capabilities = None # yet
         self._id = None # session-id
@@ -70,6 +72,11 @@ class Session(Subject):
     def run(self):
         "Subclass implements"
         raise NotImplementedError
+    
+    def send(self, message):
+        "TODO: docstring"
+        logger.debug('queueing %s' % message)
+        self._q.put(message)
     
     ### Properties
     

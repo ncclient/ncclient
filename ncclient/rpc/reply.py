@@ -38,27 +38,31 @@ class RPCReply:
         if __(root.tag) != 'rpc-reply':
             raise ValueError('Root element is not RPC reply')
         
+        ok = False
         # per rfc 4741 an <ok/> tag is sent when there are no errors or warnings
         oktags = _('ok')
         for oktag in oktags:
             if root.find(oktag) is not None:
                 logger.debug('parsed [%s]' % oktag)
-                self._parsed = True
-                return
-        
-        # create RPCError objects from <rpc-error> elements
-        errtags = _('rpc-error')
-        for errtag in errtags:
-            for err in root.getiterator(errtag): # a particular <rpc-error>
-                logger.debug('parsed [%s]' % errtag)
-                d = {}
-                for err_detail in err.getchildren(): # <error-type> etc..
-                    tag = __(err_detail.tag)
-                    d[tag] = (err_detail.text.strip() if tag != 'error-info'
-                              else ET.tostring(err_detail, 'utf-8'))
-                self._errors.append(RPCError(d))
-            if self._errors:
                 break
+        else:
+            # create RPCError objects from <rpc-error> elements
+            errtags = _('rpc-error')
+            for errtag in errtags:
+                for err in root.getiterator(errtag): # a particular <rpc-error>
+                    logger.debug('parsed [%s]' % errtag)
+                    d = {}
+                    for err_detail in err.getchildren(): # <error-type> etc..
+                        tag = __(err_detail.tag)
+                        d[tag] = (err_detail.text.strip() if tag != 'error-info'
+                                  else ET.tostring(err_detail, 'utf-8'))
+                    self._errors.append(RPCError(d))
+                if self._errors:
+                    break
+        
+        if self.ok:
+            # TODO: store children in some way...
+            pass
         
         self._parsed = True
     

@@ -44,7 +44,27 @@ class Manager(type):
         self._session.connect(*args, **kwds)
     
     def __getattr__(self, name):
+        name = name.replace('_', '-')
         if name in OPERATIONS:
             return OPERATIONS[name](self._session).request
         else:
             raise AttributeError
+    
+    def get(self, *args, **kwds):
+        g = operations.Get(self._session)
+        reply = g.request(*args, **kwds)
+        if reply.errors:
+            raise RPCError(reply.errors)
+        else:
+            return reply.data
+    
+    def get_config(self, *args, **kwds):
+        gc = operations.GetConfig(self._session)
+        reply = gc.request(*args, **kwds)
+        if reply.errors:
+            raise RPCError(reply.errors)
+        else:
+            return reply.data
+
+    def locked(self, target='running'):
+        return LockContext(self._session, target)

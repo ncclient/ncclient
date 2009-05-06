@@ -14,9 +14,6 @@
 
 from ncclient.glue import Listener
 
-import logging
-logger = logging.getLogger('PrintListener')
-
 class PrintListener(Listener):
     
     def callback(self, root, raw):

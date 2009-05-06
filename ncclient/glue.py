@@ -15,13 +15,12 @@
 "TODO: docstring"
 
 from cStringIO import StringIO
-from threading import Thread
-from Queue import Queue
-from threading import Lock
+from threading import Thread, Lock
 from xml.etree import cElementTree as ET
 
 import logging
 logger = logging.getLogger('ncclient.glue')
+
 
 def parse_root(raw):
     '''Parse the top-level element from a string representing an XML document.
@@ -30,7 +29,7 @@ def parse_root(raw):
     the qualified name of the root element and `attributes` is an
     `{attribute: value}` dictionary.
     '''
-    fp = StringIO(raw)
+    fp = StringIO(raw[:1024]) # this is a guess but start element beyond 1024 bytes would be a bit absurd
     for event, element in ET.iterparse(fp, events=('start',)):
         return (element.tag, element.attrib)
 
@@ -42,13 +41,16 @@ class Subject(Thread):
     def __init__(self):
         "TODO: docstring"
         Thread.__init__(self)
-        self._q = Queue()
         self._listeners = set() # TODO(?) weakref
         self._lock = Lock()
     
     def _dispatch_message(self, raw):
         "TODO: docstring"
-        root = parse_root(raw)
+        try:
+            root = parse_root(raw)
+        except Exception as e:
+            logger.error('error parsing dispatch message: %s' % e)
+            return
         with self._lock:
             listeners = list(self._listeners)
         for l in listeners:
@@ -89,11 +91,6 @@ class Subject(Thread):
             for listener in self._listeners:
                 if isinstance(listener, cls):
                     return listener
-    
-    def send(self, message):
-        "TODO: docstring"
-        logger.debug('queueing %s' % message)
-        self._q.put(message)
 
 
 class Listener(object):

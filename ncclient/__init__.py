@@ -12,6 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+'''
+NOTES
+=====
+
+- operations complete
+- make operational again
+- LockContext
+- op specfic reply objects
+- manager testing and augmenting
+parse into dicts??
+
+'''
+
 import sys
 
 if sys.version_info < (2, 6):

@@ -20,7 +20,7 @@ from ncclient.rpc import RPC
 
 # TODO - a context manager around some <target> would be real neat
 
-class Lock(RPC):
+class Lock(RPC): # x
     
     SPEC = {
         'tag': 'lock',
@@ -31,12 +31,14 @@ class Lock(RPC):
     }
     
     def request(self, target='running'):
+        if target=='candidate':
+            self._assert(':candidate')
         spec = deepcopy(Lock.SPEC)
         spec['children']['children']['tag'] = target
         return self._request(spec)
 
 
-class Unlock(RPC):
+class Unlock(RPC): # x
     
     SPEC = {
         'tag': 'unlock',
@@ -47,6 +49,23 @@ class Unlock(RPC):
     }
     
     def request(self, target='running'):
+        if target=='candidate':
+            self._assert(':candidate')
         spec = deepcopy(Unlock.SPEC)
         spec['children']['children']['tag'] = target
         return self._request(self.spec)
+
+
+class LockContext:
+        
+    def __init__(self, session, target='running'):
+        self.session = session
+        self.target = target
+        
+    def __enter__(self):
+        Lock(self.session).request(self.target)
+        return self
+    
+    def __exit__(self, t, v, tb):
+        Unlock(self.session).request(self.target)
+        return False

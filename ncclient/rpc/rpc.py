@@ -27,13 +27,20 @@ from reply import RPCReply
 import logging
 logger = logging.getLogger('ncclient.rpc')
 
-
 class RPC(object):
+    
+    DEPENDS = []
+    REPLY_CLS = RPCReply
     
     def __init__(self, session, async=False, timeout=None):
         if not session.can_pipeline:
             raise UserWarning('Asynchronous mode not supported for this device/session')
         self._session = session
+        try:
+            for cap in self.DEPENDS:
+                self.assert_capability(cap)
+        except AttributeError:
+            pass        
         self._async = async
         self._timeout = timeout
         self._id = uuid1().urn
@@ -51,13 +58,13 @@ class RPC(object):
             }
         return TreeBuilder(spec).to_string(encoding)
     
-    def _request(self, op, timeout=None):
+    def _request(self, op):
         req = self._build(op)
         self._session.send(req)
         if self._async:
             return self._reply_event
         else:
-            self._reply_event.wait(timeout)
+            self._reply_event.wait(self._timeout)
             if self._reply_event.isSet():
                 self._reply.parse()
                 return self._reply
@@ -68,8 +75,12 @@ class RPC(object):
         'For subclasses'
         pass
     
+    def _assert(self, capability):
+        if capability not in self._session.server_capabilities:
+            raise MissingCapabilityError('Server does not support [%s]' % cap)
+    
     def deliver(self, raw):
-        self._reply = RPCReply(raw)
+        self._reply = self.REPLY_CLS(raw)
         self._delivery_hook()
         self._reply_event.set()
     

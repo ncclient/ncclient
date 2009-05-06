@@ -15,8 +15,9 @@
 from rpc import RPC
 from reply import RPCReply
 
-class ReplyTimeoutError(Exception):
-    pass
+from ncclient import RPCError
+
+class ReplyTimeoutError(RPCError): pass
 
 __all__ = [
     'RPC',
