@@ -16,7 +16,7 @@ import ncclient
 
 from xml.etree import cElementTree as ET
 
-from ncclient.content import multiqualify as _
+from ncclient.content import namespaced_find
 from ncclient.content import unqualify as __
 
 import logging
@@ -36,58 +36,35 @@ class RPCReply:
         return self._raw
     
     def parse(self):
-        if self._parsed:
-            return
-        
+        if self._parsed: return
         root = self._root = ET.fromstring(self._raw) # <rpc-reply> element
-        
-        if __(root.tag) != 'rpc-reply':
-            raise ValueError('Root element is not RPC reply')
-        
-        ok = False
         # per rfc 4741 an <ok/> tag is sent when there are no errors or warnings
-        oktags = _('ok')
-        for oktag in oktags:
-            if root.find(oktag) is not None:
-                logger.debug('parsed [%s]' % oktag)
-                break
-        else:
-            # create RPCError objects from <rpc-error> elements
-            errtags = _('rpc-error')
-            for errtag in errtags:
-                for err in root.getiterator(errtag): # a particular <rpc-error>
-                    logger.debug('parsed [%s]' % errtag)
+        ok = namespaced_find(root, 'ok')
+        if ok is not None:
+            logger.debug('parsed [%s]' % ok.tag)
+        else: # create RPCError objects from <rpc-error> elements
+            error = namespaced_find(root, 'rpc-error')
+            if error is not None:
+                logger.debug('parsed [%s]' % error.tag)
+                for err in root.getiterator(error.tag):
+                    # process a particular <rpc-error>
                     d = {}
                     for err_detail in err.getchildren(): # <error-type> etc..
                         tag = __(err_detail.tag)
                         d[tag] = (err_detail.text.strip() if tag != 'error-info'
                                   else ET.tostring(err_detail, 'utf-8'))
                     self._errors.append(RPCError(d))
-                if self._errors:
-                    break
-        
+        self._parsing_hook(root)
         self._parsed = True
     
-    @property
-    def content_xml(self):
-        '<rpc-reply> subtree'
-        if not self._parsed: self.parse()
-        return ''.join([ET.tostring(ele) for ele in self._root.getchildren()])
+    def extract_subtree_xml(self):
+        return ''.join([ET.tostring(ele)
+                        for ele in ET.fromstring(self.xml).getchildren()])
     
     @property
-    def content_element(self):
-        if not self._parsed: self.parse()
-        return self._root.getchildren()
-    
-    @property
-    def root_xml(self):
+    def xml(self):
         '<rpc-reply> as returned'
         return self._raw
-    
-    @property
-    def root_element(self):
-        if not self._parsed: self.parse()
-        return self._root
     
     @property
     def ok(self):

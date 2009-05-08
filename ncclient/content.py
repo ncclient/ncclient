@@ -17,6 +17,7 @@
 from xml.etree import cElementTree as ET
 
 iselement = ET.iselement
+element2string = ET.tostring
 
 ### Namespace-related ###
 
@@ -42,6 +43,21 @@ multiqualify = lambda tag, nslist=(BASE_NS, CISCO_BS): [qualify(tag, ns)
                                                         for ns in nslist]
 
 unqualify = lambda tag: tag[tag.rfind('}')+1:]
+
+def namespaced_find(ele, tag, workaround=True):
+    """`workaround` is for Cisco implementations (at least the one tested), 
+    which uses an incorrect namespace.
+    """
+    found = None
+    if not workaround:
+        found = ele.find(tag)
+    else:
+        for qname in multiqualify(tag):
+            found = ele.find(qname)
+            if found is not None:
+                break
+    return found
+    
 
 ### Build XML using Python data structures ###
 
@@ -70,7 +86,7 @@ class XMLConverter:
     @staticmethod
     def build(spec):
         "TODO: docstring"
-        if ET.iselement(spec):
+        if iselement(spec):
             return spec
         elif isinstance(spec, basestring):
             return ET.XML(spec)

@@ -17,6 +17,13 @@ from ncclient.content import iselement
 
 import util
 
+"""
+"""
+
+# NOTES
+# - consider class for helping define <config> for EditConfig??
+
+
 class EditConfig(RPC):
     
     # tested: no
@@ -31,31 +38,30 @@ class EditConfig(RPC):
                 default_operation=None, test_option=None, error_option=None):
         util.one_of(target, target_url)
         spec = EditConfig.SPEC.copy()
-        params = spec['subtree']
-        params.append({
+        subtree = spec['subtree']
+        subtree.append({
             'tag': 'target',
             'subtree': util.store_or_url(target, target_url)
             })
-        params.append({
+        subtree.append({
             'tag': 'config',
             'subtree': config
             })
         if default_operation is not None:
-            params.append({
+            subtree.append({
                 'tag': 'default-operation',
                 'text': default_operation
                 })
         if test_option is not None:
-            if test_option == '':
-                self._assert(':validate')
-            params.append({
+            self._assert(':validate')
+            subtree.append({
                 'tag': 'test-option',
                 'text': test_option
                 })
         if error_option is not None:
             if error_option == 'rollback-on-error':
                 self._assert(':rollback-on-error')
-            params.append({
+            subtree.append({
                 'tag': 'error-option',
                 'text': error_option
                 })
@@ -64,6 +70,7 @@ class EditConfig(RPC):
 class DeleteConfig(RPC):
     
     # tested: no
+    # combed: yes
     
     SPEC = {
         'tag': 'delete-config',
@@ -79,6 +86,7 @@ class DeleteConfig(RPC):
 class CopyConfig(RPC):
     
     # tested: no
+    # combed: yes
     
     SPEC = {
         'tag': 'copy-config',

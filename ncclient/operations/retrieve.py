@@ -14,28 +14,41 @@
 
 from ncclient.rpc import RPC, RPCReply
 
+from ncclient import content
+
 import util
+
+# NOTES
+# - consider class for helping define <filter> for Get/GetConfig??
 
 class GetReply(RPCReply):
     
+    'Adds data attribute'
+    
     # tested: no
+    # combed: yes
     
-    def __init__(self, *args, **kwds):
-        RPCReply.__init__(self, *args, **kwds)
+    def _parsing_hook(self, root):
         self._data = None
-    
-    def parse(self):
-        RPCReply.parse(self)
-        if self.ok:
-            self.root.find('data')
+        if not self._errors:
+            self._data = content.namespaced_find(root, 'data')
     
     @property
-    def data(self):
-        return ET.tostring(self._data)
+    def data_element(self):
+        if not self._parsed:
+            self.parse()
+        return self._data
+    
+    @property
+    def data_xml(self):
+        return content.element2string(self.data_element)
+    
+    data = data_element
 
 class Get(RPC):
     
     # tested: no
+    # combed: yes
     
     SPEC = {
         'tag': 'get',
@@ -51,6 +64,9 @@ class Get(RPC):
         return self._request(spec)
 
 class GetConfig(RPC):
+
+    # tested: no
+    # combed: yes
     
     SPEC = {
         'tag': 'get-config',
@@ -60,10 +76,16 @@ class GetConfig(RPC):
     REPLY_CLS = GetReply
     
     def request(self, source=None, source_url=None, filter=None):
-        util.one_of(source, source_url)
+        """
+        `filter` has to be a tuple of (type, criteria)
+        The type may be one of 'xpath' or 'subtree'
+        The criteria may be an ElementTree.Element, an XML fragment, or tree specification
+        """
         spec = GetConfig.SPEC.copy()
-        subtree = spec['subtree']
-        subtree.append({'tag': 'source', 'subtree': util.store_or_url(source, source_url)})
+        spec['subtree'].append({
+            'tag': 'source',
+            'subtree': util.store_or_url(source, source_url)
+            })
         if filter is not None:
-            subtree.append(util.build_filter(*filter))
+            spec['subtree'].append(util.build_filter(*filter))
         return self._request(spec)
