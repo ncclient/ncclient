@@ -37,31 +37,45 @@ def connect_ssh(*args, **kwds):
     session.connect(*args, **kwds)
     return Manager(session)
 
-connect = connect_ssh # default
+connect = connect_ssh # default session type
 
 class Manager:
     
     'Facade for the API'
     
-    def __init__(self, session):
-        self._session = session
+    RAISE_ALL = 0
+    RAISE_ERROR = 1
+    RAISE_NONE = 2
     
-    def _get(self, type, *args, **kwds):
-        op = OPERATIONS[type](self._session)
-        reply = op.request(*args, **kwds)
-        if not reply.ok:
-            raise reply.errors[0]
-        else:
-            return reply.data
+    def __init__(self, session, rpc_error=Manager.RAISE_ERROR):
+        self._session = session
+        self._raise = rpc_error
 
     def do(self, op, *args, **kwds):
         op = OPERATIONS[op](self._session)
         reply = op.request(*args, **kwds)
         if not reply.ok:
-            raise reply.errors[0]
+            if self._raise == Manager.RAISE_ALL:
+                raise reply.error
+            elif self._raise == Manager.RAISE_ERROR:
+                for error in reply.errors:
+                    if error.severity == 'error':
+                        raise error
         return reply
-
-    def locked(self, target='running'):
+    
+    def __enter__(self):
+        pass
+    
+    def __exit__(self, *args):
+        self.close()
+        return False
+    
+    def _get(self, type, *args, **kwds):
+        reply = self.do(type)
+        return reply.data
+    
+    def locked(self, target):
+        "For use with 'with'. target is the datastore, e.g. 'candidate'"
         return operations.LockContext(self._session, target)
     
     get = lambda self, *args, **kwds: self._get('get')
@@ -89,8 +103,9 @@ class Manager:
     kill_session = lambda self, *args, **kwds: self.do('kill-session', *args, **kwds)
     
     def close(self):
-        try:
+        try: # try doing it clean
             self.close_session()
         except:
-            self._session.expect_close()
+            pass
+        if self._session.connected: # if that didn't work...
             self._session.close()

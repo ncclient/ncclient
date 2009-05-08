@@ -14,8 +14,6 @@
 
 "All to do with NETCONF <hello> messages"
 
-from xml.etree import cElementTree as ET
-
 from ncclient.glue import Listener
 from ncclient.content import XMLConverter, BASE_NS
 from ncclient.content import qualify as _
@@ -59,14 +57,12 @@ class HelloHandler(Listener):
     def parse(raw):
         "Returns tuple of ('session-id', ['capability_uri', ...])"
         sid, capabilities = 0, []
-        root = ET.fromstring(raw)
-        for child in root.getchildren():
-            if __(child.tag) == 'session-id':
-                sid = child.text
-            elif __(child.tag) == 'capabilities':
-                for cap in child.getiterator(_('capability', BASE_NS)):
-                    capabilities.append(cap.text)
-                # cisco doesn't namespace hello message
-                for cap in child.getiterator('capability'): 
-                    capabilities.append(cap.text)
+        root = XMLConverter.from_string(raw)
+        for child in root['children']:
+            if __(child['tag']) == 'session-id':
+                sid = child['text']
+            elif __(child['tag']) == 'capabilities':
+                for cap in child['children']:
+                    if __(cap['text']) == 'capability':
+                        capabilities.append(cap['text'])
         return sid, capabilities

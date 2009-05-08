@@ -6,7 +6,9 @@ from ncclient import OperationError
 
 from . import MissingCapabilityError
 
-def one_of(self, *args):
+
+def one_of(*args):
+    'Verifies that only one of the arguments is not None'
     for i, arg in enumerate(args):
         if arg is not None:
             for argh in args[i+1:]:
@@ -15,11 +17,6 @@ def one_of(self, *args):
             else:
                 return
     raise OperationError('Insufficient parameters')
-
-
-def assert_capability(key, capabilities):
-    if key not in capabilities:
-        raise MissingCapabilityError('[%s] capability is required for this operation' % key)
 
 
 def store_or_url(store, url):
@@ -32,13 +29,14 @@ def store_or_url(store, url):
         node['text'] = url
     return node
 
-def build_filter(spec, type, criteria):
+
+def build_filter(type, criteria):
     filter = {
         'tag': 'filter',
         'attributes': {'type': type}
     }
-    if type == 'subtree':
-        filter['children'] = [criteria]
-    elif type == 'xpath':
+    if type == 'xpath':
         filter['attributes']['select'] = criteria
+    else:
+        filter['subtree'] = [criteria]
     return filter

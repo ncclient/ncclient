@@ -121,6 +121,7 @@ class SSHSession(Session):
         f.close()    
     
     def close(self):
+        self.expect_close()
         if self._transport.is_active():
             self._transport.close()
         self._connected = False

@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO when can actually test it...
-
 from ncclient.rpc import RPC
 
 from ncclient.glue import Listener
@@ -21,16 +19,15 @@ from ncclient.content import qualify as _
 
 NOTIFICATION_NS = 'urn:ietf:params:xml:ns:netconf:notification:1.0'
 
+# TODO when can actually test it...
+
 class CreateSubscription(RPC):    
+    # tested: no
     
     SPEC = {
-        'tag': _('create-subscription', NOTIFICATION_NS),
-        'startTime': None,
-        'stream': None
+        'tag': _('create-subscription', NOTIFICATION_NS)
     }
 
-class Notification:
-    pass
+class Notification: pass
 
-class NotificationListener(Listener):
-    pass
+class NotificationListener(Listener): pass

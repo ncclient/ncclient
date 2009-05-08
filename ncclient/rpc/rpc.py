@@ -54,7 +54,7 @@ class RPC(object):
         spec = {
             'tag': _('rpc'),
             'attributes': {'message-id': self._id},
-            'children': opspec
+            'subtree': opspec
             }
         return XMLConverter(spec).to_string(encoding)
     
@@ -70,6 +70,9 @@ class RPC(object):
                 return self._reply
             else:
                 raise ReplyTimeoutError
+    
+    def request(self):
+        return self._request(self.SPEC)
     
     def _delivery_hook(self):
         'For subclasses'

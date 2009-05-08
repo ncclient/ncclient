@@ -24,6 +24,8 @@ logger = logging.getLogger('ncclient.rpc.reply')
 
 class RPCReply:
     
+    'NOTES: memory considerations?? storing both raw xml + ET.Element'
+    
     def __init__(self, raw):
         self._raw = raw
         self._parsed = False
@@ -67,17 +69,38 @@ class RPCReply:
         self._parsed = True
     
     @property
-    def raw(self):
+    def content_xml(self):
+        '<rpc-reply> subtree'
+        if not self._parsed: self.parse()
+        return ''.join([ET.tostring(ele) for ele in self._root.getchildren()])
+    
+    @property
+    def content_element(self):
+        if not self._parsed: self.parse()
+        return self._root.getchildren()
+    
+    @property
+    def root_xml(self):
+        '<rpc-reply> as returned'
         return self._raw
     
     @property
-    def root(self):
+    def root_element(self):
+        if not self._parsed: self.parse()
         return self._root
     
     @property
     def ok(self):
         if not self._parsed: self.parse()
         return not self._errors # empty list => false
+    
+    @property
+    def error(self):
+        if not self._parsed: self.parse()
+        if self._errors:
+            return self._errors[0]
+        else:
+            return None
     
     @property
     def errors(self):

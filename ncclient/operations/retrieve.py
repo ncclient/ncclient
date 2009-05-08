@@ -18,18 +18,28 @@ import util
 
 class GetReply(RPCReply):
     
+    # tested: no
+    
+    def __init__(self, *args, **kwds):
+        RPCReply.__init__(self, *args, **kwds)
+        self._data = None
+    
     def parse(self):
         RPCReply.parse(self)
+        if self.ok:
+            self.root.find('data')
     
     @property
     def data(self):
-        return None
+        return ET.tostring(self._data)
 
 class Get(RPC):
     
+    # tested: no
+    
     SPEC = {
         'tag': 'get',
-        'children': []
+        'subtree': []
     }
     
     REPLY_CLS = GetReply
@@ -37,14 +47,14 @@ class Get(RPC):
     def request(self, filter=None):
         spec = Get.SPEC.copy()
         if filter is not None:
-            spec['children'].append(util.build_filter(*filter))
+            spec['subtree'].append(util.build_filter(*filter))
         return self._request(spec)
 
 class GetConfig(RPC):
     
     SPEC = {
         'tag': 'get-config',
-        'children': []
+        'subtree': []
     }
     
     REPLY_CLS = GetReply
@@ -52,8 +62,8 @@ class GetConfig(RPC):
     def request(self, source=None, source_url=None, filter=None):
         util.one_of(source, source_url)
         spec = GetConfig.SPEC.copy()
-        children = spec['children']
-        children.append({'tag': 'source', 'children': util.store_or_url(source, source_url)})
+        subtree = spec['subtree']
+        subtree.append({'tag': 'source', 'subtree': util.store_or_url(source, source_url)})
         if filter is not None:
-            children.append(util.build_filter(*filter))
+            subtree.append(util.build_filter(*filter))
         return self._request(spec)

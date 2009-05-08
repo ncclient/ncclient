@@ -16,9 +16,9 @@
 
 from ncclient.rpc import RPC
 
-class CloseSession(RPC): # x
-    
-    'CloseSession is always synchronous'
+class CloseSession(RPC):
+    # tested: no
+    # combed: yes
     
     SPEC = { 'tag': 'close-session' }
     
@@ -26,21 +26,22 @@ class CloseSession(RPC): # x
         if self.reply.ok:
             self.session.expect_close()
         self.session.close()
-    
-    def request(self):
-        return self._request(CloseSession.SPEC)
 
 
-class KillSession(RPC): # x
+class KillSession(RPC):
+    # tested: no
     
     SPEC = {
         'tag': 'kill-session',
-        'children': { 'tag': 'session-id', 'text': None}
+        'subtree': []
     }
     
     def request(self, session_id):
+        spec = KillSession.SPEC.copy()
         if not isinstance(session_id, basestring): # just making sure...
             session_id = str(session_id)
-        spec = KillSession.SPEC.copy()
-        spec['children'][0]['text'] = session_id
+        spec['subtree'].append({
+            'tag': 'session-id',
+            'text': session_id
+        })
         return self._request(spec)

@@ -1,4 +1,4 @@
-# Copyright 2009 Shikhar Bhushan
+# Copyright 2h009 Shikhar Bhushan
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,54 +16,59 @@
 
 from ncclient.rpc import RPC
 
-import util
-
 class Lock(RPC):
+    
+    # tested: no
     
     SPEC = {
         'tag': 'lock',
-        'children': {
+        'subtree': {
             'tag': 'target',
-            'children': {'tag': None }
+            'subtree': {'tag': None }
         }
     }
     
-    def request(self, target='running'):
-        if target=='candidate':
-            self._assert(':candidate')
+    def request(self, target):
         spec = Lock.SPEC.copy()
-        spec['children']['children']['tag'] = target
+        spec['subtree']['subtree']['tag'] = target
         return self._request(spec)
 
 
 class Unlock(RPC):
     
+    # tested: no
+    
     SPEC = {
         'tag': 'unlock',
-        'children': {
+        'subtree': {
             'tag': 'target',
-            'children': {'tag': None }
+            'subtree': {'tag': None }
         }
     }
     
-    def request(self, target='running'):
-        if target=='candidate':
-            self._assert(':candidate')
+    def request(self, target):
         spec = Unlock.SPEC.copy()
-        spec['children']['children']['tag'] = target
+        spec['subtree']['subtree']['tag'] = target
         return self._request(spec)
 
 
 class LockContext:
-        
-    def __init__(self, session, target='running'):
+    
+    # tested: no
+    
+    def __init__(self, session, target):
         self.session = session
         self.target = target
-        
-    def __enter__(self):
-        Lock(self.session).request(self.target)
-        return self
     
-    def __exit__(self, t, v, tb):
-        Unlock(self.session).request(self.target)
+    def __enter__(self):
+        reply = Lock(self.session).request(self.target)
+        if not reply.ok:
+            raise reply.error
+        else:
+            return self
+    
+    def __exit__(self, *args):
+        reply = Unlock(session).request(self.target)
+        if not reply.ok:
+            raise reply.error
         return False
