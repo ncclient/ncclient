@@ -16,8 +16,6 @@
 
 from xml.etree import cElementTree as ET
 
-iselement = ET.iselement
-element2string = ET.tostring
 
 ### Namespace-related ###
 
@@ -57,7 +55,7 @@ def namespaced_find(ele, tag, workaround=True):
             if found is not None:
                 break
     return found
-    
+
 
 ### Build XML using Python data structures ###
 
@@ -70,7 +68,7 @@ class XMLConverter:
         "TODO: docstring"
         self._root = XMLConverter.build(spec)
     
-    def to_string(self, encoding='utf-8'):
+    def tostring(self, encoding='utf-8'):
         "TODO: docstring"
         xml = ET.tostring(self._root, encoding)
         # some etree versions don't include xml decl with utf-8
@@ -90,7 +88,7 @@ class XMLConverter:
             return spec
         elif isinstance(spec, basestring):
             return ET.XML(spec)
-        ## assume isinstance(spec, dict)
+        # assume isinstance(spec, dict)
         if 'tag' in spec:
             ele = ET.Element(spec.get('tag'), spec.get('attributes', {}))
             ele.text = spec.get('text', '')
@@ -104,11 +102,12 @@ class XMLConverter:
             return ele
         elif 'comment' in spec:
             return ET.Comment(spec.get('comment'))
+        # TODO elif DOM rep
         else:
             raise ContentError('Invalid tree spec')
     
     @staticmethod
-    def from_string(xml):
+    def fromstring(xml):
         return XMLConverter.parse(ET.fromstring(xml))
     
     @staticmethod
@@ -120,3 +119,18 @@ class XMLConverter:
             'tail': root.tail,
             'subtree': [ XMLConverter.parse(child) for child in root.getchildren() ]
         }
+
+## utility functions
+
+iselement = ET.iselement
+
+def isdom(x): return True # TODO
+
+def root_ensured(rep, tag):
+    if isinstance(rep, basestring):
+        rep = ET.XML(rep)
+    err = False
+    if ((iselement(rep) and (rep.tag not in (tag, qualify(tag))) or (isdom(x)))): 
+        raise ArgumentError("Expected root element [%s] not found" % tag)
+    else:
+        return rep

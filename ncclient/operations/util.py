@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-'Boilerplate'
+'Boilerplate ugliness'
 
 from ncclient import OperationError
+from ncclient.content import qualify as _
+from ncclient.content import ensure_root
 
-from . import MissingCapabilityError
+from ncclient.errors import MissingCapabilityError, ArgumentError
 
 def one_of(*args):
     'Verifies that only one of the arguments is not None'
@@ -29,23 +31,15 @@ def one_of(*args):
                 return
     raise OperationError('Insufficient parameters')
 
-def store_or_url(store, url):
+def store_or_url(store, url, capcheck_func=None):
     one_of(store, url)
     node = {}
     if store is not None:
         node['tag'] = store
     else:
+        if capcheck_func is not None:
+            capcheck_func(':url') # hmm.. schema check? deem overkill for now
         node['tag'] = 'url'
         node['text'] = url
     return node
 
-def build_filter(type, criteria):
-    filter = {
-        'tag': 'filter',
-        'attributes': {'type': type}
-    }
-    if type == 'xpath':
-        filter['attributes']['select'] = criteria
-    else:
-        filter['subtree'] = [criteria]
-    return filter

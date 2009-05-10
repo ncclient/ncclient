@@ -15,14 +15,8 @@
 from rpc import RPC
 from reply import RPCReply, RPCError
 
-import ncclient
-
-class ReplyTimeoutError(ncclient.RPCError):
-    pass
-
 __all__ = [
     'RPC',
     'RPCReply',
-    'RPCError',
-    'ReplyTimeoutError'
+    'RPCError'
 ]

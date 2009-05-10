@@ -41,7 +41,7 @@ connect = connect_ssh # default session type
 
 class Manager:
     
-    'Facade for the API'
+    "Thin layer of abstraction for the ncclient API."
     
     RAISE_ALL = 0
     RAISE_ERROR = 1
@@ -51,7 +51,7 @@ class Manager:
         self._session = session
         self._raise = rpc_error
 
-    def do(self, op, *args, **kwds):
+    def rpc(self, op, *args, **kwds):
         op = OPERATIONS[op](self._session)
         reply = op.request(*args, **kwds)
         if not reply.ok:
@@ -75,9 +75,10 @@ class Manager:
         return reply.data
     
     def locked(self, target):
-        "For use with 'with'. target is the datastore, e.g. 'candidate'"
+        "Returns a context manager for use withthe 'with' statement.
+	`target` is the datastore to lock, e.g. 'candidate'"
         return operations.LockContext(self._session, target)
-    
+     
     get = lambda self, *args, **kwds: self._get('get')
     
     get_config = lambda self, *args, **kwds: self._get('get-config')
@@ -109,3 +110,18 @@ class Manager:
             pass
         if self._session.connected: # if that didn't work...
             self._session.close()
+
+    @property
+    def session(self, session):
+	return self._session
+    
+    def get_capabilities(self, whose):
+	if whose in ('manager', 'client'):
+	    return self._session._client_capabilities
+	elif whose in ('agent', 'server')
+	    return self._session._server_capabilities
+
+   
+    @property
+    def capabilities(self):
+        return self._session._client_capabilities

@@ -12,27 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ncclient.rpc import RPC
 from ncclient.content import iselement
+
+from rpc import RPC
 
 import util
 
-"""
-"""
 
-# NOTES
-# - consider class for helping define <config> for EditConfig??
+"Operations related to configuration editing"
 
 
 class EditConfig(RPC):
     
     # tested: no
-    # combed: no
+    # combed: yes
     
-    SPEC = {
-        'tag': 'edit-config',
-        'subtree': []
-    }
+    SPEC = {'tag': 'edit-config', 'subtree': []}
     
     def request(self, target=None, target_url=None, config=None,
                 default_operation=None, test_option=None, error_option=None):
@@ -41,12 +36,9 @@ class EditConfig(RPC):
         subtree = spec['subtree']
         subtree.append({
             'tag': 'target',
-            'subtree': util.store_or_url(target, target_url)
+            'subtree': util.store_or_url(target, target_url, self._assert)
             })
-        subtree.append({
-            'tag': 'config',
-            'subtree': config
-            })
+        subtree.append(config)
         if default_operation is not None:
             subtree.append({
                 'tag': 'default-operation',
@@ -72,14 +64,14 @@ class DeleteConfig(RPC):
     # tested: no
     # combed: yes
     
-    SPEC = {
-        'tag': 'delete-config',
-        'subtree': [ { 'tag': 'target', 'subtree': None } ]
-    }
+    SPEC = {'tag': 'delete-config', 'subtree': []}
     
     def request(self, target=None, target_url=None):
         spec = DeleteConfig.SPEC.copy()
-        spec['subtree'][0]['subtree'] = util.store_or_url(target, target_url)
+        spec['subtree'].append({
+            'tag': 'target',
+            'subtree': util.store_or_url(target, target_url, self._assert)
+            })
         return self._request(spec)
 
 
@@ -88,20 +80,17 @@ class CopyConfig(RPC):
     # tested: no
     # combed: yes
     
-    SPEC = {
-        'tag': 'copy-config',
-        'subtree': []
-    }
+    SPEC = {'tag': 'copy-config', 'subtree': []}
     
     def request(self, source=None, source_url=None, target=None, target_url=None):
         spec = CopyConfig.SPEC.copy()
         spec['subtree'].append({
-            'tag': 'target',
-            'subtree': util.store_or_url(source, source_url)
+            'tag': 'source',
+            'subtree': util.store_or_url(source, source_url, self._assert)
             })
         spec['subtree'].append({
             'tag': 'target',
-            'subtree': util.store_or_url(target, target_url)
+            'subtree': util.store_or_url(target, target_url, self._assert)
             })
         return self._request(spec)
 
@@ -115,24 +104,18 @@ class Validate(RPC):
     
     DEPENDS = [':validate']
     
-    SPEC = {
-        'tag': 'validate',
-        'subtree': []
-    }
+    SPEC = {'tag': 'validate', 'subtree': []}
     
-    def request(self, source=None, config=None):
-        util.one_of(source, capability)
-        spec = SPEC.copy()
-        if source is not None:
+    def request(self, source=None, source_url=None, config=None):
+        util.one_of(source, source_url, config)
+        spec = Validate.SPEC.copy()
+        if config is None:
             spec['subtree'].append({
                 'tag': 'source',
-                'subtree': {'tag': source}
+                'subtree': util.store_or_url(source, source_url, self._assert)
             })
         else:
-            spec['subtree'].append({
-                'tag': 'config',
-                'subtree': config
-            })
+            spec['subtree'].append(config)
         return self._request(spec)
 
 
@@ -143,7 +126,7 @@ class Commit(RPC):
     
     DEPENDS = [':candidate']
     
-    SPEC = { 'tag': 'commit', 'subtree': [] }
+    SPEC = {'tag': 'commit', 'subtree': []}
     
     def _parse_hook(self):
         pass
@@ -151,6 +134,7 @@ class Commit(RPC):
     def request(self, confirmed=False, timeout=None):
         spec = SPEC.copy()
         if confirmed:
+            self._assert(':confirmed-commit')
             spec['subtree'].append({'tag': 'confirmed'})
             if timeout is not None:
                 spec['subtree'].append({

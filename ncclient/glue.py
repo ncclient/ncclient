@@ -23,7 +23,8 @@ logger = logging.getLogger('ncclient.glue')
 
 
 def parse_root(raw):
-    '''Parse the top-level element from a string representing an XML document.
+    '''Internal use.
+    Parse the top-level element from XML string.
     
     Returns a `(tag, attributes)` tuple, where `tag` is a string representing
     the qualified name of the root element and `attributes` is an
