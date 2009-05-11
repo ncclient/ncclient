@@ -12,15 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ncclient.content import iselement
+from ncclient import content
 
 from rpc import RPC
 
 import util
 
-
 "Operations related to configuration editing"
-
 
 class EditConfig(RPC):
     
@@ -38,7 +36,7 @@ class EditConfig(RPC):
             'tag': 'target',
             'subtree': util.store_or_url(target, target_url, self._assert)
             })
-        subtree.append(config)
+        subtree.append(content.root_ensured(config, 'config'))
         if default_operation is not None:
             subtree.append({
                 'tag': 'default-operation',
@@ -115,7 +113,7 @@ class Validate(RPC):
                 'subtree': util.store_or_url(source, source_url, self._assert)
             })
         else:
-            spec['subtree'].append(config)
+            spec['subtree'].append(content.root_ensured(config, 'config'))
         return self._request(spec)
 
 
@@ -169,3 +167,4 @@ class DiscardChanges(RPC):
     DEPENDS = [':candidate']
     
     SPEC = {'tag': 'discard-changes'}
+

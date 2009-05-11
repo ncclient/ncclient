@@ -16,6 +16,9 @@
 
 from xml.etree import cElementTree as ET
 
+from ncclient import NCClientError
+
+class ContentError(NCClientError): pass
 
 ### Namespace-related ###
 
@@ -124,13 +127,13 @@ class XMLConverter:
 
 iselement = ET.iselement
 
-def isdom(x): return True # TODO
+# def isdom(x): return True # TODO
 
-def root_ensured(rep, tag):
+def ensured(rep, req_tag, req_attrs=None):
     if isinstance(rep, basestring):
         rep = ET.XML(rep)
-    err = False
-    if ((iselement(rep) and (rep.tag not in (tag, qualify(tag))) or (isdom(x)))): 
-        raise ArgumentError("Expected root element [%s] not found" % tag)
-    else:
-        return rep
+    if iselement(rep) and (rep.tag not in (req_tag, qualify(req_tag): 
+        raise ContentError("Required root element [%s] not found" % req_tag)
+    if req_attrs is not None:
+        pass # TODO
+    return rep

@@ -16,12 +16,9 @@
 
 from ncclient import NCClientError
 
-class OperationError(NCClientError):
-    pass
 
-class MissingCapabilityError(OperationError):
-    pass
-
+from rpc import RPC, RPCError
+from errors import MissingCapabilityError
 from retrieve import Get, GetConfig
 from edit import EditConfig, CopyConfig, DeleteConfig, Validate, Commit, DiscardChanges
 from session import CloseSession, KillSession
@@ -30,8 +27,8 @@ from subscribe import CreateSubscription
 
 
 __all__ = [
-    'OperationError',
-    'MissingCapabilityError',
+    'RPC',
+    'RPCError',
     'Get',
     'GetConfig',
     'EditConfig',

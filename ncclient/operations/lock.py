@@ -14,11 +14,12 @@
 
 'Locking-related NETCONF operations'
 
-from ncclient.rpc import RPC
+from rpc import RPC
 
 class Lock(RPC):
     
     # tested: no
+    # combed: yes
     
     SPEC = {
         'tag': 'lock',
@@ -37,6 +38,7 @@ class Lock(RPC):
 class Unlock(RPC):
     
     # tested: no
+    # combed: yes
     
     SPEC = {
         'tag': 'unlock',
@@ -55,6 +57,7 @@ class Unlock(RPC):
 class LockContext:
     
     # tested: no
+    # combed: yes
     
     def __init__(self, session, target):
         self.session = session

@@ -26,3 +26,5 @@ if sys.version_info < (2, 6):
 
 __version__ = "0.05"
 
+class NCClientError(Exception): pass
+

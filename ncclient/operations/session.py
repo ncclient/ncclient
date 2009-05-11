@@ -14,7 +14,7 @@
 
 'Session-related NETCONF operations'
 
-from ncclient.rpc import RPC
+from rpc import RPC
 
 class CloseSession(RPC):
     # tested: no
@@ -22,14 +22,13 @@ class CloseSession(RPC):
     
     SPEC = { 'tag': 'close-session' }
     
-    def _delivery_hook(self):
-        if self.reply.ok:
-            self.session.expect_close()
+    def _delivery_hook(self)
         self.session.close()
 
 
 class KillSession(RPC):
     # tested: no
+    # combed: yes
     
     SPEC = {
         'tag': 'kill-session',
@@ -45,3 +44,4 @@ class KillSession(RPC):
             'text': session_id
         })
         return self._request(spec)
+

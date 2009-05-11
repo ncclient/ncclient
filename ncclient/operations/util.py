@@ -16,9 +16,9 @@
 
 from ncclient import OperationError
 from ncclient.content import qualify as _
-from ncclient.content import ensure_root
+from ncclient.content import root_ensured
 
-from ncclient.errors import MissingCapabilityError, ArgumentError
+from errors import MissingCapabilityError
 
 def one_of(*args):
     'Verifies that only one of the arguments is not None'
@@ -31,15 +31,34 @@ def one_of(*args):
                 return
     raise OperationError('Insufficient parameters')
 
-def store_or_url(store, url, capcheck_func=None):
+def store_or_url(store, url, capcheck=None):
     one_of(store, url)
     node = {}
     if store is not None:
         node['tag'] = store
     else:
-        if capcheck_func is not None:
-            capcheck_func(':url') # hmm.. schema check? deem overkill for now
+        if capcheck is not None:
+            capcheck(':url') # hmm.. schema check? deem overkill for now
         node['tag'] = 'url'
         node['text'] = url
     return node
+
+def build_filter(spec, capcheck=None):
+    type = None
+    if isinstance(spec, tuple):
+        type, criteria = tuple
+        rep = {
+            'tag': 'filter',
+            'attributes': {'type': type},
+            'subtree': criteria
+       }
+    else:
+        rep = root_ensure(spec, 'filter', 'type')
+        try:
+            type = rep['type']
+        except KeyError:
+            type = ele[qualify('type'))
+    if type == 'xpath' and capcheck_func is not None:
+        capcheck_func(':xpath')
+    return rep
 

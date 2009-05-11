@@ -14,10 +14,7 @@
 
 "TODO: docstrings"
 
-from ncclient import NCClientError
-
-class TransportError(NCClientError):
-    pass
+from ncclient.errors import TransportError
 
 class AuthenticationError(TransportError):
     pass

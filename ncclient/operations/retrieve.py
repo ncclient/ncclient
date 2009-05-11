@@ -12,14 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ncclient.rpc import RPC, RPCReply
+from rpc import RPC, RPCReply
 
 from ncclient import content
 
 import util
-
-# NOTES
-# - consider class for helping define <filter> for Get/GetConfig??
 
 class GetReply(RPCReply):
     
@@ -60,7 +57,7 @@ class Get(RPC):
     def request(self, filter=None):
         spec = Get.SPEC.copy()
         if filter is not None:
-            spec['subtree'].append(content.rootchecked(filter. 'filter', 'type'))
+            spec['subtree'].append(util.build_filter(filter)))
         return self._request(spec)
 
 class GetConfig(RPC):
@@ -87,6 +84,6 @@ class GetConfig(RPC):
             'subtree': util.store_or_url(source, source_url)
             })
         if filter is not None:
-            spec['subtree'].append(content.rootchecked(filter, 'filter', 'type'))
+            spec['subtree'].append(util.build_filter(filter))
         return self._request(spec)
 
