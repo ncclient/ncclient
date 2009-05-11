@@ -42,10 +42,10 @@ class HelloHandler(Listener):
         "Given a list of capability URI's returns encoded <hello> message"
         spec = {
             'tag': content.qualify('hello'),
-            'children': [{
+            'subtree': [{
                 'tag': 'capabilities',
                 'children': # this is fun :-)
-                    [{ 'tag': 'capability', 'text': uri} for uri in capabilities]
+                    [{'tag': 'capability', 'text': uri} for uri in capabilities]
                 }]
             }
         return content.to_xml(spec)
@@ -54,13 +54,13 @@ class HelloHandler(Listener):
     def parse(raw):
         "Returns tuple of ('session-id', ['capability_uri', ...])"
         sid, capabilities = 0, []
-        root = content.from_xml(raw)
-        for child in root['children']:
+        root = content.xml2ele(raw)
+        for child in root.getchildren():
             tag = content.unqualify(child['tag'])
             if tag == 'session-id':
-                sid = child['text']
+                sid = child.text
             elif tag == 'capabilities':
-                for cap in child['children']:
-                    if content.unqualify(cap['text']) == 'capability':
-                        capabilities.append(cap['text'])
+                for cap in child.getchildren():
+                    if content.unqualify(cap.tag) == 'capability':
+                        capabilities.append(cap.text)
         return sid, capabilities

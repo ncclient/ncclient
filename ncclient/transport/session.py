@@ -42,32 +42,6 @@ class Session(Thread):
         logger.debug('%r created: client_capabilities=%r' %
                      (self, self._client_capabilities))
     
-    def _post_connect(self):
-        "Greeting stuff"
-        init_event = Event()
-        error = [None] # so that err_cb can bind error[0]. just how it is.
-        # callbacks
-        def ok_cb(id, capabilities):
-            self._id = id
-            self._server_capabilities = Capabilities(capabilities)
-            init_event.set()
-        def err_cb(err):
-            error[0] = err
-            init_event.set()
-        listener = HelloHandler(ok_cb, err_cb)
-        self.add_listener(listener)
-        self.send(HelloHandler.build(self._client_capabilities))
-        logger.debug('starting main loop')
-        self.start()
-        # we expect server's hello message
-        init_event.wait()
-        # received hello message or an error happened
-        self.remove_listener(listener)
-        if error[0]:
-            raise error[0]
-        logger.info('initialized: session-id=%s | server_capabilities=%s' %
-                     (self._id, self._server_capabilities))
-    
     def _dispatch_message(self, raw):
         "TODO: docstring"
         try:
@@ -94,6 +68,32 @@ class Session(Thread):
                 l.errback(err)
             except Exception as e:
                 logger.warning('error %r' % e)
+    
+    def _post_connect(self):
+        "Greeting stuff"
+        init_event = Event()
+        error = [None] # so that err_cb can bind error[0]. just how it is.
+        # callbacks
+        def ok_cb(id, capabilities):
+            self._id = id
+            self._server_capabilities = Capabilities(capabilities)
+            init_event.set()
+        def err_cb(err):
+            error[0] = err
+            init_event.set()
+        listener = HelloHandler(ok_cb, err_cb)
+        self.add_listener(listener)
+        self.send(HelloHandler.build(self._client_capabilities))
+        logger.debug('starting main loop')
+        self.start()
+        # we expect server's hello message
+        init_event.wait()
+        # received hello message or an error happened
+        self.remove_listener(listener)
+        if error[0]:
+            raise error[0]
+        logger.info('initialized: session-id=%s | server_capabilities=%s' %
+                     (self._id, self._server_capabilities))
     
     def add_listener(self, listener):
         "TODO: docstring"

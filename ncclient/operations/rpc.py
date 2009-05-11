@@ -16,13 +16,12 @@ from threading import Event, Lock
 from uuid import uuid1
 from weakref import WeakValueDictionary
 
-import ncclient.content
+from ncclient import content
 
 from reply import RPCReply
 
 import logging
 logger = logging.getLogger('ncclient.rpc')
-
 
 class RPC(object):
     
@@ -40,6 +39,7 @@ class RPC(object):
             pass        
         self._async = async
         self._timeout = timeout
+        # keeps things simple instead of having a class attr that has to be locked
         self._id = uuid1().urn
         self._listener = RPCReplyListener(session)
         self._listener.register(self._id, self)
@@ -53,7 +53,7 @@ class RPC(object):
             'attributes': {'message-id': self._id},
             'subtree': opspec
             }
-        return XMLConverter(spec).to_string(encoding)
+        return content.dtree2xml(encoding)
     
     def _request(self, op):
         req = self._build(op)
@@ -125,8 +125,9 @@ class RPCReply:
         return self._raw
     
     def parse(self):
-        if self._parsed: return
-        root = self._root = content.to_element(self._raw) # <rpc-reply> element
+        if self._parsed:
+            return
+        root = self._root = content.xml2ele(self._raw) # <rpc-reply> element
         # per rfc 4741 an <ok/> tag is sent when there are no errors or warnings
         ok = content.namespaced_find(root, 'ok')
         if ok is not None:

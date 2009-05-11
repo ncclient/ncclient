@@ -16,7 +16,6 @@
 
 from ncclient import NCClientError
 
-
 from rpc import RPC, RPCError
 from errors import MissingCapabilityError
 from retrieve import Get, GetConfig
@@ -25,9 +24,9 @@ from session import CloseSession, KillSession
 from lock import Lock, Unlock, LockContext
 from subscribe import CreateSubscription
 
-
 __all__ = [
     'RPC',
+    'RPCReply',
     'RPCError',
     'Get',
     'GetConfig',

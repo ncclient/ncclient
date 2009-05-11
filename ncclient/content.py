@@ -21,7 +21,7 @@ from ncclient import NCClientError
 class ContentError(NCClientError):
     pass
 
-### Namespace-related ###
+### Namespace-related
 
 BASE_NS = 'urn:ietf:params:xml:ns:netconf:base:1.0'
 # and this is BASE_NS according to cisco devices...
@@ -38,53 +38,13 @@ except AttributeError:
 # we'd like BASE_NS to be prefixed as "netconf"
 register_namespace('netconf', BASE_NS)
 
-qualify = lambda tag, ns=BASE_NS: '{%s}%s' % (ns, tag)
+qualify = lambda tag, ns=BASE_NS: tag if ns is None else '{%s}%s' % (ns, tag)
 
-# i would have written a def if lambdas weren't so much fun
-multiqualify = lambda tag, nslist=(BASE_NS, CISCO_BS): [qualify(tag, ns)
-                                                        for ns in nslist]
+multiqualify = lambda tag, nslist=(BASE_NS, CISCO_BS): [qualify(tag, ns) for ns in nslist]
 
 unqualify = lambda tag: tag[tag.rfind('}')+1:]
 
-### XML with Python data structures
-
-def to_element(spec):
-    "TODO: docstring"
-    if iselement(spec):
-        return spec
-    elif isinstance(spec, basestring):
-        return ET.XML(spec)
-    if not isinstance(spec, dict):
-        raise ContentError("Invalid tree spec")
-    if 'tag' in spec:
-        ele = ET.Element(spec.get('tag'), spec.get('attributes', {}))
-        ele.text = spec.get('text', '')
-        ele.tail = spec.get('tail', '')
-        subtree = spec.get('subtree', [])
-        # might not be properly specified as list but may be dict
-        if isinstance(subtree, dict):
-            subtree = [subtree]
-        for subele in subtree:
-            ele.append(XMLConverter.build(subele))
-        return ele
-    elif 'comment' in spec:
-        return ET.Comment(spec.get('comment'))
-    else:
-        raise ContentError('Invalid tree spec')
-
-def from_xml(xml):
-    return ET.fromstring(xml)
-
-def to_xml(repr, encoding='utf-8'):
-    "TODO: docstring"
-    xml = ET.tostring(to_element(repr), encoding)
-    # some etree versions don't include xml decl with utf-8
-    # this is a problem with some devices
-    return (xml if xml.startswith('<?xml')
-            else '<?xml version="1.0" encoding="%s"?>%s' % (encoding, xml))
-
-
-## Utility functions
+### Other utility functions
 
 iselement = ET.iselement
 
@@ -103,8 +63,7 @@ def namespaced_find(ele, tag, strict=False):
     return found
 
 def parse_root(raw):
-    '''Internal use.
-    Parse the top-level element from XML string.
+    '''Parse the top-level element from XML string.
     
     Returns a `(tag, attributes)` tuple, where `tag` is a string representing
     the qualified name of the root element and `attributes` is an
@@ -121,3 +80,69 @@ def root_ensured(rep, req_tag, req_attrs=None):
     if req_attrs is not None:
         pass # TODO
     return rep
+
+### XML with Python data structures
+
+dtree2ele = DictTree.Element
+dtree2xml = DictTree.XML
+ele2dtree = Element.DictTree
+ele2xml = Element.XML
+xml2dtree = XML.DictTree
+xml2ele = XML.Element
+
+class DictTree:
+
+    @staticmethod
+    def Element(spec):
+        if iselement(spec):
+            return spec
+        elif isinstance(spec, basestring):
+            return XML.Element(spec)
+        if not isinstance(spec, dict):
+            raise ContentError("Invalid tree spec")
+        if 'tag' in spec:
+            ele = ET.Element(spec.get('tag'), spec.get('attributes', {}))
+            ele.text = spec.get('text', '')
+            ele.tail = spec.get('tail', '')
+            subtree = spec.get('subtree', [])
+            # might not be properly specified as list but may be dict
+            if isinstance(subtree, dict):
+                subtree = [subtree]
+            for subele in subtree:
+                ele.append(DictTree.Element(subele))
+            return ele
+        elif 'comment' in spec:
+            return ET.Comment(spec.get('comment'))
+        else:
+            raise ContentError('Invalid tree spec')
+    
+    @staticmethod
+    def XML(spec):
+        Element.XML(DictTree.Element(spec))
+
+class Element:
+    
+    @staticmethod
+    def DictTree(ele):
+        return {
+            'tag': ele.tag,
+            'attributes': ele.attrib,
+            'text': ele.text,
+            'tail': ele.tail,
+            'subtree': [ Element.DictTree(child) for child in root.getchildren() ]
+        }
+    
+    @staticmethod
+    def XML(ele, encoding='utf-8'):
+        xml = ET.tostring(ele, encoding)
+        return xml if xml.startswith('<?xml') else '<?xml version="1.0" encoding="%s"?>\n%s' % (encoding, xml)
+
+class XML:
+    
+    @staticmethod
+    def DictTree(ele):
+        return Element.DictTree(Element.XML(ele))
+    
+    @staticmethod
+    def Element(xml):
+        return ET.fromstring(xml)
