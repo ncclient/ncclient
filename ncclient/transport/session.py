@@ -23,13 +23,16 @@ from hello import HelloHandler
 import logging
 logger = logging.getLogger('ncclient.transport.session')
 
-class Session(Subject):
+class Session(Thread):
     
     "TODO: docstring"
     
     def __init__(self, capabilities):
         "Subclass constructor should call this"
-        Subject.__init__(self)
+        Thread.__init__(self)
+        self.setDaemon(True)
+        self._listeners = set() # TODO(?) weakref
+        self._lock = Lock()
         self.setName('session')
         self._q = Queue()
         self._client_capabilities = capabilities
@@ -64,6 +67,54 @@ class Session(Subject):
             raise error[0]
         logger.info('initialized: session-id=%s | server_capabilities=%s' %
                      (self._id, self._server_capabilities))
+    
+    def _dispatch_message(self, raw):
+        "TODO: docstring"
+        try:
+            root = parse_root(raw)
+        except Exception as e:
+            logger.error('error parsing dispatch message: %s' % e)
+            return
+        with self._lock:
+            listeners = list(self._listeners)
+        for l in listeners:
+            logger.debug('dispatching message to %r' % l)
+            try:
+                l.callback(root, raw)
+            except Exception as e:
+                logger.warning('[error] %r' % e)
+    
+    def _dispatch_error(self, err):
+        "TODO: docstring"
+        with self._lock:
+            listeners = list(self._listeners)
+        for l in listeners:
+            logger.debug('dispatching error to %r' % l)
+            try:
+                l.errback(err)
+            except Exception as e:
+                logger.warning('error %r' % e)
+    
+    def add_listener(self, listener):
+        "TODO: docstring"
+        logger.debug('installing listener %r' % listener)
+        with self._lock:
+            self._listeners.add(listener)
+    
+    def remove_listener(self, listener):
+        "TODO: docstring"
+        logger.debug('discarding listener %r' % listener)
+        with self._lock:
+            self._listeners.discard(listener)
+    
+    def get_listener_instance(self, cls):
+        '''This is useful when we want to maintain one listener of a particular
+        type per subject i.e. a multiton.
+        '''
+        with self._lock:
+            for listener in self._listeners:
+                if isinstance(listener, cls):
+                    return listener
     
     def connect(self, *args, **kwds):
         "Subclass implements"

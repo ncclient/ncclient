@@ -14,10 +14,7 @@
 
 "All to do with NETCONF <hello> messages"
 
-from ncclient.glue import Listener
-from ncclient.content import XMLConverter, BASE_NS
-from ncclient.content import qualify as _
-from ncclient.content import unqualify as __
+from ncclient import content
 
 class HelloHandler(Listener):
     
@@ -29,7 +26,7 @@ class HelloHandler(Listener):
         return 'HelloListener'
     
     def callback(self, root, raw):
-        if __(root[0]) == 'hello':
+        if content.unqualify(root[0]) == 'hello':
             try:
                 id, capabilities = HelloHandler.parse(raw)
             except Exception as e:
@@ -44,25 +41,26 @@ class HelloHandler(Listener):
     def build(capabilities):
         "Given a list of capability URI's returns encoded <hello> message"
         spec = {
-            'tag': _('hello', BASE_NS),
+            'tag': content.qualify('hello'),
             'children': [{
                 'tag': 'capabilities',
                 'children': # this is fun :-)
                     [{ 'tag': 'capability', 'text': uri} for uri in capabilities]
                 }]
             }
-        return XMLConverter(spec).to_string()
+        return content.to_xml(spec)
     
     @staticmethod
     def parse(raw):
         "Returns tuple of ('session-id', ['capability_uri', ...])"
         sid, capabilities = 0, []
-        root = XMLConverter.from_string(raw)
+        root = content.from_xml(raw)
         for child in root['children']:
-            if __(child['tag']) == 'session-id':
+            tag = content.unqualify(child['tag'])
+            if tag == 'session-id':
                 sid = child['text']
-            elif __(child['tag']) == 'capabilities':
+            elif tag == 'capabilities':
                 for cap in child['children']:
-                    if __(cap['text']) == 'capability':
+                    if content.unqualify(cap['text']) == 'capability':
                         capabilities.append(cap['text'])
         return sid, capabilities
