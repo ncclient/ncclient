@@ -41,7 +41,7 @@ class HelloHandler:
             'tag': content.qualify('hello'),
             'subtree': [{
                 'tag': 'capabilities',
-                'children': # this is fun :-)
+                'subtree': # this is fun :-)
                     [{'tag': 'capability', 'text': uri} for uri in capabilities]
                 }]
             }
@@ -61,3 +61,10 @@ class HelloHandler:
                     if content.unqualify(cap.tag) == 'capability':
                         capabilities.append(cap.text)
         return sid, capabilities
+
+'''
+from ncclient.capabilities import CAPABILITIES
+from ncclient.transport.hello import HelloHandler
+
+print HelloHandler.build(CAPABILITIES)
+'''

@@ -73,7 +73,7 @@ class DictTree:
     
     @staticmethod
     def XML(spec, encoding='utf-8'):
-        Element.XML(DictTree.Element(spec), encoding)
+        return Element.XML(DictTree.Element(spec), encoding)
 
 class Element:
     
@@ -90,7 +90,10 @@ class Element:
     @staticmethod
     def XML(ele, encoding='utf-8'):
         xml = ET.tostring(ele, encoding)
-        return xml if xml.startswith('<?xml') else '<?xml version="1.0" encoding="%s"?>\n%s' % (encoding, xml)
+        if xml.startswith('<?xml'):
+            return xml
+        else:
+            return '<?xml version="1.0" encoding="%s"?>%s' % (encoding, xml)
 
 class XML:
     

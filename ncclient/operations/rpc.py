@@ -37,6 +37,9 @@ class RPCReply:
     def __repr__(self):
         return self._raw
     
+    def _parsing_hook(self, root):
+        pass
+    
     def parse(self):
         if self._parsed:
             return
@@ -225,14 +228,14 @@ class RPC(object):
         self._reply = None
         self._reply_event = Event()
     
-    def _build(self, opspec, encoding='utf-8'):
+    def _build(self, opspec):
         "TODO: docstring"
         spec = {
             'tag': content.qualify('rpc'),
             'attributes': {'message-id': self._id},
             'subtree': opspec
             }
-        return content.dtree2xml(encoding)
+        return content.dtree2xml(spec)
     
     def _request(self, op):
         req = self._build(op)
