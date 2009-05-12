@@ -16,14 +16,11 @@
 
 from ncclient import content
 
-class HelloHandler(Listener):
+class HelloHandler:
     
     def __init__(self, init_cb, error_cb):
         self._init_cb = init_cb
         self._error_cb = error_cb
-    
-    def __str__(self):
-        return 'HelloListener'
     
     def callback(self, root, raw):
         if content.unqualify(root[0]) == 'hello':

@@ -14,20 +14,32 @@
 
 'NETCONF protocol operations'
 
-from ncclient import NCClientError
-
-from rpc import RPC, RPCError
-from errors import MissingCapabilityError
+from errors import OperationError, MissingCapabilityError
+from rpc import RPCError
 from retrieve import Get, GetConfig
 from edit import EditConfig, CopyConfig, DeleteConfig, Validate, Commit, DiscardChanges
 from session import CloseSession, KillSession
 from lock import Lock, Unlock, LockContext
 from subscribe import CreateSubscription
 
+OPERATIONS = {
+    'get': Get,
+    'get-config': GetConfig,
+    'edit-config': EditConfig,
+    'copy-config': CopyConfig,
+    'validate': Validate,
+    'commit': Commit,
+    'discard-changes': DiscardChanges,
+    'delete-config': DeleteConfig,
+    'lock': Lock,
+    'unlock': Unlock,
+    'close_session': CloseSession,
+    'kill-session': KillSession,
+}
+
 __all__ = [
-    'RPC',
-    'RPCReply',
     'RPCError',
+    'OPERATIONS',
     'Get',
     'GetConfig',
     'EditConfig',

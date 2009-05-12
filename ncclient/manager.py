@@ -41,17 +41,15 @@ connect = connect_ssh # default session type
 
 class Manager:
     
-    "Thin layer of abstraction for the ncclient API."
+    "Thin layer of abstraction for the API."
     
-    RAISE_ALL = 0
-    RAISE_ERROR = 1
-    RAISE_NONE = 2
+    RAISE_ALL, RAISE_ERROR, RAISE_NONE = range(3)
     
-    def __init__(self, session, rpc_error=Manager.RAISE_ERROR):
+    def __init__(self, session, rpc_errors=Manager.RAISE_ALL):
         self._session = session
         self._raise = rpc_error
 
-    def rpc(self, op, *args, **kwds):
+    def do(self, op, *args, **kwds):
         op = OPERATIONS[op](self._session)
         reply = op.request(*args, **kwds)
         if not reply.ok:
@@ -70,18 +68,15 @@ class Manager:
         self.close()
         return False
     
-    def _get(self, type, *args, **kwds):
-        reply = self.do(type)
-        return reply.data
-    
     def locked(self, target):
-        "Returns a context manager for use withthe 'with' statement.
-	`target` is the datastore to lock, e.g. 'candidate'"
+        """Returns a context manager for use withthe 'with' statement.
+        `target` is the datastore to lock, e.g. 'candidate
+        """
         return operations.LockContext(self._session, target)
      
-    get = lambda self, *args, **kwds: self._get('get')
+    get = lambda self, *args, **kwds: self.do('get', *args, **kwds).data
     
-    get_config = lambda self, *args, **kwds: self._get('get-config')
+    get_config = lambda self, *args, **kwds: self.do('get-config', *args, **kwds).data
     
     edit_config = lambda self, *args, **kwds: self.do('edit-config', *args, **kwds)
     
@@ -110,18 +105,17 @@ class Manager:
             pass
         if self._session.connected: # if that didn't work...
             self._session.close()
-
+    
     @property
     def session(self, session):
-	return self._session
+        return self._session
     
     def get_capabilities(self, whose):
-	if whose in ('manager', 'client'):
-	    return self._session._client_capabilities
-	elif whose in ('agent', 'server')
-	    return self._session._server_capabilities
-
-   
+        if whose in ('manager', 'client'):
+            return self._session._client_capabilities
+        elif whose in ('agent', 'server'):
+            return self._session._server_capabilities
+    
     @property
     def capabilities(self):
         return self._session._client_capabilities

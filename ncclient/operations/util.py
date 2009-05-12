@@ -14,11 +14,9 @@
 
 'Boilerplate ugliness'
 
-from ncclient import OperationError
-from ncclient.content import qualify as _
-from ncclient.content import root_ensured
+from ncclient import content
 
-from errors import MissingCapabilityError
+from errors import OperationError, MissingCapabilityError
 
 def one_of(*args):
     'Verifies that only one of the arguments is not None'
@@ -31,16 +29,15 @@ def one_of(*args):
                 return
     raise OperationError('Insufficient parameters')
 
-def store_or_url(store, url, capcheck=None):
-    one_of(store, url)
-    node = {}
-    if store is not None:
-        node['tag'] = store
-    else:
+def store_or_url(wha, loc, capcheck=None):
+    node = { 'tag': wha, 'subtree': {} }
+    if '://' in loc: # e.g. http://, file://, ftp://
         if capcheck is not None:
-            capcheck(':url') # hmm.. schema check? deem overkill for now
-        node['tag'] = 'url'
-        node['text'] = url
+            capcheck(':url') # url schema check at some point!
+        node['subtree']['tag'] = 'url'
+        node['subtree']['text'] = loc
+    else:
+        node['subtree']['tag'] = loc
     return node
 
 def build_filter(spec, capcheck=None):
@@ -51,14 +48,13 @@ def build_filter(spec, capcheck=None):
             'tag': 'filter',
             'attributes': {'type': type},
             'subtree': criteria
-       }
+        }
     else:
-        rep = root_ensure(spec, 'filter', 'type')
+        rep = content.validated_element(spec, 'filter', 'type')
         try:
             type = rep['type']
         except KeyError:
-            type = ele[qualify('type'))
-    if type == 'xpath' and capcheck_func is not None:
-        capcheck_func(':xpath')
+            type = ele[content.qualify('type')]
+    if type == 'xpath' and capcheck is not None:
+        capcheck(':xpath')
     return rep
-

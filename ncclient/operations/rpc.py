@@ -18,7 +18,7 @@ from weakref import WeakValueDictionary
 
 from ncclient import content
 
-from reply import RPCReply
+from errors import OperationError
 
 import logging
 logger = logging.getLogger('ncclient.rpc')
@@ -129,11 +129,11 @@ class RPCReply:
             return
         root = self._root = content.xml2ele(self._raw) # <rpc-reply> element
         # per rfc 4741 an <ok/> tag is sent when there are no errors or warnings
-        ok = content.namespaced_find(root, 'ok')
+        ok = content.find(root, 'ok')
         if ok is not None:
             logger.debug('parsed [%s]' % ok.tag)
         else: # create RPCError objects from <rpc-error> elements
-            error = content.namespaced_find(root, 'rpc-error')
+            error = content.find(root, 'rpc-error')
             if error is not None:
                 logger.debug('parsed [%s]' % error.tag)
                 for err in root.getiterator(error.tag):
@@ -141,8 +141,10 @@ class RPCReply:
                     d = {}
                     for err_detail in err.getchildren(): # <error-type> etc..
                         tag = content.unqualify(err_detail.tag)
-                        d[tag] = (err_detail.text.strip() if tag != 'error-info'
-                                  else content.ele2string(err_detail, 'utf-8'))
+                        if tag != 'error-info':
+                            d[tag] = err_detail.text.strip()
+                        else:
+                            d[tag] = content.ele2xml(err_detail)
                     self._errors.append(RPCError(d))
         self._parsing_hook(root)
         self._parsed = True
@@ -175,18 +177,14 @@ class RPCReply:
         return self._errors
 
 
-class RPCError(ncclient.RPCError): # raise it if you like
+class RPCError(OperationError): # raise it if you like
     
     def __init__(self, err_dict):
         self._dict = err_dict
         if self.message is not None:
-            ncclient.RPCError.__init__(self, self.message)
+            OperationError.__init__(self, self.message)
         else:
-            ncclient.RPCError.__init__(self)
-    
-    @property
-    def raw(self):
-        return self._element.tostring()
+            OperationError.__init__(self)
     
     @property
     def type(self):

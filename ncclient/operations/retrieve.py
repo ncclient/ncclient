@@ -28,19 +28,13 @@ class GetReply(RPCReply):
     def _parsing_hook(self, root):
         self._data = None
         if not self._errors:
-            self._data = content.namespaced_find(root, 'data')
+            self._data = content.find(root, 'data')
     
     @property
-    def data_element(self):
+    def data(self):
         if not self._parsed:
             self.parse()
         return self._data
-    
-    @property
-    def data_xml(self):
-        return content.element2string(self.data_element)
-    
-    data = data_element
 
 class Get(RPC):
     
@@ -57,8 +51,9 @@ class Get(RPC):
     def request(self, filter=None):
         spec = Get.SPEC.copy()
         if filter is not None:
-            spec['subtree'].append(util.build_filter(filter)))
+            spec['subtree'].append(util.build_filter(filter))
         return self._request(spec)
+
 
 class GetConfig(RPC):
 
@@ -72,18 +67,14 @@ class GetConfig(RPC):
     
     REPLY_CLS = GetReply
     
-    def request(self, source=None, source_url=None, filter=None):
+    def request(self, source, filter=None):
         """
         `filter` has to be a tuple of (type, criteria)
         The type may be one of 'xpath' or 'subtree'
         The criteria may be an ElementTree.Element, an XML fragment, or tree specification
         """
         spec = GetConfig.SPEC.copy()
-        spec['subtree'].append({
-            'tag': 'source',
-            'subtree': util.store_or_url(source, source_url)
-            })
+        spec['subtree'].append(util.store_or_url('source', source, self._assert))
         if filter is not None:
             spec['subtree'].append(util.build_filter(filter))
         return self._request(spec)
-

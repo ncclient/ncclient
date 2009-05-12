@@ -27,16 +27,13 @@ class EditConfig(RPC):
     
     SPEC = {'tag': 'edit-config', 'subtree': []}
     
-    def request(self, target=None, target_url=None, config=None,
-                default_operation=None, test_option=None, error_option=None):
-        util.one_of(target, target_url)
+    def request(self, target=None, config=None, default_operation=None,
+                test_option=None, error_option=None):
+        util.one_of(target, config)
         spec = EditConfig.SPEC.copy()
         subtree = spec['subtree']
-        subtree.append({
-            'tag': 'target',
-            'subtree': util.store_or_url(target, target_url, self._assert)
-            })
-        subtree.append(content.root_ensured(config, 'config'))
+        subtree.append(util.store_or_url('target', target, self._assert))
+        subtree.append(content.validated_root(config, 'config'))
         if default_operation is not None:
             subtree.append({
                 'tag': 'default-operation',
@@ -64,12 +61,9 @@ class DeleteConfig(RPC):
     
     SPEC = {'tag': 'delete-config', 'subtree': []}
     
-    def request(self, target=None, target_url=None):
+    def request(self, target):
         spec = DeleteConfig.SPEC.copy()
-        spec['subtree'].append({
-            'tag': 'target',
-            'subtree': util.store_or_url(target, target_url, self._assert)
-            })
+        spec['subtree'].append(util.store_or_url('source', source, self._assert))
         return self._request(spec)
 
 
@@ -80,16 +74,10 @@ class CopyConfig(RPC):
     
     SPEC = {'tag': 'copy-config', 'subtree': []}
     
-    def request(self, source=None, source_url=None, target=None, target_url=None):
+    def request(self, source, target):
         spec = CopyConfig.SPEC.copy()
-        spec['subtree'].append({
-            'tag': 'source',
-            'subtree': util.store_or_url(source, source_url, self._assert)
-            })
-        spec['subtree'].append({
-            'tag': 'target',
-            'subtree': util.store_or_url(target, target_url, self._assert)
-            })
+        spec['subtree'].append(util.store_or_url('source', source, self._assert))
+        spec['subtree'].append(util.store_or_url('target', source, self._assert))
         return self._request(spec)
 
 
@@ -104,16 +92,13 @@ class Validate(RPC):
     
     SPEC = {'tag': 'validate', 'subtree': []}
     
-    def request(self, source=None, source_url=None, config=None):
-        util.one_of(source, source_url, config)
+    def request(self, source=None, config=None):
+        util.one_of(source, config)
         spec = Validate.SPEC.copy()
         if config is None:
-            spec['subtree'].append({
-                'tag': 'source',
-                'subtree': util.store_or_url(source, source_url, self._assert)
-            })
+            spec['subtree'].append(util.store_or_url('source', source, self._assert))
         else:
-            spec['subtree'].append(content.root_ensured(config, 'config'))
+            spec['subtree'].append(content.validated_root(config, 'config'))
         return self._request(spec)
 
 
@@ -142,6 +127,16 @@ class Commit(RPC):
         return self._request(Commit.SPEC)
 
 
+class DiscardChanges(RPC):
+    
+    # tested: no
+    # combed: yes
+    
+    DEPENDS = [':candidate']
+    
+    SPEC = {'tag': 'discard-changes'}
+
+
 class ConfirmedCommit(Commit):
     "psuedo-op"
     
@@ -157,14 +152,6 @@ class ConfirmedCommit(Commit):
     def confirm(self):
         "Make the confirming commit"
         return Commit.request(self, confirmed=True)
-
-
-class DiscardChanges(RPC):
     
-    # tested: no
-    # combed: yes
-    
-    DEPENDS = [':candidate']
-    
-    SPEC = {'tag': 'discard-changes'}
-
+    def discard(self):
+        return DiscardChanges(self.session, self.async, self.timeout).request()
