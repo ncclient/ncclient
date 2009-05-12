@@ -16,20 +16,6 @@ import capabilities
 import operations
 import transport
 
-OPERATIONS = {
-    'get': operations.Get,
-    'get-config': operations.GetConfig,
-    'edit-config': operations.EditConfig,
-    'copy-config': operations.CopyConfig,
-    'validate': operations.Validate,
-    'commit': operations.Commit,
-    'discard-changes': operations.DiscardChanges,
-    'delete-config': operations.DeleteConfig,
-    'lock': operations.Lock,
-    'unlock': operations.Unlock,
-    'close_session': operations.CloseSession,
-    'kill-session': operations.KillSession,
-}
 
 def connect_ssh(*args, **kwds):
     session = transport.SSHSession(capabilities.CAPABILITIES)
@@ -39,23 +25,23 @@ def connect_ssh(*args, **kwds):
 
 connect = connect_ssh # default session type
 
+RAISE_ALL, RAISE_ERROR, RAISE_NONE = range(3)
+
 class Manager:
     
     "Thin layer of abstraction for the API."
     
-    RAISE_ALL, RAISE_ERROR, RAISE_NONE = range(3)
-    
-    def __init__(self, session, rpc_errors=Manager.RAISE_ALL):
+    def __init__(self, session, rpc_error=RAISE_ALL):
         self._session = session
         self._raise = rpc_error
 
     def do(self, op, *args, **kwds):
-        op = OPERATIONS[op](self._session)
+        op = operations.OPERATIONS[op](self._session)
         reply = op.request(*args, **kwds)
         if not reply.ok:
-            if self._raise == Manager.RAISE_ALL:
+            if self._raise == RAISE_ALL:
                 raise reply.error
-            elif self._raise == Manager.RAISE_ERROR:
+            elif self._raise == RAISE_ERROR:
                 for error in reply.errors:
                     if error.severity == 'error':
                         raise error

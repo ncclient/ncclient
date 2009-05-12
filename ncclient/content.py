@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from cStringIO import StringIO
 from xml.etree import cElementTree as ET
 
 from ncclient import NCClientError
@@ -44,13 +45,6 @@ unqualify = lambda tag: tag[tag.rfind('}')+1:]
 
 ### XML with Python data structures
 
-dtree2ele = DictTree.Element
-dtree2xml = DictTree.XML
-ele2dtree = Element.DictTree
-ele2xml = Element.XML
-xml2dtree = XML.DictTree
-xml2ele = XML.Element
-
 class DictTree:
 
     @staticmethod
@@ -78,8 +72,8 @@ class DictTree:
             raise ContentError('Invalid tree spec')
     
     @staticmethod
-    def XML(spec):
-        Element.XML(DictTree.Element(spec))
+    def XML(spec, encoding='utf-8'):
+        Element.XML(DictTree.Element(spec), encoding)
 
 class Element:
     
@@ -101,12 +95,19 @@ class Element:
 class XML:
     
     @staticmethod
-    def DictTree(ele):
-        return Element.DictTree(Element.XML(ele))
+    def DictTree(xml):
+        return Element.DictTree(XML.Element(xml))
     
     @staticmethod
     def Element(xml):
         return ET.fromstring(xml)
+
+dtree2ele = DictTree.Element
+dtree2xml = DictTree.XML
+ele2dtree = Element.DictTree
+ele2xml = Element.XML
+xml2dtree = XML.DictTree
+xml2ele = XML.Element
 
 ### Other utility functions
 

@@ -45,7 +45,7 @@ class HelloHandler:
                     [{'tag': 'capability', 'text': uri} for uri in capabilities]
                 }]
             }
-        return content.to_xml(spec)
+        return content.dtree2xml(spec)
     
     @staticmethod
     def parse(raw):
@@ -53,7 +53,7 @@ class HelloHandler:
         sid, capabilities = 0, []
         root = content.xml2ele(raw)
         for child in root.getchildren():
-            tag = content.unqualify(child['tag'])
+            tag = content.unqualify(child.tag)
             if tag == 'session-id':
                 sid = child.text
             elif tag == 'capabilities':

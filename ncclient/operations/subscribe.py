@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ncclient.rpc import RPC
+from rpc import RPC
 
 from ncclient.glue import Listener
 from ncclient.content import qualify as _

@@ -12,16 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from threading import Event
 from Queue import Queue
+from threading import Thread, Lock, Event
 
 from ncclient.capabilities import Capabilities
-from ncclient.glue import Subject
+from ncclient.content import parse_root
 
 from hello import HelloHandler
 
 import logging
 logger = logging.getLogger('ncclient.transport.session')
+
 
 class Session(Thread):
     

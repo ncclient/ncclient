@@ -16,7 +16,7 @@
 
 from ncclient import NCClientError
 
-class TransportError(NClientError):
+class TransportError(NCClientError):
     pass
 
 class AuthenticationError(TransportError):
