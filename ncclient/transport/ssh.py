@@ -32,7 +32,7 @@ TICK = 0.1
 
 class SSHSession(Session):
     
-    "A NETCONF SSH session, per :rfc: 4742"
+    "A NETCONF SSH session, per :rfc:`4742`"
     
     def __init__(self, capabilities):
         Session.__init__(self, capabilities)
@@ -281,6 +281,7 @@ class SSHSession(Session):
     
     @property
     def transport(self):
+        "gug"
         return self._transport
     
     @property
