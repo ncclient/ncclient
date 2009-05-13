@@ -17,8 +17,6 @@ from rpc import RPC
 from ncclient.glue import Listener
 from ncclient.content import qualify as _
 
-NOTIFICATION_NS = 'urn:ietf:params:xml:ns:netconf:notification:1.0'
-
 # TODO when can actually test it...
 
 class CreateSubscription(RPC):    

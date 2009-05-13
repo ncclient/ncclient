@@ -17,19 +17,19 @@ import operations
 import transport
 
 
-def connect_ssh(*args, **kwds):
+def ssh_connect(*args, **kwds):
     session = transport.SSHSession(capabilities.CAPABILITIES)
     session.load_system_host_keys()
     session.connect(*args, **kwds)
     return Manager(session)
 
-connect = connect_ssh # default session type
+connect = ssh_connect # default session type
 
 RAISE_ALL, RAISE_ERROR, RAISE_NONE = range(3)
 
 class Manager:
     
-    "Thin layer of abstraction for the API."
+    "Thin layer of abstraction for the ncclient API."
     
     def __init__(self, session, rpc_error=RAISE_ALL):
         self._session = session

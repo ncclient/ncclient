@@ -17,6 +17,7 @@ from uuid import uuid1
 from weakref import WeakValueDictionary
 
 from ncclient import content
+from ncclient.transport import SessionListener
 
 from errors import OperationError
 
@@ -45,11 +46,11 @@ class RPCReply:
             return
         root = self._root = content.xml2ele(self._raw) # <rpc-reply> element
         # per rfc 4741 an <ok/> tag is sent when there are no errors or warnings
-        ok = content.find(root, 'ok')
+        ok = content.find(root, 'data', strict=False)
         if ok is not None:
             logger.debug('parsed [%s]' % ok.tag)
         else: # create RPCError objects from <rpc-error> elements
-            error = content.find(root, 'rpc-error')
+            error = content.find(root, 'data', strict=False)
             if error is not None:
                 logger.debug('parsed [%s]' % error.tag)
                 for err in root.getiterator(error.tag):
@@ -151,7 +152,7 @@ class RPCError(OperationError): # raise it if you like
     __repr__ = lambda self: repr(self._dict)
 
 
-class RPCReplyListener(object):
+class RPCReplyListener(SessionListener):
     
     # one instance per session
     def __new__(cls, session):
@@ -161,16 +162,12 @@ class RPCReplyListener(object):
             instance._lock = Lock()
             instance._id2rpc = WeakValueDictionary()
             instance._pipelined = session.can_pipeline
-            instance._errback = None
             session.add_listener(instance)
         return instance
     
     def register(self, id, rpc):
         with self._lock:
             self._id2rpc[id] = rpc
-
-    def set_errback(self, errback):
-        self._errback = errback
     
     def callback(self, root, raw):
         tag, attrs = root
@@ -200,8 +197,8 @@ class RPCReplyListener(object):
         rpc.deliver(raw)
     
     def errback(self, err):
-        if self._errback is not None:
-            self._errback(err)
+        for rpc in self._id2rpc.values():
+            rpc.error(err)
 
 
 class RPC(object):
@@ -241,10 +238,12 @@ class RPC(object):
         req = self._build(op)
         self._session.send(req)
         if self._async:
-            return self._reply_event
+            return (self._reply_event, self._error_event)
         else:
             self._reply_event.wait(self._timeout)
-            if self._reply_event.isSet():
+            if self._reply_event.is_set():
+                if self._error:
+                    raise self._error
                 self._reply.parse()
                 return self._reply
             else:
@@ -266,9 +265,13 @@ class RPC(object):
         self._delivery_hook()
         self._reply_event.set()
     
+    def error(self, err):
+        self._error = err
+        self._reply_event.set()
+    
     @property
     def has_reply(self):
-        return self._reply_event.isSet()
+        return self._reply_event.is_set()
     
     @property
     def reply(self):

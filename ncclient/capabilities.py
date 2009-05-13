@@ -12,6 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+def abbreviate(uri):
+    if uri.startswith('urn:ietf:params:netconf:capability:'):
+        return (':' + uri.split(':')[5])
+
+def schemes(uri):
+    return uri.partition("?scheme=")[2].split(',')
 
 class Capabilities:
     
@@ -25,7 +31,7 @@ class Capabilities:
             self._dict = capabilities
         elif isinstance(capabilities, list):
             for uri in capabilities:
-                self._dict[uri] = Capabilities.guess_shorthand(uri)
+                self._dict[uri] = abbreviate(uri)
     
     def __contains__(self, key):
         return ( key in self._dict ) or ( key in self._dict.values() )
@@ -41,7 +47,7 @@ class Capabilities:
     
     def add(self, uri, shorthand=None):
         if shorthand is None:
-            shorthand = Capabilities.guess_shorthand(uri)
+            shorthand = abbreviate(uri)
         self._dict[uri] = shorthand
     
     set = add
@@ -54,12 +60,8 @@ class Capabilities:
                 if self._dict[uri] == key:
                     del self._dict[uri]
                     break
-    
-    @staticmethod
-    def guess_shorthand(uri):
-        if uri.startswith('urn:ietf:params:netconf:capability:'):
-            return (':' + uri.split(':')[5])
 
+# : the capabilities currently supported by ncclient
 CAPABILITIES = Capabilities([
     'urn:ietf:params:netconf:base:1.0',
     'urn:ietf:params:netconf:capability:writable-running:1.0',
@@ -67,9 +69,9 @@ CAPABILITIES = Capabilities([
     'urn:ietf:params:netconf:capability:confirmed-commit:1.0',
     'urn:ietf:params:netconf:capability:rollback-on-error:1.0',
     'urn:ietf:params:netconf:capability:startup:1.0',
-    'urn:ietf:params:netconf:capability:url:1.0?scheme=http,ftp,file',
+    'urn:ietf:params:netconf:capability:url:1.0?scheme=http,ftp,file,https,sftp',
     'urn:ietf:params:netconf:capability:validate:1.0',
     'urn:ietf:params:netconf:capability:xpath:1.0',
-    'urn:ietf:params:netconf:capability:notification:1.0',
-    'urn:ietf:params:netconf:capability:interleave:1.0'
+    #'urn:ietf:params:netconf:capability:notification:1.0', # TODO
+    #'urn:ietf:params:netconf:capability:interleave:1.0' # theoretically already supported
 ])
