@@ -12,15 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"TODO: docstring"
+"Transport layer"
 
+from session import Session, SessionListener
 from ssh import SSHSession
+from errors import *
 
 __all__ = [
+    'Session',
+    'SessionListener',
+    'SSHSession',
     'TransportError',
     'AuthenticationError',
     'SessionCloseError',
     'SSHError',
-    'SSHUnknownHostError',
-    'SSHSession'
+    'SSHUnknownHostError'
 ]

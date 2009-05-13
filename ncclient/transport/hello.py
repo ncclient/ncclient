@@ -14,57 +14,7 @@
 
 "All to do with NETCONF <hello> messages"
 
-from ncclient import content
 
-class HelloHandler:
-    
-    def __init__(self, init_cb, error_cb):
-        self._init_cb = init_cb
-        self._error_cb = error_cb
-    
-    def callback(self, root, raw):
-        if content.unqualify(root[0]) == 'hello':
-            try:
-                id, capabilities = HelloHandler.parse(raw)
-            except Exception as e:
-                self._error_cb(e)
-            else:
-                self._init_cb(id, capabilities)
-    
-    def errback(self, err):
-        self._error_cb(err)
-    
-    @staticmethod
-    def build(capabilities):
-        "Given a list of capability URI's returns encoded <hello> message"
-        spec = {
-            'tag': content.qualify('hello'),
-            'subtree': [{
-                'tag': 'capabilities',
-                'subtree': # this is fun :-)
-                    [{'tag': 'capability', 'text': uri} for uri in capabilities]
-                }]
-            }
-        return content.dtree2xml(spec)
-    
-    @staticmethod
-    def parse(raw):
-        "Returns tuple of ('session-id', ['capability_uri', ...])"
-        sid, capabilities = 0, []
-        root = content.xml2ele(raw)
-        for child in root.getchildren():
-            tag = content.unqualify(child.tag)
-            if tag == 'session-id':
-                sid = child.text
-            elif tag == 'capabilities':
-                for cap in child.getchildren():
-                    if content.unqualify(cap.tag) == 'capability':
-                        capabilities.append(cap.text)
-        return sid, capabilities
 
-'''
-from ncclient.capabilities import CAPABILITIES
-from ncclient.transport.hello import HelloHandler
+from session import SessionListener
 
-print HelloHandler.build(CAPABILITIES)
-'''

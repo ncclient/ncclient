@@ -32,8 +32,10 @@ TICK = 0.1
 
 class SSHSession(Session):
     
-    def __init__(self, *args, **kwds):
-        Session.__init__(self, *args, **kwds)
+    "A NETCONF SSH session, per :rfc: 4742"
+    
+    def __init__(self, capabilities):
+        Session.__init__(self, capabilities)
         self._host_keys = paramiko.HostKeys()
         self._system_host_keys = paramiko.HostKeys()
         self._transport = None
@@ -89,9 +91,6 @@ class SSHSession(Session):
         self._parsing_state = expect
         self._parsing_pos = self._buffer.tell()
     
-    def expect_close(self):
-        self._expecting_close = True
-    
     def load_system_host_keys(self, filename=None):
         if filename is None:
             filename = os.path.expanduser('~/.ssh/known_hosts')
@@ -115,31 +114,30 @@ class SSHSession(Session):
     
     def save_host_keys(self, filename):
         f = open(filename, 'w')
-        for hostname, keys in self._host_keys.iteritems():
+        for host, keys in self._host_keys.iteritems():
             for keytype, key in keys.iteritems():
-                f.write('%s %s %s\n' % (hostname, keytype, key.get_base64()))
+                f.write('%s %s %s\n' % (host, keytype, key.get_base64()))
         f.close()    
     
     def close(self):
-        self.expect_close()
+        self._expecting_close = True
         if self._transport.is_active():
             self._transport.close()
         self._connected = False
     
-    def connect(self, hostname, port=830, timeout=None,
+    def connect(self, host, port=830, timeout=None,
                 unknown_host_cb=None, username=None, password=None,
                 key_filename=None, allow_agent=True, look_for_keys=True):
-        
         assert(username is not None)
         
         for (family, socktype, proto, canonname, sockaddr) in \
-        socket.getaddrinfo(hostname, port):
-            if socktype==socket.SOCK_STREAM:
+        socket.getaddrinfo(host, port):
+            if socktype == socket.SOCK_STREAM:
                 af = family
                 addr = sockaddr
                 break
         else:
-            raise SSHError('No suitable address family for %s' % hostname)
+            raise SSHError('No suitable address family for %s' % host)
         sock = socket.socket(af, socket.SOCK_STREAM)
         sock.settimeout(timeout)
         sock.connect(addr)
@@ -153,13 +151,13 @@ class SSHSession(Session):
         
         # host key verification
         server_key = t.get_remote_server_key()
-        known_host = self._host_keys.check(hostname, server_key) or \
-                        self._system_host_keys.check(hostname, server_key)
+        known_host = self._host_keys.check(host, server_key) or \
+                        self._system_host_keys.check(host, server_key)
         
         if unknown_host_cb is None:
             unknown_host_cb = lambda *args: False
-        if not known_host and not unknown_host_cb(hostname, server_key):
-                raise SSHUnknownHostError(hostname, server_key)
+        if not known_host and not unknown_host_cb(host, server_key):
+                raise SSHUnknownHostError(host, server_key)
         
         if key_filename is None:
             key_filenames = []
@@ -283,10 +281,6 @@ class SSHSession(Session):
     
     @property
     def transport(self):
-        '''Get underlying paramiko transport object; this is provided so methods
-        like set_keepalive can be called on it. See paramiko.Transport
-        documentation for details.
-        '''
         return self._transport
     
     @property
