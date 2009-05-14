@@ -28,7 +28,7 @@ class GetReply(RPCReply):
     def _parsing_hook(self, root):
         self._data = None
         if not self._errors:
-            self._data = content.find(root, 'data', strict=False)
+            self._data = content.find(root, 'data', nslist=[content.BASE_NS, content.CISCO_BS])
     
     @property
     def data(self):

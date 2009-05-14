@@ -53,8 +53,9 @@ class DictTree:
     @staticmethod
     def Element(spec):
         """DictTree -> Element
-        
+
         :type spec: :obj:`dict` or :obj:`string` or :class:`~xml.etree.ElementTree.Element`
+
         :rtype: :class:`~xml.etree.ElementTree.Element`
         """
         if iselement(spec):
@@ -64,7 +65,7 @@ class DictTree:
         if not isinstance(spec, dict):
             raise ContentError("Invalid tree spec")
         if 'tag' in spec:
-            ele = ET.Element(spec.get('tag'), spec.get('attributes', {}))
+            ele = ET.Element(spec.get('tag'), spec.get('attrib', {}))
             ele.text = spec.get('text', '')
             ele.tail = spec.get('tail', '')
             subtree = spec.get('subtree', [])
@@ -78,23 +79,25 @@ class DictTree:
             return ET.Comment(spec.get('comment'))
         else:
             raise ContentError('Invalid tree spec')
-    
+
     @staticmethod
     def XML(spec, encoding='UTF-8'):
         """DictTree -> XML
-        
+
         :type spec: :obj:`dict` or :obj:`string` or :class:`~xml.etree.ElementTree.Element`
+
         :arg encoding: chraracter encoding
+
         :rtype: string
         """
         return Element.XML(DictTree.Element(spec), encoding)
 
 class Element:
-    
+
     @staticmethod
     def DictTree(ele):
         """DictTree -> Element
-        
+
         :type spec: :class:`~xml.etree.ElementTree.Element`
         :rtype: :obj:`dict`
         """
@@ -105,11 +108,11 @@ class Element:
             'tail': ele.tail,
             'subtree': [ Element.DictTree(child) for child in root.getchildren() ]
         }
-    
+
     @staticmethod
     def XML(ele, encoding='UTF-8'):
         """Element -> XML
-        
+
         :type spec: :class:`~xml.etree.ElementTree.Element`
         :arg encoding: character encoding
         :rtype: :obj:`string`
@@ -121,20 +124,20 @@ class Element:
             return '<?xml version="1.0" encoding="%s"?>%s' % (encoding, xml)
 
 class XML:
-    
+
     @staticmethod
     def DictTree(xml):
         """XML -> DictTree
-        
+
         :type spec: :obj:`string`
         :rtype: :obj:`dict`
         """
         return Element.DictTree(XML.Element(xml))
-    
+
     @staticmethod
     def Element(xml):
         """XML -> Element
-        
+
         :type xml: :obj:`string`
         :rtype: :class:`~xml.etree.ElementTree.Element`
         """
@@ -153,7 +156,7 @@ iselement = ET.iselement
 
 def find(ele, tag, nslist=[]):
     """If `nslist` is empty, same as :meth:`xml.etree.ElementTree.Element.find`. If it is not, `tag` is interpreted as an unqualified name and qualified using each item in `nslist`. The first match is returned.
-    
+
     :arg nslist: optional list of namespaces
     """
     if nslist:
@@ -166,7 +169,7 @@ def find(ele, tag, nslist=[]):
 
 def parse_root(raw):
     """Efficiently parses the root element of an XML document.
-    
+
     :type raw: string
     :returns: a tuple of `(tag, attributes)`, where `tag` is the (qualified) name of the element and `attributes` is a dictionary of its attributes.
     """
@@ -176,12 +179,11 @@ def parse_root(raw):
 
 def validated_element(rep, tag=None, attrs=None, text=None):
     """Checks if the root element meets the supplied criteria. Returns a :class:`~xml.etree.ElementTree.Element` instance if so, otherwise raises :exc:`ContentError`.
-    
+
     :arg tag: tag name or a list of allowable tag names
     :arg attrs: list of required attribute names, each item may be a list of allowable alternatives
     :arg text: textual content to match
     :type rep: :obj:`dict` or :obj:`string` or :class:`~xml.etree.ElementTree.Element`
-    :see: :ref:`dtree`
     """
     ele = dtree2ele(rep)
     err = False

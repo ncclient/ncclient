@@ -22,35 +22,32 @@ from ncclient.transport import SessionListener
 from errors import OperationError
 
 import logging
-logger = logging.getLogger('ncclient.rpc')
+logger = logging.getLogger('ncclient.operations.rpc')
 
 
 class RPCReply:
-    
-    'NOTES: memory considerations?? storing both raw xml + ET.Element'
-    
+
     def __init__(self, raw):
         self._raw = raw
         self._parsed = False
         self._root = None
         self._errors = []
-    
+
     def __repr__(self):
         return self._raw
-    
-    def _parsing_hook(self, root):
-        pass
-    
+
+    def _parsing_hook(self, root): pass
+
     def parse(self):
         if self._parsed:
             return
         root = self._root = content.xml2ele(self._raw) # <rpc-reply> element
         # per rfc 4741 an <ok/> tag is sent when there are no errors or warnings
-        ok = content.find(root, 'data', strict=False)
+        ok = content.find(root, 'data', nslist=[content.BASE_NS, content.CISCO_BS])
         if ok is not None:
             logger.debug('parsed [%s]' % ok.tag)
         else: # create RPCError objects from <rpc-error> elements
-            error = content.find(root, 'data', strict=False)
+            error = content.find(root, 'data', nslist=[content.BASE_NS, content.CISCO_BS])
             if error is not None:
                 logger.debug('parsed [%s]' % error.tag)
                 for err in root.getiterator(error.tag):
@@ -65,18 +62,18 @@ class RPCReply:
                     self._errors.append(RPCError(d))
         self._parsing_hook(root)
         self._parsed = True
-    
+
     @property
     def xml(self):
         '<rpc-reply> as returned'
         return self._raw
-    
+
     @property
     def ok(self):
         if not self._parsed:
             self.parse()
         return not self._errors # empty list => false
-    
+
     @property
     def error(self):
         if not self._parsed:
@@ -85,7 +82,7 @@ class RPCReply:
             return self._errors[0]
         else:
             return None
-    
+
     @property
     def errors(self):
         'List of RPCError objects. Will be empty if no <rpc-error> elements in reply.'
@@ -95,65 +92,65 @@ class RPCReply:
 
 
 class RPCError(OperationError): # raise it if you like
-    
+
     def __init__(self, err_dict):
         self._dict = err_dict
         if self.message is not None:
             OperationError.__init__(self, self.message)
         else:
             OperationError.__init__(self)
-    
+
     @property
     def type(self):
         return self.get('error-type', None)
-    
+
     @property
     def severity(self):
         return self.get('error-severity', None)
-    
+
     @property
     def tag(self):
         return self.get('error-tag', None)
-    
+
     @property
     def path(self):
         return self.get('error-path', None)
-    
+
     @property
     def message(self):
         return self.get('error-message', None)
-    
+
     @property
     def info(self):
         return self.get('error-info', None)
 
     ## dictionary interface
-    
+
     __getitem__ = lambda self, key: self._dict.__getitem__(key)
-    
+
     __iter__ = lambda self: self._dict.__iter__()
-    
+
     __contains__ = lambda self, key: self._dict.__contains__(key)
-    
+
     keys = lambda self: self._dict.keys()
-    
+
     get = lambda self, key, default: self._dict.get(key, default)
-        
+
     iteritems = lambda self: self._dict.iteritems()
-    
+
     iterkeys = lambda self: self._dict.iterkeys()
-    
+
     itervalues = lambda self: self._dict.itervalues()
-    
+
     values = lambda self: self._dict.values()
-    
+
     items = lambda self: self._dict.items()
-    
+
     __repr__ = lambda self: repr(self._dict)
 
 
 class RPCReplyListener(SessionListener):
-    
+
     # one instance per session
     def __new__(cls, session):
         instance = session.get_listener_instance(cls)
@@ -164,11 +161,11 @@ class RPCReplyListener(SessionListener):
             instance._pipelined = session.can_pipeline
             session.add_listener(instance)
         return instance
-    
+
     def register(self, id, rpc):
         with self._lock:
             self._id2rpc[id] = rpc
-    
+
     def callback(self, root, raw):
         tag, attrs = root
         if content.unqualify(tag) != 'rpc-reply':
@@ -195,17 +192,17 @@ class RPCReplyListener(SessionListener):
                 logger.warning('<rpc-reply> without message-id received: %s' % raw)
         logger.debug('delivering to %r' % rpc)
         rpc.deliver(raw)
-    
+
     def errback(self, err):
         for rpc in self._id2rpc.values():
             rpc.error(err)
 
 
 class RPC(object):
-    
+
     DEPENDS = []
     REPLY_CLS = RPCReply
-    
+
     def __init__(self, session, async=False, timeout=None):
         if not session.can_pipeline:
             raise UserWarning('Asynchronous mode not supported for this device/session')
@@ -214,7 +211,7 @@ class RPC(object):
             for cap in self.DEPENDS:
                 self._assert(cap)
         except AttributeError:
-            pass        
+            pass
         self._async = async
         self._timeout = timeout
         # keeps things simple instead of having a class attr that has to be locked
@@ -223,74 +220,77 @@ class RPC(object):
         self._listener = RPCReplyListener(session)
         self._listener.register(self._id, self)
         self._reply = None
+        self._error = None
         self._reply_event = Event()
-    
+
     def _build(self, opspec):
         "TODO: docstring"
         spec = {
             'tag': content.qualify('rpc'),
-            'attributes': {'message-id': self._id},
+            'attrib': {'message-id': self._id},
             'subtree': opspec
             }
         return content.dtree2xml(spec)
-    
+
     def _request(self, op):
         req = self._build(op)
         self._session.send(req)
         if self._async:
-            return (self._reply_event, self._error_event)
+            return self._reply_event
         else:
             self._reply_event.wait(self._timeout)
-            if self._reply_event.is_set():
+            if self._reply_event.isSet():
                 if self._error:
                     raise self._error
                 self._reply.parse()
                 return self._reply
             else:
                 raise ReplyTimeoutError
-    
+
     def request(self):
         return self._request(self.SPEC)
-    
+
     def _delivery_hook(self):
         'For subclasses'
         pass
-    
+
     def _assert(self, capability):
         if capability not in self._session.server_capabilities:
             raise MissingCapabilityError('Server does not support [%s]' % cap)
-    
+
     def deliver(self, raw):
         self._reply = self.REPLY_CLS(raw)
         self._delivery_hook()
         self._reply_event.set()
-    
+
     def error(self, err):
         self._error = err
         self._reply_event.set()
-    
+
     @property
     def has_reply(self):
         return self._reply_event.is_set()
-    
+
     @property
     def reply(self):
+        if self.error:
+            raise self._error
         return self._reply
-    
+
     @property
     def id(self):
         return self._id
-    
+
     @property
     def session(self):
         return self._session
-    
+
     @property
     def reply_event(self):
         return self._reply_event
-    
+
     def set_async(self, bool): self._async = bool
     async = property(fget=lambda self: self._async, fset=set_async)
-    
+
     def set_timeout(self, timeout): self._timeout = timeout
     timeout = property(fget=lambda self: self._timeout, fset=set_timeout)

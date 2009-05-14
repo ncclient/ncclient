@@ -28,12 +28,15 @@ connect = ssh_connect # default session type
 RAISE_ALL, RAISE_ERROR, RAISE_NONE = range(3)
 
 class Manager:
-    
+
     "Thin layer of abstraction for the ncclient API."
-    
-    def __init__(self, session, rpc_error=RAISE_ALL):
+
+    def __init__(self, session):
         self._session = session
-        self._raise = rpc_error
+        self._rpc_error_handling = RAISE_ALL
+
+    def set_rpc_error_option(self, option):
+        self._rpc_error_handling = option
 
     def do(self, op, *args, **kwds):
         op = operations.OPERATIONS[op](self._session)
@@ -46,44 +49,44 @@ class Manager:
                     if error.severity == 'error':
                         raise error
         return reply
-    
+
     def __enter__(self):
         pass
-    
+
     def __exit__(self, *args):
         self.close()
         return False
-    
+
     def locked(self, target):
-        """Returns a context manager for use withthe 'with' statement.
+        """Returns a context manager for use with the 'with' statement.
         `target` is the datastore to lock, e.g. 'candidate
         """
         return operations.LockContext(self._session, target)
-     
+
     get = lambda self, *args, **kwds: self.do('get', *args, **kwds).data
-    
+
     get_config = lambda self, *args, **kwds: self.do('get-config', *args, **kwds).data
-    
+
     edit_config = lambda self, *args, **kwds: self.do('edit-config', *args, **kwds)
-    
+
     copy_config = lambda self, *args, **kwds: self.do('copy-config', *args, **kwds)
-    
+
     validate = lambda self, *args, **kwds: self.do('validate', *args, **kwds)
-    
+
     commit = lambda self, *args, **kwds: self.do('commit', *args, **kwds)
-    
+
     discard_changes = lambda self, *args, **kwds: self.do('discard-changes', *args, **kwds)
-    
+
     delete_config = lambda self, *args, **kwds: self.do('delete-config', *args, **kwds)
-    
+
     lock = lambda self, *args, **kwds: self.do('lock', *args, **kwds)
-    
+
     unlock = lambda self, *args, **kwds: self.do('unlock', *args, **kwds)
-    
+
     close_session = lambda self, *args, **kwds: self.do('close-session', *args, **kwds)
-    
+
     kill_session = lambda self, *args, **kwds: self.do('kill-session', *args, **kwds)
-    
+
     def close(self):
         try: # try doing it clean
             self.close_session()
@@ -91,17 +94,21 @@ class Manager:
             pass
         if self._session.connected: # if that didn't work...
             self._session.close()
-    
+
     @property
     def session(self, session):
         return self._session
-    
+
     def get_capabilities(self, whose):
         if whose in ('manager', 'client'):
             return self._session._client_capabilities
         elif whose in ('agent', 'server'):
             return self._session._server_capabilities
-    
+
     @property
     def capabilities(self):
         return self._session._client_capabilities
+
+    @property
+    def server_capabilities(self):
+        return self._session._server_capabilities

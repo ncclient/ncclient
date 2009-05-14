@@ -21,7 +21,7 @@ class AuthenticationError(TransportError):
     pass
 
 class SessionCloseError(TransportError):
-    
+
     def __init__(self, in_buf, out_buf=None):
         msg = 'Unexpected session close.'
         if in_buf:
@@ -34,9 +34,9 @@ class SSHError(TransportError):
     pass
 
 class SSHUnknownHostError(SSHError):
-    
-    def __init__(self, hostname, key):
-        from binascii import hexlify
-        SSHError(self, 'Unknown host key [%s] for [%s]'
-                 % (hexlify(key.get_fingerprint()), hostname))
-        self.hostname = hostname
+
+    def __init__(self, host, fingerprint):
+        SSHError.__init__(self, 'Unknown host key [%s] for [%s]'
+                          % (fingerprint, host))
+        self.host = host
+        self.fingerprint = fingerprint

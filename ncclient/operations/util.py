@@ -46,7 +46,7 @@ def build_filter(spec, capcheck=None):
         type, criteria = tuple
         rep = {
             'tag': 'filter',
-            'attributes': {'type': type},
+            'attrib': {'type': type},
             'subtree': criteria
         }
     else:

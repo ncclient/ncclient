@@ -22,14 +22,14 @@ import logging
 logger = logging.getLogger('ncclient.transport.session')
 
 class Session(Thread):
-    "This is a base class for use by protocol implementations"
-    
+    "Base class for use by transport protocol implementations."
+
     def __init__(self, capabilities):
         Thread.__init__(self)
-        self.set_daemon(True)
-        self._listeners = set() # 3.0's weakset ideal
+        self.setDaemon(True)
+        self._listeners = set() # 3.0's weakset would be ideal
         self._lock = Lock()
-        self.set_name('session')
+        self.setName('session')
         self._q = Queue()
         self._client_capabilities = capabilities
         self._server_capabilities = None # yet
@@ -37,7 +37,7 @@ class Session(Thread):
         self._connected = False # to be set/cleared by subclass implementation
         logger.debug('%r created: client_capabilities=%r' %
                      (self, self._client_capabilities))
-    
+
     def _dispatch_message(self, raw):
         try:
             root = content.parse_root(raw)
@@ -52,7 +52,7 @@ class Session(Thread):
                 l.callback(root, raw)
             except Exception as e:
                 logger.warning('[error] %r' % e)
-    
+
     def _dispatch_error(self, err):
         with self._lock:
             listeners = list(self._listeners)
@@ -62,7 +62,7 @@ class Session(Thread):
                 l.errback(err)
             except Exception as e:
                 logger.warning('error %r' % e)
-    
+
     def _post_connect(self):
         "Greeting stuff"
         init_event = Event()
@@ -86,109 +86,120 @@ class Session(Thread):
         self.remove_listener(listener)
         if error[0]:
             raise error[0]
-        logger.info('initialized: session-id=%s | server_capabilities=%s' % (self._id, self._server_capabilities))
-    
+        logger.info('initialized: session-id=%s | server_capabilities=%s' %
+                    (self._id, self._server_capabilities))
+
     def add_listener(self, listener):
-        """Register a listener that will be notified of incoming messages and errors.
-        
-        :type listener: :class:`SessionListener`
+        """Register a listener that will be notified of incoming messages and
+        errors.
+
+        :arg listener: :class:`SessionListener`
         """
         logger.debug('installing listener %r' % listener)
         if not isinstance(listener, SessionListener):
             raise SessionError("Listener must be a SessionListener type")
         with self._lock:
             self._listeners.add(listener)
-    
+
     def remove_listener(self, listener):
-        "Unregister some listener; ignoring if the listener was never registered."
+        """Unregister some listener; ignore if the listener was never
+        registered."""
         logger.debug('discarding listener %r' % listener)
         with self._lock:
             self._listeners.discard(listener)
-    
+
     def get_listener_instance(self, cls):
-        """If a listener of the specified type is registered, returns it. This is useful when it is desirable to have only one instance of a particular type per session, i.e. a multiton.
-        
-        :type cls: :class:`type`
-        :rtype: :class:`SessionListener` or :const:`None`
+        """If a listener of the sspecified type is registered, returns the
+        instance. This is useful when it is desirable to have only one instance
+        of a particular type per session, i.e. a multiton.
+
+        :arg cls: class of the listener
         """
         with self._lock:
             for listener in self._listeners:
                 if isinstance(listener, cls):
                     return listener
-    
+
     def connect(self, *args, **kwds): # subclass implements
         raise NotImplementedError
 
     def run(self): # subclass implements
         raise NotImplementedError
-    
+
     def send(self, message):
-        """
-        :param message: XML document
-        :type message: string
+        """Send the supplied *message* to NETCONF server.
+
+        :arg message: an XML document
+
+        :type message: :obj:`string`
         """
         logger.debug('queueing %s' % message)
         self._q.put(message)
-    
+
     ### Properties
 
     @property
     def connected(self):
-        ":rtype: bool"
+        "Connection status of the session."
         return self._connected
 
     @property
     def client_capabilities(self):
-        ":rtype: :class:`Capabilities`"
+        "Client's :class:`Capabilities`"
         return self._client_capabilities
-    
+
     @property
     def server_capabilities(self):
-        ":rtype: :class:`Capabilities` or :const:`None`"
+        "Server's :class:`Capabilities`"
         return self._server_capabilities
-    
+
     @property
     def id(self):
-        ":rtype: :obj:`string` or :const:`None`"
+        """A :obj:`string` representing the `session-id`. If the session has not
+        been initialized it will be :const:`None`"""
         return self._id
-    
+
     @property
     def can_pipeline(self):
-        ":rtype: :obj:`bool`"
+        "Whether this session supports pipelining"
         return True
 
 
 class SessionListener(object):
-    
-    """'Listen' to incoming messages on a NETCONF :class:`Session`
-    
+
+    """Base class for :class:`Session` listeners, which are notified when a new
+    NETCONF message is received or an error occurs.
+
     .. note::
-        Avoid computationally intensive tasks in the callbacks.
+        Avoid time-intensive tasks in a callback's context.
     """
-    
+
     def callback(self, root, raw):
-        """Called when a new XML document is received. The `root` argument allows the callback to determine whether it wants to further process the document.
-        
-        :param root: tuple of (tag, attrs) where tag is the qualified name of the root element and attrs is a dictionary of its attributes (also qualified names)
-        :param raw: XML document
-        :type raw: string
+        """Called when a new XML document is received. The `root` argument
+        allows the callback to determine whether it wants to further process the
+        document.
+
+        :arg root: is a tuple of `(tag, attributes)` where `tag` is the qualified name of the root element and `attributes` is a dictionary of its attributes (also qualified names)
+
+        :arg raw: XML document
+        :type raw: :obj:`string`
         """
         raise NotImplementedError
-    
+
     def errback(self, ex):
         """Called when an error occurs.
-        
-        :type ex: :class:`Exception`
+
+        :type ex: :exc:`Exception`
         """
         raise NotImplementedError
 
 
 class HelloHandler(SessionListener):
-    
+
     def __init__(self, init_cb, error_cb):
         self._init_cb = init_cb
         self._error_cb = error_cb
-    
+
     def callback(self, root, raw):
         if content.unqualify(root[0]) == 'hello':
             try:
@@ -197,10 +208,10 @@ class HelloHandler(SessionListener):
                 self._error_cb(e)
             else:
                 self._init_cb(id, capabilities)
-    
+
     def errback(self, err):
         self._error_cb(err)
-    
+
     @staticmethod
     def build(capabilities):
         "Given a list of capability URI's returns <hello> message XML string"
@@ -213,7 +224,7 @@ class HelloHandler(SessionListener):
                 }]
             }
         return content.dtree2xml(spec)
-    
+
     @staticmethod
     def parse(raw):
         "Returns tuple of (session-id (str), capabilities (Capabilities)"

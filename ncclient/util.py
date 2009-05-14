@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ncclient.glue import Listener
+from ncclient.transport import SessionListener
 
-class PrintListener(Listener):
-    
+class PrintListener(SessionListener):
+
     def callback(self, root, raw):
         print('\n# RECEIVED MESSAGE with root=[tag=%r, attrs=%r] #\n%r\n' %
               (root[0], root[1], raw))
-    
+
     def errback(self, err):
         print('\n# RECEIVED ERROR #\n%r\n' % err)
