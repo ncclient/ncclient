@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+"""The :mod:`content` module provides methods for creating XML documents, parsing XML, and converting between different XML representations. It uses :mod:`~xml.etree.ElementTree` internally.
+"""
+
 from cStringIO import StringIO
 from xml.etree import cElementTree as ET
 
@@ -23,9 +27,9 @@ class ContentError(NCClientError):
 
 ### Namespace-related
 
-# : Base NETCONf namespace
+#: Base NETCONf namespace
 BASE_NS = 'urn:ietf:params:xml:ns:netconf:base:1.0'
-# : ... and this is BASE_NS according to Cisco devices tested
+#: ... and this is BASE_NS according to Cisco devices tested
 CISCO_BS = 'urn:ietf:params:netconf:base:1.0'
 
 try:

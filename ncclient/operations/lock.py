@@ -17,10 +17,7 @@
 from rpc import RPC
 
 class Lock(RPC):
-    
-    # tested: no
-    # combed: yes
-    
+
     SPEC = {
         'tag': 'lock',
         'subtree': {
@@ -28,18 +25,15 @@ class Lock(RPC):
             'subtree': {'tag': None }
         }
     }
-    
-    def request(self, target):
+
+    def request(self, target, *args, **kwds):
         spec = Lock.SPEC.copy()
         spec['subtree']['subtree']['tag'] = target
-        return self._request(spec)
+        return self._request(spec, *args, **kwds)
 
 
 class Unlock(RPC):
-    
-    # tested: no
-    # combed: yes
-    
+
     SPEC = {
         'tag': 'unlock',
         'subtree': {
@@ -47,29 +41,26 @@ class Unlock(RPC):
             'subtree': {'tag': None }
         }
     }
-    
-    def request(self, target):
+
+    def request(self, target, *args, **kwds):
         spec = Unlock.SPEC.copy()
         spec['subtree']['subtree']['tag'] = target
-        return self._request(spec)
+        return self._request(spec, *args, **kwds)
 
 
 class LockContext:
-    
-    # tested: no
-    # combed: yes
-    
+
     def __init__(self, session, target):
         self.session = session
         self.target = target
-    
+
     def __enter__(self):
         reply = Lock(self.session).request(self.target)
         if not reply.ok:
             raise reply.error
         else:
             return self
-    
+
     def __exit__(self, *args):
         reply = Unlock(session).request(self.target)
         if not reply.ok:

@@ -278,9 +278,9 @@ class SSHSession(Session):
 
         if saved_exception is not None:
             # need pep-3134 to do this right
-            raise SSHAuthenticationError(repr(saved_exception))
+            raise AuthenticationError(repr(saved_exception))
 
-        raise SSHAuthenticationError('No authentication methods available')
+        raise AuthenticationError('No authentication methods available')
 
     def run(self):
         chan = self._channel

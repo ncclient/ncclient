@@ -19,4 +19,3 @@ class OperationError(NCClientError):
 
 class MissingCapabilityError(NCClientError):
     pass
-

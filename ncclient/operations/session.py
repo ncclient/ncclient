@@ -17,25 +17,25 @@
 from rpc import RPC
 
 class CloseSession(RPC):
-    # tested: no
-    # combed: yes
-    
+
+    "*<close-session>* RPC. The connection to NETCONF server is also closed."
+
     SPEC = { 'tag': 'close-session' }
-    
-    def _delivery_hook(self):
+
+    def _delivsery_hook(self):
         self.session.close()
 
 
 class KillSession(RPC):
-    # tested: no
-    # combed: yes
-    
+
+    "*<kill-session>* RPC."
+
     SPEC = {
         'tag': 'kill-session',
         'subtree': []
     }
-    
-    def request(self, session_id):
+
+    def request(self, session_id, *args, **kwds):
         spec = KillSession.SPEC.copy()
         if not isinstance(session_id, basestring): # just making sure...
             session_id = str(session_id)
@@ -43,4 +43,4 @@ class KillSession(RPC):
             'tag': 'session-id',
             'text': session_id
         })
-        return self._request(spec)
+        return self._request(spec, *args, **kwds)

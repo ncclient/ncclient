@@ -50,7 +50,8 @@ def build_filter(spec, capcheck=None):
             'subtree': criteria
         }
     else:
-        rep = content.validated_element(spec, 'filter', 'type')
+        rep = content.validated_element(spec, ['filter', content.qualify('filter')],
+                                        attrs=[('type', content.qualify('type'))])
         try:
             type = rep['type']
         except KeyError:

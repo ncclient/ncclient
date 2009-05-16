@@ -14,54 +14,81 @@
 
 def abbreviate(uri):
     if uri.startswith('urn:ietf:params:netconf:capability:'):
-        return (':' + uri.split(':')[5])
+        return ':' + uri.split(':')[5]
+    elif uri.startswith('urn:ietf:params:netconf:base:'):
+        return ':base'
 
-def schemes(uri):
-    return uri.partition("?scheme=")[2].split(',')
+def version(uri):
+    if uri.startswith('urn:ietf:params:netconf:capability:'):
+        return uri.split(':')[6]
+    elif uri.startswith('urn:ietf:params:netconf:base:'):
+        return uri.split(':')[5]
 
 class Capabilities:
-    
-    """Represent the capabilities of client or server. Also facilitates using
-    abbreviated capability names in addition to complete URI.
-    """
-    
+
     def __init__(self, capabilities=None):
         self._dict = {}
         if isinstance(capabilities, dict):
             self._dict = capabilities
         elif isinstance(capabilities, list):
             for uri in capabilities:
-                self._dict[uri] = abbreviate(uri)
-    
+                self._dict[uri] = (abbreviate(uri), version(uri))
+
     def __contains__(self, key):
-        return ( key in self._dict ) or ( key in self._dict.values() )
-    
+        if key in self._dict:
+            return True
+        for info in self._dict.values():
+            if key == info[0]:
+                return True
+        return False
+
     def __iter__(self):
         return self._dict.keys().__iter__()
-    
+
     def __repr__(self):
         return repr(self._dict.keys())
-    
+
     def __list__(self):
         return self._dict.keys()
-    
-    def add(self, uri, shorthand=None):
-        if shorthand is None:
-            shorthand = abbreviate(uri)
-        self._dict[uri] = shorthand
-    
+
+    def add(self, uri, info=None):
+        if info is None:
+            info = (abbreviate(uri), version(uri))
+        self._dict[uri] = info
+
     set = add
-    
+
     def remove(self, key):
         if key in self._dict:
             del self._dict[key]
         else:
             for uri in self._dict:
-                if self._dict[uri] == key:
+                if key in self._dict[uri]:
                     del self._dict[uri]
                     break
 
-# : the capabilities currently supported by ncclient
+    def get_uri(self, shortname):
+        for uri, info in self._dict.items():
+            if info[0] == shortname:
+                return uri
+
+    def url_schemes(self):
+        url_uri = get_uri(':url')
+        if url_uri is None:
+            return []
+        else:
+            return url_uri.partition("?scheme=")[2].split(',')
+
+    def version(self, key):
+        try:
+            return self._dict[key][1]
+        except KeyError:
+            for uri, info in self._dict.items():
+                if info[0] == key:
+                    return info[1]
+
+
+#: the capabilities supported by NCClient
 CAPABILITIES = Capabilities([
     'urn:ietf:params:netconf:base:1.0',
     'urn:ietf:params:netconf:capability:writable-running:1.0',

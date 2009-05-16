@@ -21,12 +21,9 @@ import util
 "Operations related to configuration editing"
 
 class EditConfig(RPC):
-    
-    # tested: no
-    # combed: yes
-    
+
     SPEC = {'tag': 'edit-config', 'subtree': []}
-    
+
     def request(self, target=None, config=None, default_operation=None,
                 test_option=None, error_option=None):
         util.one_of(target, config)
@@ -52,69 +49,59 @@ class EditConfig(RPC):
                 'tag': 'error-option',
                 'text': error_option
                 })
+        return self._request(spec)
 
 
 class DeleteConfig(RPC):
-    
-    # tested: no
-    # combed: yes
-    
+
     SPEC = {'tag': 'delete-config', 'subtree': []}
-    
+
     def request(self, target):
         spec = DeleteConfig.SPEC.copy()
-        spec['subtree'].append(util.store_or_url('source', source, self._assert))
+        spec['subtree'].append(util.store_or_url('target', target, self._assert))
         return self._request(spec)
 
 
 class CopyConfig(RPC):
-    
-    # tested: no
-    # combed: yes
-    
+
     SPEC = {'tag': 'copy-config', 'subtree': []}
-    
+
     def request(self, source, target):
         spec = CopyConfig.SPEC.copy()
         spec['subtree'].append(util.store_or_url('source', source, self._assert))
-        spec['subtree'].append(util.store_or_url('target', source, self._assert))
+        spec['subtree'].append(util.store_or_url('target', target, self._assert))
         return self._request(spec)
 
 
 class Validate(RPC):
-    
-    # tested: no
-    # combed: yes
-    
-    'config attr shd not include <config> root'
-    
+
     DEPENDS = [':validate']
-    
+
     SPEC = {'tag': 'validate', 'subtree': []}
-    
-    def request(self, source=None, config=None):
-        util.one_of(source, config)
+
+    def request(self, source):
+        # determine if source is a <config> element
         spec = Validate.SPEC.copy()
-        if config is None:
+        try:
+            spec['subtree'].append({
+                'tag': 'source',
+                'subtree': content.validated_root(config, ('config', content.qualify('config')))
+                })
+        except ContentError:
             spec['subtree'].append(util.store_or_url('source', source, self._assert))
-        else:
-            spec['subtree'].append(content.validated_root(config, 'config'))
         return self._request(spec)
 
 
 class Commit(RPC):
-    
-    # tested: no
-    # combed: yes
-    
+
     DEPENDS = [':candidate']
-    
+
     SPEC = {'tag': 'commit', 'subtree': []}
-    
+
     def _parse_hook(self):
         pass
-    
-    def request(self, confirmed=False, timeout=None):
+
+    def request(self, confirmed=False):
         spec = SPEC.copy()
         if confirmed:
             self._assert(':confirmed-commit')
@@ -128,30 +115,25 @@ class Commit(RPC):
 
 
 class DiscardChanges(RPC):
-    
-    # tested: no
-    # combed: yes
-    
+
     DEPENDS = [':candidate']
-    
+
     SPEC = {'tag': 'discard-changes'}
 
 
 class ConfirmedCommit(Commit):
     "psuedo-op"
-    
-    # tested: no
-    # combed: yes
-    
+
     DEPENDS = [':candidate', ':confirmed-commit']
-    
-    def request(self, timeout=None):
-        "Commit changes; requireing that a confirming commit follow"
-        return Commit.request(self, confirmed=True, timeout=timeout)
-    
-    def confirm(self):
-        "Make the confirming commit"
+
+    def request(self):
+        "Commit changes requiring that a confirm/discard follow"
         return Commit.request(self, confirmed=True)
-    
+
+    def confirm(self):
+        "Confirm changes"
+        return Commit.request(self, confirmed=True)
+
     def discard(self):
+        "Discard changes"
         return DiscardChanges(self.session, self.async, self.timeout).request()

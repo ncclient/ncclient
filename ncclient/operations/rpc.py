@@ -17,6 +17,7 @@ from uuid import uuid1
 from weakref import WeakValueDictionary
 
 from ncclient import content
+from ncclient.capabilities import check
 from ncclient.transport import SessionListener
 
 from errors import OperationError
@@ -27,6 +28,11 @@ logger = logging.getLogger('ncclient.operations.rpc')
 
 class RPCReply:
 
+    """Represents an *<rpc-reply>*. Only concerns itself with whether the
+    operation was successful. Note that if the reply has not yet been parsed
+    there is a one-time parsing overhead to accessing the :attr:`ok` and
+    :attr:`error`/:attr:`errors` attributes."""
+
     def __init__(self, raw):
         self._raw = raw
         self._parsed = False
@@ -36,9 +42,15 @@ class RPCReply:
     def __repr__(self):
         return self._raw
 
-    def _parsing_hook(self, root): pass
+    def _parsing_hook(self, root):
+        """Subclass can implement.
+
+        :type root: :class:`~xml.etree.ElementTree.Element`
+        """
+        pass
 
     def parse(self):
+        """Parse the *<rpc-reply>*"""
         if self._parsed:
             return
         root = self._root = content.xml2ele(self._raw) # <rpc-reply> element
@@ -65,17 +77,19 @@ class RPCReply:
 
     @property
     def xml(self):
-        '<rpc-reply> as returned'
+        "*<rpc-reply>* as returned"
         return self._raw
 
     @property
     def ok(self):
+        "Boolean value indicating if there were no errors."
         if not self._parsed:
             self.parse()
         return not self._errors # empty list => false
 
     @property
     def error(self):
+        "Short for :attr:`errors`[0], returning :const:`None` if there were no errors."
         if not self._parsed:
             self.parse()
         if self._errors:
@@ -85,13 +99,16 @@ class RPCReply:
 
     @property
     def errors(self):
-        'List of RPCError objects. Will be empty if no <rpc-error> elements in reply.'
+        "List of :class:`RPCError` objects. Will be empty if there were no :class:`<rpc-error>` elements in reply."
         if not self._parsed:
             self.parse()
         return self._errors
 
 
 class RPCError(OperationError): # raise it if you like
+
+    """Represents an *<rpc-error>*. It is an instance of :exc:`OperationError`
+    so it can be raised like any other exception."""
 
     def __init__(self, err_dict):
         self._dict = err_dict
@@ -102,26 +119,32 @@ class RPCError(OperationError): # raise it if you like
 
     @property
     def type(self):
+        "`string` represeting *error-type* element"
         return self.get('error-type', None)
 
     @property
     def severity(self):
+        "`string` represeting *error-severity* element"
         return self.get('error-severity', None)
 
     @property
     def tag(self):
+        "`string` represeting *error-tag* element"
         return self.get('error-tag', None)
 
     @property
     def path(self):
+        "`string` or :const:`None`; represeting *error-path* element"
         return self.get('error-path', None)
 
     @property
     def message(self):
+        "`string` or :const:`None`; represeting *error-message* element"
         return self.get('error-message', None)
 
     @property
     def info(self):
+        "`string` or :const:`None`, represeting *error-info* element"
         return self.get('error-info', None)
 
     ## dictionary interface
@@ -150,6 +173,8 @@ class RPCError(OperationError): # raise it if you like
 
 
 class RPCReplyListener(SessionListener):
+
+    # internal use
 
     # one instance per session
     def __new__(cls, session):
@@ -191,21 +216,28 @@ class RPCReplyListener(SessionListener):
             else:
                 logger.warning('<rpc-reply> without message-id received: %s' % raw)
         logger.debug('delivering to %r' % rpc)
-        rpc.deliver(raw)
+        rpc.deliver_reply(raw)
 
     def errback(self, err):
         for rpc in self._id2rpc.values():
-            rpc.error(err)
+            rpc.deliver_error(err)
 
 
 class RPC(object):
 
+    "Directly corresponds to *<rpc>* requests. Handles making the request, and taking delivery of the reply."
+
+    # : Subclasses can specify their dependencies on capabilities. List of URI's
+    # or abbreviated names, e.g. ':writable-running'. These are verified at the
+    # time of object creation. If the capability is not available, a
+    # :exc:`MissingCapabilityError` is raised.
     DEPENDS = []
+
+    # : Subclasses can specify a different reply class, but it must be a
+    # subclass of :class:`RPCReply`.
     REPLY_CLS = RPCReply
 
     def __init__(self, session, async=False, timeout=None):
-        if not session.can_pipeline:
-            raise UserWarning('Asynchronous mode not supported for this device/session')
         self._session = session
         try:
             for cap in self.DEPENDS:
@@ -221,25 +253,39 @@ class RPC(object):
         self._listener.register(self._id, self)
         self._reply = None
         self._error = None
-        self._reply_event = Event()
+        self._event = Event()
 
     def _build(self, opspec):
-        "TODO: docstring"
+        # internal
         spec = {
             'tag': content.qualify('rpc'),
             'attrib': {'message-id': self._id},
-            'subtree': opspec
+            'subtree': [ opspec ]
             }
         return content.dtree2xml(spec)
 
     def _request(self, op):
+        """Subclasses call this method to make the RPC request.
+
+        In asynchronous mode, returns an :class:`~threading.Event` which is set
+        when the reply has been received or an error occured. It is prudent,
+        therefore, to check the :attr:`error` attribute before accesing
+        :attr:`reply`.
+
+        Otherwise, waits until the reply is received and returns
+        :class:`RPCReply`.
+
+        :arg opspec: :ref:`dtree` for the operation
+        :type opspec: :obj:`dict` or :obj:`string` or :class:`~xml.etree.ElementTree.Element`
+        :rtype: :class:`~threading.Event` or :class:`RPCReply`
+        """
         req = self._build(op)
         self._session.send(req)
         if self._async:
-            return self._reply_event
+            return self._event
         else:
-            self._reply_event.wait(self._timeout)
-            if self._reply_event.isSet():
+            self._event.wait(self._timeout)
+            if self._event.isSet():
                 if self._error:
                     raise self._error
                 self._reply.parse()
@@ -247,50 +293,86 @@ class RPC(object):
             else:
                 raise ReplyTimeoutError
 
-    def request(self):
-        return self._request(self.SPEC)
+    def request(self, *args, **kwds):
+        "Subclasses implement this method. Here, the operation is to be constructed as a :ref:`dtree`, and the result of :meth:`_request` returned."
+        return self._request(self.SPEC, *args, **kwds)
 
     def _delivery_hook(self):
-        'For subclasses'
+        """Subclasses can implement this method. Will be called after
+        initialising the :attr:`reply` or :attr:`error` attribute and before
+        setting the :attr:`event`"""
         pass
 
     def _assert(self, capability):
+        """Subclasses can use this method to verify that a capability is available
+        with the NETCONF server, before making a request that requires it. A
+        :class:`MissingCapabilityError` will be raised if the capability is not
+        available."""
         if capability not in self._session.server_capabilities:
             raise MissingCapabilityError('Server does not support [%s]' % cap)
 
-    def deliver(self, raw):
+    def deliver_reply(self, raw):
+        # internal use
         self._reply = self.REPLY_CLS(raw)
         self._delivery_hook()
-        self._reply_event.set()
+        self._event.set()
 
-    def error(self, err):
+    def deliver_error(self, err):
+        # internal use
         self._error = err
-        self._reply_event.set()
-
-    @property
-    def has_reply(self):
-        return self._reply_event.is_set()
+        self._delivery_hook()
+        self._event.set()
 
     @property
     def reply(self):
-        if self.error:
-            raise self._error
+        ":class:`RPCReply` element if reply has been received or :const:`None`"
         return self._reply
 
     @property
+    def error(self):
+        """:exc:`Exception` type if an error occured or :const:`None`.
+
+        This attribute should be checked if the request was made asynchronously,
+        so that it can be determined if :attr:`event` being set is because of a
+        reply or error.
+
+        .. note::
+            This represents an error which prevented a reply from being
+            received. An *<rpc-error>* does not fall in that category -- see
+            :class:`RPCReply` for that.
+        """
+        return self._error
+
+    @property
     def id(self):
+        "The *message-id* for this RPC"
         return self._id
 
     @property
     def session(self):
+        """The :class:`~ncclient.transport.Session` object associated with this
+        RPC"""
         return self._session
 
     @property
-    def reply_event(self):
-        return self._reply_event
+    def event(self):
+        """:class:`~threading.Event` that is set when reply has been received or
+        error occured."""
+        return self._event
 
-    def set_async(self, bool): self._async = bool
+    def set_async(self, async=True):
+        """Set asynchronous mode for this RPC."""
+        self._async = async
+        if async and not session.can_pipeline:
+            raise UserWarning('Asynchronous mode not supported for this device/session')
+
+    def set_timeout(self, timeout):
+        """Set the timeout for synchronous waiting defining how long the RPC
+        request will block on a reply before raising an error."""
+        self._timeout = timeout
+
+    #: Whether this RPC is asynchronous
     async = property(fget=lambda self: self._async, fset=set_async)
 
-    def set_timeout(self, timeout): self._timeout = timeout
+    #: Timeout for synchronous waiting
     timeout = property(fget=lambda self: self._timeout, fset=set_timeout)

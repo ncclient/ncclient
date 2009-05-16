@@ -19,35 +19,45 @@ from ncclient import content
 import util
 
 class GetReply(RPCReply):
-    
-    'Adds data attribute'
-    
-    # tested: no
-    # combed: yes
-    
+
+    """Adds attributes for the *<data>* element to :class:`RPCReply`, pertinent
+    to the *<get>* or *<get-config>* operations."""
+
     def _parsing_hook(self, root):
         self._data = None
         if not self._errors:
-            self._data = content.find(root, 'data', nslist=[content.BASE_NS, content.CISCO_BS])
-    
+            self._data = content.find(root, 'data',
+                                      nslist=[content.BASE_NS,
+                                              content.CISCO_BS])
+
     @property
-    def data(self):
+    def data_ele(self):
+        "As an :class:`~xml.etree.ElementTree.Element`"
         if not self._parsed:
             self.parse()
         return self._data
 
+    @property
+    def data_xml(self):
+        "As an XML string"
+        if not self._parsed:
+            self.parse()
+        return content.ele2xml(self._data)
+
+    data = data_ele
+
+
 class Get(RPC):
-    
-    # tested: no
-    # combed: yes
-    
+
+    "*<get>* RPC"
+
     SPEC = {
         'tag': 'get',
         'subtree': []
     }
-    
+
     REPLY_CLS = GetReply
-    
+
     def request(self, filter=None):
         spec = Get.SPEC.copy()
         if filter is not None:
@@ -57,22 +67,16 @@ class Get(RPC):
 
 class GetConfig(RPC):
 
-    # tested: no
-    # combed: yes
-    
+    "*<get-config>* RPC"
+
     SPEC = {
         'tag': 'get-config',
         'subtree': []
     }
-    
+
     REPLY_CLS = GetReply
-    
+
     def request(self, source, filter=None):
-        """
-        `filter` has to be a tuple of (type, criteria)
-        The type may be one of 'xpath' or 'subtree'
-        The criteria may be an ElementTree.Element, an XML fragment, or tree specification
-        """
         spec = GetConfig.SPEC.copy()
         spec['subtree'].append(util.store_or_url('source', source, self._assert))
         if filter is not None:

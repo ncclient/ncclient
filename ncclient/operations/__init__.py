@@ -12,15 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-'NETCONF protocol operations'
-
 from errors import OperationError, MissingCapabilityError
-from rpc import RPCError
-from retrieve import Get, GetConfig
-from edit import EditConfig, CopyConfig, DeleteConfig, Validate, Commit, DiscardChanges
+from rpc import RPC, RPCReply, RPCError
+from retrieve import Get, GetConfig, GetReply
+from edit import EditConfig, CopyConfig, DeleteConfig, Validate, Commit, DiscardChanges, ConfirmedCommit
 from session import CloseSession, KillSession
 from lock import Lock, Unlock, LockContext
-from subscribe import CreateSubscription
+#from subscribe import CreateSubscription
 
 OPERATIONS = {
     'get': Get,
@@ -38,20 +36,23 @@ OPERATIONS = {
 }
 
 __all__ = [
+    'RPC',
+    'RPCReply',
     'RPCError',
     'OPERATIONS',
     'Get',
     'GetConfig',
+    'GetReply',
     'EditConfig',
     'CopyConfig',
     'Validate',
     'Commit',
+    'ConfirmedCommit'
     'DiscardChanges',
     'DeleteConfig',
     'Lock',
     'Unlock',
     'LockContext',
     'CloseSession',
-    'KillSession',
-    'CreateSubscription',
+    'KillSession'
 ]

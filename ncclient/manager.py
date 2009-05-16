@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import capabilities
-import operations
+from operations import OPERATIONS
 import transport
 
 
@@ -25,7 +25,12 @@ def ssh_connect(*args, **kwds):
 
 connect = ssh_connect # default session type
 
-RAISE_ALL, RAISE_ERROR, RAISE_NONE = range(3)
+#: Raise all errors
+RAISE_ALL = 0
+#:
+RAISE_ERR = 1
+#:
+RAISE_NONE = 2
 
 class Manager:
 
@@ -33,13 +38,13 @@ class Manager:
 
     def __init__(self, session):
         self._session = session
-        self._rpc_error_handling = RAISE_ALL
+        self._rpc_error_action = RAISE_ALL
 
-    def set_rpc_error_option(self, option):
+    def set_rpc_error_action(self, action):
         self._rpc_error_handling = option
 
     def do(self, op, *args, **kwds):
-        op = operations.OPERATIONS[op](self._session)
+        op = OPERATIONS[op](self._session)
         reply = op.request(*args, **kwds)
         if not reply.ok:
             if self._raise == RAISE_ALL:
@@ -59,25 +64,54 @@ class Manager:
 
     def locked(self, target):
         """Returns a context manager for use with the 'with' statement.
-        `target` is the datastore to lock, e.g. 'candidate
+
+        :arg target: name of the datastore to lock
+        :type target: `string`
         """
         return operations.LockContext(self._session, target)
 
-    get = lambda self, *args, **kwds: self.do('get', *args, **kwds).data
+    def get(self, filter=None):
+        pass
 
-    get_config = lambda self, *args, **kwds: self.do('get-config', *args, **kwds).data
+    def get_config(self, source, filter=None):
+        pass
 
-    edit_config = lambda self, *args, **kwds: self.do('edit-config', *args, **kwds)
+    def copy_config(self, source, target):
+        pass
 
-    copy_config = lambda self, *args, **kwds: self.do('copy-config', *args, **kwds)
+    def validate(self, source):
+        pass
 
-    validate = lambda self, *args, **kwds: self.do('validate', *args, **kwds)
+    def commit(self, target):
+        pass
 
-    commit = lambda self, *args, **kwds: self.do('commit', *args, **kwds)
+    def discard_changes(self):
+        pass
 
-    discard_changes = lambda self, *args, **kwds: self.do('discard-changes', *args, **kwds)
+    def delete_config(self, target):
+        pass
 
-    delete_config = lambda self, *args, **kwds: self.do('delete-config', *args, **kwds)
+    def lock(self, target):
+        pass
+
+    def unlock(self, target):
+        pass
+
+    def close_session(self):
+        pass
+
+    def kill_session(self, session_id):
+        pass
+
+    def confirmed_commit(self, timeout=None):
+        pass
+
+    def confirm(self):
+        # give confirmation
+        pass
+
+    def discard_changes(self):
+        pass
 
     lock = lambda self, *args, **kwds: self.do('lock', *args, **kwds)
 
@@ -90,8 +124,8 @@ class Manager:
     def close(self):
         try: # try doing it clean
             self.close_session()
-        except:
-            pass
+        except Exception as e:
+            logger.debug('error doing <close-session> -- %r' % e)
         if self._session.connected: # if that didn't work...
             self._session.close()
 
@@ -99,16 +133,14 @@ class Manager:
     def session(self, session):
         return self._session
 
-    def get_capabilities(self, whose):
-        if whose in ('manager', 'client'):
-            return self._session._client_capabilities
-        elif whose in ('agent', 'server'):
-            return self._session._server_capabilities
-
     @property
-    def capabilities(self):
+    def client_capabilities(self):
         return self._session._client_capabilities
 
     @property
     def server_capabilities(self):
         return self._session._server_capabilities
+
+    @property
+    def session_id(self):
+        return self._session.id
