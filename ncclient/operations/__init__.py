@@ -31,7 +31,7 @@ OPERATIONS = {
     'delete-config': DeleteConfig,
     'lock': Lock,
     'unlock': Unlock,
-    'close_session': CloseSession,
+    'close-session': CloseSession,
     'kill-session': KillSession,
 }
 

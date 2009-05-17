@@ -291,18 +291,18 @@ class RPC(object):
         """
         logger.debug('request %r with opsepc=%r' % (self, op))
         req = self._build(op)
-        self.session.send(req)
-        if self.async:
+        self._session.send(req)
+        if self._async:
             logger.debug('async, returning event')
-            return self.event
+            return self._event
         else:
-            logger.debug('sync, will wait for timeout=%r' % self.timeout)
-            self.event.wait(self.timeout)
-            if self.event.isSet():
-                if self.error:
+            logger.debug('sync, will wait for timeout=%r' % self._timeout)
+            self._event.wait(self._timeout)
+            if self._event.isSet():
+                if self._error:
                     raise self._error
-                self.reply.parse()
-                return self.reply
+                self._reply.parse()
+                return self._reply
             else:
                 raise TimeoutExpiredError
 

@@ -18,6 +18,8 @@ from threading import Thread, Lock, Event
 from ncclient import content
 from ncclient.capabilities import Capabilities
 
+from errors import TransportError
+
 import logging
 logger = logging.getLogger('ncclient.transport.session')
 
@@ -138,6 +140,8 @@ class Session(Thread):
 
         :type message: `string`
         """
+        if not self.connected:
+            raise TransportError('Not connected to NETCONF server')
         logger.debug('queueing %s' % message)
         self._q.put(message)
 
@@ -184,7 +188,7 @@ class SessionListener(object):
         allows the callback to determine whether it wants to further process the
         document.
 
-        :arg root: is a tuple of `(tag, attributes)` where `tag` is the qualified name of the root element and `attributes` is a dictionary of its attributes (also qualified names)
+        :arg root: tuple of `(tag, attributes)` where `tag` is the qualified name of the root element and `attributes` is a dictionary of its attributes (also qualified names)
         :type root: `tuple`
 
         :arg raw: XML document

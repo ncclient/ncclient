@@ -132,7 +132,7 @@ class Manager:
             self._session.close()
 
     @property
-    def session(self, session):
+    def session(self):
         ":class:`~ncclient.transport.Session` instance"
         return self._session
 
