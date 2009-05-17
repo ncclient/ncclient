@@ -129,6 +129,7 @@
   \item remove() (ncclient.capabilities.Capabilities method), \hyperpage{4}
   \item remove\_listener() (ncclient.transport.Session method), \hyperpage{7}
   \item reply (ncclient.operations.rpc.RPC attribute), \hyperpage{9}
+  \item request() (ncclient.operations.CloseSession method), \hyperpage{12}
   \item request() (ncclient.operations.Commit method), \hyperpage{12}
   \item request() (ncclient.operations.CopyConfig method), \hyperpage{12}
   \item request() (ncclient.operations.DeleteConfig method), \hyperpage{12}
@@ -136,6 +137,7 @@
   \item request() (ncclient.operations.EditConfig method), \hyperpage{11}
   \item request() (ncclient.operations.Get method), \hyperpage{10}
   \item request() (ncclient.operations.GetConfig method), \hyperpage{11}
+  \item request() (ncclient.operations.KillSession method), \hyperpage{12}
   \item request() (ncclient.operations.Lock method), \hyperpage{11}
   \item request() (ncclient.operations.Unlock method), \hyperpage{11}
   \item request() (ncclient.operations.Validate method), \hyperpage{12}

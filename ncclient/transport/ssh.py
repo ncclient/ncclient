@@ -321,8 +321,11 @@ class SSHSession(Session):
                         data = data[n:]
         except Exception as e:
             logger.debug('broke out of main loop')
+            expecting = self._expecting_close
             self.close()
-            if not (isinstance(e, SessionCloseError) and self._expecting_close):
+            logger.debug('error=%r' % e)
+            logger.debug('expecting_close=%r' % expecting)
+            if not (isinstance(e, SessionCloseError) and expecting):
                 self._dispatch_error(e)
 
     @property

@@ -62,7 +62,7 @@ class Session(Thread):
             try:
                 l.errback(err)
             except Exception as e:
-                logger.warning('error %r' % e)
+                logger.warning('error dispatching to %r: %r' % (l, e))
 
     def _post_connect(self):
         "Greeting stuff"

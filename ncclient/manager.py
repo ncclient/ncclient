@@ -15,7 +15,7 @@
 "Thin layer of abstraction around NCClient"
 
 import capabilities
-from operations import OPERATIONS
+import operations
 import transport
 
 def connect_ssh(*args, **kwds):
@@ -55,15 +55,15 @@ class Manager:
         """
         self._raise = action
 
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *args):
-        self.close()
-        return False
+    #def __enter__(self):
+    #    return self
+    #
+    #def __exit__(self, *args):
+    #    self.close()
+    #    return False
 
     def do(self, op, *args, **kwds):
-        op = OPERATIONS[op](self._session)
+        op = operations.OPERATIONS[op](self._session)
         reply = op.request(*args, **kwds)
         if not reply.ok:
             if self._raise == RAISE_ALL:
@@ -115,7 +115,7 @@ class Manager:
 
         :arg target: name of the datastore to lock
         :type target: `string`
-        :rtype: :class:`operations.LockContext`
+        :rtype: :class:`~ncclient.operations.LockContext`
         """
         return operations.LockContext(self._session, target)
 

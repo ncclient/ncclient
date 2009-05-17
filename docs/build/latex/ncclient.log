@@ -1,4 +1,4 @@
-This is pdfTeXk, Version 3.1415926-1.40.9 (Web2C 7.5.7) (format=pdflatex 2009.2.28)  17 MAY 2009 04:41
+This is pdfTeXk, Version 3.1415926-1.40.9 (Web2C 7.5.7) (format=pdflatex 2009.2.28)  17 MAY 2009 04:51
 entering extended mode
  %&-line parsing enabled.
 **ncclient.tex
@@ -846,12 +846,13 @@ l.85 \tableofcontents
 Chapter 1.
 LaTeX Font Info:    Font shape `T1/phv/bx/n' in size <14.4> not available
 (Font)              Font shape `T1/phv/b/n' tried instead on input line 92.
-LaTeX Font Info:    Try loading font information for TS1+ptm on input line 98.
+LaTeX Font Info:    Try loading font information for TS1+ptm on input line 100.
+
 (/usr/share/texmf-dist/tex/latex/psnfss/ts1ptm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 )
 LaTeX Font Info:    Font shape `T1/pcr/bx/n' in size <9> not available
-(Font)              Font shape `T1/pcr/b/n' tried instead on input line 118.
+(Font)              Font shape `T1/pcr/b/n' tried instead on input line 120.
  [1
 
 
@@ -860,13 +861,13 @@ LaTeX Font Info:    Font shape `T1/pcr/bx/n' in size <9> not available
 ]
 Chapter 2.
 LaTeX Font Info:    Font shape `T1/pcr/bx/n' in size <14.4> not available
-(Font)              Font shape `T1/pcr/b/n' tried instead on input line 137.
+(Font)              Font shape `T1/pcr/b/n' tried instead on input line 139.
 LaTeX Font Info:    Font shape `T1/phv/bx/n' in size <12> not available
-(Font)              Font shape `T1/phv/b/n' tried instead on input line 143.
+(Font)              Font shape `T1/phv/b/n' tried instead on input line 145.
 LaTeX Font Info:    Font shape `T1/pcr/bx/n' in size <10> not available
-(Font)              Font shape `T1/pcr/b/n' tried instead on input line 148.
+(Font)              Font shape `T1/pcr/b/n' tried instead on input line 150.
 [3] [4] [5] [6]
-Underfull \hbox (badness 5985) in paragraph at lines 701--703
+Underfull \hbox (badness 5985) in paragraph at lines 703--705
 []\T1/ptm/m/n/10 This de-fault call-back al-ways re-turns [][]\T1/pcr/m/n/10 Fa
 lse[][]\T1/ptm/m/n/10 , which would lead to \T1/pcr/m/n/10 connect() \T1/ptm/m/
 n/10 rais-ing a
@@ -874,7 +875,7 @@ n/10 rais-ing a
 
 [7] [8] [9]
 LaTeX Font Info:    Font shape `T1/ptm/bx/it' in size <10> not available
-(Font)              Font shape `T1/ptm/b/it' tried instead on input line 992.
+(Font)              Font shape `T1/ptm/b/it' tried instead on input line 994.
  [10] [11] [12] [13] [14
 
 ]
@@ -920,30 +921,30 @@ Underfull \hbox (badness 10000) in paragraph at lines 90--91
 [19
 
 ]
-Underfull \hbox (badness 10000) in paragraph at lines 135--136
+Underfull \hbox (badness 10000) in paragraph at lines 136--137
 []\T1/ptm/m/n/10 request() (nc-client.operations.DiscardChanges
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 151--152
+Underfull \hbox (badness 10000) in paragraph at lines 153--154
 []\T1/ptm/m/n/10 server_capabilities (nc-client.manager.Manager at-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 152--153
+Underfull \hbox (badness 10000) in paragraph at lines 154--155
 []\T1/ptm/m/n/10 server_capabilities (nc-client.transport.Session at-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 159--160
+Underfull \hbox (badness 10000) in paragraph at lines 161--162
 []\T1/ptm/m/n/10 set_rpc_error_action() (nc-client.manager.Manager
  []
 
 [20]) (./ncclient.aux) ) 
 Here is how much of TeX's memory you used:
- 7953 strings out of 493886
- 108890 string characters out of 1155675
- 192632 words of memory out of 3000000
+ 7955 strings out of 493886
+ 108969 string characters out of 1155675
+ 194632 words of memory out of 3000000
  10851 multiletter control sequences out of 10000+50000
  58566 words of font info for 62 fonts, out of 3000000 for 5000
  715 hyphenation exceptions out of 8191
@@ -956,9 +957,9 @@ share/texmf-dist/fonts/type1/urw/helvetic/uhvr8a.pfb></usr/share/texmf-dist/fon
 ts/type1/urw/times/utmb8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmb
 i8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/tex
 mf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on ncclient.pdf (24 pages, 241640 bytes).
+Output written on ncclient.pdf (24 pages, 243329 bytes).
 PDF statistics:
- 684 PDF objects out of 1000 (max. 8388607)
- 194 named destinations out of 1000 (max. 131072)
+ 694 PDF objects out of 1000 (max. 8388607)
+ 196 named destinations out of 1000 (max. 131072)
  93 words of extra memory for PDF output out of 10000 (max. 10000000)
 

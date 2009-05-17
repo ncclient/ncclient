@@ -2,7 +2,9 @@
 Introduction
 *************
 
-NCClient is a Python library for NETCONF clients. NETCONF is a network management protocol defined in :rfc:`4741`. It is meant for Python 2.6+ (not Python 3 yet, though).
+NCClient is a Python library for NETCONF clients. NETCONF is a network management protocol defined in :rfc:`4741`.
+
+It is meant for Python 2.6+ (not Python 3 yet, though).
 
 The features of NCClient include:
 

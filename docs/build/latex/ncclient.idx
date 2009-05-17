@@ -119,7 +119,9 @@
 \indexentry{DiscardChanges (class in ncclient.operations)|hyperpage}{12}
 \indexentry{request() (ncclient.operations.DiscardChanges method)|hyperpage}{12}
 \indexentry{CloseSession (class in ncclient.operations)|hyperpage}{12}
+\indexentry{request() (ncclient.operations.CloseSession method)|hyperpage}{12}
 \indexentry{KillSession (class in ncclient.operations)|hyperpage}{12}
+\indexentry{request() (ncclient.operations.KillSession method)|hyperpage}{12}
 \indexentry{LockContext (class in ncclient.operations)|hyperpage}{13}
 \indexentry{OperationError|hyperpage}{13}
 \indexentry{TimeoutExpiredError|hyperpage}{13}

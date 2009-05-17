@@ -18,6 +18,8 @@ from rpc import RPC
 
 class Lock(RPC):
 
+    # TESTED
+
     "*<lock>* RPC"
 
     SPEC = {
@@ -41,6 +43,8 @@ class Lock(RPC):
 
 
 class Unlock(RPC):
+
+    # TESTED
 
     "*<unlock>* RPC"
 
@@ -66,6 +70,8 @@ class Unlock(RPC):
 
 class LockContext:
 
+    # TESTED
+
     """
     A context manager for the :class:`Lock` / :class:`Unlock` pair of RPC's.
 
@@ -85,7 +91,7 @@ class LockContext:
             return self
 
     def __exit__(self, *args):
-        reply = Unlock(session).request(self.target)
+        reply = Unlock(self.session).request(self.target)
         if not reply.ok:
             raise reply.error
         return False

@@ -91,7 +91,9 @@
 
 \chapter{Introduction}
 
-NCClient is a Python library for NETCONF clients. NETCONF is a network management protocol defined in \index{RFC!RFC 4741}\href{http://tools.ietf.org/html/rfc4741.html}{\textbf{RFC 4741}}. It is meant for Python 2.6+ (not Python 3 yet, though).
+NCClient is a Python library for NETCONF clients. NETCONF is a network management protocol defined in \index{RFC!RFC 4741}\href{http://tools.ietf.org/html/rfc4741.html}{\textbf{RFC 4741}}.
+
+It is meant for Python 2.6+ (not Python 3 yet, though).
 
 The features of NCClient include:
 \begin{itemize}
@@ -275,7 +277,7 @@ Specify the action to take when an \emph{\textless{}rpc-error\textgreater{}} ele
 
 \hypertarget{ncclient.manager.Manager.close_session}{}\begin{methoddesc}{close\_session}{*args, **kwds}~\begin{quote}\begin{description}
 \item[See]
-\code{CloseSession.request()}
+\hyperlink{ncclient.operations.CloseSession.request}{\code{CloseSession.request()}}
 
 \end{description}\end{quote}
 \end{methoddesc}
@@ -283,7 +285,7 @@ Specify the action to take when an \emph{\textless{}rpc-error\textgreater{}} ele
 
 \hypertarget{ncclient.manager.Manager.kill_session}{}\begin{methoddesc}{kill\_session}{*args, **kwds}~\begin{quote}\begin{description}
 \item[See]
-\code{KillSession.request()}
+\hyperlink{ncclient.operations.KillSession.request}{\code{KillSession.request()}}
 
 \end{description}\end{quote}
 \end{methoddesc}
@@ -296,7 +298,7 @@ Returns a context manager for the \emph{with} statement.
 \emph{target} (\href{http://docs.python.org/library/string.html\#string}{\code{string}}) -- name of the datastore to lock
 
 \item[Return type]
-\code{operations.LockContext}
+\hyperlink{ncclient.operations.LockContext}{\code{LockContext}}
 
 \end{description}\end{quote}
 \end{methoddesc}
@@ -1240,9 +1242,11 @@ Bases: \hyperlink{ncclient.operations.rpc.RPC}{\code{ncclient.operations.rpc.RPC
 \emph{\textless{}discard-changes\textgreater{}} RPC. Depends on the \emph{:candidate} capability.
 \index{request() (ncclient.operations.DiscardChanges method)}
 
-\hypertarget{ncclient.operations.DiscardChanges.request}{}\begin{methoddesc}{request}{*args, **kwds}
-Subclasses implement this method. Here, the operation is constructed
-in \hyperlink{dtree}{\emph{DictTree XML representation}}, and the result of \code{\_request()} returned.
+\hypertarget{ncclient.operations.DiscardChanges.request}{}\begin{methoddesc}{request}{}~\begin{quote}\begin{description}
+\item[Seealso]
+\hyperlink{return}{\emph{Return type}}
+
+\end{description}\end{quote}
 \end{methoddesc}
 \end{classdesc}
 
@@ -1254,6 +1258,14 @@ in \hyperlink{dtree}{\emph{DictTree XML representation}}, and the result of \cod
 Bases: \hyperlink{ncclient.operations.rpc.RPC}{\code{ncclient.operations.rpc.RPC}}
 
 \emph{\textless{}close-session\textgreater{}} RPC. The connection to NETCONF server is also closed.
+\index{request() (ncclient.operations.CloseSession method)}
+
+\hypertarget{ncclient.operations.CloseSession.request}{}\begin{methoddesc}{request}{}~\begin{quote}\begin{description}
+\item[Seealso]
+\hyperlink{return}{\emph{Return type}}
+
+\end{description}\end{quote}
+\end{methoddesc}
 \end{classdesc}
 \index{KillSession (class in ncclient.operations)}
 
@@ -1261,6 +1273,17 @@ Bases: \hyperlink{ncclient.operations.rpc.RPC}{\code{ncclient.operations.rpc.RPC
 Bases: \hyperlink{ncclient.operations.rpc.RPC}{\code{ncclient.operations.rpc.RPC}}
 
 \emph{\textless{}kill-session\textgreater{}} RPC.
+\index{request() (ncclient.operations.KillSession method)}
+
+\hypertarget{ncclient.operations.KillSession.request}{}\begin{methoddesc}{request}{session\_id}~\begin{quote}\begin{description}
+\item[Parameter]
+\emph{session\_id} (\href{http://docs.python.org/library/string.html\#string}{\code{string}}) -- \emph{session-id} of NETCONF session to kill
+
+\item[Seealso]
+\hyperlink{return}{\emph{Return type}}
+
+\end{description}\end{quote}
+\end{methoddesc}
 \end{classdesc}
 
 

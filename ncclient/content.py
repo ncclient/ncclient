@@ -74,7 +74,7 @@ class DictTree:
             ele.tail = spec.get('tail', '')
             subtree = spec.get('subtree', [])
             # might not be properly specified as list but may be dict
-            if isinstance(subtree, dict):
+            if not isinstance(subtree, list):
                 subtree = [subtree]
             for subele in subtree:
                 ele.append(DictTree.Element(subele))
@@ -184,18 +184,19 @@ def parse_root(raw):
     for event, element in ET.iterparse(fp, events=('start',)):
         return (element.tag, element.attrib)
 
-def validated_element(rep, tag=None, attrs=None, text=None):
+def validated_element(rep, tags=None, attrs=None, text=None):
     """Checks if the root element meets the supplied criteria. Returns a :class:`~xml.etree.ElementTree.Element` instance if so, otherwise raises :exc:`ContentError`.
 
-    :arg tag: tag name or a list of allowable tag names
+    :arg tags: tag name or a list of allowable tag names
     :arg attrs: list of required attribute names, each item may be a list of allowable alternatives
     :arg text: textual content to match
     :type rep: :obj:`dict` or :obj:`string` or :class:`~xml.etree.ElementTree.Element`
     """
     ele = dtree2ele(rep)
     err = False
-    if tag:
-        if isinstance(tag, basestring): tag = [tag]
+    if tags:
+        if isinstance(tags, basestring):
+            tags = [tags]
         if ele.tag not in tags:
             err = True
     if attrs:

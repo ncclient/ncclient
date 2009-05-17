@@ -289,17 +289,20 @@ class RPC(object):
         :type opspec: :obj:`dict` or :obj:`string` or :class:`~xml.etree.ElementTree.Element`
         :rtype: :class:`~threading.Event` or :class:`RPCReply`
         """
+        logger.debug('request %r with opsepc=%r' % (self, op))
         req = self._build(op)
-        self._session.send(req)
-        if self._async:
-            return self._event
+        self.session.send(req)
+        if self.async:
+            logger.debug('async, returning event')
+            return self.event
         else:
-            self._event.wait(self._timeout)
-            if self._event.isSet():
-                if self._error:
+            logger.debug('sync, will wait for timeout=%r' % self.timeout)
+            self.event.wait(self.timeout)
+            if self.event.isSet():
+                if self.error:
                     raise self._error
-                self._reply.parse()
-                return self._reply
+                self.reply.parse()
+                return self.reply
             else:
                 raise TimeoutExpiredError
 

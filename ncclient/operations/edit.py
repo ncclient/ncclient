@@ -18,6 +18,11 @@ from rpc import RPC
 
 import util
 
+import logging
+logger = logging.getLogger('ncclient.operations.edit')
+
+
+
 "Operations related to changing device configuration"
 
 class EditConfig(RPC):
@@ -87,6 +92,8 @@ class DeleteConfig(RPC):
 
 class CopyConfig(RPC):
 
+    # TESTED
+
     "*<copy-config>* RPC"
 
     SPEC = {'tag': 'copy-config', 'subtree': []}
@@ -102,12 +109,14 @@ class CopyConfig(RPC):
         :seealso: :ref:`return`
         """
         spec = CopyConfig.SPEC.copy()
-        spec['subtree'].append(util.store_or_url('source', source, self._assert))
         spec['subtree'].append(util.store_or_url('target', target, self._assert))
+        spec['subtree'].append(util.store_or_url('source', source, self._assert))
         return self._request(spec)
 
 
 class Validate(RPC):
+
+    # TESTED
 
     "*<validate>* RPC. Depends on the *:validate* capability."
 
@@ -124,14 +133,14 @@ class Validate(RPC):
         """
         spec = Validate.SPEC.copy()
         try:
-            spec['subtree'].append({
-                'tag': 'source',
-                'subtree':
-                    content.validated_element(
-                        config, ('config', content.qualify('config')))
-                })
-        except:
-            spec['subtree'].append(util.store_or_url('source', source, self._assert))
+            src = content.validated_element(source, ('config', content.qualify('config')))
+        except Exception as e:
+            logger.debug(e)
+            src = util.store_or_url('source', source, self._assert)
+        spec['subtree'].append({
+            'tag': 'source',
+            'subtree': src
+            })
         return self._request(spec)
 
 
@@ -178,3 +187,7 @@ class DiscardChanges(RPC):
     DEPENDS = [':candidate']
 
     SPEC = {'tag': 'discard-changes'}
+
+    def request(self):
+        ":seealso: :ref:`return`"
+        return self._request(DiscardChanges.SPEC)

@@ -18,6 +18,8 @@ from rpc import RPC
 
 class CloseSession(RPC):
 
+    # TESTED
+
     "*<close-session>* RPC. The connection to NETCONF server is also closed."
 
     SPEC = { 'tag': 'close-session' }
@@ -26,6 +28,7 @@ class CloseSession(RPC):
         self.session.close()
 
     def request(self):
+        ":seealso: :ref:`return`"
         return self._request(CloseSession.SPEC)
 
 
@@ -39,8 +42,14 @@ class KillSession(RPC):
     }
 
     def request(self, session_id):
+        """
+        :arg session_id: *session-id* of NETCONF session to kill
+        :type session_id: `string`
+
+        :seealso: :ref:`return`
+        """
         spec = KillSession.SPEC.copy()
-        if not isinstance(session_id, basestring): # just making sure...
+        if not isinstance(session_id, basestring): # make sure
             session_id = str(session_id)
         spec['subtree'].append({
             'tag': 'session-id',
