@@ -18,6 +18,9 @@ import capabilities
 import operations
 import transport
 
+import logging
+logger = logging.getLogger('ncclient.manager')
+
 def connect_ssh(*args, **kwds):
     """Connect to NETCONF server over SSH. See :meth:`SSHSession.connect()
     <ncclient.transport.SSHSession.connect>` for function signature."""
@@ -55,12 +58,12 @@ class Manager:
         """
         self._raise = action
 
-    #def __enter__(self):
-    #    return self
-    #
-    #def __exit__(self, *args):
-    #    self.close()
-    #    return False
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
+        return False
 
     def do(self, op, *args, **kwds):
         op = operations.OPERATIONS[op](self._session)
