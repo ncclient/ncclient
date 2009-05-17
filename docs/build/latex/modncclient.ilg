@@ -1,7 +1,0 @@
-This is makeindex, version 2.15 [20-Nov-2007] (kpathsea + Thai support).
-Scanning style file ./python.ist......done (6 attributes redefined, 0 ignored).
-Scanning input file modncclient.idx....done (5 entries accepted, 0 rejected).
-Sorting entries....done (12 comparisons).
-Generating output file modncclient.ind....done (11 lines written, 0 warnings).
-Output written in modncclient.ind.
-Transcript written in modncclient.ilg.
