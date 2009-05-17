@@ -18,19 +18,35 @@ from rpc import RPC
 
 import util
 
-"Operations related to configuration editing"
+"Operations related to changing device configuration"
 
 class EditConfig(RPC):
 
+    "*<edit-config>* RPC"
+
     SPEC = {'tag': 'edit-config', 'subtree': []}
 
-    def request(self, target=None, config=None, default_operation=None,
-                test_option=None, error_option=None):
-        util.one_of(target, config)
+    def request(self, target, config, default_operation=None, test_option=None,
+                error_option=None):
+        """
+        :arg target: see :ref:`source_target`
+        :type target: string
+
+        :arg config: a config element in :ref:`dtree`
+        :type config: `string` or `dict` or :class:`~xml.etree.ElementTree.Element`
+
+        :arg default_operation: optional; one of {'merge', 'replace', 'none'}
+        :type default_operation: `string`
+
+        :arg test_option: optional; one of {'stop-on-error', 'continue-on-error', 'rollback-on-error'}. Last option depends on the *:rollback-on-error* capability
+        :type test_option: string
+
+        :seealso: :ref:`return`
+        """
         spec = EditConfig.SPEC.copy()
         subtree = spec['subtree']
         subtree.append(util.store_or_url('target', target, self._assert))
-        subtree.append(content.validated_root(config, 'config'))
+        subtree.append(content.validated_element(config, ('config', content.qualify('config'))))
         if default_operation is not None:
             subtree.append({
                 'tag': 'default-operation',
@@ -51,12 +67,19 @@ class EditConfig(RPC):
                 })
         return self._request(spec)
 
-
 class DeleteConfig(RPC):
+
+    "*<delete-config>* RPC"
 
     SPEC = {'tag': 'delete-config', 'subtree': []}
 
     def request(self, target):
+        """
+        :arg target: See :ref:`source_target`
+        :type target: `string` or `dict` or :class:`~xml.etree.ElementTree.Element`
+
+        :seealso: :ref:`return`
+        """
         spec = DeleteConfig.SPEC.copy()
         spec['subtree'].append(util.store_or_url('target', target, self._assert))
         return self._request(spec)
@@ -64,9 +87,20 @@ class DeleteConfig(RPC):
 
 class CopyConfig(RPC):
 
+    "*<copy-config>* RPC"
+
     SPEC = {'tag': 'copy-config', 'subtree': []}
 
     def request(self, source, target):
+        """
+        :arg source: See :ref:`source_target`
+        :type source: `string` or `dict` or :class:`~xml.etree.ElementTree.Element`
+
+        :arg target: See :ref:`source_target`
+        :type target: `string` or `dict` or :class:`~xml.etree.ElementTree.Element`
+
+        :seealso: :ref:`return`
+        """
         spec = CopyConfig.SPEC.copy()
         spec['subtree'].append(util.store_or_url('source', source, self._assert))
         spec['subtree'].append(util.store_or_url('target', target, self._assert))
@@ -75,24 +109,35 @@ class CopyConfig(RPC):
 
 class Validate(RPC):
 
+    "*<validate>* RPC. Depends on the *:validate* capability."
+
     DEPENDS = [':validate']
 
     SPEC = {'tag': 'validate', 'subtree': []}
 
     def request(self, source):
-        # determine if source is a <config> element
+        """
+        :arg source: See :ref:`source_target`
+        :type source: `string` or `dict` or :class:`~xml.etree.ElementTree.Element`
+
+        :seealso: :ref:`return`
+        """
         spec = Validate.SPEC.copy()
         try:
             spec['subtree'].append({
                 'tag': 'source',
-                'subtree': content.validated_root(config, ('config', content.qualify('config')))
+                'subtree':
+                    content.validated_element(
+                        config, ('config', content.qualify('config')))
                 })
-        except ContentError:
+        except:
             spec['subtree'].append(util.store_or_url('source', source, self._assert))
         return self._request(spec)
 
 
 class Commit(RPC):
+
+    "*<commit>* RPC. Depends on the *:candidate* capability."
 
     DEPENDS = [':candidate']
 
@@ -101,7 +146,19 @@ class Commit(RPC):
     def _parse_hook(self):
         pass
 
-    def request(self, confirmed=False):
+    def request(self, confirmed=False, timeout=None):
+        """
+        Requires *:confirmed-commit* capability if *confirmed* argument is
+        :const:`True`.
+
+        :arg confirmed: optional; request a confirmed commit
+        :type confirmed: `bool`
+
+        :arg timeout: specify timeout for confirmed commit
+        :type timeout: `int`
+
+        :seealso: :ref:`return`
+        """
         spec = SPEC.copy()
         if confirmed:
             self._assert(':confirmed-commit')
@@ -116,24 +173,8 @@ class Commit(RPC):
 
 class DiscardChanges(RPC):
 
+    "*<discard-changes>* RPC. Depends on the *:candidate* capability."
+
     DEPENDS = [':candidate']
 
     SPEC = {'tag': 'discard-changes'}
-
-
-class ConfirmedCommit(Commit):
-    "psuedo-op"
-
-    DEPENDS = [':candidate', ':confirmed-commit']
-
-    def request(self):
-        "Commit changes requiring that a confirm/discard follow"
-        return Commit.request(self, confirmed=True)
-
-    def confirm(self):
-        "Confirm changes"
-        return Commit.request(self, confirmed=True)
-
-    def discard(self):
-        "Discard changes"
-        return DiscardChanges(self.session, self.async, self.timeout).request()

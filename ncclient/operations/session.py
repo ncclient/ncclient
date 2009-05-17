@@ -25,6 +25,9 @@ class CloseSession(RPC):
     def _delivsery_hook(self):
         self.session.close()
 
+    def request(self):
+        return self._request(CloseSession.SPEC)
+
 
 class KillSession(RPC):
 
@@ -35,7 +38,7 @@ class KillSession(RPC):
         'subtree': []
     }
 
-    def request(self, session_id, *args, **kwds):
+    def request(self, session_id):
         spec = KillSession.SPEC.copy()
         if not isinstance(session_id, basestring): # just making sure...
             session_id = str(session_id)
@@ -43,4 +46,4 @@ class KillSession(RPC):
             'tag': 'session-id',
             'text': session_id
         })
-        return self._request(spec, *args, **kwds)
+        return self._request(spec)

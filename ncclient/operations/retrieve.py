@@ -20,8 +20,8 @@ import util
 
 class GetReply(RPCReply):
 
-    """Adds attributes for the *<data>* element to :class:`RPCReply`, pertinent
-    to the *<get>* or *<get-config>* operations."""
+    """Adds attributes for the *<data>* element to :class:`RPCReply`, which
+    pertains to the :class:`Get` and :class:`GetConfig` operations."""
 
     def _parsing_hook(self, root):
         self._data = None
@@ -32,33 +32,41 @@ class GetReply(RPCReply):
 
     @property
     def data_ele(self):
-        "As an :class:`~xml.etree.ElementTree.Element`"
+        "*<data>* element as an :class:`~xml.etree.ElementTree.Element`"
         if not self._parsed:
             self.parse()
         return self._data
 
     @property
     def data_xml(self):
-        "As an XML string"
+        "*<data>* element as an XML string"
         if not self._parsed:
             self.parse()
         return content.ele2xml(self._data)
 
+    @property
+    def data_dtree(self):
+        "*<data>* element in :ref:`dtree`"
+        return content.ele2dtree(self._data)
+
+    #: Same as :attr:`data_ele`
     data = data_ele
 
 
 class Get(RPC):
 
-    "*<get>* RPC"
+    "The *<get>* RPC"
 
-    SPEC = {
-        'tag': 'get',
-        'subtree': []
-    }
+    SPEC = {'tag': 'get', 'subtree': []}
 
     REPLY_CLS = GetReply
 
     def request(self, filter=None):
+        """
+        :arg filter: optional; see :ref:`filter`
+
+        :seealso: :ref:`return`
+        """
         spec = Get.SPEC.copy()
         if filter is not None:
             spec['subtree'].append(util.build_filter(filter))
@@ -67,16 +75,20 @@ class Get(RPC):
 
 class GetConfig(RPC):
 
-    "*<get-config>* RPC"
+    "The *<get-config>* RPC"
 
-    SPEC = {
-        'tag': 'get-config',
-        'subtree': []
-    }
+    SPEC = {'tag': 'get-config', 'subtree': []}
 
     REPLY_CLS = GetReply
 
     def request(self, source, filter=None):
+        """
+        :arg source: See :ref:`source_target`
+
+        :arg filter: optional; see :ref:`filter`
+
+        :seealso: :ref:`return`
+        """
         spec = GetConfig.SPEC.copy()
         spec['subtree'].append(util.store_or_url('source', source, self._assert))
         if filter is not None:

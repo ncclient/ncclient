@@ -12,19 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-'''
-TODO
-=====
-* code freeze and reST doc
-'''
-
 import sys
 
 # actually no reason why shouldn't work on 2.5 but that's... untested -- TODO
 if sys.version_info < (2, 6):
     raise RuntimeError('You need Python 2.6+ for this module.')
 
-__version__ = "0.05"
-
 class NCClientError(Exception):
+    "Base type for all NCClient errors"
     pass

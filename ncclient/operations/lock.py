@@ -18,6 +18,8 @@ from rpc import RPC
 
 class Lock(RPC):
 
+    "*<lock>* RPC"
+
     SPEC = {
         'tag': 'lock',
         'subtree': {
@@ -26,13 +28,21 @@ class Lock(RPC):
         }
     }
 
-    def request(self, target, *args, **kwds):
+    def request(self, target):
+        """
+        :arg target: see :ref:`source_target`
+        :type target: string
+
+        :rtype: :ref:`return`
+        """
         spec = Lock.SPEC.copy()
         spec['subtree']['subtree']['tag'] = target
-        return self._request(spec, *args, **kwds)
+        return self._request(spec)
 
 
 class Unlock(RPC):
+
+    "*<unlock>* RPC"
 
     SPEC = {
         'tag': 'unlock',
@@ -42,13 +52,26 @@ class Unlock(RPC):
         }
     }
 
-    def request(self, target, *args, **kwds):
+    def request(self, target):
+        """
+        :arg target: see :ref:`source_target`
+        :type target: string
+
+        :rtype: :ref:`return`
+        """
         spec = Unlock.SPEC.copy()
         spec['subtree']['subtree']['tag'] = target
-        return self._request(spec, *args, **kwds)
+        return self._request(spec)
 
 
 class LockContext:
+
+    """
+    A context manager for the :class:`Lock` / :class:`Unlock` pair of RPC's.
+
+    Initialise with session instance (:class:`Session
+    <ncclient.transport.Session>`) and lock target (:ref:`source_target`)
+    """
 
     def __init__(self, session, target):
         self.session = session

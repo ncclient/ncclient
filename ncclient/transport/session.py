@@ -22,6 +22,7 @@ import logging
 logger = logging.getLogger('ncclient.transport.session')
 
 class Session(Thread):
+
     "Base class for use by transport protocol implementations."
 
     def __init__(self, capabilities):
@@ -86,6 +87,8 @@ class Session(Thread):
         self.remove_listener(listener)
         if error[0]:
             raise error[0]
+        #if ':base:1.0' not in self.server_capabilities:
+        #    raise MissingCapabilityError(':base:1.0')
         logger.info('initialized: session-id=%s | server_capabilities=%s' %
                     (self._id, self._server_capabilities))
 
@@ -93,7 +96,7 @@ class Session(Thread):
         """Register a listener that will be notified of incoming messages and
         errors.
 
-        :arg listener: :class:`SessionListener`
+        :type listener: :class:`SessionListener`
         """
         logger.debug('installing listener %r' % listener)
         if not isinstance(listener, SessionListener):
@@ -103,17 +106,19 @@ class Session(Thread):
 
     def remove_listener(self, listener):
         """Unregister some listener; ignore if the listener was never
-        registered."""
+        registered.
+
+        :type listener: :class:`SessionListener`
+        """
         logger.debug('discarding listener %r' % listener)
         with self._lock:
             self._listeners.discard(listener)
 
     def get_listener_instance(self, cls):
-        """If a listener of the sspecified type is registered, returns the
-        instance. This is useful when it is desirable to have only one instance
-        of a particular type per session, i.e. a multiton.
+        """If a listener of the specified type is registered, returns the
+        instance.
 
-        :arg cls: class of the listener
+        :type cls: :class:`SessionListener`
         """
         with self._lock:
             for listener in self._listeners:
@@ -131,7 +136,7 @@ class Session(Thread):
 
         :arg message: an XML document
 
-        :type message: :obj:`string`
+        :type message: `string`
         """
         logger.debug('queueing %s' % message)
         self._q.put(message)
@@ -155,7 +160,7 @@ class Session(Thread):
 
     @property
     def id(self):
-        """A :obj:`string` representing the `session-id`. If the session has not
+        """A `string` representing the `session-id`. If the session has not
         been initialized it will be :const:`None`"""
         return self._id
 
@@ -180,9 +185,10 @@ class SessionListener(object):
         document.
 
         :arg root: is a tuple of `(tag, attributes)` where `tag` is the qualified name of the root element and `attributes` is a dictionary of its attributes (also qualified names)
+        :type root: `tuple`
 
         :arg raw: XML document
-        :type raw: :obj:`string`
+        :type raw: `string`
         """
         raise NotImplementedError
 

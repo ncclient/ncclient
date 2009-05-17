@@ -17,10 +17,9 @@ from uuid import uuid1
 from weakref import WeakValueDictionary
 
 from ncclient import content
-from ncclient.capabilities import check
 from ncclient.transport import SessionListener
 
-from errors import OperationError
+from errors import OperationError, TimeoutExpiredError, MissingCapabilityError
 
 import logging
 logger = logging.getLogger('ncclient.operations.rpc')
@@ -29,9 +28,13 @@ logger = logging.getLogger('ncclient.operations.rpc')
 class RPCReply:
 
     """Represents an *<rpc-reply>*. Only concerns itself with whether the
-    operation was successful. Note that if the reply has not yet been parsed
-    there is a one-time parsing overhead to accessing the :attr:`ok` and
-    :attr:`error`/:attr:`errors` attributes."""
+    operation was successful.
+
+    .. note::
+        If the reply has not yet been parsed there is an implicit, one-time
+        parsing overhead to accessing the attributes defined by this class and
+        any subclasses.
+    """
 
     def __init__(self, raw):
         self._raw = raw
@@ -89,7 +92,8 @@ class RPCReply:
 
     @property
     def error(self):
-        "Short for :attr:`errors`[0], returning :const:`None` if there were no errors."
+        """Short for :attr:`errors` [0]; :const:`None` if there were no errors.
+        """
         if not self._parsed:
             self.parse()
         if self._errors:
@@ -99,7 +103,9 @@ class RPCReply:
 
     @property
     def errors(self):
-        "List of :class:`RPCError` objects. Will be empty if there were no :class:`<rpc-error>` elements in reply."
+        """`list` of :class:`RPCError` objects. Will be empty if there were no
+        *<rpc-error>* elements in reply.
+        """
         if not self._parsed:
             self.parse()
         return self._errors
@@ -225,7 +231,11 @@ class RPCReplyListener(SessionListener):
 
 class RPC(object):
 
-    "Directly corresponds to *<rpc>* requests. Handles making the request, and taking delivery of the reply."
+    """Base class for all operations.
+
+    Directly corresponds to *<rpc>* requests. Handles making the request, and
+    taking delivery of the reply.
+    """
 
     # : Subclasses can specify their dependencies on capabilities. List of URI's
     # or abbreviated names, e.g. ':writable-running'. These are verified at the
@@ -291,11 +301,12 @@ class RPC(object):
                 self._reply.parse()
                 return self._reply
             else:
-                raise ReplyTimeoutError
+                raise TimeoutExpiredError
 
     def request(self, *args, **kwds):
-        "Subclasses implement this method. Here, the operation is to be constructed as a :ref:`dtree`, and the result of :meth:`_request` returned."
-        return self._request(self.SPEC, *args, **kwds)
+        """Subclasses implement this method. Here, the operation is constructed
+        in :ref:`dtree`, and the result of :meth:`_request` returned."""
+        raise NotImplementedError
 
     def _delivery_hook(self):
         """Subclasses can implement this method. Will be called after
@@ -306,7 +317,7 @@ class RPC(object):
     def _assert(self, capability):
         """Subclasses can use this method to verify that a capability is available
         with the NETCONF server, before making a request that requires it. A
-        :class:`MissingCapabilityError` will be raised if the capability is not
+        :exc:`MissingCapabilityError` will be raised if the capability is not
         available."""
         if capability not in self._session.server_capabilities:
             raise MissingCapabilityError('Server does not support [%s]' % cap)

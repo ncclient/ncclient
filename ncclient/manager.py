@@ -12,36 +12,55 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"Thin layer of abstraction around NCClient"
+
 import capabilities
 from operations import OPERATIONS
 import transport
 
-
-def ssh_connect(*args, **kwds):
+def connect_ssh(*args, **kwds):
+    """Connect to NETCONF server over SSH. See :meth:`SSHSession.connect()
+    <ncclient.transport.SSHSession.connect>` for function signature."""
     session = transport.SSHSession(capabilities.CAPABILITIES)
-    session.load_system_host_keys()
+    session.load_known_hosts()
     session.connect(*args, **kwds)
     return Manager(session)
 
-connect = ssh_connect # default session type
+#: Same as :meth:`connect_ssh`
+connect = connect_ssh
 
-#: Raise all errors
+#: Raise all :class:`~ncclient.operations.rpc.RPCError`
 RAISE_ALL = 0
-#:
+#: Only raise when *error-severity* is "error" i.e. no warnings
 RAISE_ERR = 1
-#:
+#: Don't raise any
 RAISE_NONE = 2
 
 class Manager:
 
-    "Thin layer of abstraction for the ncclient API."
+    """API for NETCONF operations. Currently only supports making synchronous
+    RPC requests.
+
+    It is also a context manager, so a :class:`Manager` instance can be used
+    with the *with* statement. The session is closed when the context ends. """
 
     def __init__(self, session):
         self._session = session
-        self._rpc_error_action = RAISE_ALL
+        self._raise = RAISE_ALL
 
     def set_rpc_error_action(self, action):
-        self._rpc_error_handling = option
+        """Specify the action to take when an *<rpc-error>* element is encountered.
+
+        :arg action: one of :attr:`RAISE_ALL`, :attr:`RAISE_ERR`, :attr:`RAISE_NONE`
+        """
+        self._raise = action
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
+        return False
 
     def do(self, op, *args, **kwds):
         op = OPERATIONS[op](self._session)
@@ -55,73 +74,53 @@ class Manager:
                         raise error
         return reply
 
-    def __enter__(self):
-        pass
+    #: :see: :meth:`Get.request() <ncclient.operations.Get.request>`
+    get = lambda self, *args, **kwds: self.do('get', *args, **kwds)
 
-    def __exit__(self, *args):
-        self.close()
-        return False
+    #: :see: :meth:`GetConfig.request() <ncclient.operations.GetConfig.request>`
+    get_config = lambda self, *args, **kwds: self.do('get-config', *args, **kwds)
+
+    #: :see: :meth:`EditConfig.request() <ncclient.operations.EditConfig.request>`
+    edit_config = lambda self, *args, **kwds: self.do('edit-config', *args, **kwds)
+
+    #: :see: :meth:`CopyConfig.request() <ncclient.operations.CopyConfig.request>`
+    copy_config = lambda self, *args, **kwds: self.do('copy-config', *args, **kwds)
+
+    #: :see: :meth:`GetConfig.request() <ncclient.operations.Validate.request>`
+    validate = lambda self, *args, **kwds: self.do('validate', *args, **kwds)
+
+    #: :see: :meth:`Commit.request() <ncclient.operations.Commit.request>`
+    commit = lambda self, *args, **kwds: self.do('commit', *args, **kwds)
+
+    #: :see: :meth:`DiscardChanges.request() <ncclient.operations.DiscardChanges.request>`
+    discard_changes = lambda self, *args, **kwds: self.do('discard-changes', *args, **kwds)
+
+    #: :see: :meth:`DeleteConfig.request() <ncclient.operations.DeleteConfig.request>`
+    delete_config = lambda self, *args, **kwds: self.do('delete-config', *args, **kwds)
+
+    #: :see: :meth:`Lock.request() <ncclient.operations.Lock.request>`
+    lock = lambda self, *args, **kwds: self.do('lock', *args, **kwds)
+
+    #: :see: :meth:`DiscardChanges.request() <ncclient.operations.Unlock.request>`
+    unlock = lambda self, *args, **kwds: self.do('unlock', *args, **kwds)
+
+    #: :see: :meth:`CloseSession.request() <ncclient.operations.CloseSession.request>`
+    close_session = lambda self, *args, **kwds: self.do('close-session', *args, **kwds)
+
+    #: :see: :meth:`KillSession.request() <ncclient.operations.KillSession.request>`
+    kill_session = lambda self, *args, **kwds: self.do('kill-session', *args, **kwds)
 
     def locked(self, target):
-        """Returns a context manager for use with the 'with' statement.
+        """Returns a context manager for the *with* statement.
 
         :arg target: name of the datastore to lock
         :type target: `string`
+        :rtype: :class:`operations.LockContext`
         """
         return operations.LockContext(self._session, target)
 
-    def get(self, filter=None):
-        pass
-
-    def get_config(self, source, filter=None):
-        pass
-
-    def copy_config(self, source, target):
-        pass
-
-    def validate(self, source):
-        pass
-
-    def commit(self, target):
-        pass
-
-    def discard_changes(self):
-        pass
-
-    def delete_config(self, target):
-        pass
-
-    def lock(self, target):
-        pass
-
-    def unlock(self, target):
-        pass
-
-    def close_session(self):
-        pass
-
-    def kill_session(self, session_id):
-        pass
-
-    def confirmed_commit(self, timeout=None):
-        pass
-
-    def confirm(self):
-        # give confirmation
-        pass
-
-    def discard_changes(self):
-        pass
-
-    lock = lambda self, *args, **kwds: self.do('lock', *args, **kwds)
-
-    unlock = lambda self, *args, **kwds: self.do('unlock', *args, **kwds)
-
-    close_session = lambda self, *args, **kwds: self.do('close-session', *args, **kwds)
-
-    kill_session = lambda self, *args, **kwds: self.do('kill-session', *args, **kwds)
-
     def close(self):
+        """Closes the NETCONF session. First does *<close-session>* RPC."""
         try: # try doing it clean
             self.close_session()
         except Exception as e:
@@ -131,16 +130,25 @@ class Manager:
 
     @property
     def session(self, session):
+        ":class:`~ncclient.transport.Session` instance"
         return self._session
 
     @property
     def client_capabilities(self):
+        ":class:`~ncclient.capabilities.Capabilities` object for client"
         return self._session._client_capabilities
 
     @property
     def server_capabilities(self):
+        ":class:`~ncclient.capabilities.Capabilities` object for server"
         return self._session._server_capabilities
 
     @property
     def session_id(self):
+        "*<session-id>* as assigned by NETCONF server"
         return self._session.id
+
+    @property
+    def connected(self):
+        "Whether currently connected to NETCONF server"
+        return self._session.connected

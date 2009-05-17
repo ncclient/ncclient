@@ -17,5 +17,8 @@ from ncclient import NCClientError
 class OperationError(NCClientError):
     pass
 
+class TimeoutExpiredError(NCClientError):
+    pass
+
 class MissingCapabilityError(NCClientError):
     pass

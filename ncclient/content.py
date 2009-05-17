@@ -159,9 +159,10 @@ xml2ele = XML.Element
 iselement = ET.iselement
 
 def find(ele, tag, nslist=[]):
-    """If `nslist` is empty, same as :meth:`xml.etree.ElementTree.Element.find`. If it is not, `tag` is interpreted as an unqualified name and qualified using each item in `nslist`. The first match is returned.
+    """If *nslist* is empty, same as :meth:`xml.etree.ElementTree.Element.find`. If it is not, *tag* is interpreted as an unqualified name and qualified using each item in *nslist* (with a :const:`None` item in *nslit* meaning no qualification is done). The first match is returned.
 
     :arg nslist: optional list of namespaces
+    :type nslit: `string` `list`
     """
     if nslist:
         for qname in multiqualify(tag):
@@ -174,8 +175,10 @@ def find(ele, tag, nslist=[]):
 def parse_root(raw):
     """Efficiently parses the root element of an XML document.
 
+    :arg raw: XML document
     :type raw: string
     :returns: a tuple of `(tag, attributes)`, where `tag` is the (qualified) name of the element and `attributes` is a dictionary of its attributes.
+    :rtype: `tuple`
     """
     fp = StringIO(raw[:1024]) # this is a guess but start element beyond 1024 bytes would be a bit absurd
     for event, element in ET.iterparse(fp, events=('start',)):

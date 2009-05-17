@@ -34,11 +34,17 @@ def default_unknown_host_cb(host, key):
     """An `unknown host callback` returns :const:`True` if it finds the key
     acceptable, and :const:`False` if not.
 
-    :arg host: the hostname/address which needs to be verified
+    This default callback always returns :const:`False`, which would lead to
+    :meth:`connect` raising a :exc:`SSHUnknownHost` exception.
+
+    Supply another valid callback if you need to verify the host key
+    programatically.
+
+    :arg host: the host for whom key needs to be verified
+    :type host: string
 
     :arg key: a hex string representing the host key fingerprint
-
-    :returns: this default callback always returns :const:`False`
+    :type key: string
     """
     return False
 
@@ -50,7 +56,6 @@ class SSHSession(Session):
     def __init__(self, capabilities):
         Session.__init__(self, capabilities)
         self._host_keys = paramiko.HostKeys()
-        self._system_host_keys = paramiko.HostKeys()
         self._transport = None
         self._connected = False
         self._channel = None
@@ -103,33 +108,26 @@ class SSHSession(Session):
         self._parsing_state = expect
         self._parsing_pos = self._buffer.tell()
 
-    def load_system_host_keys(self, filename=None):
+    def load_known_hosts(self, filename=None):
+        """Load host keys from a :file:`known_hosts`-style file. Can be called multiple
+        times.
+
+        If *filename* is not specified, looks in the default locations i.e.
+        :file:`~/.ssh/known_hosts` and :file:`~/ssh/known_hosts` for Windows.
+        """
         if filename is None:
             filename = os.path.expanduser('~/.ssh/known_hosts')
             try:
-                self._system_host_keys.load(filename)
+                self._host_keys.load(filename)
             except IOError:
                 # for windows
                 filename = os.path.expanduser('~/ssh/known_hosts')
                 try:
-                    self._system_host_keys.load(filename)
+                    self._host_keys.load(filename)
                 except IOError:
                     pass
-            return
-        self._system_host_keys.load(filename)
-
-    def load_host_keys(self, filename):
-        self._host_keys.load(filename)
-
-    def add_host_key(self, key):
-        self._host_keys.add(key)
-
-    def save_host_keys(self, filename):
-        f = open(filename, 'w')
-        for host, keys in self._host_keys.iteritems():
-            for keytype, key in keys.iteritems():
-                f.write('%s %s %s\n' % (host, keytype, key.get_base64()))
-        f.close()
+        else:
+            self._host_keys.load(filename)
 
     def close(self):
         self._expecting_close = True
@@ -144,26 +142,37 @@ class SSHSession(Session):
         """Connect via SSH and initialize the NETCONF session. First attempts
         the publickey authentication method and then password authentication.
 
-        To disable publickey authentication, call with *allow_agent* and
-        *look_for_keys* as :const:`False`
+        To disable attemting publickey authentication altogether, call with
+        *allow_agent* and *look_for_keys* as :const:`False`. This may be needed
+        for Cisco devices which immediately disconnect on an incorrect
+        authentication attempt.
 
         :arg host: the hostname or IP address to connect to
+        :type host: `string`
 
         :arg port: by default 830, but some devices use the default SSH port of 22 so this may need to be specified
+        :type port: `int`
 
         :arg timeout: an optional timeout for the TCP handshake
+        :type timeout: `int`
 
-        :arg unknown_host_cb: called when a host key is not known. See :func:`unknown_host_cb` for details on signature
+        :arg unknown_host_cb: called when a host key is not recognized
+        :type unknown_host_cb: see :meth:`signature <ssh.default_unknown_host_cb>`
 
         :arg username: the username to use for SSH authentication
+        :type username: `string`
 
-        :arg password: the password used if using password authentication, or the passphrase to use in order to unlock keys that require it
+        :arg password: the password used if using password authentication, or the passphrase to use for unlocking keys that require it
+        :type password: `string`
 
         :arg key_filename: a filename where a the private key to be used can be found
+        :type key_filename: `string`
 
         :arg allow_agent: enables querying SSH agent (if found) for keys
+        :type allow_agent: `bool`
 
         :arg look_for_keys: enables looking in the usual locations for ssh keys (e.g. :file:`~/.ssh/id_*`)
+        :type look_for_keys: `bool`
         """
 
         assert(username is not None)
@@ -189,12 +198,12 @@ class SSHSession(Session):
 
         # host key verification
         server_key = t.get_remote_server_key()
-        known_host = self._host_keys.check(host, server_key) or \
-                        self._system_host_keys.check(host, server_key)
+        known_host = self._host_keys.check(host, server_key)
 
-        fp = hexlify(server_key.get_fingerprint())
-        if not known_host and not unknown_host_cb(host, fp):
-            raise SSHUnknownHostError(host, fp)
+        fingerprint = hexlify(server_key.get_fingerprint())
+
+        if not known_host and not unknown_host_cb(host, fingerprint):
+            raise SSHUnknownHostError(host, fingerprint)
 
         if key_filename is None:
             key_filenames = []
@@ -318,7 +327,7 @@ class SSHSession(Session):
 
     @property
     def transport(self):
-        """The underlying `paramiko.Transport
+        """Underlying `paramiko.Transport
         <http://www.lag.net/paramiko/docs/paramiko.Transport-class.html>`_
         object. This makes it possible to call methods like set_keepalive on it.
         """

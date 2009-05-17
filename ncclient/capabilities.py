@@ -12,35 +12,52 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-def abbreviate(uri):
-    if uri.startswith('urn:ietf:params:netconf:capability:'):
-        return ':' + uri.split(':')[5]
-    elif uri.startswith('urn:ietf:params:netconf:base:'):
-        return ':base'
+def _abbreviate(uri):
+    if uri.startswith('urn:ietf:params:netconf:'):
+        splitted = uri.split(':')
+        if ':capability:' in uri:
+            return [ ':' + splitted[5], ':' + splitted[5] + ':' + splitted[6] ]
+        elif ':base:' in uri:
+            return [ ':base', ':base' + ':'+ splitted[5] ]
+        else:
+            return []
+    else:
+        return []
 
-def version(uri):
-    if uri.startswith('urn:ietf:params:netconf:capability:'):
-        return uri.split(':')[6]
-    elif uri.startswith('urn:ietf:params:netconf:base:'):
-        return uri.split(':')[5]
+def schemes(url_uri):
+    """Given a URI that has a *scheme* query string (i.e. *:url* capability
+    URI), will return a list of supported schemes.
+    """
+    return url_uri.partition("?scheme=")[2].split(',')
 
 class Capabilities:
 
-    def __init__(self, capabilities=None):
+    """Represents the set of capabilities for a NETCONF client or server.
+    Initialised with a list of capability URI's.
+
+    Presence of a capability can be checked with the *in* operations. In addition
+    to the URI, for capabilities of the form
+    *urn:ietf:params:netconf:capability:$name:$version* their shorthand can be
+    used as a key. For example, for
+    *urn:ietf:params:netconf:capability:candidate:1.0* the shorthand would be
+    *:candidate*. If version is significant, use *:candidate:1.0* as key.
+    """
+
+    def __init__(self, capabilities):
         self._dict = {}
-        if isinstance(capabilities, dict):
-            self._dict = capabilities
-        elif isinstance(capabilities, list):
-            for uri in capabilities:
-                self._dict[uri] = (abbreviate(uri), version(uri))
+        for uri in capabilities:
+            self._dict[uri] = _abbreviate(uri)
 
     def __contains__(self, key):
         if key in self._dict:
             return True
-        for info in self._dict.values():
-            if key == info[0]:
+        for abbrs in self._dict.values():
+            if key in abbrs:
                 return True
         return False
+
+    def __len__(self):
+        return len(self._dict)
 
     def __iter__(self):
         return self._dict.keys().__iter__()
@@ -51,44 +68,29 @@ class Capabilities:
     def __list__(self):
         return self._dict.keys()
 
-    def add(self, uri, info=None):
-        if info is None:
-            info = (abbreviate(uri), version(uri))
-        self._dict[uri] = info
+    def add(self, uri):
+        "Add a capability"
+        self._dict[uri] = _abbreviate(uri)
 
-    set = add
-
-    def remove(self, key):
+    def remove(self, uri):
+        "Remove a capability"
         if key in self._dict:
             del self._dict[key]
-        else:
-            for uri in self._dict:
-                if key in self._dict[uri]:
-                    del self._dict[uri]
-                    break
 
-    def get_uri(self, shortname):
-        for uri, info in self._dict.items():
-            if info[0] == shortname:
-                return uri
+    def check(self, key):
+        """Whether specified capability is present.
 
-    def url_schemes(self):
-        url_uri = get_uri(':url')
-        if url_uri is None:
-            return []
-        else:
-            return url_uri.partition("?scheme=")[2].split(',')
+        :arg key: URI or shorthand
 
-    def version(self, key):
-        try:
-            return self._dict[key][1]
-        except KeyError:
-            for uri, info in self._dict.items():
-                if info[0] == key:
-                    return info[1]
+        .. note:
+            The *in* operation is the preferred form.
+        """
+        return key in self
 
+    def get_uris(self, shorthand):
+        return [uri for uri, abbrs in self._dict.items() if shorthand in abbrs]
 
-#: the capabilities supported by NCClient
+#: :class:`Capabilities` object representing the capabilities currently supported by NCClient
 CAPABILITIES = Capabilities([
     'urn:ietf:params:netconf:base:1.0',
     'urn:ietf:params:netconf:capability:writable-running:1.0',

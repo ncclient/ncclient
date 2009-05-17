@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from errors import OperationError, MissingCapabilityError
+from errors import OperationError, TimeoutExpiredError, MissingCapabilityError
 from rpc import RPC, RPCReply, RPCError
 from retrieve import Get, GetConfig, GetReply
-from edit import EditConfig, CopyConfig, DeleteConfig, Validate, Commit, DiscardChanges, ConfirmedCommit
+from edit import EditConfig, CopyConfig, DeleteConfig, Validate, Commit, DiscardChanges
 from session import CloseSession, KillSession
 from lock import Lock, Unlock, LockContext
 #from subscribe import CreateSubscription
@@ -47,12 +47,14 @@ __all__ = [
     'CopyConfig',
     'Validate',
     'Commit',
-    'ConfirmedCommit'
     'DiscardChanges',
     'DeleteConfig',
     'Lock',
     'Unlock',
     'LockContext',
     'CloseSession',
-    'KillSession'
+    'KillSession',
+    'OperationError',
+    'TimeoutExpiredError',
+    'MissingCapabilityError'
 ]
