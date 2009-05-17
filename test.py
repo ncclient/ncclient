@@ -5,6 +5,6 @@ logging.basicConfig(level=logging.DEBUG)
 
 with manager.connect('broccoli', 22, username='sbhushan') as m:
     with m.locked('candidate'):
-        print m.copy_config(source='running', target='candidate')
+        reply = m.copy_config(source='running', target='candidate')
 
 print reply
