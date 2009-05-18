@@ -43,7 +43,7 @@ def store_or_url(wha, loc, capcheck=None):
 def build_filter(spec, capcheck=None):
     type = None
     if isinstance(spec, tuple):
-        type, criteria = tuple
+        type, criteria = spec
         rep = {
             'tag': 'filter',
             'attrib': {'type': type},

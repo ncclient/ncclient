@@ -31,6 +31,9 @@ class ContentError(NCClientError):
 BASE_NS = 'urn:ietf:params:xml:ns:netconf:base:1.0'
 #: ... and this is BASE_NS according to Cisco devices tested
 CISCO_BS = 'urn:ietf:params:netconf:base:1.0'
+#: namespace for Tail-f data model
+TAILF_AAA_1_1 = 'http://tail-f.com/ns/aaa/1.1'
+TAILF_EXECD_1_1 = 'http://tail-f.com/ns/execd/1.1'
 
 try:
     register_namespace = ET.register_namespace
@@ -42,10 +45,12 @@ except AttributeError:
 
 # we'd like BASE_NS to be prefixed as "netconf"
 register_namespace('netconf', BASE_NS)
+register_namespace('aaa', TAILF_AAA_1_1)
+register_namespace('execd', TAILF_EXECD_1_1)
 
 qualify = lambda tag, ns=BASE_NS: tag if ns is None else '{%s}%s' % (ns, tag)
 
-# deprecated
+#: Deprecated
 multiqualify = lambda tag, nslist=(BASE_NS, CISCO_BS): [qualify(tag, ns) for ns in nslist]
 
 unqualify = lambda tag: tag[tag.rfind('}')+1:]
