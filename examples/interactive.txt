@@ -1,0 +1,71 @@
+# importing shows some warning because the Crypto library uses deprecated modules, but that's ok...
+>>> from ncclient import manager
+/home/sbhushan/local/lib/python2.6/site-packages/Crypto/Hash/SHA.py:6: DeprecationWarning: the sha module is deprecated; use the hashlib module instead
+  from sha import *
+/home/sbhushan/local/lib/python2.6/site-packages/Crypto/Hash/MD5.py:6: DeprecationWarning: the md5 module is deprecated; use hashlib instead
+  from md5 import *
+
+# i use agent forwarding from my machine to meat; and SSHSession looks for agent's keys unless told not to -- so i need not specify a password
+>>> m = manager.connect('broccoli', 22, username='sbhushan')
+
+# a copy config
+>>> reply = m.copy_config(source='running', target='candidate')
+>>> reply.ok
+True
+
+# try to make a checkpoint
+>>> reply = m.copy_config(source='candidate', target='file://checkpoint.conf')
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "ncclient/manager.py", line 90, in <lambda>
+    copy_config = lambda self, *args, **kwds: self.do('copy-config', *args, **kwds)
+  File "ncclient/manager.py", line 73, in do
+    raise reply.error
+ncclient.operations.rpc.RPCError: syntax error in url element
+# ok, now fixed by putting another "/" after url scheme
+>>> reply = m.copy_config(source='candidate', target='file:///checkpoint.conf')
+>>> reply.ok
+True
+
+# validation
+>>> reply = m.validate(source='<config>not a valid config</config>')
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "ncclient/manager.py", line 93, in <lambda>
+    validate = lambda self, *args, **kwds: self.do('validate', *args, **kwds)
+  File "ncclient/manager.py", line 73, in do
+    raise reply.error
+ncclient.operations.rpc.RPCError: Unexpected content: 'not a valid config'
+
+# discard and commit...
+>>> m.discard_changes()
+<?xml version="1.0" encoding="UTF-8"?>
+<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="urn:uuid:11b42210-43bc-11de-b876-00e0812e961e"><ok/></rpc-reply>
+>>> m.commit().ok
+True
+
+# locking
+>>> m.lock('candidate')
+<?xml version="1.0" encoding="UTF-8"?>
+<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="urn:uuid:2caf54cc-43bc-11de-b876-00e0812e961e"><ok/></rpc-reply>
+>>> m.unlock('candidate')
+<?xml version="1.0" encoding="UTF-8"?>
+<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="urn:uuid:30146760-43bc-11de-b876-00e0812e961e"><ok/></rpc-reply>
+
+# lets try a fake operation, since its a new op we can't use manager
+
+>>> from ncclient.operations import RPC
+>>> class FakeOp(RPC):
+...     def request(self):
+...     return self._request({'tag': 'fake-op'})
+...
+>>> reply = FakeOp(m.session).request()
+>>> reply.error
+{'error-type': 'rpc', 'error-severity': 'error', 'error-tag': 'unknown-element', 'error-path': '/rpc', 'error-info': '<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n<netconf:error-info xmlns:netconf="urn:ietf:params:xml:ns:netconf:base:1.0"><netconf:bad-element>fake-op</netconf:bad-element>\n</netconf:error-info>\n'}
+>>> reply.error.type
+'rpc'
+>>> reply.error.severity
+'error'
+>>> reply.error.tag
+'unknown-element'
+# and so on..
