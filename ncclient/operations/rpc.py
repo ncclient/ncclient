@@ -268,8 +268,11 @@ class RPC(object):
     def _build(self, opspec):
         # internal
         spec = {
-            'tag': content.qualify('rpc'),
-            'attrib': {'message-id': self._id},
+            'tag': 'rpc',
+            'attrib': {
+                'xmlns': content.BASE_NS,
+                'message-id': self._id
+                },
             'subtree': [ opspec ]
             }
         return content.dtree2xml(spec)

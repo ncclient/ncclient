@@ -44,18 +44,16 @@ def build_filter(spec, capcheck=None):
     type = None
     if isinstance(spec, tuple):
         type, criteria = spec
-        rep = {
-            'tag': 'filter',
-            'attrib': {'type': type},
-            'subtree': criteria
-        }
+        rep = {'tag': 'filter', 'attrib': {'type': type}}
+        if type == 'xpath':
+            rep['attrib']['select'] = criteria
+        elif type == 'subtree':
+            rep['subtree'] = criteria
+        else:
+            raise OperationError("Invalid filter type")
     else:
         rep = content.validated_element(spec, ['filter', content.qualify('filter')],
                                         attrs=[('type', content.qualify('type'))])
-        try:
-            type = rep['type']
-        except KeyError:
-            type = ele[content.qualify('type')]
     if type == 'xpath' and capcheck is not None:
         capcheck(':xpath')
     return rep
