@@ -226,7 +226,8 @@ class HelloHandler(SessionListener):
     def build(capabilities):
         "Given a list of capability URI's returns <hello> message XML string"
         spec = {
-            'tag': content.qualify('hello'),
+            'tag': 'hello',
+            'attrib': {'xmlns': content.BASE_NS},
             'subtree': [{
                 'tag': 'capabilities',
                 'subtree': # this is fun :-)
