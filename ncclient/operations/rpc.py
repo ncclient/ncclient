@@ -58,11 +58,11 @@ class RPCReply:
             return
         root = self._root = content.xml2ele(self._raw) # <rpc-reply> element
         # per rfc 4741 an <ok/> tag is sent when there are no errors or warnings
-        ok = content.find(root, 'data', nslist=[content.BASE_NS, content.CISCO_BS])
+        ok = content.find(root, 'ok', nslist=[content.BASE_NS, content.CISCO_BS])
         if ok is not None:
             logger.debug('parsed [%s]' % ok.tag)
         else: # create RPCError objects from <rpc-error> elements
-            error = content.find(root, 'data', nslist=[content.BASE_NS, content.CISCO_BS])
+            error = content.find(root, 'rpc-error', nslist=[content.BASE_NS, content.CISCO_BS])
             if error is not None:
                 logger.debug('parsed [%s]' % error.tag)
                 for err in root.getiterator(error.tag):
