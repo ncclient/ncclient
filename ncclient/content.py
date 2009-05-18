@@ -115,7 +115,7 @@ class Element:
             'attributes': ele.attrib,
             'text': ele.text,
             'tail': ele.tail,
-            'subtree': [ Element.DictTree(child) for child in root.getchildren() ]
+            'subtree': [ Element.DictTree(child) for child in ele.getchildren() ]
         }
 
     @staticmethod
