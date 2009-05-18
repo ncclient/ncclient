@@ -16,7 +16,22 @@
 
 from copy import deepcopy
 
-from rpc import RPC
+from rpc import RPC, RPCReply, RPCError
+
+#class LockReply(RPCReply):
+#
+#    ERROR_CLS = LockDeniedError
+#
+#class LockDeniedError(RPCError):
+#
+#    def __new__(cls, err_dict):
+#        if rpcerr['tag'] != 'lock-denied':
+#            return RPCError(err_dict)
+#        else:
+#            return object.__new__(LockDeniedError)
+#
+#    def __init__(self, err_dict):
+#        RPCError.__init__(self, err_dict)
 
 class Lock(RPC):
 
@@ -31,6 +46,8 @@ class Lock(RPC):
             'subtree': {'tag': None }
         }
     }
+
+    #REPLY_CLS = LockReply
 
     def request(self, target):
         """

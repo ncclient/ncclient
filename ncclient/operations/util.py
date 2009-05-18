@@ -37,6 +37,12 @@ def store_or_url(wha, loc, capcheck=None):
         node['subtree']['tag'] = 'url'
         node['subtree']['text'] = loc
     else:
+        #if loc == 'candidate':
+        #    capcheck(':candidate')
+        #elif loc == 'startup':
+        #    capcheck(':startup')
+        #elif loc == 'running' and wha == 'target':
+        #    capcheck(':writable-running')
         node['subtree']['tag'] = loc
     return node
 

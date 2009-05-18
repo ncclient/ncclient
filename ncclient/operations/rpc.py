@@ -14,7 +14,6 @@
 
 from threading import Event, Lock
 from uuid import uuid1
-from weakref import WeakValueDictionary
 
 from ncclient import content
 from ncclient.transport import SessionListener
@@ -188,7 +187,7 @@ class RPCReplyListener(SessionListener):
         if instance is None:
             instance = object.__new__(cls)
             instance._lock = Lock()
-            instance._id2rpc = WeakValueDictionary()
+            instance._id2rpc = {}
             instance._pipelined = session.can_pipeline
             session.add_listener(instance)
         return instance
@@ -225,8 +224,11 @@ class RPCReplyListener(SessionListener):
         rpc.deliver_reply(raw)
 
     def errback(self, err):
-        for rpc in self._id2rpc.values():
-            rpc.deliver_error(err)
+        try:
+            for rpc in self._id2rpc.values():
+                rpc.deliver_error(err)
+        finally:
+            self._id2rpc.clear()
 
 
 class RPC(object):
