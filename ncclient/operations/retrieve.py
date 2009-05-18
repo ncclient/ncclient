@@ -15,6 +15,7 @@
 from rpc import RPC, RPCReply
 
 from ncclient import content
+from copy import deepcopy
 
 import util
 
@@ -71,7 +72,7 @@ class Get(RPC):
 
         :seealso: :ref:`return`
         """
-        spec = Get.SPEC.copy()
+        spec = deepcopy(Get.SPEC)
         if filter is not None:
             spec['subtree'].append(util.build_filter(filter))
         return self._request(spec)
@@ -95,7 +96,7 @@ class GetConfig(RPC):
 
         :seealso: :ref:`return`
         """
-        spec = GetConfig.SPEC.copy()
+        spec = deepcopy(GetConfig.SPEC)
         spec['subtree'].append(util.store_or_url('source', source, self._assert))
         if filter is not None:
             spec['subtree'].append(util.build_filter(filter))

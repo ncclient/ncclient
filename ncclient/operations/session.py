@@ -14,6 +14,8 @@
 
 'Session-related NETCONF operations'
 
+from copy import deepcopy
+
 from rpc import RPC
 
 class CloseSession(RPC):
@@ -48,7 +50,7 @@ class KillSession(RPC):
 
         :seealso: :ref:`return`
         """
-        spec = KillSession.SPEC.copy()
+        spec = deepcopy(KillSession.SPEC)
         if not isinstance(session_id, basestring): # make sure
             session_id = str(session_id)
         spec['subtree'].append({

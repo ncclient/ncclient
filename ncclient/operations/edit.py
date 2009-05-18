@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from copy import deepcopy
+
 from ncclient import content
 
 from rpc import RPC
@@ -48,7 +50,7 @@ class EditConfig(RPC):
 
         :seealso: :ref:`return`
         """
-        spec = EditConfig.SPEC.copy()
+        spec = deepcopy(EditConfig.SPEC)
         subtree = spec['subtree']
         subtree.append(util.store_or_url('target', target, self._assert))
         subtree.append(content.validated_element(config, ('config', content.qualify('config'))))
@@ -85,7 +87,7 @@ class DeleteConfig(RPC):
 
         :seealso: :ref:`return`
         """
-        spec = DeleteConfig.SPEC.copy()
+        spec = deepcopy(DeleteConfig.SPEC)
         spec['subtree'].append(util.store_or_url('target', target, self._assert))
         return self._request(spec)
 
@@ -108,7 +110,7 @@ class CopyConfig(RPC):
 
         :seealso: :ref:`return`
         """
-        spec = CopyConfig.SPEC.copy()
+        spec = deepcopy(CopyConfig.SPEC)
         spec['subtree'].append(util.store_or_url('target', target, self._assert))
         spec['subtree'].append(util.store_or_url('source', source, self._assert))
         return self._request(spec)
@@ -131,7 +133,7 @@ class Validate(RPC):
 
         :seealso: :ref:`return`
         """
-        spec = Validate.SPEC.copy()
+        spec = deepcopy(Validate.SPEC)
         try:
             src = content.validated_element(source, ('config', content.qualify('config')))
         except Exception as e:
@@ -168,7 +170,7 @@ class Commit(RPC):
 
         :seealso: :ref:`return`
         """
-        spec = SPEC.copy()
+        spec = deepcopy(Commit.SPEC)
         if confirmed:
             self._assert(':confirmed-commit')
             spec['subtree'].append({'tag': 'confirmed'})

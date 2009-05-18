@@ -14,6 +14,8 @@
 
 'Locking-related NETCONF operations'
 
+from copy import deepcopy
+
 from rpc import RPC
 
 class Lock(RPC):
@@ -37,7 +39,7 @@ class Lock(RPC):
 
         :rtype: :ref:`return`
         """
-        spec = Lock.SPEC.copy()
+        spec = deepcopy(Lock.SPEC)
         spec['subtree']['subtree']['tag'] = target
         return self._request(spec)
 
@@ -63,7 +65,7 @@ class Unlock(RPC):
 
         :rtype: :ref:`return`
         """
-        spec = Unlock.SPEC.copy()
+        spec = deepcopy(Unlock.SPEC)
         spec['subtree']['subtree']['tag'] = target
         return self._request(spec)
 
