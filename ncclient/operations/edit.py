@@ -47,7 +47,10 @@ class EditConfig(RPC):
         :arg default_operation: optional; one of {'merge', 'replace', 'none'}
         :type default_operation: `string`
 
-        :arg test_option: optional; one of {'stop-on-error', 'continue-on-error', 'rollback-on-error'}. Last option depends on the *:rollback-on-error* capability
+        :arg error_option: optional; one of {'stop-on-error', 'continue-on-error', 'rollback-on-error'}. Last option depends on the *:rollback-on-error* capability
+        :type error_option: string
+
+        :arg test_option: optional; one of {'test-then-set', 'set'}. Depends on *:validate* capability.
         :type test_option: string
 
         :seealso: :ref:`return`
@@ -55,7 +58,6 @@ class EditConfig(RPC):
         spec = deepcopy(EditConfig.SPEC)
         subtree = spec['subtree']
         subtree.append(util.store_or_url('target', target, self._assert))
-        subtree.append(content.validated_element(config, ('config', content.qualify('config'))))
         if default_operation is not None:
             subtree.append({
                 'tag': 'default-operation',
@@ -74,6 +76,7 @@ class EditConfig(RPC):
                 'tag': 'error-option',
                 'text': error_option
                 })
+        subtree.append(content.validated_element(config, ('config', content.qualify('config'))))
         return self._request(spec)
 
 class DeleteConfig(RPC):
