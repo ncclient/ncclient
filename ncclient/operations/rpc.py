@@ -113,7 +113,7 @@ class RPCReply:
 class RPCError(OperationError): # raise it if you like
 
     """Represents an *<rpc-error>*. It is an instance of :exc:`OperationError`
-    so it can be raised like any other exception."""
+    and can be raised like any other exception."""
 
     def __init__(self, err_dict):
         self._dict = err_dict
@@ -124,32 +124,32 @@ class RPCError(OperationError): # raise it if you like
 
     @property
     def type(self):
-        "`string` represeting *error-type* element"
+        "`string` representing text of *error-type* element"
         return self.get('error-type', None)
 
     @property
     def severity(self):
-        "`string` represeting *error-severity* element"
+        "`string` representing text of *error-severity* element"
         return self.get('error-severity', None)
 
     @property
     def tag(self):
-        "`string` represeting *error-tag* element"
+        "`string` representing text of *error-tag* element"
         return self.get('error-tag', None)
 
     @property
     def path(self):
-        "`string` or :const:`None`; represeting *error-path* element"
+        "`string` or :const:`None`; representing text of *error-path* element"
         return self.get('error-path', None)
 
     @property
     def message(self):
-        "`string` or :const:`None`; represeting *error-message* element"
+        "`string` or :const:`None`; representing text of *error-message* element"
         return self.get('error-message', None)
 
     @property
     def info(self):
-        "`string` or :const:`None`, represeting *error-info* element"
+        "`string` (XML) or :const:`None`, representing *error-info* element"
         return self.get('error-info', None)
 
     ## dictionary interface

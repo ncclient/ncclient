@@ -58,10 +58,12 @@ class EditConfig(RPC):
         spec = deepcopy(EditConfig.SPEC)
         subtree = spec['subtree']
         subtree.append(util.store_or_url('target', target, self._assert))
-        if default_operation is not None:
+        if error_option is not None:
+            if error_option == 'rollback-on-error':
+                self._assert(':rollback-on-error')
             subtree.append({
-                'tag': 'default-operation',
-                'text': default_operation
+                'tag': 'error-option',
+                'text': error_option
                 })
         if test_option is not None:
             self._assert(':validate')
@@ -69,12 +71,10 @@ class EditConfig(RPC):
                 'tag': 'test-option',
                 'text': test_option
                 })
-        if error_option is not None:
-            if error_option == 'rollback-on-error':
-                self._assert(':rollback-on-error')
+        if default_operation is not None:
             subtree.append({
-                'tag': 'error-option',
-                'text': error_option
+                'tag': 'default-operation',
+                'text': default_operation
                 })
         subtree.append(content.validated_element(config, ('config', content.qualify('config'))))
         return self._request(spec)
