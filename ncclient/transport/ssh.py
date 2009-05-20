@@ -175,19 +175,26 @@ class SSHSession(Session):
         :type look_for_keys: `bool`
         """
 
-        assert(username is not None)
+        if username is None:
+            raise SSHError("No username specified")
 
-        for (family, socktype, proto, canonname, sockaddr) in \
-        socket.getaddrinfo(host, port):
-            if socktype == socket.SOCK_STREAM:
-                af = family
-                addr = sockaddr
-                break
+        sock = None
+        for res in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket.SOCK_STREAM):
+            af, socktype, proto, canonname, sa = res
+            try:
+                sock = socket.socket(af, socktype, proto)
+                sock.settimeout(timeout)
+            except socket.error:
+                continue
+            try:
+                sock.connect(sa)
+            except socket.error:
+                sock.close()
+                continue
+            break
         else:
-            raise SSHError('No suitable address family for %s' % host)
-        sock = socket.socket(af, socket.SOCK_STREAM)
-        sock.settimeout(timeout)
-        sock.connect(addr)
+            raise SSHError("Could not open socket")
+
         t = self._transport = paramiko.Transport(sock)
         t.set_log_channel(logger.name)
 
