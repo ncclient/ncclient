@@ -13,7 +13,9 @@
 # limitations under the License.
 
 
-"""The :mod:`content` module provides methods for creating XML documents, parsing XML, and converting between different XML representations. It uses :mod:`~xml.etree.ElementTree` internally.
+"""The :mod:`xml` module provides methods for creating XML documents, parsing
+XML, and converting between different XML representations. It uses
+:mod:`~xml.etree.ElementTree` internally.
 """
 
 from cStringIO import StringIO
@@ -27,13 +29,16 @@ class ContentError(NCClientError):
 
 ### Namespace-related
 
-#: Base NETCONf namespace
+#: Base NETCONF namespace
 BASE_NS = 'urn:ietf:params:xml:ns:netconf:base:1.0'
 #: ... and this is BASE_NS according to Cisco devices tested
 CISCO_BS = 'urn:ietf:params:netconf:base:1.0'
 #: namespace for Tail-f data model
 TAILF_AAA_1_1 = 'http://tail-f.com/ns/aaa/1.1'
+#: namespace for Tail-f data model
 TAILF_EXECD_1_1 = 'http://tail-f.com/ns/execd/1.1'
+#: namespace for Cisco data model
+CISCO_CPI_10 = 'http://www.cisco.com/cpi_10/schema'
 
 try:
     register_namespace = ET.register_namespace
@@ -43,10 +48,11 @@ except AttributeError:
         # cElementTree uses ElementTree's _namespace_map, so that's ok
         ElementTree._namespace_map[uri] = prefix
 
-# we'd like BASE_NS to be prefixed as "netconf"
 register_namespace('netconf', BASE_NS)
 register_namespace('aaa', TAILF_AAA_1_1)
 register_namespace('execd', TAILF_EXECD_1_1)
+register_namespace('cpi', CISCO_CPI_10)
+
 
 qualify = lambda tag, ns=BASE_NS: tag if ns is None else '{%s}%s' % (ns, tag)
 
@@ -164,7 +170,10 @@ xml2ele = XML.Element
 iselement = ET.iselement
 
 def find(ele, tag, nslist=[]):
-    """If *nslist* is empty, same as :meth:`xml.etree.ElementTree.Element.find`. If it is not, *tag* is interpreted as an unqualified name and qualified using each item in *nslist* (with a :const:`None` item in *nslit* meaning no qualification is done). The first match is returned.
+    """If *nslist* is empty, same as :meth:`xml.etree.ElementTree.Element.find`.
+    If it is not, *tag* is interpreted as an unqualified name and qualified
+    using each item in *nslist* (with a :const:`None` item in *nslit* meaning no
+    qualification is done). The first match is returned.
 
     :arg nslist: optional list of namespaces
     :type nslit: `string` `list`
@@ -190,7 +199,9 @@ def parse_root(raw):
         return (element.tag, element.attrib)
 
 def validated_element(rep, tags=None, attrs=None, text=None):
-    """Checks if the root element meets the supplied criteria. Returns a :class:`~xml.etree.ElementTree.Element` instance if so, otherwise raises :exc:`ContentError`.
+    """Checks if the root element meets the supplied criteria. Returns a
+    :class:`~xml.etree.ElementTree.Element` instance if so, otherwise raises
+    :exc:`ContentError`.
 
     :arg tags: tag name or a list of allowable tag names
     :arg attrs: list of required attribute names, each item may be a list of allowable alternatives

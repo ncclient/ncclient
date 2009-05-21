@@ -14,7 +14,7 @@
 
 from copy import deepcopy
 
-from ncclient import content
+from ncclient import xml_
 
 from rpc import RPC
 
@@ -22,8 +22,6 @@ import util
 
 import logging
 logger = logging.getLogger('ncclient.operations.edit')
-
-
 
 "Operations related to changing device configuration"
 
@@ -76,7 +74,7 @@ class EditConfig(RPC):
                 'tag': 'default-operation',
                 'text': default_operation
                 })
-        subtree.append(content.validated_element(config, ('config', content.qualify('config'))))
+        subtree.append(xml_.validated_element(config, ('config', xml_.qualify('config'))))
         return self._request(spec)
 
 class DeleteConfig(RPC):
@@ -142,7 +140,7 @@ class Validate(RPC):
         """
         spec = deepcopy(Validate.SPEC)
         try:
-            src = content.validated_element(source, ('config', content.qualify('config')))
+            src = markup.validated_element(source, ('config', markup.qualify('config')))
         except Exception as e:
             logger.debug(e)
             src = util.store_or_url('source', source, self._assert)

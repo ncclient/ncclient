@@ -15,7 +15,7 @@
 from Queue import Queue
 from threading import Thread, Lock, Event
 
-from ncclient import content
+from ncclient import xml_
 from ncclient.capabilities import Capabilities
 
 from errors import TransportError
@@ -43,7 +43,7 @@ class Session(Thread):
 
     def _dispatch_message(self, raw):
         try:
-            root = content.parse_root(raw)
+            root = xml_.parse_root(raw)
         except Exception as e:
             logger.error('error parsing dispatch message: %s' % e)
             return
@@ -211,7 +211,7 @@ class HelloHandler(SessionListener):
         self._error_cb = error_cb
 
     def callback(self, root, raw):
-        if content.unqualify(root[0]) == 'hello':
+        if xml_.unqualify(root[0]) == 'hello':
             try:
                 id, capabilities = HelloHandler.parse(raw)
             except Exception as e:
@@ -227,26 +227,26 @@ class HelloHandler(SessionListener):
         "Given a list of capability URI's returns <hello> message XML string"
         spec = {
             'tag': 'hello',
-            'attrib': {'xmlns': content.BASE_NS},
+            'attrib': {'xmlns': xml_.BASE_NS},
             'subtree': [{
                 'tag': 'capabilities',
                 'subtree': # this is fun :-)
                     [{'tag': 'capability', 'text': uri} for uri in capabilities]
                 }]
             }
-        return content.dtree2xml(spec)
+        return xml_.dtree2xml(spec)
 
     @staticmethod
     def parse(raw):
         "Returns tuple of (session-id (str), capabilities (Capabilities)"
         sid, capabilities = 0, []
-        root = content.xml2ele(raw)
+        root = xml_.xml2ele(raw)
         for child in root.getchildren():
-            tag = content.unqualify(child.tag)
+            tag = xml_.unqualify(child.tag)
             if tag == 'session-id':
                 sid = child.text
             elif tag == 'capabilities':
                 for cap in child.getchildren():
-                    if content.unqualify(cap.tag) == 'capability':
+                    if xml_.unqualify(cap.tag) == 'capability':
                         capabilities.append(cap.text)
         return sid, Capabilities(capabilities)

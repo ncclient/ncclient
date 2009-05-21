@@ -14,7 +14,7 @@
 
 'Boilerplate ugliness'
 
-from ncclient import content
+from ncclient import xml_
 
 from errors import OperationError, MissingCapabilityError
 
@@ -58,8 +58,8 @@ def build_filter(spec, capcheck=None):
         else:
             raise OperationError("Invalid filter type")
     else:
-        rep = content.validated_element(spec, ['filter', content.qualify('filter')],
-                                        attrs=[('type', content.qualify('type'))])
+        rep = xml_.validated_element(spec, ['filter', xml_.qualify('filter')],
+                                        attrs=[('type', xml_.qualify('type'))])
     if type == 'xpath' and capcheck is not None:
         capcheck(':xpath')
     return rep

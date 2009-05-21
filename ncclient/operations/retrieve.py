@@ -14,7 +14,7 @@
 
 from rpc import RPC, RPCReply
 
-from ncclient import content
+from ncclient import xml_
 from copy import deepcopy
 
 import util
@@ -29,9 +29,9 @@ class GetReply(RPCReply):
     def _parsing_hook(self, root):
         self._data = None
         if not self._errors:
-            self._data = content.find(root, 'data',
-                                      nslist=[content.BASE_NS,
-                                              content.CISCO_BS])
+            self._data = xml_.find(root, 'data',
+                                      nslist=[xml_.BASE_NS,
+                                              xml_.CISCO_BS])
 
     @property
     def data_ele(self):
@@ -45,12 +45,12 @@ class GetReply(RPCReply):
         "*<data>* element as an XML string"
         if not self._parsed:
             self.parse()
-        return content.ele2xml(self._data)
+        return xml_.ele2xml(self._data)
 
     @property
     def data_dtree(self):
         "*<data>* element in :ref:`dtree`"
-        return content.ele2dtree(self._data)
+        return xml_.ele2dtree(self._data)
 
     #: Same as :attr:`data_ele`
     data = data_ele

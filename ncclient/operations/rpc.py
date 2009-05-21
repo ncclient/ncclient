@@ -15,7 +15,7 @@
 from threading import Event, Lock
 from uuid import uuid1
 
-from ncclient import content
+from ncclient import xml_
 from ncclient.transport import SessionListener
 
 from errors import OperationError, TimeoutExpiredError, MissingCapabilityError
@@ -55,24 +55,24 @@ class RPCReply:
         """Parse the *<rpc-reply>*"""
         if self._parsed:
             return
-        root = self._root = content.xml2ele(self._raw) # <rpc-reply> element
+        root = self._root = xml_.xml2ele(self._raw) # <rpc-reply> element
         # per rfc 4741 an <ok/> tag is sent when there are no errors or warnings
-        ok = content.find(root, 'ok', nslist=[content.BASE_NS, content.CISCO_BS])
+        ok = xml_.find(root, 'ok', nslist=[xml_.BASE_NS, xml_.CISCO_BS])
         if ok is not None:
             logger.debug('parsed [%s]' % ok.tag)
         else: # create RPCError objects from <rpc-error> elements
-            error = content.find(root, 'rpc-error', nslist=[content.BASE_NS, content.CISCO_BS])
+            error = xml_.find(root, 'rpc-error', nslist=[xml_.BASE_NS, xml_.CISCO_BS])
             if error is not None:
                 logger.debug('parsed [%s]' % error.tag)
                 for err in root.getiterator(error.tag):
                     # process a particular <rpc-error>
                     d = {}
                     for err_detail in err.getchildren(): # <error-type> etc..
-                        tag = content.unqualify(err_detail.tag)
+                        tag = xml_.unqualify(err_detail.tag)
                         if tag != 'error-info':
                             d[tag] = err_detail.text.strip()
                         else:
-                            d[tag] = content.ele2xml(err_detail)
+                            d[tag] = xml_.ele2xml(err_detail)
                     self._errors.append(RPCError(d))
         self._parsing_hook(root)
         self._parsed = True
@@ -198,11 +198,11 @@ class RPCReplyListener(SessionListener):
 
     def callback(self, root, raw):
         tag, attrs = root
-        if content.unqualify(tag) != 'rpc-reply':
+        if xml_.unqualify(tag) != 'rpc-reply':
             return
         rpc = None
         for key in attrs:
-            if content.unqualify(key) == 'message-id':
+            if xml_.unqualify(key) == 'message-id':
                 id = attrs[key]
                 try:
                     with self._lock:
@@ -272,12 +272,12 @@ class RPC(object):
         spec = {
             'tag': 'rpc',
             'attrib': {
-                'xmlns': content.BASE_NS,
+                'xmlns': xml_.BASE_NS,
                 'message-id': self._id
                 },
             'subtree': [ opspec ]
             }
-        return content.dtree2xml(spec)
+        return xml_.dtree2xml(spec)
 
     def _request(self, op):
         """Subclasses call this method to make the RPC request.
