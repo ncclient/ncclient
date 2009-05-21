@@ -12,11 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
+from distutils.core import setup
 
-if sys.version_info < (2, 6):
-    raise RuntimeError('You need Python 2.6+ for this module.')
-
-class NCClientError(Exception):
-    "Base type for all NCClient errors"
-    pass
+setup(name='ncclient',
+      version='0.1.0',
+      description="Python library for NETCONF clients",
+      author="Shikhar Bhushan",
+      author_email="shikhar@schmizz.net",
+      url="http://code.google.com/p/ncclient/",
+      packages=["ncclient", "ncclient/transport", "ncclient/operations"],
+      license="Apache License 2.0",
+      platforms=["Posix; OS X; Windows"],
+      #classifiers=[]
+      )

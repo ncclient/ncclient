@@ -8,6 +8,6 @@ User documentation
 
     userdoc/manager
     userdoc/capabilities
-    userdoc/content
+    userdoc/xml
     userdoc/transport
     userdoc/operations

@@ -2,8 +2,8 @@
 :mod:`content` module
 **********************
 
-.. automodule:: ncclient.content
-    :synopsis: Content layer
+.. automodule:: ncclient.xml_
+    :synopsis: XML facilities
 
 Namespaces
 ==========
