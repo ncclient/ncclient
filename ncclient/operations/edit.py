@@ -27,8 +27,6 @@ logger = logging.getLogger('ncclient.operations.edit')
 
 class EditConfig(RPC):
 
-    # TESTED
-
     "*<edit-config>* RPC"
 
     SPEC = {'tag': 'edit-config', 'subtree': []}
@@ -79,8 +77,6 @@ class EditConfig(RPC):
 
 class DeleteConfig(RPC):
 
-    # TESTED
-
     "*<delete-config>* RPC"
 
     SPEC = {'tag': 'delete-config', 'subtree': []}
@@ -98,8 +94,6 @@ class DeleteConfig(RPC):
 
 
 class CopyConfig(RPC):
-
-    # TESTED
 
     "*<copy-config>* RPC"
 
@@ -122,8 +116,6 @@ class CopyConfig(RPC):
 
 
 class Validate(RPC):
-
-    # TESTED
 
     "*<validate>* RPC. Depends on the *:validate* capability."
 
@@ -152,8 +144,6 @@ class Validate(RPC):
 
 
 class Commit(RPC):
-
-    # TESTED
 
     "*<commit>* RPC. Depends on the *:candidate* capability."
 

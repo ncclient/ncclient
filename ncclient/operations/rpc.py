@@ -57,11 +57,11 @@ class RPCReply:
             return
         root = self._root = xml_.xml2ele(self._raw) # <rpc-reply> element
         # per rfc 4741 an <ok/> tag is sent when there are no errors or warnings
-        ok = xml_.find(root, 'ok', nslist=[xml_.BASE_NS, xml_.CISCO_BS])
+        ok = xml_.find(root, 'ok', nslist=xml_.NSLIST)
         if ok is not None:
             logger.debug('parsed [%s]' % ok.tag)
         else: # create RPCError objects from <rpc-error> elements
-            error = xml_.find(root, 'rpc-error', nslist=[xml_.BASE_NS, xml_.CISCO_BS])
+            error = xml_.find(root, 'rpc-error', nslist=xml_.NSLIST)
             if error is not None:
                 logger.debug('parsed [%s]' % error.tag)
                 for err in root.getiterator(error.tag):
@@ -272,7 +272,7 @@ class RPC(object):
         spec = {
             'tag': 'rpc',
             'attrib': {
-                'xmlns': xml_.BASE_NS,
+                'xmlns': xml_.BASE_NS_1_0,
                 'message-id': self._id
                 },
             'subtree': [ opspec ]
@@ -314,7 +314,7 @@ class RPC(object):
     def request(self, *args, **kwds):
         """Subclasses implement this method. Here, the operation is constructed
         in :ref:`dtree`, and the result of :meth:`_request` returned."""
-        raise NotImplementedError
+        return self._request(self.SPEC)
 
     def _delivery_hook(self):
         """Subclasses can implement this method. Will be called after

@@ -227,7 +227,7 @@ class HelloHandler(SessionListener):
         "Given a list of capability URI's returns <hello> message XML string"
         spec = {
             'tag': 'hello',
-            'attrib': {'xmlns': xml_.BASE_NS},
+            'attrib': {'xmlns': xml_.BASE_NS_1_0},
             'subtree': [{
                 'tag': 'capabilities',
                 'subtree': # this is fun :-)

@@ -30,15 +30,17 @@ class ContentError(NCClientError):
 ### Namespace-related
 
 #: Base NETCONF namespace
-BASE_NS = 'urn:ietf:params:xml:ns:netconf:base:1.0'
+BASE_NS_1_0 = 'urn:ietf:params:xml:ns:netconf:base:1.0'
 #: ... and this is BASE_NS according to Cisco devices tested
-CISCO_BS = 'urn:ietf:params:netconf:base:1.0'
+CISCO_BS_1_0 = 'urn:ietf:params:netconf:base:1.0'
 #: namespace for Tail-f data model
 TAILF_AAA_1_1 = 'http://tail-f.com/ns/aaa/1.1'
 #: namespace for Tail-f data model
 TAILF_EXECD_1_1 = 'http://tail-f.com/ns/execd/1.1'
 #: namespace for Cisco data model
-CISCO_CPI_10 = 'http://www.cisco.com/cpi_10/schema'
+CISCO_CPI_1_0 = 'http://www.cisco.com/cpi_10/schema'
+#: namespace for Flowmon data model
+FLOWMON_1_0 = 'http://www.liberouter.org/ns/netopeer/flowmon/1.0'
 
 try:
     register_namespace = ET.register_namespace
@@ -48,20 +50,24 @@ except AttributeError:
         # cElementTree uses ElementTree's _namespace_map, so that's ok
         ElementTree._namespace_map[uri] = prefix
 
-register_namespace('netconf', BASE_NS)
-register_namespace('aaa', TAILF_AAA_1_1)
-register_namespace('execd', TAILF_EXECD_1_1)
-register_namespace('cpi', CISCO_CPI_10)
+prefix_map = {
+    BASE_NS_1_0: 'nc',
+    TAILF_AAA_1_1: 'aaa',
+    TAILF_EXECD_1_1: 'execd',
+    CISCO_CPI_1_0: 'cpi',
+    FLOWMON_1_0: 'fm',
+}
 
+for (ns, pre) in prefix_map.items():
+    register_namespace(pre, ns)
 
-qualify = lambda tag, ns=BASE_NS: tag if ns is None else '{%s}%s' % (ns, tag)
+qualify = lambda tag, ns=BASE_NS_1_0: tag if ns is None else '{%s}%s' % (ns, tag)
 
-#: Deprecated
-multiqualify = lambda tag, nslist=(BASE_NS, CISCO_BS): [qualify(tag, ns) for ns in nslist]
+multiqualify = lambda tag, nslist=(BASE_NS_1_0, CISCO_BS_1_0): [qualify(tag, ns) for ns in nslist]
 
 unqualify = lambda tag: tag[tag.rfind('}')+1:]
 
-### XML with Python data structures
+### XML representations
 
 class DictTree:
 
@@ -168,6 +174,9 @@ xml2ele = XML.Element
 ### Other utility functions
 
 iselement = ET.iselement
+
+
+NSLIST = [BASE_NS_1_0, CISCO_BS_1_0]
 
 def find(ele, tag, nslist=[]):
     """If *nslist* is empty, same as :meth:`xml.etree.ElementTree.Element.find`.

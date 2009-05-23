@@ -23,7 +23,10 @@ logger = logging.getLogger('ncclient.manager')
 
 def connect_ssh(*args, **kwds):
     """Connect to NETCONF server over SSH. See :meth:`SSHSession.connect()
-    <ncclient.transport.SSHSession.connect>` for function signature."""
+    <ncclient.transport.SSHSession.connect>` for argument details.
+
+    :rtype: :class:`Manager`
+    """
     session = transport.SSHSession(capabilities.CAPABILITIES)
     session.load_known_hosts()
     session.connect(*args, **kwds)
@@ -32,31 +35,15 @@ def connect_ssh(*args, **kwds):
 #: Same as :meth:`connect_ssh`
 connect = connect_ssh
 
-#: Raise all :class:`~ncclient.operations.rpc.RPCError`
-RAISE_ALL = 0
-#: Only raise when *error-severity* is "error" i.e. no warnings
-RAISE_ERR = 1
-#: Don't raise any
-RAISE_NONE = 2
+class Manager(object):
 
-class Manager:
-
-    """API for NETCONF operations. Currently only supports making synchronous
-    RPC requests.
+    """API for NETCONF operations.
 
     It is also a context manager, so a :class:`Manager` instance can be used
     with the *with* statement. The session is closed when the context ends. """
 
     def __init__(self, session):
         self._session = session
-        self._raise = RAISE_ALL
-
-    def set_rpc_error_action(self, action):
-        """Specify the action to take when an *<rpc-error>* element is encountered.
-
-        :arg action: one of :attr:`RAISE_ALL`, :attr:`RAISE_ERR`, :attr:`RAISE_NONE`
-        """
-        self._raise = action
 
     def __enter__(self):
         return self
@@ -65,53 +52,11 @@ class Manager:
         self.close()
         return False
 
-    def do(self, op, *args, **kwds):
-        op = operations.OPERATIONS[op](self._session)
-        reply = op.request(*args, **kwds)
-        if not reply.ok:
-            if self._raise == RAISE_ALL:
-                raise reply.error
-            elif self._raise == RAISE_ERR:
-                for error in reply.errors:
-                    if error.severity == 'error':
-                        raise error
-        return reply
-
-    #: :see: :meth:`Get.request() <ncclient.operations.Get.request>`
-    get = lambda self, *args, **kwds: self.do('get', *args, **kwds)
-
-    #: :see: :meth:`GetConfig.request() <ncclient.operations.GetConfig.request>`
-    get_config = lambda self, *args, **kwds: self.do('get-config', *args, **kwds)
-
-    #: :see: :meth:`EditConfig.request() <ncclient.operations.EditConfig.request>`
-    edit_config = lambda self, *args, **kwds: self.do('edit-config', *args, **kwds)
-
-    #: :see: :meth:`CopyConfig.request() <ncclient.operations.CopyConfig.request>`
-    copy_config = lambda self, *args, **kwds: self.do('copy-config', *args, **kwds)
-
-    #: :see: :meth:`GetConfig.request() <ncclient.operations.Validate.request>`
-    validate = lambda self, *args, **kwds: self.do('validate', *args, **kwds)
-
-    #: :see: :meth:`Commit.request() <ncclient.operations.Commit.request>`
-    commit = lambda self, *args, **kwds: self.do('commit', *args, **kwds)
-
-    #: :see: :meth:`DiscardChanges.request() <ncclient.operations.DiscardChanges.request>`
-    discard_changes = lambda self, *args, **kwds: self.do('discard-changes', *args, **kwds)
-
-    #: :see: :meth:`DeleteConfig.request() <ncclient.operations.DeleteConfig.request>`
-    delete_config = lambda self, *args, **kwds: self.do('delete-config', *args, **kwds)
-
-    #: :see: :meth:`Lock.request() <ncclient.operations.Lock.request>`
-    lock = lambda self, *args, **kwds: self.do('lock', *args, **kwds)
-
-    #: :see: :meth:`DiscardChanges.request() <ncclient.operations.Unlock.request>`
-    unlock = lambda self, *args, **kwds: self.do('unlock', *args, **kwds)
-
-    #: :see: :meth:`CloseSession.request() <ncclient.operations.CloseSession.request>`
-    close_session = lambda self, *args, **kwds: self.do('close-session', *args, **kwds)
-
-    #: :see: :meth:`KillSession.request() <ncclient.operations.KillSession.request>`
-    kill_session = lambda self, *args, **kwds: self.do('kill-session', *args, **kwds)
+    def __getattr__(self, name):
+        try:
+            return operations.INDEX[name](self.session).request
+        except KeyError:
+            raise AttributeError
 
     def locked(self, target):
         """Returns a context manager for the *with* statement.

@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+_capability_map = {
+    'urn:liberouter:params:netconf:capability:power-control:1.0':
+        [':power-control', ':power-control:1.0']
+}
+
 def _abbreviate(uri):
     if uri.startswith('urn:ietf:params:netconf:'):
         splitted = uri.split(':')
@@ -19,10 +24,9 @@ def _abbreviate(uri):
             return [ ':' + splitted[5], ':' + splitted[5] + ':' + splitted[6] ]
         elif ':base:' in uri:
             return [ ':base', ':base' + ':'+ splitted[5] ]
-        else:
-            return []
-    else:
-        return []
+    elif uri in _capability_map:
+        return _capability_map[uri]
+    return []
 
 def schemes(url_uri):
     """Given a URI that has a *scheme* query string (i.e. *:url* capability
@@ -87,8 +91,10 @@ class Capabilities:
         """
         return key in self
 
-    def get_uris(self, shorthand):
-        return [uri for uri, abbrs in self._dict.items() if shorthand in abbrs]
+    def get_uri(self, shorthand):
+        for uri, abbrs in self._dict.items():
+            if shorthand in abbrs:
+                return uri
 
 #: :class:`Capabilities` object representing the capabilities currently supported by NCClient
 CAPABILITIES = Capabilities([
@@ -101,6 +107,7 @@ CAPABILITIES = Capabilities([
     'urn:ietf:params:netconf:capability:url:1.0?scheme=http,ftp,file,https,sftp',
     'urn:ietf:params:netconf:capability:validate:1.0',
     'urn:ietf:params:netconf:capability:xpath:1.0',
+    'urn:liberouter:params:netconf:capability:power-control:1.0'
     #'urn:ietf:params:netconf:capability:notification:1.0', # TODO
     #'urn:ietf:params:netconf:capability:interleave:1.0' # theoretically already supported
 ])

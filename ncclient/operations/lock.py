@@ -16,26 +16,12 @@
 
 from copy import deepcopy
 
-from rpc import RPC, RPCReply, RPCError
+from rpc import RPC
 
-#class LockReply(RPCReply):
-#
-#    ERROR_CLS = LockDeniedError
-#
-#class LockDeniedError(RPCError):
-#
-#    def __new__(cls, err_dict):
-#        if rpcerr['tag'] != 'lock-denied':
-#            return RPCError(err_dict)
-#        else:
-#            return object.__new__(LockDeniedError)
-#
-#    def __init__(self, err_dict):
-#        RPCError.__init__(self, err_dict)
+# TODO:
+# should have some way to parse session-id from a lock-denied error
 
 class Lock(RPC):
-
-    # TESTED
 
     "*<lock>* RPC"
 
@@ -63,8 +49,6 @@ class Lock(RPC):
 
 class Unlock(RPC):
 
-    # TESTED
-
     "*<unlock>* RPC"
 
     SPEC = {
@@ -88,8 +72,6 @@ class Unlock(RPC):
 
 
 class LockContext:
-
-    # TESTED
 
     """
     A context manager for the :class:`Lock` / :class:`Unlock` pair of RPC's.

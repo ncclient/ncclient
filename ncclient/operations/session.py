@@ -20,18 +20,12 @@ from rpc import RPC
 
 class CloseSession(RPC):
 
-    # TESTED
-
     "*<close-session>* RPC. The connection to NETCONF server is also closed."
 
     SPEC = { 'tag': 'close-session' }
 
     def _delivery_hook(self):
         self.session.close()
-
-    def request(self):
-        ":seealso: :ref:`return`"
-        return self._request(CloseSession.SPEC)
 
 
 class KillSession(RPC):

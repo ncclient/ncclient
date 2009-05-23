@@ -14,25 +14,30 @@
 
 from errors import OperationError, TimeoutExpiredError, MissingCapabilityError
 from rpc import RPC, RPCReply, RPCError
+
+# rfc4741 ops
 from retrieve import Get, GetConfig, GetReply
 from edit import EditConfig, CopyConfig, DeleteConfig, Validate, Commit, DiscardChanges
 from session import CloseSession, KillSession
 from lock import Lock, Unlock, LockContext
-#from subscribe import CreateSubscription
+# others...
+from flowmon import PoweroffMachine, RebootMachine
 
-OPERATIONS = {
+INDEX = {
     'get': Get,
-    'get-config': GetConfig,
-    'edit-config': EditConfig,
-    'copy-config': CopyConfig,
+    'get_config': GetConfig,
+    'edit_config': EditConfig,
+    'copy_config': CopyConfig,
     'validate': Validate,
     'commit': Commit,
-    'discard-changes': DiscardChanges,
-    'delete-config': DeleteConfig,
+    'discard_changes': DiscardChanges,
+    'delete_config': DeleteConfig,
     'lock': Lock,
     'unlock': Unlock,
-    'close-session': CloseSession,
-    'kill-session': KillSession,
+    'close_session': CloseSession,
+    'kill_session': KillSession,
+    'poweroff_machine': PoweroffMachine,
+    'reboot_machine': RebootMachine
 }
 
 __all__ = [
@@ -51,6 +56,8 @@ __all__ = [
     'DeleteConfig',
     'Lock',
     'Unlock',
+    'PoweroffMachine',
+    'RebootMachine',
     'LockContext',
     'CloseSession',
     'KillSession',

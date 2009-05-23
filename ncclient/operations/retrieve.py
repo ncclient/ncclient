@@ -21,17 +21,13 @@ import util
 
 class GetReply(RPCReply):
 
-    # TESTED
-
     """Adds attributes for the *<data>* element to :class:`RPCReply`, which
     pertains to the :class:`Get` and :class:`GetConfig` operations."""
 
     def _parsing_hook(self, root):
         self._data = None
         if not self._errors:
-            self._data = xml_.find(root, 'data',
-                                      nslist=[xml_.BASE_NS,
-                                              xml_.CISCO_BS])
+            self._data = xml_.find(root, 'data', nslist=xml_.NSLIST)
 
     @property
     def data_ele(self):
@@ -58,8 +54,6 @@ class GetReply(RPCReply):
 
 class Get(RPC):
 
-    # TESTED
-
     "The *<get>* RPC"
 
     SPEC = {'tag': 'get', 'subtree': []}
@@ -79,8 +73,6 @@ class Get(RPC):
 
 
 class GetConfig(RPC):
-
-    # TESTED
 
     "The *<get-config>* RPC"
 
