@@ -59,7 +59,6 @@ class SSHSession(Session):
         self._transport = None
         self._connected = False
         self._channel = None
-        self._expecting_close = False
         self._buffer = StringIO() # for incoming data
         # parsing-related, see _parse()
         self._parsing_state = 0
@@ -130,7 +129,6 @@ class SSHSession(Session):
             self._host_keys.load(filename)
 
     def close(self):
-        self._expecting_close = True
         if self._transport.is_active():
             self._transport.close()
         self._connected = False
@@ -327,13 +325,9 @@ class SSHSession(Session):
                             raise SessionCloseError(self._buffer.getvalue(), data)
                         data = data[n:]
         except Exception as e:
-            logger.debug('broke out of main loop')
-            expecting = self._expecting_close
+            logger.debug('broke out of main loop, error=%r', e)
             self.close()
-            logger.debug('error=%r' % e)
-            logger.debug('expecting_close=%r' % expecting)
-            if not (isinstance(e, SessionCloseError) and expecting):
-                self._dispatch_error(e)
+            self._dispatch_error(e)
 
     @property
     def transport(self):
