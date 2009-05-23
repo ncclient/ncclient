@@ -1,5 +1,5 @@
 **********************
-:mod:`content` module
+:mod:`xml_` module
 **********************
 
 .. automodule:: ncclient.xml_

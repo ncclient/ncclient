@@ -71,7 +71,7 @@ class Manager:
         if not reply.ok:
             if self._raise == RAISE_ALL:
                 raise reply.error
-            elif self._raise == RAISE_ERROR:
+            elif self._raise == RAISE_ERR:
                 for error in reply.errors:
                     if error.severity == 'error':
                         raise error

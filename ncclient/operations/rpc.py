@@ -239,13 +239,13 @@ class RPC(object):
     taking delivery of the reply.
     """
 
-    # : Subclasses can specify their dependencies on capabilities. List of URI's
+    #: Subclasses can specify their dependencies on capabilities. List of URI's
     # or abbreviated names, e.g. ':writable-running'. These are verified at the
     # time of object creation. If the capability is not available, a
     # :exc:`MissingCapabilityError` is raised.
     DEPENDS = []
 
-    # : Subclasses can specify a different reply class, but it must be a
+    #: Subclasses can specify a different reply class, but it must be a
     # subclass of :class:`RPCReply`.
     REPLY_CLS = RPCReply
 
@@ -328,7 +328,8 @@ class RPC(object):
         :exc:`MissingCapabilityError` will be raised if the capability is not
         available."""
         if capability not in self._session.server_capabilities:
-            raise MissingCapabilityError('Server does not support [%s]' % cap)
+            raise MissingCapabilityError('Server does not support [%s]' %
+                                         capability)
 
     def deliver_reply(self, raw):
         # internal use

@@ -18,11 +18,12 @@ The best way to introduce is of course, through a simple code example::
 
     from ncclient import manager
 
-    with manager.connect_ssh('host', 'username') as m:
+    # use ssh-agent or ~/.ssh keys for auth, load known_hosts by default
+    with manager.connect_ssh('host', username='username') as m:
         assert(":url" in manager.server_capabilities)
         with m.locked('running'):
             m.copy_config(source="running", target="file://new_checkpoint.conf")
             m.copy_config(source="file://old_checkpoint.conf", target="running")
 
-It is recommended to use the high-level :class:`Manager` API where possible. It exposes almost all of the functionality.
+It is recommended to use the high-level :class:`Manager` API where possible. It exposes all of the functionality except asynchronous RPC requests.
 
