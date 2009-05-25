@@ -132,7 +132,7 @@ class Validate(RPC):
         """
         spec = deepcopy(Validate.SPEC)
         try:
-            src = markup.validated_element(source, ('config', markup.qualify('config')))
+            src = xml_.validated_element(source, ('config', xml_.qualify('config')))
         except Exception as e:
             logger.debug(e)
             src = util.store_or_url('source', source, self._assert)
