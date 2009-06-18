@@ -337,9 +337,3 @@ class SSHSession(Session):
         """
         return self._transport
 
-    @property
-    def can_pipeline(self):
-        if 'Cisco' in self._transport.remote_version:
-            return False
-        # elif ..
-        return True

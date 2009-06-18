@@ -24,8 +24,11 @@ class CloseSession(RPC):
 
     SPEC = { 'tag': 'close-session' }
 
-    def _delivery_hook(self):
-        self.session.close()
+    def request(self):
+        try:
+            return self._request(CloseSession.SPEC)
+        finally:
+            self.session.close()
 
 
 class KillSession(RPC):

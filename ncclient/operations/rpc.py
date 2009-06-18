@@ -316,11 +316,11 @@ class RPC(object):
         in :ref:`dtree`, and the result of :meth:`_request` returned."""
         return self._request(self.SPEC)
 
-    def _delivery_hook(self):
-        """Subclasses can implement this method. Will be called after
-        initialising the :attr:`reply` or :attr:`error` attribute and before
-        setting the :attr:`event`"""
-        pass
+    #def _delivery_hook(self):
+    #    """Subclasses can implement this method. Will be called after
+    #    initialising the :attr:`reply` or :attr:`error` attribute and before
+    #    setting the :attr:`event`"""
+    #    pass
 
     def _assert(self, capability):
         """Subclasses can use this method to verify that a capability is available
@@ -385,6 +385,10 @@ class RPC(object):
         self._async = async
         if async and not session.can_pipeline:
             raise UserWarning('Asynchronous mode not supported for this device/session')
+
+    def set_raise_mode(self, choice):
+        assert(choice in ('all', 'errors', 'none'))
+        self._raise = choice
 
     def set_timeout(self, timeout):
         """Set the timeout for synchronous waiting defining how long the RPC

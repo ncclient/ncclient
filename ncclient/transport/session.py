@@ -168,11 +168,6 @@ class Session(Thread):
         been initialized it will be :const:`None`"""
         return self._id
 
-    @property
-    def can_pipeline(self):
-        "Whether this session supports pipelining"
-        return True
-
 
 class SessionListener(object):
 
