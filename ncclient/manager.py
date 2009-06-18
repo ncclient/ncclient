@@ -35,6 +35,11 @@ def connect_ssh(*args, **kwds):
 #: Same as :meth:`connect_ssh`
 connect = connect_ssh
 
+class RAISE:
+    ALL = 0
+    ERRORS = 1
+    NONE = 2
+
 class Manager(object):
 
     """API for NETCONF operations.
@@ -44,19 +49,26 @@ class Manager(object):
 
     def __init__(self, session):
         self._session = session
+        self._async_mode = False
+        self._timeout = None
 
     def __enter__(self):
         return self
 
-    def __exit__(self, *args):
+    def __exit__(self, *argss):
         self.close()
         return False
 
     def __getattr__(self, name):
         try:
-            return operations.INDEX[name](self.session).request
+            op = operations.INDEX[name]
         except KeyError:
             raise AttributeError
+        else:
+            return op(self.session,
+                      async=self._async_mode,
+                      raising=self._raise_mode,
+                      timeout=self.timeout).request
 
     def locked(self, target):
         """Returns a context manager for the *with* statement.
@@ -100,3 +112,13 @@ class Manager(object):
     def connected(self):
         "Whether currently connected to NETCONF server"
         return self._session.connected
+
+    def set_async_mode(self, bool=True):
+        self._async_mode = bool
+
+    def set_raise_mode(self, choice='all'):
+        self._raise_mode = choice
+
+    async_mode = property(fget=lambda self: self._async_mode, fset=set_async_mode)
+
+    raise_mode = property(fget=set_raise_mode, fset=set_raise_mode)
