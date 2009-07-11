@@ -249,7 +249,7 @@ class RPC(object):
     # subclass of :class:`RPCReply`.
     REPLY_CLS = RPCReply
 
-    def __init__(self, session, async=False, timeout=None):
+    def __init__(self, session, async=False, timeout=None, raise_mode='none'):
         self._session = session
         try:
             for cap in self.DEPENDS:
@@ -258,9 +258,9 @@ class RPC(object):
             pass
         self._async = async
         self._timeout = timeout
+        self._raise_mode = raise_mode
         # keeps things simple instead of having a class attr that has to be locked
         self._id = uuid1().urn
-        # RPCReplyListener itself makes sure there isn't more than one instance -- i.e. multiton
         self._listener = RPCReplyListener(session)
         self._listener.register(self._id, self)
         self._reply = None
@@ -305,8 +305,16 @@ class RPC(object):
             self._event.wait(self._timeout)
             if self._event.isSet():
                 if self._error:
+                    # Error that prevented reply delivery
                     raise self._error
                 self._reply.parse()
+                if self._reply.error is not None:
+                    # <rpc-error>'s [ RPCError ]
+                    if self._raise_mode == "all":
+                        raise self._reply._error
+                    elif (self._raise_mode == "errors" and
+                          self._reply.error.type == "error"):
+                        raise self._reply.error
                 return self._reply
             else:
                 raise TimeoutExpiredError
@@ -315,13 +323,7 @@ class RPC(object):
         """Subclasses implement this method. Here, the operation is constructed
         in :ref:`dtree`, and the result of :meth:`_request` returned."""
         return self._request(self.SPEC)
-
-    #def _delivery_hook(self):
-    #    """Subclasses can implement this method. Will be called after
-    #    initialising the :attr:`reply` or :attr:`error` attribute and before
-    #    setting the :attr:`event`"""
-    #    pass
-
+    
     def _assert(self, capability):
         """Subclasses can use this method to verify that a capability is available
         with the NETCONF server, before making a request that requires it. A
@@ -386,9 +388,9 @@ class RPC(object):
         if async and not session.can_pipeline:
             raise UserWarning('Asynchronous mode not supported for this device/session')
 
-    def set_raise_mode(self, choice):
+    def set_raise_mode(self, mode):
         assert(choice in ('all', 'errors', 'none'))
-        self._raise = choice
+        self._raise_mode = mode
 
     def set_timeout(self, timeout):
         """Set the timeout for synchronous waiting defining how long the RPC
