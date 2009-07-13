@@ -61,10 +61,11 @@ class Manager(object):
         except KeyError:
             raise AttributeError
         else:
-            return op(self.session,
+            reply = op(self.session,
                       async=self._async_mode,
                       timeout=self.timeout,
                       raise_mode=self._raise_mode).request
+            return op if self._async_mode else reply
 
     def locked(self, target):
         """Returns a context manager for the *with* statement.
