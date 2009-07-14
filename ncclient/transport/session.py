@@ -51,18 +51,15 @@ class Session(Thread):
             listeners = list(self._listeners)
         for l in listeners:
             logger.debug('dispatching message to %r' % l)
-            try:
-                l.callback(root, raw)
-            except Exception as e:
-                logger.warning('[error] %r' % e)
-
+            l.callback(root, raw) # no try-except; fail loudly if you must!
+    
     def _dispatch_error(self, err):
         with self._lock:
             listeners = list(self._listeners)
         for l in listeners:
             logger.debug('dispatching error to %r' % l)
-            try:
-                l.errback(err)
+            try: # here we can be more considerate with catching exceptions
+                l.errback(err) 
             except Exception as e:
                 logger.warning('error dispatching to %r: %r' % (l, e))
 

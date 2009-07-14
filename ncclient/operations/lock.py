@@ -75,7 +75,9 @@ class LockContext:
 
     """
     A context manager for the :class:`Lock` / :class:`Unlock` pair of RPC's.
-
+    
+    RPC errors are always raised as exceptions.
+    
     Initialise with session instance (:class:`Session
     <ncclient.transport.Session>`) and lock target (:ref:`source_target`)
     """
@@ -86,7 +88,7 @@ class LockContext:
 
     def __enter__(self):
         reply = Lock(self.session).request(self.target)
-        if not reply.ok:
+        if not reply.ok: # an error locking should definitely always be raised
             raise reply.error
         else:
             return self

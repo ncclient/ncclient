@@ -56,17 +56,15 @@ class Manager(object):
         return False
 
     def __getattr__(self, name):
-        try:
-            op = operations.INDEX[name]
-        except KeyError:
+        op = operations.INDEX.get(name, None)
+        if op is None:
             raise AttributeError
         else:
-            reply = op(self.session,
+            return op(self.session,
                       async=self._async_mode,
-                      timeout=self.timeout,
+                      timeout=self._timeout,
                       raise_mode=self._raise_mode).request
-            return op if self._async_mode else reply
-
+    
     def locked(self, target):
         """Returns a context manager for the *with* statement.
 
@@ -79,10 +77,11 @@ class Manager(object):
     def close(self):
         """Closes the NETCONF session. First does *<close-session>* RPC."""
         try: # try doing it clean
+            self._async_mode = False
             self.close_session()
         except Exception as e:
             logger.debug('error doing <close-session> -- %r' % e)
-        if self._session.connected: # if that didn't work...
+        if self._session.connected: # if that didn't work, this sure will :)
             self._session.close()
 
     @property
