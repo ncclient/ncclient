@@ -30,7 +30,7 @@ BUF_SIZE = 4096
 MSG_DELIM = ']]>]]>'
 TICK = 0.1
 
-def default_unknown_host_cb(host, key):
+def default_unknown_host_cb(host, fingerprint):
     """An `unknown host callback` returns :const:`True` if it finds the key
     acceptable, and :const:`False` if not.
 
@@ -40,14 +40,19 @@ def default_unknown_host_cb(host, key):
     Supply another valid callback if you need to verify the host key
     programatically.
 
-    :arg host: the host for whom key needs to be verified
+    :arg host: the hostname that needs to be verified
     :type host: string
 
-    :arg key: a hex string representing the host key fingerprint
-    :type key: string
+    :arg fingerprint: a hex string representing the host key fingerprint
+    :type fingerprint: string
     """
     return False
 
+def _colonify(fp):
+    finga = fp[:2]
+    for idx  in range(2, len(fp), 2):
+        finga += ":" + fp[idx:idx+2]
+    return finga
 
 class SSHSession(Session):
 
@@ -63,7 +68,7 @@ class SSHSession(Session):
         # parsing-related, see _parse()
         self._parsing_state = 0
         self._parsing_pos = 0
-
+    
     def _parse(self):
         '''Messages ae delimited by MSG_DELIM. The buffer could have grown by a
         maximum of BUF_SIZE bytes everytime this method is called. Retains state
@@ -205,7 +210,7 @@ class SSHSession(Session):
         server_key = t.get_remote_server_key()
         known_host = self._host_keys.check(host, server_key)
 
-        fingerprint = hexlify(server_key.get_fingerprint())
+        fingerprint = _colonify(hexlify(server_key.get_fingerprint()))
 
         if not known_host and not unknown_host_cb(host, fingerprint):
             raise SSHUnknownHostError(host, fingerprint)
@@ -226,7 +231,7 @@ class SSHSession(Session):
         c.invoke_subsystem('netconf')
 
         self._post_connect()
-
+    
     # on the lines of paramiko.SSHClient._auth()
     def _auth(self, username, password, key_filenames, allow_agent,
               look_for_keys):
