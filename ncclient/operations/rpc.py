@@ -181,7 +181,7 @@ class RPCReplyListener(SessionListener):
 
     # internal use
 
-    # one instance per session
+    # one instance per session -- maybe there is a better way??
     def __new__(cls, session):
         instance = session.get_listener_instance(cls)
         if instance is None:
@@ -305,7 +305,7 @@ class RPC(object):
                 if self._reply.error is not None:
                     # <rpc-error>'s [ RPCError ]
                     if self._raise_mode == "all":
-                        raise self._reply._error
+                        raise self._reply.error
                     elif (self._raise_mode == "errors" and
                           self._reply.error.type == "error"):
                         raise self._reply.error
