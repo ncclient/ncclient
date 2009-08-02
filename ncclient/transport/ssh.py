@@ -86,6 +86,7 @@ class SSHSession(Session):
             elif x == delim[expect]: # what we expected
                 expect += 1 # expect the next delim char
             else:
+                expect = 0
                 continue
             # loop till last delim char expected, break if other char encountered
             for i in range(expect, n):
