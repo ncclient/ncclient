@@ -23,28 +23,10 @@ from lock import Lock, Unlock, LockContext
 # others...
 from flowmon import PoweroffMachine, RebootMachine
 
-INDEX = {
-    'get': Get,
-    'get_config': GetConfig,
-    'edit_config': EditConfig,
-    'copy_config': CopyConfig,
-    'validate': Validate,
-    'commit': Commit,
-    'discard_changes': DiscardChanges,
-    'delete_config': DeleteConfig,
-    'lock': Lock,
-    'unlock': Unlock,
-    'close_session': CloseSession,
-    'kill_session': KillSession,
-    'poweroff_machine': PoweroffMachine,
-    'reboot_machine': RebootMachine
-}
-
 __all__ = [
     'RPC',
     'RPCReply',
     'RPCError',
-    'OPERATIONS',
     'Get',
     'GetConfig',
     'GetReply',

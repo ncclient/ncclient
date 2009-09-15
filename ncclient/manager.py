@@ -35,6 +35,23 @@ def connect_ssh(*args, **kwds):
 #: Same as :meth:`connect_ssh`
 connect = connect_ssh
 
+OPERATIONS = {
+    "get": operations.Get,
+    "get_config": operations.GetConfig,
+    "edit_config": operations.EditConfig,
+    "copy_config": operations.CopyConfig,
+    "validate": operations.Validate,
+    "commit": operations.Commit,
+    "discard_changes": operations.DiscardChanges,
+    "delete_config": operations.DeleteConfig,
+    "lock": operations.Lock,
+    "unlock": operations.Unlock,
+    "close_session": operations.CloseSession,
+    "kill_session": operations.KillSession,
+    "poweroff_machine": operations.PoweroffMachine,
+    "reboot_machine": operations.RebootMachine
+}
+
 class Manager(object):
 
     """API for NETCONF operations.
@@ -56,7 +73,7 @@ class Manager(object):
         return False
 
     def __getattr__(self, name):
-        op = operations.INDEX.get(name, None)
+        op = OPERATIONS.get(name, None)
         if op is None:
             raise AttributeError
         else:
