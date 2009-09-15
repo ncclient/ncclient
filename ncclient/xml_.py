@@ -23,16 +23,13 @@ from xml.etree import cElementTree as ET
 
 from ncclient import NCClientError
 
-class ContentError(NCClientError):
-    "Raised by methods of the :mod:`content` module in case of an error."
+class XMLError(NCClientError):
     pass
 
 ### Namespace-related
 
 #: Base NETCONF namespace
 BASE_NS_1_0 = 'urn:ietf:params:xml:ns:netconf:base:1.0'
-#: ... and this is BASE_NS according to Cisco devices tested
-CISCO_BS_1_0 = 'urn:ietf:params:netconf:base:1.0'
 #: namespace for Tail-f data model
 TAILF_AAA_1_1 = 'http://tail-f.com/ns/aaa/1.1'
 #: namespace for Tail-f data model
@@ -63,137 +60,27 @@ for (ns, pre) in prefix_map.items():
 
 qualify = lambda tag, ns=BASE_NS_1_0: tag if ns is None else '{%s}%s' % (ns, tag)
 
-multiqualify = lambda tag, nslist=(BASE_NS_1_0, CISCO_BS_1_0): [qualify(tag, ns) for ns in nslist]
+#unqualify = lambda tag: tag[tag.rfind('}')+1:]
 
-unqualify = lambda tag: tag[tag.rfind('}')+1:]
+def to_xml(ele, encoding="UTF-8"):
+    """Element -> XML
+    
+    :type spec: :class:`~xml.etree.ElementTree.Element`
+    :arg encoding: character encoding
+    :rtype: :obj:`string`
+    """
+    xml = ET.tostring(ele, encoding)
+    return xml if xml.startswith('<?xml') else '<?xml version="1.0" encoding="%s"?>%s' % (encoding, xml)
 
-### XML representations
-
-class DictTree:
-
-    @staticmethod
-    def Element(spec):
-        """DictTree -> Element
-
-        :type spec: :obj:`dict` or :obj:`string` or :class:`~xml.etree.ElementTree.Element`
-
-        :rtype: :class:`~xml.etree.ElementTree.Element`
-        """
-        if iselement(spec):
-            return spec
-        elif isinstance(spec, basestring):
-            return XML.Element(spec)
-        if not isinstance(spec, dict):
-            raise ContentError("Invalid tree spec")
-        if 'tag' in spec:
-            ele = ET.Element(spec.get('tag'), spec.get('attrib', {}))
-            ele.text = spec.get('text', '')
-            ele.tail = spec.get('tail', '')
-            subtree = spec.get('subtree', [])
-            # might not be properly specified as list but may be dict
-            if not isinstance(subtree, list):
-                subtree = [subtree]
-            for subele in subtree:
-                ele.append(DictTree.Element(subele))
-            return ele
-        elif 'comment' in spec:
-            return ET.Comment(spec.get('comment'))
-        else:
-            raise ContentError('Invalid tree spec')
-
-    @staticmethod
-    def XML(spec, encoding='UTF-8'):
-        """DictTree -> XML
-
-        :type spec: :obj:`dict` or :obj:`string` or :class:`~xml.etree.ElementTree.Element`
-
-        :arg encoding: chraracter encoding
-
-        :rtype: string
-        """
-        return Element.XML(DictTree.Element(spec), encoding)
-
-class Element:
-
-    @staticmethod
-    def DictTree(ele):
-        """DictTree -> Element
-
-        :type spec: :class:`~xml.etree.ElementTree.Element`
-        :rtype: :obj:`dict`
-        """
-        return {
-            'tag': ele.tag,
-            'attributes': ele.attrib,
-            'text': ele.text,
-            'tail': ele.tail,
-            'subtree': [ Element.DictTree(child) for child in ele.getchildren() ]
-        }
-
-    @staticmethod
-    def XML(ele, encoding='UTF-8'):
-        """Element -> XML
-
-        :type spec: :class:`~xml.etree.ElementTree.Element`
-        :arg encoding: character encoding
-        :rtype: :obj:`string`
-        """
-        xml = ET.tostring(ele, encoding)
-        if xml.startswith('<?xml'):
-            return xml
-        else:
-            return '<?xml version="1.0" encoding="%s"?>%s' % (encoding, xml)
-
-class XML:
-
-    @staticmethod
-    def DictTree(xml):
-        """XML -> DictTree
-
-        :type spec: :obj:`string`
-        :rtype: :obj:`dict`
-        """
-        return Element.DictTree(XML.Element(xml))
-
-    @staticmethod
-    def Element(xml):
-        """XML -> Element
-
-        :type xml: :obj:`string`
-        :rtype: :class:`~xml.etree.ElementTree.Element`
-        """
-        return ET.fromstring(xml)
-
-dtree2ele = DictTree.Element
-dtree2xml = DictTree.XML
-ele2dtree = Element.DictTree
-ele2xml = Element.XML
-xml2dtree = XML.DictTree
-xml2ele = XML.Element
-
-### Other utility functions
+def to_ele(x):
+    """XML -> Element
+    
+    :type xml: :obj:`string`
+    :rtype: :class:`~xml.etree.ElementTree.Element`
+    """
+    return x if iselement(x) else ET.fromstring(x)
 
 iselement = ET.iselement
-
-
-NSLIST = [BASE_NS_1_0, CISCO_BS_1_0]
-
-def find(ele, tag, nslist=[]):
-    """If *nslist* is empty, same as :meth:`xml.etree.ElementTree.Element.find`.
-    If it is not, *tag* is interpreted as an unqualified name and qualified
-    using each item in *nslist* (with a :const:`None` item in *nslit* meaning no
-    qualification is done). The first match is returned.
-
-    :arg nslist: optional list of namespaces
-    :type nslit: `string` `list`
-    """
-    if nslist:
-        for qname in multiqualify(tag):
-            found = ele.find(qname)
-            if found is not None:
-                return found
-    else:
-        return ele.find(tag)
 
 def parse_root(raw):
     """Efficiently parses the root element of an XML document.
@@ -203,27 +90,26 @@ def parse_root(raw):
     :returns: a tuple of `(tag, attributes)`, where `tag` is the (qualified) name of the element and `attributes` is a dictionary of its attributes.
     :rtype: `tuple`
     """
-    fp = StringIO(raw[:1024]) # this is a guess but start element beyond 1024 bytes would be a bit absurd
+    fp = StringIO(raw)
     for event, element in ET.iterparse(fp, events=('start',)):
         return (element.tag, element.attrib)
 
-def validated_element(rep, tags=None, attrs=None, text=None):
+def validated_element(x, tags=None, attrs=None):
     """Checks if the root element meets the supplied criteria. Returns a
     :class:`~xml.etree.ElementTree.Element` instance if so, otherwise raises
     :exc:`ContentError`.
 
-    :arg tags: tag name or a list of allowable tag names
-    :arg attrs: list of required attribute names, each item may be a list of allowable alternatives
+    :arg tags: tag name or a sequence of allowable tag names
+    :arg attrs: sequence of required attribute names, each item may be a list of allowable alternatives
     :arg text: textual content to match
-    :type rep: :obj:`dict` or :obj:`string` or :class:`~xml.etree.ElementTree.Element`
+    :type rep: :class:`~xml.etree.ElementTree.Element`
     """
-    ele = dtree2ele(rep)
-    err = False
+    ele = to_ele(x)
     if tags:
         if isinstance(tags, basestring):
             tags = [tags]
         if ele.tag not in tags:
-            err = True
+            raise XMLError("Element [%s] does not meet requirement" % ele.tag)
     if attrs:
         for req in attrs:
             if isinstance(req, basestring): req = [req]
@@ -231,9 +117,11 @@ def validated_element(rep, tags=None, attrs=None, text=None):
                 if alt in ele.attrib:
                     break
             else:
-                err = True
-    if text and ele.text != text:
-        err = True
-    if err:
-        raise ContentError("Element [%s] does not meet requirements" % ele.tag)
+                raise XMLError("Element [%s] does not have required attributes" % ele.tag)
     return ele
+
+def new_ele(tag, attrs={}, **extra):
+    return ET.Element(tag, attrs, **extra)
+
+def sub_ele(parent, tag, attrs={}, **extra):
+    return ET.SubElement(parent, tag, attrs, **extra)

@@ -14,24 +14,26 @@
 
 'Power-control operations'
 
-from ncclient import xml_
+from ncclient.xml_ import *
 
 from rpc import RPC
+
+PC_URN = "urn:liberouter:params:xml:ns:netconf:power-control:1.0"
 
 class PoweroffMachine(RPC):
 
     "*poweroff-machine* RPC (flowmon)"
 
-    DEPENDS = [':power-control:1.0']
-
-    SPEC = {'tag': xml_.qualify('poweroff-machine',
-                                'urn:liberouter:params:xml:ns:netconf:power-control:1.0')}
+    DEPENDS = ["urn:liberouter:params:netconf:capability:power-control:1.0"]
+    
+    def request(self, target):
+        return self._request(new_ele(qualify("poweroff-machine", PC_URN)))
 
 class RebootMachine(RPC):
 
     "*reboot-machine* RPC (flowmon)"
 
-    DEPENDS = [':power-control:1.0']
+    DEPENDS = ["urn:liberouter:params:netconf:capability:power-control:1.0"]
 
-    SPEC = {'tag': xml_.qualify('reboot-machine',
-                                'urn:liberouter:params:xml:ns:netconf:power-control:1.0')}
+    def request(self, target):
+        return self._request(new_ele(qualify("reboot-machine", PC_URN)))

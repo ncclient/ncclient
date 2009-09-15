@@ -12,27 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-_capability_map = {
-    'urn:liberouter:params:netconf:capability:power-control:1.0':
-        [':power-control', ':power-control:1.0']
-}
+#_capability_map = {
+#    "urn:liberouter:params:netconf:capability:power-control:1.0":
+#        [":power-control", ":power-control:1.0"]
+#}
 
 def _abbreviate(uri):
-    if uri.startswith('urn:ietf:params:netconf:'):
-        splitted = uri.split(':')
-        if ':capability:' in uri:
-            return [ ':' + splitted[5], ':' + splitted[5] + ':' + splitted[6] ]
-        elif ':base:' in uri:
-            return [ ':base', ':base' + ':'+ splitted[5] ]
-    elif uri in _capability_map:
-        return _capability_map[uri]
+    if uri.startswith("urn:ietf:params:netconf:"):
+        splitted = uri.split(":")
+        if ":capability:" in uri:
+            return [ ":" + splitted[5], ":" + splitted[5] + ":" + splitted[6] ]
+        elif ":base:" in uri:
+            return [ ":base", ":base" + ":" + splitted[5] ]
+    #elif uri in _capability_map:
+    #    return _capability_map[uri]
     return []
 
 def schemes(url_uri):
     """Given a URI that has a *scheme* query string (i.e. *:url* capability
     URI), will return a list of supported schemes.
     """
-    return url_uri.partition("?scheme=")[2].split(',')
+    return url_uri.partition("?scheme=")[2].split(",")
 
 class Capabilities:
 
@@ -98,16 +98,17 @@ class Capabilities:
 
 #: :class:`Capabilities` object representing the capabilities currently supported by NCClient
 CAPABILITIES = Capabilities([
-    'urn:ietf:params:netconf:base:1.0',
-    'urn:ietf:params:netconf:capability:writable-running:1.0',
-    'urn:ietf:params:netconf:capability:candidate:1.0',
-    'urn:ietf:params:netconf:capability:confirmed-commit:1.0',
-    'urn:ietf:params:netconf:capability:rollback-on-error:1.0',
-    'urn:ietf:params:netconf:capability:startup:1.0',
-    'urn:ietf:params:netconf:capability:url:1.0?scheme=http,ftp,file,https,sftp',
-    'urn:ietf:params:netconf:capability:validate:1.0',
-    'urn:ietf:params:netconf:capability:xpath:1.0',
-    'urn:liberouter:params:netconf:capability:power-control:1.0'
+    "urn:ietf:params:netconf:base:1.0",
+    "urn:ietf:params:netconf:capability:writable-running:1.0",
+    "urn:ietf:params:netconf:capability:candidate:1.0",
+    "urn:ietf:params:netconf:capability:confirmed-commit:1.0",
+    "urn:ietf:params:netconf:capability:rollback-on-error:1.0",
+    "urn:ietf:params:netconf:capability:startup:1.0",
+    "urn:ietf:params:netconf:capability:url:1.0?scheme=http,ftp,file,https,sftp",
+    "urn:ietf:params:netconf:capability:validate:1.0",
+    "urn:ietf:params:netconf:capability:xpath:1.0",
+    "urn:liberouter:params:netconf:capability:power-control:1.0"
+    "urn:ietf:params:netconf:capability:interleave:1.0"
     #'urn:ietf:params:netconf:capability:notification:1.0', # TODO
-    #'urn:ietf:params:netconf:capability:interleave:1.0' # theoretically already supported
+    
 ])

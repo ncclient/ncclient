@@ -14,28 +14,27 @@
 
 'Boilerplate ugliness'
 
-from ncclient import xml_
+from ncclient.xml_ import *
 
 from errors import OperationError, MissingCapabilityError
 
 def one_of(*args):
-    'Verifies that only one of the arguments is not None'
+    "Verifies that only one of the arguments is not None"
     for i, arg in enumerate(args):
         if arg is not None:
             for argh in args[i+1:]:
                 if argh is not None:
-                    raise OperationError('Too many parameters')
+                    raise OperationError("Too many parameters")
             else:
                 return
-    raise OperationError('Insufficient parameters')
+    raise OperationError("Insufficient parameters")
 
-def store_or_url(wha, loc, capcheck=None):
-    node = { 'tag': wha, 'subtree': {} }
-    if '://' in loc: # e.g. http://, file://, ftp://
+def datastore_or_url(wha, loc, capcheck=None):
+    node = new_ele(wha)
+    if "://" in loc: # e.g. http://, file://, ftp://
         if capcheck is not None:
-            capcheck(':url') # url schema check at some point!
-        node['subtree']['tag'] = 'url'
-        node['subtree']['text'] = loc
+            capcheck(":url") # url schema check at some point!
+            sub_ele(node, "url").text = loc
     else:
         #if loc == 'candidate':
         #    capcheck(':candidate')
@@ -43,23 +42,24 @@ def store_or_url(wha, loc, capcheck=None):
         #    capcheck(':startup')
         #elif loc == 'running' and wha == 'target':
         #    capcheck(':writable-running')
-        node['subtree']['tag'] = loc
+        sub_ele(node, loc)
     return node
 
 def build_filter(spec, capcheck=None):
     type = None
     if isinstance(spec, tuple):
         type, criteria = spec
-        rep = {'tag': 'filter', 'attrib': {'type': type}}
-        if type == 'xpath':
-            rep['attrib']['select'] = criteria
-        elif type == 'subtree':
-            rep['subtree'] = criteria
+        rep = new_ele("filter", type=type)
+        if type == "xpath":
+            rep.attrib["select"] = criteria
+        elif type == "subtree":
+            rep.append(to_ele(criteria))
         else:
             raise OperationError("Invalid filter type")
     else:
-        rep = xml_.validated_element(spec, ['filter', xml_.qualify('filter')],
-                                        attrs=[('type', xml_.qualify('type'))])
-    if type == 'xpath' and capcheck is not None:
-        capcheck(':xpath')
+        rep = validated_element(spec, ("filter", qualify("filter")),
+                                        attrs=("type",))
+        # TODO set type var here, check if select attr present in case of xpath..
+    if type == "xpath" and capcheck is not None:
+        capcheck(":xpath")
     return rep

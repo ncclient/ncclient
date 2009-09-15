@@ -14,7 +14,7 @@
 
 'Session-related NETCONF operations'
 
-from copy import deepcopy
+from ncclient.xml_ import *
 
 from rpc import RPC
 
@@ -22,11 +22,9 @@ class CloseSession(RPC):
 
     "*<close-session>* RPC. The connection to NETCONF server is also closed."
 
-    SPEC = { 'tag': 'close-session' }
-
     def request(self):
         try:
-            return self._request(CloseSession.SPEC)
+            return self._request(new_ele("close-sesion"))
         finally:
             self.session.close()
 
@@ -34,12 +32,7 @@ class CloseSession(RPC):
 class KillSession(RPC):
 
     "*<kill-session>* RPC."
-
-    SPEC = {
-        'tag': 'kill-session',
-        'subtree': []
-    }
-
+    
     def request(self, session_id):
         """
         :arg session_id: *session-id* of NETCONF session to kill
@@ -47,11 +40,8 @@ class KillSession(RPC):
 
         :seealso: :ref:`return`
         """
-        spec = deepcopy(KillSession.SPEC)
+        node = new_ele("kill-session")
         if not isinstance(session_id, basestring): # make sure
             session_id = str(session_id)
-        spec['subtree'].append({
-            'tag': 'session-id',
-            'text': session_id
-        })
-        return self._request(spec)
+        sub_ele(node, "session-id").text = session_id
+        return self._request(node)

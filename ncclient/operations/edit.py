@@ -12,25 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from copy import deepcopy
-
-from ncclient import xml_
+from ncclient.xml_ import *
 
 from rpc import RPC
 
 import util
 
 import logging
-logger = logging.getLogger('ncclient.operations.edit')
+logger = logging.getLogger("ncclient.operations.edit")
 
 "Operations related to changing device configuration"
 
 class EditConfig(RPC):
 
     "*<edit-config>* RPC"
-
-    SPEC = {'tag': 'edit-config', 'subtree': []}
-
+    
     def request(self, target, config, default_operation=None, test_option=None,
                 error_option=None):
         """
@@ -51,35 +47,25 @@ class EditConfig(RPC):
 
         :seealso: :ref:`return`
         """
-        spec = deepcopy(EditConfig.SPEC)
-        subtree = spec['subtree']
-        subtree.append(util.store_or_url('target', target, self._assert))
+        node = new_ele("edit-config")
+        node.append(util.datastore_or_url("target", target, self._assert))
         if error_option is not None:
-            if error_option == 'rollback-on-error':
-                self._assert(':rollback-on-error')
-            subtree.append({
-                'tag': 'error-option',
-                'text': error_option
-                })
+            if error_option == "rollback-on-error":
+                self._assert(":rollback-on-error")
+            sub_ele(node, "error-option").text = error_option
         if test_option is not None:
             self._assert(':validate')
-            subtree.append({
-                'tag': 'test-option',
-                'text': test_option
-                })
+            sub_ele(node, "test-option").text = test_option
         if default_operation is not None:
-            subtree.append({
-                'tag': 'default-operation',
-                'text': default_operation
-                })
-        subtree.append(xml_.validated_element(config, ('config', xml_.qualify('config'))))
+            # TODO: check if it is a valid default-operation
+            sub_ele(node, "default-operation").text = default_operation
+        node.append(validated_element(config, ("config", qualify("config"))))
         return self._request(spec)
+
 
 class DeleteConfig(RPC):
 
     "*<delete-config>* RPC"
-
-    SPEC = {'tag': 'delete-config', 'subtree': []}
 
     def request(self, target):
         """
@@ -88,17 +74,15 @@ class DeleteConfig(RPC):
 
         :seealso: :ref:`return`
         """
-        spec = deepcopy(DeleteConfig.SPEC)
-        spec['subtree'].append(util.store_or_url('target', target, self._assert))
+        node = new_ele("delete-config")
+        node.append(util.datastore_or_url("target", target, self._assert))
         return self._request(spec)
 
 
 class CopyConfig(RPC):
 
     "*<copy-config>* RPC"
-
-    SPEC = {'tag': 'copy-config', 'subtree': []}
-
+    
     def request(self, source, target):
         """
         :arg source: See :ref:`source_target`
@@ -109,9 +93,9 @@ class CopyConfig(RPC):
 
         :seealso: :ref:`return`
         """
-        spec = deepcopy(CopyConfig.SPEC)
-        spec['subtree'].append(util.store_or_url('target', target, self._assert))
-        spec['subtree'].append(util.store_or_url('source', source, self._assert))
+        node = new_ele("copy-config")
+        node.append(util.datastore_or_url("target", target, self._assert))
+        node.append(util.datastore_or_url("source", source, self._assert))
         return self._request(spec)
 
 
@@ -121,8 +105,6 @@ class Validate(RPC):
 
     DEPENDS = [':validate']
 
-    SPEC = {'tag': 'validate', 'subtree': []}
-
     def request(self, source):
         """
         :arg source: See :ref:`source_target`
@@ -130,16 +112,13 @@ class Validate(RPC):
 
         :seealso: :ref:`return`
         """
-        spec = deepcopy(Validate.SPEC)
+        node = new_ele("validate")
         try:
-            src = xml_.validated_element(source, ('config', xml_.qualify('config')))
+            src = validated_element(source, ("config", qualify("config")))
         except Exception as e:
             logger.debug(e)
-            src = util.store_or_url('source', source, self._assert)
-        spec['subtree'].append({
-            'tag': 'source',
-            'subtree': src
-            })
+            src = util.datastore_or_url("source", source, self._assert)
+        (node if src.tag == "source" else sub_ele(node, "source")).append(src)
         return self._request(spec)
 
 
@@ -148,12 +127,7 @@ class Commit(RPC):
     "*<commit>* RPC. Depends on the *:candidate* capability."
 
     DEPENDS = [':candidate']
-
-    SPEC = {'tag': 'commit', 'subtree': []}
-
-    def _parse_hook(self):
-        pass
-
+    
     def request(self, confirmed=False, timeout=None):
         """
         Requires *:confirmed-commit* capability if *confirmed* argument is
@@ -167,28 +141,22 @@ class Commit(RPC):
 
         :seealso: :ref:`return`
         """
-        spec = deepcopy(Commit.SPEC)
+        node = new_ele("commit")
         if confirmed:
-            self._assert(':confirmed-commit')
-            spec['subtree'].append({'tag': 'confirmed'})
+            self._assert(":confirmed-commit")
+            sub_ele(node, "confirmed")
             if timeout is not None:
-                spec['subtree'].append({
-                    'tag': 'confirm-timeout',
-                    'text': timeout
-                })
+                # TODO check if timeout is a valid integer?
+                sub_ele(node, "confirm-timeout").text = timeout
         return self._request(Commit.SPEC)
 
 
 class DiscardChanges(RPC):
 
-    # TESTED
-
     "*<discard-changes>* RPC. Depends on the *:candidate* capability."
 
-    DEPENDS = [':candidate']
-
-    SPEC = {'tag': 'discard-changes'}
+    DEPENDS = [":candidate"]
 
     def request(self):
         ":seealso: :ref:`return`"
-        return self._request(DiscardChanges.SPEC)
+        return self._request(new_ele("discard-changes"))

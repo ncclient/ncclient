@@ -14,8 +14,7 @@
 
 from rpc import RPC, RPCReply
 
-from ncclient import xml_
-from copy import deepcopy
+from ncclient.xml_ import *
 
 import util
 
@@ -27,7 +26,7 @@ class GetReply(RPCReply):
     def _parsing_hook(self, root):
         self._data = None
         if not self._errors:
-            self._data = xml_.find(root, 'data', nslist=xml_.NSLIST)
+            self._data = root.find(qualify("data"))
 
     @property
     def data_ele(self):
@@ -41,22 +40,18 @@ class GetReply(RPCReply):
         "*<data>* element as an XML string"
         if not self._parsed:
             self.parse()
-        return xml_.ele2xml(self._data)
-
-    @property
-    def data_dtree(self):
-        "*<data>* element in :ref:`dtree`"
-        return xml_.ele2dtree(self._data)
-
+        return to_xml(self._data)
+    
     #: Same as :attr:`data_ele`
     data = data_ele
+    
+    #def __repr__(self):
+    #    return self.data_xml
 
 
 class Get(RPC):
 
     "The *<get>* RPC"
-
-    SPEC = {'tag': 'get', 'subtree': []}
 
     REPLY_CLS = GetReply
 
@@ -66,17 +61,15 @@ class Get(RPC):
 
         :seealso: :ref:`return`
         """
-        spec = deepcopy(Get.SPEC)
+        node = new_ele("get")
         if filter is not None:
-            spec['subtree'].append(util.build_filter(filter))
-        return self._request(spec)
+            node.append(util.build_filter(filter))
+        return self._request(node)
 
 
 class GetConfig(RPC):
 
     "The *<get-config>* RPC"
-
-    SPEC = {'tag': 'get-config', 'subtree': []}
 
     REPLY_CLS = GetReply
 
@@ -88,8 +81,8 @@ class GetConfig(RPC):
 
         :seealso: :ref:`return`
         """
-        spec = deepcopy(GetConfig.SPEC)
-        spec['subtree'].append(util.store_or_url('source', source, self._assert))
+        node = new_ele("get-config")
+        node.append(util.datastore_or_url("source", source, self._assert))
         if filter is not None:
-            spec['subtree'].append(util.build_filter(filter))
-        return self._request(spec)
+            node.append(util.build_filter(filter))
+        return self._request(node)

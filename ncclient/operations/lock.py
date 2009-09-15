@@ -14,27 +14,18 @@
 
 'Locking-related NETCONF operations'
 
-from copy import deepcopy
+from ncclient.xml_ import *
 
 from rpc import RPC
 
 # TODO:
-# should have some way to parse session-id from a lock-denied error
+# should have some way to parse session-id from a lock-denied error, and raise
+# a tailored exception
 
 class Lock(RPC):
 
     "*<lock>* RPC"
-
-    SPEC = {
-        'tag': 'lock',
-        'subtree': {
-            'tag': 'target',
-            'subtree': {'tag': None }
-        }
-    }
-
-    #REPLY_CLS = LockReply
-
+    
     def request(self, target):
         """
         :arg target: see :ref:`source_target`
@@ -42,23 +33,15 @@ class Lock(RPC):
 
         :rtype: :ref:`return`
         """
-        spec = deepcopy(Lock.SPEC)
-        spec['subtree']['subtree']['tag'] = target
-        return self._request(spec)
+        node = new_ele("lock")
+        sub_ele(sub_ele(node, "target"), "running")
+        return self._request(node)
 
 
 class Unlock(RPC):
 
     "*<unlock>* RPC"
-
-    SPEC = {
-        'tag': 'unlock',
-        'subtree': {
-            'tag': 'target',
-            'subtree': {'tag': None }
-        }
-    }
-
+    
     def request(self, target):
         """
         :arg target: see :ref:`source_target`
@@ -66,9 +49,9 @@ class Unlock(RPC):
 
         :rtype: :ref:`return`
         """
-        spec = deepcopy(Unlock.SPEC)
-        spec['subtree']['subtree']['tag'] = target
-        return self._request(spec)
+        node = new_ele("lock")
+        sub_ele(sub_ele(node, "target"), "running")
+        return self._request(node)
 
 
 class LockContext:
@@ -87,14 +70,9 @@ class LockContext:
         self.target = target
 
     def __enter__(self):
-        reply = Lock(self.session).request(self.target)
-        if not reply.ok: # an error locking should definitely always be raised
-            raise reply.error
-        else:
-            return self
+        Lock(self.session).request(self.target)
+        return self
 
     def __exit__(self, *args):
-        reply = Unlock(self.session).request(self.target)
-        if not reply.ok:
-            raise reply.error
+        Unlock(self.session).request(self.target)
         return False

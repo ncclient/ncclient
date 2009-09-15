@@ -15,7 +15,7 @@
 from Queue import Queue
 from threading import Thread, Lock, Event
 
-from ncclient import xml_
+from ncclient.xml_ import *
 from ncclient.capabilities import Capabilities
 
 from errors import TransportError
@@ -30,7 +30,7 @@ class Session(Thread):
     def __init__(self, capabilities):
         Thread.__init__(self)
         self.setDaemon(True)
-        self._listeners = set() # 3.0's weakset would be ideal
+        self._listeners = set()
         self._lock = Lock()
         self.setName('session')
         self._q = Queue()
@@ -43,7 +43,7 @@ class Session(Thread):
 
     def _dispatch_message(self, raw):
         try:
-            root = xml_.parse_root(raw)
+            root = parse_root(raw)
         except Exception as e:
             logger.error('error parsing dispatch message: %s' % e)
             return
@@ -203,7 +203,8 @@ class HelloHandler(SessionListener):
         self._error_cb = error_cb
 
     def callback(self, root, raw):
-        if xml_.unqualify(root[0]) == 'hello':
+        tag, attrs = root
+        if tag == qualify("hello"):
             try:
                 id, capabilities = HelloHandler.parse(raw)
             except Exception as e:
@@ -217,28 +218,22 @@ class HelloHandler(SessionListener):
     @staticmethod
     def build(capabilities):
         "Given a list of capability URI's returns <hello> message XML string"
-        spec = {
-            'tag': 'hello',
-            'attrib': {'xmlns': xml_.BASE_NS_1_0},
-            'subtree': [{
-                'tag': 'capabilities',
-                'subtree': # this is fun :-)
-                    [{'tag': 'capability', 'text': uri} for uri in capabilities]
-                }]
-            }
-        return xml_.dtree2xml(spec)
+        hello = new_ele("hello", xmlns=BASE_NS_1_0)
+        caps = sub_ele(hello, "capabilities")
+        def fun(uri): sub_ele(caps, "capability").text = uri
+        map(fun, capabilities)
+        return to_xml(hello)
 
     @staticmethod
     def parse(raw):
         "Returns tuple of (session-id (str), capabilities (Capabilities)"
         sid, capabilities = 0, []
-        root = xml_.xml2ele(raw)
+        root = to_ele(raw)
         for child in root.getchildren():
-            tag = xml_.unqualify(child.tag)
-            if tag == 'session-id':
+            if child.tag == qualify("session-id"):
                 sid = child.text
-            elif tag == 'capabilities':
+            elif child.tag == qualify("capabilities"):
                 for cap in child.getchildren():
-                    if xml_.unqualify(cap.tag) == 'capability':
+                    if cap.tag == qualify("capability"):
                         capabilities.append(cap.text)
         return sid, Capabilities(capabilities)
