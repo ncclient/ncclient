@@ -184,7 +184,6 @@ class RPCReplyListener(SessionListener):
         if tag != qualify("rpc-reply"):
             return
         for key in attrs: # in the <rpc-reply> attributes
-            logger.debug("key=%s" % key)
             if key == "message-id": # if we found msgid attr
                 id = attrs[key] # get the msgid
                 with self._lock:

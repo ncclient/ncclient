@@ -49,7 +49,7 @@ class Unlock(RPC):
 
         :rtype: :ref:`return`
         """
-        node = new_ele("lock")
+        node = new_ele("unlock")
         sub_ele(sub_ele(node, "target"), "running")
         return self._request(node)
 
