@@ -27,7 +27,7 @@ import logging
 logger = logging.getLogger('ncclient.transport.ssh')
 
 BUF_SIZE = 4096
-MSG_DELIM = ']]>]]>'
+MSG_DELIM = "]]>]]>"
 TICK = 0.1
 
 def default_unknown_host_cb(host, fingerprint):
@@ -228,8 +228,8 @@ class SSHSession(Session):
         self._connected = True # there was no error authenticating
 
         c = self._channel = self._transport.open_session()
-        c.set_name('netconf')
-        c.invoke_subsystem('netconf')
+        c.set_name("netconf")
+        c.invoke_subsystem("netconf")
 
         self._post_connect()
     
@@ -242,7 +242,7 @@ class SSHSession(Session):
             for cls in (paramiko.RSAKey, paramiko.DSSKey):
                 try:
                     key = cls.from_private_key_file(key_filename, password)
-                    logger.debug('Trying key %s from %s' %
+                    logger.debug("Trying key %s from %s" %
                               (hexlify(key.get_fingerprint()), key_filename))
                     self._transport.auth_publickey(username, key)
                     return
@@ -253,7 +253,7 @@ class SSHSession(Session):
         if allow_agent:
             for key in paramiko.Agent().get_keys():
                 try:
-                    logger.debug('Trying SSH agent key %s' %
+                    logger.debug("Trying SSH agent key %s" %
                                  hexlify(key.get_fingerprint()))
                     self._transport.auth_publickey(username, key)
                     return
@@ -263,15 +263,15 @@ class SSHSession(Session):
 
         keyfiles = []
         if look_for_keys:
-            rsa_key = os.path.expanduser('~/.ssh/id_rsa')
-            dsa_key = os.path.expanduser('~/.ssh/id_dsa')
+            rsa_key = os.path.expanduser("~/.ssh/id_rsa")
+            dsa_key = os.path.expanduser("~/.ssh/id_dsa")
             if os.path.isfile(rsa_key):
                 keyfiles.append((paramiko.RSAKey, rsa_key))
             if os.path.isfile(dsa_key):
                 keyfiles.append((paramiko.DSSKey, dsa_key))
             # look in ~/ssh/ for windows users:
-            rsa_key = os.path.expanduser('~/ssh/id_rsa')
-            dsa_key = os.path.expanduser('~/ssh/id_dsa')
+            rsa_key = os.path.expanduser("~/ssh/id_rsa")
+            dsa_key = os.path.expanduser("~/ssh/id_dsa")
             if os.path.isfile(rsa_key):
                 keyfiles.append((paramiko.RSAKey, rsa_key))
             if os.path.isfile(dsa_key):
@@ -280,7 +280,7 @@ class SSHSession(Session):
         for cls, filename in keyfiles:
             try:
                 key = cls.from_private_key_file(filename, password)
-                logger.debug('Trying discovered key %s in %s' %
+                logger.debug("Trying discovered key %s in %s" %
                           (hexlify(key.get_fingerprint()), filename))
                 self._transport.auth_publickey(username, key)
                 return
@@ -300,7 +300,7 @@ class SSHSession(Session):
             # need pep-3134 to do this right
             raise AuthenticationError(repr(saved_exception))
 
-        raise AuthenticationError('No authentication methods available')
+        raise AuthenticationError("No authentication methods available")
 
     def run(self):
         chan = self._channel
@@ -323,7 +323,7 @@ class SSHSession(Session):
                     else:
                         raise SessionCloseError(self._buffer.getvalue())
                 if not q.empty() and chan.send_ready():
-                    logger.debug('sending message')
+                    logger.debug("Sending message")
                     data = q.get() + MSG_DELIM
                     while data:
                         n = chan.send(data)
@@ -331,7 +331,7 @@ class SSHSession(Session):
                             raise SessionCloseError(self._buffer.getvalue(), data)
                         data = data[n:]
         except Exception as e:
-            logger.debug('broke out of main loop, error=%r', e)
+            logger.debug("Broke out of main loop, error=%r", e)
             self.close()
             self._dispatch_error(e)
 
