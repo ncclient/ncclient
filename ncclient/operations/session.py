@@ -37,8 +37,6 @@ class KillSession(RPC):
         """
         :arg session_id: *session-id* of NETCONF session to kill
         :type session_id: `string`
-
-        :seealso: :ref:`return`
         """
         node = new_ele("kill-session")
         if not isinstance(session_id, basestring): # make sure

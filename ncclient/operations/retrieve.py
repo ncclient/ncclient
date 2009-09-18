@@ -56,11 +56,6 @@ class Get(RPC):
     REPLY_CLS = GetReply
 
     def request(self, filter=None):
-        """
-        :arg filter: optional; see :ref:`filter`
-
-        :seealso: :ref:`return`
-        """
         node = new_ele("get")
         if filter is not None:
             node.append(util.build_filter(filter))
@@ -74,13 +69,6 @@ class GetConfig(RPC):
     REPLY_CLS = GetReply
 
     def request(self, source, filter=None):
-        """
-        :arg source: See :ref:`source_target`
-
-        :arg filter: optional; see :ref:`filter`
-
-        :seealso: :ref:`return`
-        """
         node = new_ele("get-config")
         node.append(util.datastore_or_url("source", source, self._assert))
         if filter is not None:

@@ -13,10 +13,8 @@
 # limitations under the License.
 
 
-"""The :mod:`xml` module provides methods for creating XML documents, parsing
-XML, and converting between different XML representations. It uses
-:mod:`~xml.etree.ElementTree` internally.
-"""
+"""The :mod:`xml_` module provides methods for creating, parsing, and dealing
+with XML. It uses :mod:`~xml.etree.ElementTree`."""
 
 from cStringIO import StringIO
 from xml.etree import cElementTree as ET
@@ -30,13 +28,13 @@ class XMLError(NCClientError):
 
 #: Base NETCONF namespace
 BASE_NS_1_0 = 'urn:ietf:params:xml:ns:netconf:base:1.0'
-#: namespace for Tail-f data model
+#: Namespace for Tail-f core data model
 TAILF_AAA_1_1 = 'http://tail-f.com/ns/aaa/1.1'
-#: namespace for Tail-f data model
+#: Namespace for Tail-f execd data model
 TAILF_EXECD_1_1 = 'http://tail-f.com/ns/execd/1.1'
-#: namespace for Cisco data model
+#: Namespace for Cisco data model
 CISCO_CPI_1_0 = 'http://www.cisco.com/cpi_10/schema'
-#: namespace for Flowmon data model
+#: Namespace for Flowmon data model
 FLOWMON_1_0 = 'http://www.liberouter.org/ns/netopeer/flowmon/1.0'
 
 try:
@@ -63,9 +61,9 @@ qualify = lambda tag, ns=BASE_NS_1_0: tag if ns is None else '{%s}%s' % (ns, tag
 #unqualify = lambda tag: tag[tag.rfind('}')+1:]
 
 def to_xml(ele, encoding="UTF-8"):
-    """Element -> XML
+    """Convert an :class:`~xml.etree.ElementTree.Element` to XML.
     
-    :type spec: :class:`~xml.etree.ElementTree.Element`
+    :arg ele: the :class:`~xml.etree.ElementTree.Element`
     :arg encoding: character encoding
     :rtype: :obj:`string`
     """
@@ -73,7 +71,7 @@ def to_xml(ele, encoding="UTF-8"):
     return xml if xml.startswith('<?xml') else '<?xml version="1.0" encoding="%s"?>%s' % (encoding, xml)
 
 def to_ele(x):
-    """XML -> Element
+    """Convert XML to :class:`~xml.etree.ElementTree.Element`.
     
     :type xml: :obj:`string`
     :rtype: :class:`~xml.etree.ElementTree.Element`
@@ -86,8 +84,8 @@ def parse_root(raw):
     """Efficiently parses the root element of an XML document.
 
     :arg raw: XML document
-    :type raw: string
-    :returns: a tuple of `(tag, attributes)`, where `tag` is the (qualified) name of the element and `attributes` is a dictionary of its attributes.
+    :returns: a tuple of `(tag, attrib)`, where *tag* is the (qualified)
+    name of the element and *attrib* is a dictionary of its attributes.
     :rtype: `tuple`
     """
     fp = StringIO(raw)
@@ -95,14 +93,15 @@ def parse_root(raw):
         return (element.tag, element.attrib)
 
 def validated_element(x, tags=None, attrs=None):
-    """Checks if the root element meets the supplied criteria. Returns a
-    :class:`~xml.etree.ElementTree.Element` instance if so, otherwise raises
-    :exc:`ContentError`.
-
+    """Checks if the root element of an XML document or
+    :class:`~xml.etree.ElementTree.Element` meets the supplied criteria. Raises
+    :exc:`XMLError` if it is not met.
+    
+    :arg x: the XML document or :class:`~xml.etree.ElementTree.Element` to validate
     :arg tags: tag name or a sequence of allowable tag names
     :arg attrs: sequence of required attribute names, each item may be a list of allowable alternatives
-    :arg text: textual content to match
-    :type rep: :class:`~xml.etree.ElementTree.Element`
+    :returns: validated element
+    :rtype: :class:`~xml.etree.ElementTree.Element`
     """
     ele = to_ele(x)
     if tags:

@@ -260,7 +260,6 @@ class RPC(object):
         object. The :attr:`event` attribute will be set when the reply has been
         received (see :attr:`reply`) or an error occured (see :attr:`error`).
         
-        :arg opspec: :ref:`dtree` for the operation
         :type opspec: :obj:`dict` or :obj:`string` or :class:`~xml.etree.ElementTree.Element`
         :rtype: :class:`RPCReply` (sync) or :class:`RPC` (async)
         """
@@ -291,8 +290,7 @@ class RPC(object):
                 raise TimeoutExpiredError
 
     def request(self, *args, **kwds):
-        """Subclasses implement this method. Here, the operation is constructed
-        in :ref:`dtree`, and the result of :meth:`_request` returned."""
+        "Subclasses implement this method."
         return self._request(self.SPEC)
     
     def _assert(self, capability):

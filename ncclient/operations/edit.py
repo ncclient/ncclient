@@ -29,24 +29,14 @@ class EditConfig(RPC):
     
     def request(self, target, config, default_operation=None, test_option=None,
                 error_option=None):
-        """
-        :arg target: see :ref:`source_target`
-        :type target: string
-
-        :arg config: a config element in :ref:`dtree`
-        :type config: `string` or `dict` or :class:`~xml.etree.ElementTree.Element`
-
-        :arg default_operation: optional; one of {'merge', 'replace', 'none'}
-        :type default_operation: `string`
-
-        :arg error_option: optional; one of {'stop-on-error', 'continue-on-error', 'rollback-on-error'}. Last option depends on the *:rollback-on-error* capability
-        :type error_option: string
-
-        :arg test_option: optional; one of {'test-then-set', 'set'}. Depends on *:validate* capability.
-        :type test_option: string
-
-        :seealso: :ref:`return`
-        """
+        #:arg default_operation: optional; one of {'merge', 'replace', 'none'}
+        #:type default_operation: `string`
+        #
+        #:arg error_option: optional; one of {'stop-on-error', 'continue-on-error', 'rollback-on-error'}. Last option depends on the *:rollback-on-error* capability
+        #:type error_option: string
+        #
+        #:arg test_option: optional; one of {'test-then-set', 'set'}. Depends on *:validate* capability.
+        #:type test_option: string
         node = new_ele("edit-config")
         node.append(util.datastore_or_url("target", target, self._assert))
         if error_option is not None:
@@ -68,12 +58,6 @@ class DeleteConfig(RPC):
     "*<delete-config>* RPC"
 
     def request(self, target):
-        """
-        :arg target: See :ref:`source_target`
-        :type target: `string` or `dict` or :class:`~xml.etree.ElementTree.Element`
-
-        :seealso: :ref:`return`
-        """
         node = new_ele("delete-config")
         node.append(util.datastore_or_url("target", target, self._assert))
         return self._request(spec)
@@ -84,15 +68,6 @@ class CopyConfig(RPC):
     "*<copy-config>* RPC"
     
     def request(self, source, target):
-        """
-        :arg source: See :ref:`source_target`
-        :type source: `string` or `dict` or :class:`~xml.etree.ElementTree.Element`
-
-        :arg target: See :ref:`source_target`
-        :type target: `string` or `dict` or :class:`~xml.etree.ElementTree.Element`
-
-        :seealso: :ref:`return`
-        """
         node = new_ele("copy-config")
         node.append(util.datastore_or_url("target", target, self._assert))
         node.append(util.datastore_or_url("source", source, self._assert))
@@ -106,12 +81,6 @@ class Validate(RPC):
     DEPENDS = [':validate']
 
     def request(self, source):
-        """
-        :arg source: See :ref:`source_target`
-        :type source: `string` or `dict` or :class:`~xml.etree.ElementTree.Element`
-
-        :seealso: :ref:`return`
-        """
         node = new_ele("validate")
         try:
             src = validated_element(source, ("config", qualify("config")))
@@ -132,15 +101,12 @@ class Commit(RPC):
         """
         Requires *:confirmed-commit* capability if *confirmed* argument is
         :const:`True`.
-
-        :arg confirmed: optional; request a confirmed commit
-        :type confirmed: `bool`
-
-        :arg timeout: specify timeout for confirmed commit
-        :type timeout: `int`
-
-        :seealso: :ref:`return`
         """
+        #:arg confirmed: optional; request a confirmed commit
+        #:type confirmed: `bool`
+        #
+        #:arg timeout: specify timeout for confirmed commit
+        #:type timeout: `int`
         node = new_ele("commit")
         if confirmed:
             self._assert(":confirmed-commit")
@@ -158,5 +124,4 @@ class DiscardChanges(RPC):
     DEPENDS = [":candidate"]
 
     def request(self):
-        ":seealso: :ref:`return`"
         return self._request(new_ele("discard-changes"))

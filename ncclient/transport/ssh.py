@@ -147,9 +147,7 @@ class SSHSession(Session):
         the publickey authentication method and then password authentication.
 
         To disable attemting publickey authentication altogether, call with
-        *allow_agent* and *look_for_keys* as :const:`False`. This may be needed
-        for Cisco devices which immediately disconnect on an incorrect
-        authentication attempt.
+        *allow_agent* and *look_for_keys* as :const:`False`.
 
         :arg host: the hostname or IP address to connect to
         :type host: `string`

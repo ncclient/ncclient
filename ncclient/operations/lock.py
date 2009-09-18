@@ -27,12 +27,6 @@ class Lock(RPC):
     "*<lock>* RPC"
     
     def request(self, target):
-        """
-        :arg target: see :ref:`source_target`
-        :type target: string
-
-        :rtype: :ref:`return`
-        """
         node = new_ele("lock")
         sub_ele(sub_ele(node, "target"), "running")
         return self._request(node)
@@ -43,12 +37,6 @@ class Unlock(RPC):
     "*<unlock>* RPC"
     
     def request(self, target):
-        """
-        :arg target: see :ref:`source_target`
-        :type target: string
-
-        :rtype: :ref:`return`
-        """
         node = new_ele("unlock")
         sub_ele(sub_ele(node, "target"), "running")
         return self._request(node)
@@ -61,8 +49,8 @@ class LockContext:
     
     RPC errors are always raised as exceptions.
     
-    Initialise with session instance (:class:`Session
-    <ncclient.transport.Session>`) and lock target (:ref:`source_target`)
+    Initialise with (:class:`Session <ncclient.transport.Session>`) instance
+    and lock target.
     """
 
     def __init__(self, session, target):
