@@ -15,7 +15,7 @@
 from distutils.core import setup
 
 setup(name='ncclient',
-      version='0.2.0b',
+      version='0.2a',
       description="Python library for NETCONF clients",
       author="Shikhar Bhushan",
       author_email="shikhar@schmizz.net",

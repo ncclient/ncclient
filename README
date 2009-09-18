@@ -1,2 +1,11 @@
+ncclient: Python library for NETCONF clients
+=============================================
+
+Homepage: http://code.google.com/p/ncclient
+
+Requirements:
+* Python 2.6 <= version < 3.0
+* Paramiko 1.7.4+
+
 To install:
 $ python setup.py install
