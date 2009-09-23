@@ -178,8 +178,8 @@ class SSHSession(Session):
         """
 
         if username is None:
-            raise SSHError("No username specified")
-
+            username = getpass.getuser()
+        
         sock = None
         for res in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket.SOCK_STREAM):
             af, socktype, proto, canonname, sa = res
@@ -340,4 +340,3 @@ class SSHSession(Session):
         object. This makes it possible to call methods like set_keepalive on it.
         """
         return self._transport
-

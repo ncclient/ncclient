@@ -36,18 +36,19 @@ def schemes(url_uri):
 
 class Capabilities:
 
-    """Represents the set of capabilities for a NETCONF client or server.
-    Initialised with a list of capability URI's.
-
-    Presence of a capability can be checked with the *in* operations. In addition
+    """Represents the set of capabilities available to a NETCONF client or
+    server.
+    
+    Presence of a capability can be checked with the *in* operation. In addition
     to the URI, for capabilities of the form
     *urn:ietf:params:netconf:capability:$name:$version* their shorthand can be
     used as a key. For example, for
     *urn:ietf:params:netconf:capability:candidate:1.0* the shorthand would be
     *:candidate*. If version is significant, use *:candidate:1.0* as key.
     """
-
+    
     def __init__(self, capabilities):
+        "Initializes with a list of capability URI's"
         self._dict = {}
         for uri in capabilities:
             self._dict[uri] = _abbreviate(uri)
@@ -80,35 +81,8 @@ class Capabilities:
         "Remove a capability"
         if key in self._dict:
             del self._dict[key]
-
-    def check(self, key):
-        """Whether specified capability is present.
-
-        :arg key: URI or shorthand
-
-        .. note:
-            The *in* operation is the preferred form.
-        """
-        return key in self
-
+    
     def get_uri(self, shorthand):
         for uri, abbrs in self._dict.items():
             if shorthand in abbrs:
                 return uri
-
-#: :class:`Capabilities` object representing the capabilities currently supported by NCClient
-CAPABILITIES = Capabilities([
-    "urn:ietf:params:netconf:base:1.0",
-    "urn:ietf:params:netconf:capability:writable-running:1.0",
-    "urn:ietf:params:netconf:capability:candidate:1.0",
-    "urn:ietf:params:netconf:capability:confirmed-commit:1.0",
-    "urn:ietf:params:netconf:capability:rollback-on-error:1.0",
-    "urn:ietf:params:netconf:capability:startup:1.0",
-    "urn:ietf:params:netconf:capability:url:1.0?scheme=http,ftp,file,https,sftp",
-    "urn:ietf:params:netconf:capability:validate:1.0",
-    "urn:ietf:params:netconf:capability:xpath:1.0",
-    "urn:liberouter:params:netconf:capability:power-control:1.0"
-    "urn:ietf:params:netconf:capability:interleave:1.0"
-    #'urn:ietf:params:netconf:capability:notification:1.0', # TODO
-    
-])
