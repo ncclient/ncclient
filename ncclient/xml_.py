@@ -13,16 +13,14 @@
 # limitations under the License.
 
 
-"""The :mod:`xml_` module provides methods for creating, parsing, and dealing
-with XML. It uses :mod:`~xml.etree.ElementTree`."""
+"Methods for creating, parsing, and dealing with XML and ElementTree objects."
 
 from cStringIO import StringIO
 from xml.etree import cElementTree as ET
 
 from ncclient import NCClientError
 
-class XMLError(NCClientError):
-    pass
+class XMLError(NCClientError): pass
 
 ### Namespace-related
 
@@ -93,16 +91,7 @@ def parse_root(raw):
         return (element.tag, element.attrib)
 
 def validated_element(x, tags=None, attrs=None):
-    """Checks if the root element of an XML document or
-    :class:`~xml.etree.ElementTree.Element` meets the supplied criteria. Raises
-    :exc:`XMLError` if it is not met.
-    
-    :arg x: the XML document or :class:`~xml.etree.ElementTree.Element` to validate
-    :arg tags: tag name or a sequence of allowable tag names
-    :arg attrs: sequence of required attribute names, each item may be a list of allowable alternatives
-    :returns: validated element
-    :rtype: :class:`~xml.etree.ElementTree.Element`
-    """
+    "Checks if the root element of an XML document or Element meets the supplied criteria."
     ele = to_ele(x)
     if tags:
         if isinstance(tags, basestring):
@@ -119,8 +108,7 @@ def validated_element(x, tags=None, attrs=None):
                 raise XMLError("Element [%s] does not have required attributes" % ele.tag)
     return ele
 
-def new_ele(tag, attrs={}, **extra):
-    return ET.Element(tag, attrs, **extra)
 
-def sub_ele(parent, tag, attrs={}, **extra):
-    return ET.SubElement(parent, tag, attrs, **extra)
+new_ele = lambda tag, attrs={}, **extra: ET.Element(tag, attrs, **extra)
+
+sub_ele = lambda parent, tag, attrs={}, **extra: ET.SubElement(parent, tag, attrs, **extra)

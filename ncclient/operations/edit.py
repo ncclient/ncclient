@@ -29,14 +29,6 @@ class EditConfig(RPC):
     
     def request(self, target, config, default_operation=None, test_option=None,
                 error_option=None):
-        #:arg default_operation: optional; one of {'merge', 'replace', 'none'}
-        #:type default_operation: `string`
-        #
-        #:arg error_option: optional; one of {'stop-on-error', 'continue-on-error', 'rollback-on-error'}. Last option depends on the *:rollback-on-error* capability
-        #:type error_option: string
-        #
-        #:arg test_option: optional; one of {'test-then-set', 'set'}. Depends on *:validate* capability.
-        #:type test_option: string
         node = new_ele("edit-config")
         node.append(util.datastore_or_url("target", target, self._assert))
         if error_option is not None:
@@ -93,20 +85,11 @@ class Validate(RPC):
 
 class Commit(RPC):
 
-    "*<commit>* RPC. Depends on the *:candidate* capability."
+    "*<commit>* RPC. Depends on the *:candidate* capability, and the *:confirmed-commit* "
 
     DEPENDS = [':candidate']
     
     def request(self, confirmed=False, timeout=None):
-        """
-        Requires *:confirmed-commit* capability if *confirmed* argument is
-        :const:`True`.
-        """
-        #:arg confirmed: optional; request a confirmed commit
-        #:type confirmed: `bool`
-        #
-        #:arg timeout: specify timeout for confirmed commit
-        #:type timeout: `int`
         node = new_ele("commit")
         if confirmed:
             self._assert(":confirmed-commit")

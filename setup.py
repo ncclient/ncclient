@@ -15,11 +15,11 @@
 from distutils.core import setup
 
 setup(name='ncclient',
-      version='0.2a',
+      version='0.2',
       description="Python library for NETCONF clients",
       author="Shikhar Bhushan",
       author_email="shikhar@schmizz.net",
-      url="http://code.google.com/p/ncclient/",
+      url="http://schmizz.net/ncclient/",
       packages=["ncclient", "ncclient/transport", "ncclient/operations"],
       license="Apache License 2.0",
       platforms=["Posix; OS X; Windows"],
