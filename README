@@ -1,7 +1,7 @@
 ncclient: Python library for NETCONF clients
 ============================================
 
-Homepage: http://code.google.com/p/ncclient
+Homepage: http://schmizz.net/ncclient
 
 Requirements:
 * Python 2.6 <= version < 3.0
