@@ -196,7 +196,7 @@ class SSHSession(Session):
                 continue
             break
         else:
-            raise SSHError("Could not open socket")
+            raise SSHError("Could not open socket to %s:%s" % (host, port))
 
         t = self._transport = paramiko.Transport(sock)
         t.set_log_channel(logger.name)
