@@ -129,7 +129,7 @@ class RPCError(OperationError):
         if self.message is not None:
             OperationError.__init__(self, self.message)
         else:
-            OperationError.__init__(self, to_dict())
+            OperationError.__init__(self, self.to_dict())
     
     def to_dict(self):
         return {
