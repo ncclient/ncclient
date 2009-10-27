@@ -108,9 +108,9 @@ class RPCError(OperationError):
 
     def __init__(self, err):
         self._type = None
+        self._tag = None
         self._severity = None
         self._info = None
-        self._tag = None
         self._path = None
         self._message = None
         for subele in err:
@@ -134,7 +134,8 @@ class RPCError(OperationError):
     def to_dict(self):
         return {
             'type': self.type,
-            'tag': self.severity,
+            'tag': self.tag,
+            'severity': self.severity,
             'path': self.path,
             'message': self.message,
             'info': self.info
@@ -144,17 +145,17 @@ class RPCError(OperationError):
     def type(self):
         "`string` representing text of *error-type* element"
         return self._type
-
-    @property
-    def severity(self):
-        "`string` representing text of *error-severity* element"
-        return self._severity
-
+    
     @property
     def tag(self):
         "`string` representing text of *error-tag* element"
         return self._tag
-
+    
+    @property
+    def severity(self):
+        "`string` representing text of *error-severity* element"
+        return self._severity
+    
     @property
     def path(self):
         "`string` or :const:`None`; representing text of *error-path* element"
