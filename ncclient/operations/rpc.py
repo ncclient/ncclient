@@ -114,7 +114,9 @@ class RPCError(OperationError):
         self._path = None
         self._message = None
         for subele in err:
-            if subele.tag == qualify("error-tag"):
+            if subele.tag == qualify("error-type"):
+                self._type = subele.text
+            elif subele.tag == qualify("error-tag"):
                 self._tag = subele.text
             elif subele.tag == qualify("error-severity"):
                 self._severity = subele.text
@@ -127,8 +129,17 @@ class RPCError(OperationError):
         if self.message is not None:
             OperationError.__init__(self, self.message)
         else:
-            OperationError.__init__(self)
-
+            OperationError.__init__(self, to_dict())
+    
+    def to_dict(self):
+        return {
+            'type': self.type,
+            'tag': self.severity,
+            'path': self.path,
+            'message': self.message,
+            'info': self.info
+        }
+    
     @property
     def type(self):
         "`string` representing text of *error-type* element"
