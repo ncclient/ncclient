@@ -14,6 +14,7 @@
 
 import os
 import socket
+import getpass
 from binascii import hexlify
 from cStringIO import StringIO
 from select import select
