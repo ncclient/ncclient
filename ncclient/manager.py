@@ -87,7 +87,7 @@ class Manager(object):
         if op is None:
             raise AttributeError
         else:
-            return op(self.session,
+            return op(self._session,
                       async=self._async_mode,
                       timeout=self._timeout,
                       raise_mode=self._raise_mode).request
