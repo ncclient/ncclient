@@ -42,7 +42,7 @@ class EditConfig(RPC):
             # TODO: check if it is a valid default-operation
             sub_ele(node, "default-operation").text = default_operation
         node.append(validated_element(config, ("config", qualify("config"))))
-        return self._request(spec)
+        return self._request(node)
 
 
 class DeleteConfig(RPC):
@@ -52,7 +52,7 @@ class DeleteConfig(RPC):
     def request(self, target):
         node = new_ele("delete-config")
         node.append(util.datastore_or_url("target", target, self._assert))
-        return self._request(spec)
+        return self._request(node)
 
 
 class CopyConfig(RPC):
@@ -63,7 +63,7 @@ class CopyConfig(RPC):
         node = new_ele("copy-config")
         node.append(util.datastore_or_url("target", target, self._assert))
         node.append(util.datastore_or_url("source", source, self._assert))
-        return self._request(spec)
+        return self._request(node)
 
 
 class Validate(RPC):
@@ -80,7 +80,7 @@ class Validate(RPC):
             logger.debug(e)
             src = util.datastore_or_url("source", source, self._assert)
         (node if src.tag == "source" else sub_ele(node, "source")).append(src)
-        return self._request(spec)
+        return self._request(node)
 
 
 class Commit(RPC):
@@ -97,7 +97,7 @@ class Commit(RPC):
             if timeout is not None:
                 # TODO check if timeout is a valid integer?
                 sub_ele(node, "confirm-timeout").text = timeout
-        return self._request(Commit.SPEC)
+        return self._request(node)
 
 
 class DiscardChanges(RPC):
