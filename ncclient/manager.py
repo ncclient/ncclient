@@ -58,7 +58,7 @@ OPERATIONS = {
 
 
 def connect_ssh(*args, **kwds):
-    session = transport.SSHSession(capabilities.CAPABILITIES)
+    session = transport.SSHSession(CAPABILITIES)
     session.load_known_hosts()
     session.connect(*args, **kwds)
     return Manager(session)
