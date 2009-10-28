@@ -24,7 +24,7 @@ class CloseSession(RPC):
 
     def request(self):
         try:
-            return self._request(new_ele("close-sesion"))
+            return self._request(new_ele("close-session"))
         finally:
             self.session.close()
 

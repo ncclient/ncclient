@@ -116,10 +116,10 @@ class RPCError(OperationError):
     }
     
     def __init__(self, err):
-        for attr in tag_to_attr.values():
+        for attr in RPCError.tag_to_attr.values():
             setattr(self, attr, None)
         for subele in err:
-            attr = tag_to_attr.get(subele.tag, None)
+            attr = RPCError.tag_to_attr.get(subele.tag, None)
             if attr is not None:
                 setattr(self, attr, subele.text)
         if self.message is not None:
@@ -128,7 +128,7 @@ class RPCError(OperationError):
             OperationError.__init__(self, self.to_dict())
     
     def to_dict(self):
-        return dict([ (attr[1:], gettattr(self, attr)) for attr in tag_to_attr.values() ])
+        return dict([ (attr[1:], gettattr(self, attr)) for attr in RPCError.tag_to_attr.values() ])
     
     @property
     def type(self):
@@ -167,7 +167,7 @@ class RPCReplyListener(SessionListener): # internal use
     
     # one instance per session -- maybe there is a better way??
     def __new__(cls, session):
-        with creation_lock:
+        with RPCReplyListener.creation_lock:
             instance = session.get_listener_instance(cls)
             if instance is None:
                 instance = object.__new__(cls)
