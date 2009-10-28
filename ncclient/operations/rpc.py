@@ -105,41 +105,30 @@ class RPCError(OperationError):
 
     """Represents an *<rpc-error>*. It is a type of :exc:`OperationError`
     and can be raised like any other exception."""
-
+    
+    tag_to_attr = {
+        qualify("error-type"): "_type",
+        qualify("error-tag"): "_tag",
+        qualify("error-severity"): "_severity",
+        qualify("error-info"): "_info",
+        qualify("error-path"): "_path",
+        qualify("error-message"): "_message"
+    }
+    
     def __init__(self, err):
-        self._type = None
-        self._tag = None
-        self._severity = None
-        self._info = None
-        self._path = None
-        self._message = None
+        for attr in tag_to_attr.values():
+            setattr(self, attr, None)
         for subele in err:
-            if subele.tag == qualify("error-type"):
-                self._type = subele.text
-            elif subele.tag == qualify("error-tag"):
-                self._tag = subele.text
-            elif subele.tag == qualify("error-severity"):
-                self._severity = subele.text
-            elif subele.tag == qualify("error-info"):
-                self._info = subele.text
-            elif subele.tag == qualify("error-path"):
-                self._path = subele.text
-            elif subele.tag == qualify("error-message"):
-                self._message = subele.text
+            attr = tag_to_attr.get(subele.tag, None)
+            if attr is not None:
+                setattr(self, attr, subele.text)
         if self.message is not None:
             OperationError.__init__(self, self.message)
         else:
             OperationError.__init__(self, self.to_dict())
     
     def to_dict(self):
-        return {
-            'type': self.type,
-            'tag': self.tag,
-            'severity': self.severity,
-            'path': self.path,
-            'message': self.message,
-            'info': self.info
-        }
+        return dict([ (attr[1:], gettattr(self, attr)) for attr in tag_to_attr.values() ])
     
     @property
     def type(self):
@@ -160,32 +149,33 @@ class RPCError(OperationError):
     def path(self):
         "`string` or :const:`None`; representing text of *error-path* element"
         return self._path
-
+    
     @property
     def message(self):
         "`string` or :const:`None`; representing text of *error-message* element"
         return self._message
-
+    
     @property
     def info(self):
         "`string` (XML) or :const:`None`, representing *error-info* element"
         return self._info
 
 
-class RPCReplyListener(SessionListener):
-
-    # internal use
-
+class RPCReplyListener(SessionListener): # internal use
+    
+    creation_lock = Lock()
+    
     # one instance per session -- maybe there is a better way??
     def __new__(cls, session):
-        instance = session.get_listener_instance(cls)
-        if instance is None:
-            instance = object.__new__(cls)
-            instance._lock = Lock()
-            instance._id2rpc = {}
-            #instance._pipelined = session.can_pipeline
-            session.add_listener(instance)
-        return instance
+        with creation_lock:
+            instance = session.get_listener_instance(cls)
+            if instance is None:
+                instance = object.__new__(cls)
+                instance._lock = Lock()
+                instance._id2rpc = {}
+                #instance._pipelined = session.can_pipeline
+                session.add_listener(instance)
+            return instance
 
     def register(self, id, rpc):
         with self._lock:
@@ -199,12 +189,12 @@ class RPCReplyListener(SessionListener):
             if key == "message-id": # if we found msgid attr
                 id = attrs[key] # get the msgid
                 with self._lock:
-                    try:                    
+                    try:
                         rpc = self._id2rpc[id] # the corresponding rpc
                         logger.debug("Delivering to %r" % rpc)
                         rpc.deliver_reply(raw)
                     except KeyError:
-                        raise OperationError("Unknown message-id: %s", id)
+                        raise OperationError("Unknown 'message-id': %s", id)
                     # no catching other exceptions, fail loudly if must
                     else:
                         # if no error delivering, can del the reference to the RPC
