@@ -121,14 +121,14 @@ class RPCError(OperationError):
         for subele in err:
             attr = RPCError.tag_to_attr.get(subele.tag, None)
             if attr is not None:
-                setattr(self, attr, subele.text)
+                setattr(self, attr, subele.text if attr != "_info" else to_xml(subele) )
         if self.message is not None:
             OperationError.__init__(self, self.message)
         else:
             OperationError.__init__(self, self.to_dict())
     
     def to_dict(self):
-        return dict([ (attr[1:], gettattr(self, attr)) for attr in RPCError.tag_to_attr.values() ])
+        return dict([ (attr[1:], getattr(self, attr)) for attr in RPCError.tag_to_attr.values() ])
     
     @property
     def type(self):
