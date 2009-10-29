@@ -20,38 +20,35 @@ import util
 
 class GetReply(RPCReply):
 
-    """Adds attributes for the *<data>* element to :class:`RPCReply`, which
-    pertains to the :class:`Get` and :class:`GetConfig` operations."""
+    """Adds attributes for the *data* element to `RPCReply`. This pertains to the `Get` and
+    `GetConfig` operations."""
 
     def _parsing_hook(self, root):
         self._data = None
         if not self._errors:
             self._data = root.find(qualify("data"))
-
+    
     @property
     def data_ele(self):
-        "*<data>* element as an :class:`~xml.etree.ElementTree.Element`"
+        "*data* element as an `~xml.etree.ElementTree.Element`"
         if not self._parsed:
             self.parse()
         return self._data
 
     @property
     def data_xml(self):
-        "*<data>* element as an XML string"
+        "*data* element as an XML string"
         if not self._parsed:
             self.parse()
         return to_xml(self._data)
     
-    #: Same as :attr:`data_ele`
     data = data_ele
-    
-    #def __repr__(self):
-    #    return self.data_xml
+    "Same as :attr:`data_ele`"
 
 
 class Get(RPC):
 
-    "The *<get>* RPC"
+    "The *get* RPC."
 
     REPLY_CLS = GetReply
 
@@ -64,7 +61,7 @@ class Get(RPC):
 
 class GetConfig(RPC):
 
-    "The *<get-config>* RPC"
+    "The *get-config* RPC."
 
     REPLY_CLS = GetReply
 

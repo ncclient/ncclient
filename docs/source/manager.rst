@@ -1,84 +1,27 @@
 :mod:`~ncclient.manager` -- High-level API
 ==========================================
 
-.. module:: ncclient.manager
+.. automodule:: ncclient.manager
     :synopsis: High-level API
 
-.. data:: CAPABILITIES
+Module data
+-----------
 
-    List of URI strings representing the client's capabilities. This is used during the initial
-    capability exchange. Modify this if you need to announce some capability not already included.
+These attributes control what capabilties are exchanged with the NETCONF server and what operations
+are available through the `Manager` API.
 
-.. data:: OPERATIONS
-    
-    Dictionary of method names and corresponding `~ncclient.operations.RPC` classes. `Manager` uses
-    this to lookup operations, e.g. "get_config" is mapped to `ncclient.operations.GetConfig`. It
-    is thus possible to add additional operations to the `Manager` API.
+.. autodata:: CAPABILITIES
+
+.. autodata:: OPERATIONS
 
 Factory functions
 -----------------
 
 A `Manager` instance is created using a factory function.
 
-.. function:: connect_ssh(host[, port=830, timeout=None, unknown_host_cb=default_unknown_host_cb, username=None, password, key_filename=None, allow_agent=True, look_for_keys=True])
-    
-    Initializes a NETCONF session over SSH, and creates a connected `Manager` instance. *host* must
-    be specified, all the other arguments are optional and depend on the kind of host key
-    verification and user authentication you want to complete.
-    
-    For the purpose of host key verification, on -NIX systems a user's :file:`~/.ssh/known_hosts`
-    file is automatically considered. The *unknown_host_cb* argument specifies a callback that will
-    be invoked when the server's host key cannot be verified. See
-    :func:`~ncclient.transport.ssh.default_known_host_cb` for function signature.
-    
-    First, ``publickey`` authentication is attempted. If a specific *key_filename* is specified, it
-    will be loaded and authentication attempted using it. If *allow_agent* is :const:`True` and an
-    SSH agent is running, the keys provided by the agent will be tried. If *look_for_keys* is
-    :const:`True`, keys in the :file:`~/.ssh/id_rsa` and :file:`~.ssh/id_dsa` will be tried. In case
-    an encrypted key file is encountered, the *password* argument will be used as a decryption
-    passphrase.
-    
-    If ``publickey`` authentication fails and the *password* argument has been supplied,
-    ``password`` / ``keyboard-interactive`` SSH authentication will be attempted.
-    
-    :param host: hostname or address on which to connect
-    :type host: `string`
-    
-    :param port: port on which to connect
-    :type port: `int`
-    
-    :param timeout: timeout for socket connect
-    :type timeout: `int`
-    
-    :param unknown_host_cb: optional; callback that is invoked when host key verification fails
-    :type unknown_host_cb: `function`
-    
-    :param username: username to authenticate with, if not specified the username of the logged-in
-                       user is used
-    :type username: `string`
-    
-    :param password: password for ``password`` authentication or passphrase for decrypting
-                       private key files
-    :type password: `string`
-    
-    :param key_filename: location of a private key file on the file system
-    :type key_filename: `string`
-    
-    :param allow_agent: whether to try connecting to SSH agent for keys
-    :type allow_agent: `bool`
-    
-    :param look_for_keys: whether to look in usual locations for keys
-    :type look_for_keys: `bool`
-    
-    :raises: :exc:`~ncclient.transport.SSHUnknownHostError`
-    :raises: :exc:`~ncclient.transport.AuthenticationError`
-    
-    :rtype: `Manager`
-    
-.. function:: connect()
+.. autofunction:: connect_ssh(host[, port=830, timeout=None, unknown_host_cb=default_unknown_host_cb, username=None, password, key_filename=None, allow_agent=True, look_for_keys=True])
 
-    Same as :func:`connect_ssh`, since SSH is the default (and currently, the
-    only) transport.
+.. autodata:: connect
 
 Manager
 -------
@@ -263,7 +206,7 @@ errors, e.g. unexpected session close, :exc:`~ncclient.transport.TransportError`
         Valid values:
         
         * ``"all"`` -- any kind of *rpc-error* (error or warning)
-        * ``"errors"`` -- where the *error-type* attribute says it is an error
+        * ``"errors"`` -- where the *error-type* element says it is an error
         * ``"none"`` -- neither
         
     .. attribute:: client_capabilities

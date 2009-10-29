@@ -1,8 +1,6 @@
 Complete API documentation
 ==========================
 
-**TODO**
-
 .. toctree::
     
     capabilities
