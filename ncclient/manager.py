@@ -21,8 +21,7 @@ import transport
 import logging
 logger = logging.getLogger('ncclient.manager')
 
-
-CAPABILITIES = capabilities.Capabilities([
+CAPABILITIES = [
     "urn:ietf:params:netconf:base:1.0",
     "urn:ietf:params:netconf:capability:writable-running:1.0",
     "urn:ietf:params:netconf:capability:candidate:1.0",
@@ -35,10 +34,9 @@ CAPABILITIES = capabilities.Capabilities([
     "urn:liberouter:params:netconf:capability:power-control:1.0"
     "urn:ietf:params:netconf:capability:interleave:1.0"
     #'urn:ietf:params:netconf:capability:notification:1.0', # TODO    
-])
-"""`~ncclient.capabilities.Capabilities` object representing the client's capabilities. This is used
-during the initial capability exchange. Modify this if you need to announce some capability not
-already included.
+]
+"""A list of URI's representing the client's capabilities. This is used during the initial
+capability exchange. Modify this if you need to announce some capability not already included.
 """
 
 OPERATIONS = {
@@ -57,10 +55,9 @@ OPERATIONS = {
     "poweroff_machine": operations.PoweroffMachine,
     "reboot_machine": operations.RebootMachine
 }
-"""Dictionary of method names and corresponding `~ncclient.operations.RPC` subclasses. `Manager`
-uses this to lookup operations, e.g. "get_config" is mapped to `~ncclient.operations.GetConfig`. It
-is thus possible to add additional operations to the `Manager` API.
-"""
+"""Dictionary of method names and corresponding `~ncclient.operations.RPC` subclasses. It is used to
+lookup operations, e.g. "get_config" is mapped to `~ncclient.operations.GetConfig`. It is thus
+possible to add additional operations to the `Manager` API."""
 
 def connect_ssh(*args, **kwds):
     """Initializes a NETCONF session over SSH, and creates a connected `Manager` instance. *host*
@@ -114,7 +111,7 @@ def connect_ssh(*args, **kwds):
     
     :rtype: `Manager`
     """    
-    session = transport.SSHSession(CAPABILITIES)
+    session = transport.SSHSession(capabilities.Capabilities(CAPABILITIES))
     session.load_known_hosts()
     session.connect(*args, **kwds)
     return Manager(session)

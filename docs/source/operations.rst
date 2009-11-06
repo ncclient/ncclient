@@ -20,9 +20,11 @@ Base classes
 Operations
 ----------
 
-*TODO* The operation classes are currently undocumented. See documentation of
-`~ncclient.manager.Manager` for methods that utilize the operation classes. The parameters accepted
-by :meth:`~RPC.request` for these classes are the same.
+*TODO*
+
+The operation classes are currently undocumented. See documentation of `~ncclient.manager.Manager`
+for methods that utilize the operation classes. The parameters accepted by :meth:`~RPC.request` for
+these classes are the same.
 
 Replies with data
 -----------------

@@ -10,9 +10,9 @@ Module data
 These attributes control what capabilties are exchanged with the NETCONF server and what operations
 are available through the `Manager` API.
 
-.. autodata:: CAPABILITIES
-
 .. autodata:: OPERATIONS
+
+.. autodata:: CAPABILITIES
 
 Factory functions
 -----------------
