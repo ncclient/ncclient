@@ -20,7 +20,7 @@ The best way to introduce is of course, through a simple code example::
 
     # use unencrypted keys from ssh-agent or ~/.ssh keys, and rely on known_hosts
     with manager.connect_ssh("host", username="user") as m:
-        assert(":url" in manager.server_capabilities)
+        assert(":url" in m.server_capabilities)
         with m.locked("running"):
             m.copy_config(source="running", target="file:///new_checkpoint.conf")
             m.copy_config(source="file:///old_checkpoint.conf", target="running")
