@@ -1,0 +1,361 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>operations – Everything RPC &mdash; ncclient v0.2a documentation</title>
+    <link rel="stylesheet" href="static/default.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '0.2a',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="static/jquery.js"></script>
+    <script type="text/javascript" src="static/doctools.js"></script>
+    <link rel="top" title="ncclient v0.2a documentation" href="index.html" />
+    <link rel="up" title="Complete API documentation" href="api.html" />
+    <link rel="next" title="Extending ncclient" href="extending.html" />
+    <link rel="prev" title="transport – Transport / Session layer" href="transport.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="extending.html" title="Extending ncclient"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="transport.html" title="transport – Transport / Session layer"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">ncclient v0.2a documentation</a> &raquo;</li>
+          <li><a href="api.html" accesskey="U">Complete API documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="operations-everything-rpc">
+<h1><tt class="xref docutils literal"><span class="pre">operations</span></tt> &#8211; Everything RPC<a class="headerlink" href="#operations-everything-rpc" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-ncclient.operations">
+<h2>Base classes<a class="headerlink" href="#module-ncclient.operations" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ncclient.operations.RPC">
+<em class="property">class </em><tt class="descclassname">ncclient.operations.</tt><tt class="descname">RPC</tt><big>(</big><em>session</em><span class="optional">[</span>, <em>async=False</em>, <em>timeout=None</em>, <em>raise_mode=&quot;none&quot;</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#ncclient.operations.RPC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for all operations, directly corresponding to <em>rpc</em> requests. Handles making the
+request, and taking delivery of the reply.</p>
+<dl class="attribute">
+<dt id="ncclient.operations.RPC.DEPENDS">
+<tt class="descname">DEPENDS</tt><a class="headerlink" href="#ncclient.operations.RPC.DEPENDS" title="Permalink to this definition">¶</a></dt>
+<dd>Subclasses can specify their dependencies on capabilities. List of URI&#8217;s or abbreviated
+names, e.g. &#8216;:writable-running&#8217;. These are verified at the time of instantiation. If the
+capability is not available, a <a title="ncclient.operations.MissingCapabilityError" class="reference internal" href="#ncclient.operations.MissingCapabilityError"><tt class="xref docutils literal"><span class="pre">MissingCapabilityError</span></tt></a> is raised.</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPC.REPLY_CLS">
+<tt class="descname">REPLY_CLS</tt><a class="headerlink" href="#ncclient.operations.RPC.REPLY_CLS" title="Permalink to this definition">¶</a></dt>
+<dd>Subclasses can specify a different reply class, but it should be a subclass of <a title="ncclient.operations.RPCReply" class="reference internal" href="#ncclient.operations.RPCReply"><tt class="xref docutils literal"><span class="pre">RPCReply</span></tt></a>.</dd></dl>
+
+<dl class="method">
+<dt id="ncclient.operations.RPC._assert">
+<tt class="descname">_assert</tt><big>(</big><em>capability</em><big>)</big><a class="headerlink" href="#ncclient.operations.RPC._assert" title="Permalink to this definition">¶</a></dt>
+<dd>Subclasses can use this method to verify that a capability is available with the NETCONF
+server, before making a request that requires it. A <a title="ncclient.operations.MissingCapabilityError" class="reference internal" href="#ncclient.operations.MissingCapabilityError"><tt class="xref docutils literal"><span class="pre">MissingCapabilityError</span></tt></a> will be
+raised if the capability is not available.</dd></dl>
+
+<dl class="method">
+<dt id="ncclient.operations.RPC._request">
+<tt class="descname">_request</tt><big>(</big><em>op</em><big>)</big><a class="headerlink" href="#ncclient.operations.RPC._request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implementations of <a title="ncclient.operations.RPC.request" class="reference internal" href="#ncclient.operations.RPC.request"><tt class="xref docutils literal"><span class="pre">request()</span></tt></a> call this method to send the request and process the
+reply.</p>
+<p>In synchronous mode, blocks until the reply is received and returns <a title="ncclient.operations.RPCReply" class="reference internal" href="#ncclient.operations.RPCReply"><tt class="xref docutils literal"><span class="pre">RPCReply</span></tt></a>. Depending on
+the <a title="ncclient.operations.RPC.raise_mode" class="reference internal" href="#ncclient.operations.RPC.raise_mode"><tt class="xref docutils literal"><span class="pre">raise_mode</span></tt></a> a <em>rpc-error</em> element in the reply may lead to an <a title="ncclient.operations.RPCError" class="reference internal" href="#ncclient.operations.RPCError"><tt class="xref docutils literal"><span class="pre">RPCError</span></tt></a>
+exception.</p>
+<p>In asynchronous mode, returns immediately, returning <em>self</em>. The <a title="ncclient.operations.RPC.event" class="reference internal" href="#ncclient.operations.RPC.event"><tt class="xref docutils literal"><span class="pre">event</span></tt></a> attribute
+will be set when the reply has been received (see <a title="ncclient.operations.RPC.reply" class="reference internal" href="#ncclient.operations.RPC.reply"><tt class="xref docutils literal"><span class="pre">reply</span></tt></a>) or an error occured (see
+<a title="ncclient.operations.RPC.error" class="reference internal" href="#ncclient.operations.RPC.error"><tt class="xref docutils literal"><span class="pre">error</span></tt></a>).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameter:</th><td class="field-body"><em>op</em> &#8211; operation to be requested</td>
+</tr>
+<tr class="field"><th class="field-name">Return type:</th><td class="field-body"><a title="ncclient.operations.RPCReply" class="reference internal" href="#ncclient.operations.RPCReply"><tt class="xref docutils literal"><span class="pre">RPCReply</span></tt></a> (sync) or <a title="ncclient.operations.RPC" class="reference internal" href="#ncclient.operations.RPC"><tt class="xref docutils literal"><span class="pre">RPC</span></tt></a> (async)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ncclient.operations.RPC.request">
+<tt class="descname">request</tt><big>(</big><em>*args</em>, <em>**kwds</em><big>)</big><a class="headerlink" href="#ncclient.operations.RPC.request" title="Permalink to this definition">¶</a></dt>
+<dd>Subclasses must implement this method. Typically only the request needs to be built as an
+<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element"><tt class="xref docutils literal"><span class="pre">Element</span></tt></a> and everything else can be handed off to
+<a title="ncclient.operations.RPC._request" class="reference internal" href="#ncclient.operations.RPC._request"><tt class="xref docutils literal"><span class="pre">_request()</span></tt></a>.</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPC.event">
+<tt class="descname">event</tt><a class="headerlink" href="#ncclient.operations.RPC.event" title="Permalink to this definition">¶</a></dt>
+<dd><a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/threading.html#threading.Event"><tt class="xref docutils literal"><span class="pre">Event</span></tt></a> that is set when reply has been received or when an error preventing
+delivery of the reply occurs.</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPC.error">
+<tt class="descname">error</tt><a class="headerlink" href="#ncclient.operations.RPC.error" title="Permalink to this definition">¶</a></dt>
+<dd><p><a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/exceptions.html#exceptions.Exception"><tt class="xref docutils literal"><span class="pre">Exception</span></tt></a> type if an error occured or <a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/constants.html#None"><tt class="xref xref docutils literal"><span class="pre">None</span></tt></a>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This represents an error which prevented a reply from being received. An <em>rpc-error</em>
+does not fall in that category &#8211; see <a title="ncclient.operations.RPCReply" class="reference internal" href="#ncclient.operations.RPCReply"><tt class="xref docutils literal"><span class="pre">RPCReply</span></tt></a> for that.</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPC.reply">
+<tt class="descname">reply</tt><a class="headerlink" href="#ncclient.operations.RPC.reply" title="Permalink to this definition">¶</a></dt>
+<dd><a title="ncclient.operations.RPCReply" class="reference internal" href="#ncclient.operations.RPCReply"><tt class="xref docutils literal"><span class="pre">RPCReply</span></tt></a> element if reply has been received or <a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/constants.html#None"><tt class="xref xref docutils literal"><span class="pre">None</span></tt></a></dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPC.raise_mode">
+<tt class="descname">raise_mode</tt><a class="headerlink" href="#ncclient.operations.RPC.raise_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Depending on this exception raising mode, an <em>rpc-error</em> in the reply may be raised as
+<a title="ncclient.operations.RPCError" class="reference internal" href="#ncclient.operations.RPCError"><tt class="xref docutils literal"><span class="pre">RPCError</span></tt></a> exceptions. Valid values:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">&quot;all&quot;</span></tt> &#8211; any kind of <em>rpc-error</em> (error or warning)</li>
+<li><tt class="docutils literal"><span class="pre">&quot;errors&quot;</span></tt> &#8211; when the <em>error-type</em> element says it is an error</li>
+<li><tt class="docutils literal"><span class="pre">&quot;none&quot;</span></tt> &#8211; neither</li>
+</ul>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPC.is_async">
+<tt class="descname">is_async</tt><a class="headerlink" href="#ncclient.operations.RPC.is_async" title="Permalink to this definition">¶</a></dt>
+<dd>Specifies whether this RPC will be / was requested asynchronously. By default RPC&#8217;s are
+synchronous.</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPC.timeout">
+<tt class="descname">timeout</tt><a class="headerlink" href="#ncclient.operations.RPC.timeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Timeout in seconds for synchronous waiting defining how long the RPC request will block on a
+reply before raising <a title="ncclient.operations.TimeoutExpiredError" class="reference internal" href="#ncclient.operations.TimeoutExpiredError"><tt class="xref docutils literal"><span class="pre">TimeoutExpiredError</span></tt></a>. By default there is no timeout, represented by
+<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/constants.html#None"><tt class="xref xref docutils literal"><span class="pre">None</span></tt></a>.</p>
+<p>Irrelevant for asynchronous usage.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ncclient.operations.RPCReply">
+<em class="property">class </em><tt class="descclassname">ncclient.operations.</tt><tt class="descname">RPCReply</tt><big>(</big><em>raw</em><big>)</big><a class="headerlink" href="#ncclient.operations.RPCReply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represents an <em>rpc-reply</em>. Only concerns itself with whether the operation was successful.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If the reply has not yet been parsed there is an implicit, one-time parsing overhead to
+accessing the attributes defined by this class and any subclasses.</p>
+</div>
+<dl class="attribute">
+<dt id="ncclient.operations.RPCReply.xml">
+<tt class="descname">xml</tt><a class="headerlink" href="#ncclient.operations.RPCReply.xml" title="Permalink to this definition">¶</a></dt>
+<dd><em>rpc-reply</em> element as returned.</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPCReply.ok">
+<tt class="descname">ok</tt><a class="headerlink" href="#ncclient.operations.RPCReply.ok" title="Permalink to this definition">¶</a></dt>
+<dd>Boolean value indicating if there were no errors.</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPCReply.error">
+<tt class="descname">error</tt><a class="headerlink" href="#ncclient.operations.RPCReply.error" title="Permalink to this definition">¶</a></dt>
+<dd>Returns the first <a title="ncclient.operations.RPCError" class="reference internal" href="#ncclient.operations.RPCError"><tt class="xref docutils literal"><span class="pre">RPCError</span></tt></a> and <a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/constants.html#None"><tt class="xref xref docutils literal"><span class="pre">None</span></tt></a> if there were no errors.</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPCReply.errors">
+<tt class="descname">errors</tt><a class="headerlink" href="#ncclient.operations.RPCReply.errors" title="Permalink to this definition">¶</a></dt>
+<dd><a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/functions.html#list"><tt class="xref docutils literal"><span class="pre">list</span></tt></a> of <a title="ncclient.operations.RPCError" class="reference internal" href="#ncclient.operations.RPCError"><tt class="xref docutils literal"><span class="pre">RPCError</span></tt></a> objects. Will be empty if there were no <em>rpc-error</em> elements in
+reply.</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="ncclient.operations.RPCError">
+<em class="property">exception </em><tt class="descclassname">ncclient.operations.</tt><tt class="descname">RPCError</tt><big>(</big><em>raw</em><big>)</big><a class="headerlink" href="#ncclient.operations.RPCError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">ncclient.operations.errors.OperationError</span></tt></p>
+<p>Represents an <em>rpc-error</em>. It is a type of <a title="ncclient.operations.OperationError" class="reference internal" href="#ncclient.operations.OperationError"><tt class="xref docutils literal"><span class="pre">OperationError</span></tt></a> and can be raised like any
+other exception.</p>
+<dl class="attribute">
+<dt id="ncclient.operations.RPCError.type">
+<tt class="descname">type</tt><a class="headerlink" href="#ncclient.operations.RPCError.type" title="Permalink to this definition">¶</a></dt>
+<dd><a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/string.html#string"><tt class="xref docutils literal"><span class="pre">string</span></tt></a> representing text of <em>error-type</em> element.</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPCError.severity">
+<tt class="descname">severity</tt><a class="headerlink" href="#ncclient.operations.RPCError.severity" title="Permalink to this definition">¶</a></dt>
+<dd><a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/string.html#string"><tt class="xref docutils literal"><span class="pre">string</span></tt></a> representing text of <em>error-severity</em> element.</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPCError.tag">
+<tt class="descname">tag</tt><a class="headerlink" href="#ncclient.operations.RPCError.tag" title="Permalink to this definition">¶</a></dt>
+<dd><a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/string.html#string"><tt class="xref docutils literal"><span class="pre">string</span></tt></a> representing text of <em>error-tag</em> element.</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPCError.path">
+<tt class="descname">path</tt><a class="headerlink" href="#ncclient.operations.RPCError.path" title="Permalink to this definition">¶</a></dt>
+<dd><a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/string.html#string"><tt class="xref docutils literal"><span class="pre">string</span></tt></a> or <a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/constants.html#None"><tt class="xref xref docutils literal"><span class="pre">None</span></tt></a>; representing text of <em>error-path</em> element.</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPCError.message">
+<tt class="descname">message</tt><a class="headerlink" href="#ncclient.operations.RPCError.message" title="Permalink to this definition">¶</a></dt>
+<dd><a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/string.html#string"><tt class="xref docutils literal"><span class="pre">string</span></tt></a> or <a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/constants.html#None"><tt class="xref xref docutils literal"><span class="pre">None</span></tt></a>; representing text of <em>error-message</em> element.</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPCError.info">
+<tt class="descname">info</tt><a class="headerlink" href="#ncclient.operations.RPCError.info" title="Permalink to this definition">¶</a></dt>
+<dd><a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/string.html#string"><tt class="xref docutils literal"><span class="pre">string</span></tt></a> (XML) or <a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/constants.html#None"><tt class="xref xref docutils literal"><span class="pre">None</span></tt></a>; representing <em>error-info</em> element.</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="operations">
+<h2>Operations<a class="headerlink" href="#operations" title="Permalink to this headline">¶</a></h2>
+<p><em>TODO</em></p>
+<p>The operation classes are currently undocumented. See documentation of <a title="ncclient.manager.Manager" class="reference external" href="manager.html#ncclient.manager.Manager"><tt class="xref docutils literal"><span class="pre">Manager</span></tt></a>
+for methods that utilize the operation classes. The parameters accepted by <a title="ncclient.operations.RPC.request" class="reference internal" href="#ncclient.operations.RPC.request"><tt class="xref docutils literal"><span class="pre">request()</span></tt></a> for
+these classes are the same.</p>
+</div>
+<div class="section" id="replies-with-data">
+<h2>Replies with data<a class="headerlink" href="#replies-with-data" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ncclient.operations.GetReply">
+<em class="property">class </em><tt class="descclassname">ncclient.operations.</tt><tt class="descname">GetReply</tt><big>(</big><em>raw</em><big>)</big><a class="headerlink" href="#ncclient.operations.GetReply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">ncclient.operations.rpc.RPCReply</span></tt></p>
+<p>Adds attributes for the <em>data</em> element to <a title="ncclient.operations.RPCReply" class="reference internal" href="#ncclient.operations.RPCReply"><tt class="xref docutils literal"><span class="pre">RPCReply</span></tt></a>. This pertains to the <tt class="xref docutils literal"><span class="pre">Get</span></tt> and
+<tt class="xref docutils literal"><span class="pre">GetConfig</span></tt> operations.</p>
+<dl class="attribute">
+<dt id="ncclient.operations.GetReply.data">
+<tt class="descname">data</tt><a class="headerlink" href="#ncclient.operations.GetReply.data" title="Permalink to this definition">¶</a></dt>
+<dd>Same as <a title="ncclient.operations.GetReply.data_ele" class="reference internal" href="#ncclient.operations.GetReply.data_ele"><tt class="xref docutils literal"><span class="pre">data_ele</span></tt></a></dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.GetReply.data_ele">
+<tt class="descname">data_ele</tt><a class="headerlink" href="#ncclient.operations.GetReply.data_ele" title="Permalink to this definition">¶</a></dt>
+<dd><em>data</em> element as an <a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element"><tt class="xref docutils literal"><span class="pre">Element</span></tt></a></dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.GetReply.data_xml">
+<tt class="descname">data_xml</tt><a class="headerlink" href="#ncclient.operations.GetReply.data_xml" title="Permalink to this definition">¶</a></dt>
+<dd><em>data</em> element as an XML string</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="exceptions">
+<h2>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="ncclient.operations.OperationError">
+<em class="property">exception </em><tt class="descclassname">ncclient.operations.</tt><tt class="descname">OperationError</tt><a class="headerlink" href="#ncclient.operations.OperationError" title="Permalink to this definition">¶</a></dt>
+<dd>Bases: <tt class="xref docutils literal"><span class="pre">ncclient.NCClientError</span></tt></dd></dl>
+
+<dl class="exception">
+<dt id="ncclient.operations.MissingCapabilityError">
+<em class="property">exception </em><tt class="descclassname">ncclient.operations.</tt><tt class="descname">MissingCapabilityError</tt><a class="headerlink" href="#ncclient.operations.MissingCapabilityError" title="Permalink to this definition">¶</a></dt>
+<dd>Bases: <tt class="xref docutils literal"><span class="pre">ncclient.NCClientError</span></tt></dd></dl>
+
+<dl class="exception">
+<dt id="ncclient.operations.TimeoutExpiredError">
+<em class="property">exception </em><tt class="descclassname">ncclient.operations.</tt><tt class="descname">TimeoutExpiredError</tt><a class="headerlink" href="#ncclient.operations.TimeoutExpiredError" title="Permalink to this definition">¶</a></dt>
+<dd>Bases: <tt class="xref docutils literal"><span class="pre">ncclient.NCClientError</span></tt></dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<p align="center">
+  <a href="http://schmizz.net/ncclient">
+    <img src="static/logo.png" width="125" height="125"/>
+  </a>
+</p>
+
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#"><tt class="docutils literal"><span class="pre">operations</span></tt> &#8211; Everything RPC</a><ul>
+<li><a class="reference external" href="#module-ncclient.operations">Base classes</a></li>
+<li><a class="reference external" href="#operations">Operations</a></li>
+<li><a class="reference external" href="#replies-with-data">Replies with data</a></li>
+<li><a class="reference external" href="#exceptions">Exceptions</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="transport.html"
+                                  title="previous chapter"><tt class="docutils literal"><span class="pre">transport</span></tt> &#8211; Transport / Session layer</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="extending.html"
+                                  title="next chapter">Extending ncclient</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="sources/operations.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="extending.html" title="Extending ncclient"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="transport.html" title="transport – Transport / Session layer"
+             >previous</a> |</li>
+        <li><a href="index.html">ncclient v0.2a documentation</a> &raquo;</li>
+          <li><a href="api.html" >Complete API documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Shikhar Bhushan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+    </div>
+  </body>
+</html>

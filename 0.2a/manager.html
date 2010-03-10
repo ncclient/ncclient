@@ -1,0 +1,521 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>manager – High-level API &mdash; ncclient v0.2a documentation</title>
+    <link rel="stylesheet" href="static/default.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '0.2a',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="static/jquery.js"></script>
+    <script type="text/javascript" src="static/doctools.js"></script>
+    <link rel="top" title="ncclient v0.2a documentation" href="index.html" />
+    <link rel="next" title="Complete API documentation" href="api.html" />
+    <link rel="prev" title="Welcome" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="api.html" title="Complete API documentation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">ncclient v0.2a documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-ncclient.manager">
+<h1><tt class="xref docutils literal"><span class="pre">manager</span></tt> &#8211; High-level API<a class="headerlink" href="#module-ncclient.manager" title="Permalink to this headline">¶</a></h1>
+<p>This module is a thin layer of abstraction around the library. It exposes all core functionality.</p>
+<div class="section" id="module-data">
+<h2>Module data<a class="headerlink" href="#module-data" title="Permalink to this headline">¶</a></h2>
+<p>These attributes control what capabilties are exchanged with the NETCONF server and what operations
+are available through the <a title="ncclient.manager.Manager" class="reference internal" href="#ncclient.manager.Manager"><tt class="xref docutils literal"><span class="pre">Manager</span></tt></a> API.</p>
+<dl class="data">
+<dt id="ncclient.manager.OPERATIONS">
+<tt class="descclassname">ncclient.manager.</tt><tt class="descname">OPERATIONS</tt><a class="headerlink" href="#ncclient.manager.OPERATIONS" title="Permalink to this definition">¶</a></dt>
+<dd>Dictionary of method names and corresponding <a title="ncclient.operations.RPC" class="reference external" href="operations.html#ncclient.operations.RPC"><tt class="xref docutils literal"><span class="pre">RPC</span></tt></a> subclasses. It is used to
+lookup operations, e.g. &#8220;get_config&#8221; is mapped to <tt class="xref docutils literal"><span class="pre">GetConfig</span></tt>. It is thus
+possible to add additional operations to the <a title="ncclient.manager.Manager" class="reference internal" href="#ncclient.manager.Manager"><tt class="xref docutils literal"><span class="pre">Manager</span></tt></a> API.</dd></dl>
+
+<dl class="data">
+<dt id="ncclient.manager.CAPABILITIES">
+<tt class="descclassname">ncclient.manager.</tt><tt class="descname">CAPABILITIES</tt><a class="headerlink" href="#ncclient.manager.CAPABILITIES" title="Permalink to this definition">¶</a></dt>
+<dd>A list of URI&#8217;s representing the client&#8217;s capabilities. This is used during the initial
+capability exchange. Modify this if you need to announce some capability not already included.</dd></dl>
+
+</div>
+<div class="section" id="factory-functions">
+<h2>Factory functions<a class="headerlink" href="#factory-functions" title="Permalink to this headline">¶</a></h2>
+<p>A <a title="ncclient.manager.Manager" class="reference internal" href="#ncclient.manager.Manager"><tt class="xref docutils literal"><span class="pre">Manager</span></tt></a> instance is created using a factory function.</p>
+<dl class="function">
+<dt id="ncclient.manager.connect_ssh">
+<tt class="descclassname">ncclient.manager.</tt><tt class="descname">connect_ssh</tt><big>(</big><em>host</em><span class="optional">[</span>, <em>port=830</em>, <em>timeout=None</em>, <em>unknown_host_cb=default_unknown_host_cb</em>, <em>username=None</em>, <em>password</em>, <em>key_filename=None</em>, <em>allow_agent=True</em>, <em>look_for_keys=True</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#ncclient.manager.connect_ssh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes a NETCONF session over SSH, and creates a connected <a title="ncclient.manager.Manager" class="reference internal" href="#ncclient.manager.Manager"><tt class="xref docutils literal"><span class="pre">Manager</span></tt></a> instance. <em>host</em>
+must be specified, all the other arguments are optional and depend on the kind of host key
+verification and user authentication you want to complete.</p>
+<p>For the purpose of host key verification, on -NIX systems a user&#8217;s <tt class="docutils literal"><span class="pre">~/.ssh/known_hosts</span></tt>
+file is automatically considered. The <em>unknown_host_cb</em> argument specifies a callback that will
+be invoked when the server&#8217;s host key cannot be verified. See
+<a title="ncclient.transport.ssh.default_unknown_host_cb" class="reference external" href="transport.html#ncclient.transport.ssh.default_unknown_host_cb"><tt class="xref docutils literal"><span class="pre">default_unknown_host_cb()</span></tt></a> for function signature.</p>
+<p>First, <tt class="docutils literal"><span class="pre">publickey</span></tt> authentication is attempted. If a specific <em>key_filename</em> is specified, it
+will be loaded and authentication attempted using it. If <em>allow_agent</em> is <a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/constants.html#True"><tt class="xref xref docutils literal"><span class="pre">True</span></tt></a> and an
+SSH agent is running, the keys provided by the agent will be tried. If <em>look_for_keys</em> is
+<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/constants.html#True"><tt class="xref xref docutils literal"><span class="pre">True</span></tt></a>, keys in the <tt class="docutils literal"><span class="pre">~/.ssh/id_rsa</span></tt> and <tt class="docutils literal"><span class="pre">~.ssh/id_dsa</span></tt> will be tried. In case
+an encrypted key file is encountered, the <em>password</em> argument will be used as a decryption
+passphrase.</p>
+<p>If <tt class="docutils literal"><span class="pre">publickey</span></tt> authentication fails and the <em>password</em> argument has been supplied,
+<tt class="docutils literal"><span class="pre">password</span></tt> / <tt class="docutils literal"><span class="pre">keyboard-interactive</span></tt> SSH authentication will be attempted.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><em>host</em> (<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/string.html#string"><tt class="xref docutils literal"><span class="pre">string</span></tt></a>) &#8211; hostname or address on which to connect</li>
+<li><em>port</em> (<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/functions.html#int"><tt class="xref docutils literal"><span class="pre">int</span></tt></a>) &#8211; port on which to connect</li>
+<li><em>timeout</em> (<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/functions.html#int"><tt class="xref docutils literal"><span class="pre">int</span></tt></a>) &#8211; timeout for socket connect</li>
+<li><em>unknown_host_cb</em> (<tt class="xref docutils literal"><span class="pre">function</span></tt>) &#8211; optional; callback that is invoked when host key verification fails</li>
+<li><em>username</em> (<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/string.html#string"><tt class="xref docutils literal"><span class="pre">string</span></tt></a>) &#8211; username to authenticate with, if not specified the username of the logged-in user is used</li>
+<li><em>password</em> (<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/string.html#string"><tt class="xref docutils literal"><span class="pre">string</span></tt></a>) &#8211; password for <tt class="docutils literal"><span class="pre">password</span></tt> authentication or passphrase for decrypting private key files</li>
+<li><em>key_filename</em> (<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/string.html#string"><tt class="xref docutils literal"><span class="pre">string</span></tt></a>) &#8211; location of a private key file on the file system</li>
+<li><em>allow_agent</em> (<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/functions.html#bool"><tt class="xref docutils literal"><span class="pre">bool</span></tt></a>) &#8211; whether to try connecting to SSH agent for keys</li>
+<li><em>look_for_keys</em> (<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/functions.html#bool"><tt class="xref docutils literal"><span class="pre">bool</span></tt></a>) &#8211; whether to look in usual locations for keys</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><a title="ncclient.transport.SSHUnknownHostError" class="reference external" href="transport.html#ncclient.transport.SSHUnknownHostError"><tt class="xref docutils literal"><span class="pre">SSHUnknownHostError</span></tt></a></p>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><a title="ncclient.transport.AuthenticationError" class="reference external" href="transport.html#ncclient.transport.AuthenticationError"><tt class="xref docutils literal"><span class="pre">AuthenticationError</span></tt></a></p>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a title="ncclient.manager.Manager" class="reference internal" href="#ncclient.manager.Manager"><tt class="xref docutils literal"><span class="pre">Manager</span></tt></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="data">
+<dt id="ncclient.manager.connect">
+<tt class="descclassname">ncclient.manager.</tt><tt class="descname">connect</tt><a class="headerlink" href="#ncclient.manager.connect" title="Permalink to this definition">¶</a></dt>
+<dd>Same as <a title="ncclient.manager.connect_ssh" class="reference internal" href="#ncclient.manager.connect_ssh"><tt class="xref docutils literal"><span class="pre">connect_ssh()</span></tt></a>, since SSH is the default (and currently, the only) transport.</dd></dl>
+
+</div>
+<div class="section" id="manager">
+<h2>Manager<a class="headerlink" href="#manager" title="Permalink to this headline">¶</a></h2>
+<p>Exposes an API for RPC operations as method calls. The return type of these methods depends on
+whether we are is in <a title="ncclient.manager.Manager.async_mode" class="reference internal" href="#ncclient.manager.Manager.async_mode"><tt class="xref docutils literal"><span class="pre">asynchronous</span> <span class="pre">or</span> <span class="pre">synchronous</span> <span class="pre">mode</span></tt></a>.</p>
+<p>In synchronous mode replies are awaited and the corresponding <a title="ncclient.operations.RPCReply" class="reference external" href="operations.html#ncclient.operations.RPCReply"><tt class="xref docutils literal"><span class="pre">RPCReply</span></tt></a> object
+is returned. Depending on the <a title="ncclient.manager.Manager.raise_mode" class="reference internal" href="#ncclient.manager.Manager.raise_mode"><tt class="xref docutils literal"><span class="pre">exception</span> <span class="pre">raising</span> <span class="pre">mode</span></tt></a>,
+an <em>rpc-error</em> in the reply may be raised as <tt class="xref docutils literal"><span class="pre">RPCError</span></tt> exceptions.</p>
+<p>However in asynchronous mode, operations return immediately with an <a title="ncclient.operations.RPC" class="reference external" href="operations.html#ncclient.operations.RPC"><tt class="xref docutils literal"><span class="pre">RPC</span></tt></a>
+object. Error handling and checking for whether a reply has been received must be dealt with
+manually. See the <a title="ncclient.operations.RPC" class="reference external" href="operations.html#ncclient.operations.RPC"><tt class="xref docutils literal"><span class="pre">RPC</span></tt></a> documentation for details.</p>
+<p>Note that in case of the <em>get</em> and <em>get-config</em> operations, the reply is an instance of
+<a title="ncclient.operations.GetReply" class="reference external" href="operations.html#ncclient.operations.GetReply"><tt class="xref docutils literal"><span class="pre">GetReply</span></tt></a> which exposes the additional attributes
+<a title="ncclient.operations.GetReply.data" class="reference external" href="operations.html#ncclient.operations.GetReply.data"><tt class="xref docutils literal"><span class="pre">data</span></tt></a> (as <a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element"><tt class="xref docutils literal"><span class="pre">Element</span></tt></a>) and
+<a title="ncclient.operations.GetReply.data_xml" class="reference external" href="operations.html#ncclient.operations.GetReply.data_xml"><tt class="xref docutils literal"><span class="pre">data_xml</span></tt></a> (as <a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/string.html#string"><tt class="xref docutils literal"><span class="pre">string</span></tt></a>), which are of primary interest in case
+of these operations.</p>
+<p>Presence of capabilities is verified to the extent possible, and you can expect a
+<a title="ncclient.operations.MissingCapabilityError" class="reference external" href="operations.html#ncclient.operations.MissingCapabilityError"><tt class="xref docutils literal"><span class="pre">MissingCapabilityError</span></tt></a> if something is amiss. In case of transport-layer
+errors, e.g. unexpected session close, <a title="ncclient.transport.TransportError" class="reference external" href="transport.html#ncclient.transport.TransportError"><tt class="xref docutils literal"><span class="pre">TransportError</span></tt></a> will be raised.</p>
+<dl class="class">
+<dt id="ncclient.manager.Manager">
+<em class="property">class </em><tt class="descclassname">ncclient.manager.</tt><tt class="descname">Manager</tt><a class="headerlink" href="#ncclient.manager.Manager" title="Permalink to this definition">¶</a></dt>
+<dd><p>For details on the expected behavior of the operations and their parameters
+refer to <span class="target" id="index-1"></span><a class="reference external" href="http://tools.ietf.org/html/rfc4741.html"><strong>RFC 4741</strong></a>.</p>
+<p>Manager instances are also context managers so you can use it like this:</p>
+<div class="highlight-python"><pre>with manager.connect("host") as m:
+    # do your stuff</pre>
+</div>
+<p>... or like this:</p>
+<div class="highlight-python"><pre>m = manager.connect("host")
+try:
+    # do your stuff
+finally:
+    m.close()</pre>
+</div>
+<dl class="method">
+<dt id="ncclient.manager.Manager.get_config">
+<tt class="descname">get_config</tt><big>(</big><em>source</em><span class="optional">[</span>, <em>filter=None</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#ncclient.manager.Manager.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve all or part of a specified configuration.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><em>source</em> (<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/string.html#string"><tt class="xref docutils literal"><span class="pre">string</span></tt></a>) &#8211; name of the configuration datastore being queried</li>
+<li><em>filter</em> (<a class="reference internal" href="#filter-params"><em>Filter parameters</em></a>) &#8211; portions of the device configuration to retrieve (by default entire configuration is retrieved)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ncclient.manager.Manager.edit_config">
+<tt class="descname">edit_config</tt><big>(</big><em>target</em>, <em>config</em><span class="optional">[</span>, <em>default_operation=None</em>, <em>test_option=None</em>, <em>error_option=None</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#ncclient.manager.Manager.edit_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads all or part of a specified configuration to the specified target configuration.</p>
+<p>The <tt class="docutils literal"><span class="pre">&quot;rollback-on-error&quot;</span></tt> <em>error_option</em> depends on the <tt class="docutils literal"><span class="pre">:rollback-on-error</span></tt> capability.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><em>target</em> (<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/string.html#string"><tt class="xref docutils literal"><span class="pre">string</span></tt></a>) &#8211; name of the configuration datastore being edited</li>
+<li><em>config</em> (<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/string.html#string"><tt class="xref docutils literal"><span class="pre">string</span></tt></a> or <a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element"><tt class="xref docutils literal"><span class="pre">Element</span></tt></a>) &#8211; configuration (must be rooted in <em>&lt;config&gt; .. &lt;/config&gt;</em>)</li>
+<li><em>default_operation</em> (<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/string.html#string"><tt class="xref docutils literal"><span class="pre">string</span></tt></a>) &#8211; one of { <tt class="docutils literal"><span class="pre">&quot;merge&quot;</span></tt>, <tt class="docutils literal"><span class="pre">&quot;replace&quot;</span></tt>, or <tt class="docutils literal"><span class="pre">&quot;none&quot;</span></tt> }</li>
+<li><em>test_option</em> (<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/string.html#string"><tt class="xref docutils literal"><span class="pre">string</span></tt></a>) &#8211; one of { <tt class="docutils literal"><span class="pre">&quot;test_then_set&quot;</span></tt>, <tt class="docutils literal"><span class="pre">&quot;set&quot;</span></tt> }</li>
+<li><em>error_option</em> (<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/string.html#string"><tt class="xref docutils literal"><span class="pre">string</span></tt></a>) &#8211; one of { <tt class="docutils literal"><span class="pre">&quot;stop-on-error&quot;</span></tt>, <tt class="docutils literal"><span class="pre">&quot;continue-on-error&quot;</span></tt>, <tt class="docutils literal"><span class="pre">&quot;rollback-on-error&quot;</span></tt> }</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ncclient.manager.Manager.copy_config">
+<tt class="descname">copy_config</tt><big>(</big><em>source</em>, <em>target</em><big>)</big><a class="headerlink" href="#ncclient.manager.Manager.copy_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create or replace an entire configuration datastore with the contents of another complete
+configuration datastore.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><em>source</em> (<a class="reference internal" href="#srctarget-params"><em>Source and target parameters</em></a>) &#8211; configuration datastore to use as the source of the copy operation or <em>&lt;config&gt;</em> element containing the configuration subtree to copy</li>
+<li><em>target</em> (<a class="reference internal" href="#srctarget-params"><em>Source and target parameters</em></a>) &#8211; configuration datastore to use as the destination of the copy operation</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ncclient.manager.Manager.delete_config">
+<tt class="descname">delete_config</tt><big>(</big><em>target</em><big>)</big><a class="headerlink" href="#ncclient.manager.Manager.delete_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete a configuration datastore.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameter:</th><td class="field-body"><em>target</em> &#8211; name or URL of configuration datastore to delete</td>
+</tr>
+<tr class="field"><th class="field-name">Type:</th><td class="field-body"><a class="reference internal" href="#srctarget-params"><em>Source and target parameters</em></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ncclient.manager.Manager.lock">
+<tt class="descname">lock</tt><big>(</big><em>target</em><big>)</big><a class="headerlink" href="#ncclient.manager.Manager.lock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allows the client to lock the configuration system of a device.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameter:</th><td class="field-body"><em>target</em> (<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/string.html#string"><tt class="xref docutils literal"><span class="pre">string</span></tt></a>) &#8211; name of the configuration datastore to lock</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ncclient.manager.Manager.unlock">
+<tt class="descname">unlock</tt><big>(</big><em>target</em><big>)</big><a class="headerlink" href="#ncclient.manager.Manager.unlock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Release a configuration lock, previously obtained with the
+<a title="ncclient.manager.Manager.lock" class="reference internal" href="#ncclient.manager.Manager.lock"><tt class="xref docutils literal"><span class="pre">lock()</span></tt></a> operation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameter:</th><td class="field-body"><em>target</em> (<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/string.html#string"><tt class="xref docutils literal"><span class="pre">string</span></tt></a>) &#8211; name of the configuration datastore to unlock</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ncclient.manager.Manager.locked">
+<tt class="descname">locked</tt><big>(</big><em>target</em><big>)</big><a class="headerlink" href="#ncclient.manager.Manager.locked" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a context manager for a lock on a datastore, e.g.:</p>
+<div class="highlight-python"><pre>with m.locked("running"):
+    # do your stuff</pre>
+</div>
+<p>... instead of:</p>
+<div class="highlight-python"><pre>m.lock("running")
+try:
+    # do your stuff
+finally:
+    m.unlock("running")</pre>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameter:</th><td class="field-body"><em>target</em> (<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/string.html#string"><tt class="xref docutils literal"><span class="pre">string</span></tt></a>) &#8211; name of configuration datastore to lock</td>
+</tr>
+<tr class="field"><th class="field-name">Return type:</th><td class="field-body"><tt class="xref docutils literal"><span class="pre">LockContext</span></tt></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ncclient.manager.Manager.get">
+<tt class="descname">get</tt><big>(</big><span class="optional">[</span><em>filter=None</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#ncclient.manager.Manager.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve running configuration and device state information.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameter:</th><td class="field-body"><em>filter</em> (<a class="reference internal" href="#filter-params"><em>Filter parameters</em></a>) &#8211; portions of the device configuration to retrieve (by default entire configuration is retrieved)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ncclient.manager.Manager.close_session">
+<tt class="descname">close_session</tt><big>(</big><big>)</big><a class="headerlink" href="#ncclient.manager.Manager.close_session" title="Permalink to this definition">¶</a></dt>
+<dd>Request graceful termination of the NETCONF session, and also close the transport.</dd></dl>
+
+<dl class="method">
+<dt id="ncclient.manager.Manager.kill_session">
+<tt class="descname">kill_session</tt><big>(</big><em>session_id</em><big>)</big><a class="headerlink" href="#ncclient.manager.Manager.kill_session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Force the termination of a NETCONF session (not the current one!).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameter:</th><td class="field-body"><em>session_id</em> (<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/string.html#string"><tt class="xref docutils literal"><span class="pre">string</span></tt></a>) &#8211; session identifier of the NETCONF session to be terminated</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ncclient.manager.Manager.commit">
+<tt class="descname">commit</tt><big>(</big><span class="optional">[</span><em>confirmed=False</em>, <em>timeout=None</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#ncclient.manager.Manager.commit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Commit the candidate configuration as the device&#8217;s new current configuration. Depends on the
+<em>:candidate</em> capability.</p>
+<p>A confirmed commit (i.e. if <em>confirmed</em> is <a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/constants.html#True"><tt class="xref xref docutils literal"><span class="pre">True</span></tt></a>) is reverted if there is no
+followup commit within the <em>timeout</em> interval. If no timeout is specified the confirm
+timeout defaults to 600 seconds (10 minutes). A confirming commit may have the <em>confirmed</em>
+parameter but this is not required. Depends on the <em>:confirmed-commit</em> capability.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><em>confirmed</em> (<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/functions.html#bool"><tt class="xref docutils literal"><span class="pre">bool</span></tt></a>) &#8211; whether this is a confirmed commit</li>
+<li><em>timeout</em> (<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/functions.html#int"><tt class="xref docutils literal"><span class="pre">int</span></tt></a>) &#8211; confirm timeout in seconds</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ncclient.manager.Manager.discard_changes">
+<tt class="descname">discard_changes</tt><big>(</big><big>)</big><a class="headerlink" href="#ncclient.manager.Manager.discard_changes" title="Permalink to this definition">¶</a></dt>
+<dd>Revert the candidate configuration to the currently running configuration. Any uncommitted
+changes are discarded.</dd></dl>
+
+<dl class="method">
+<dt id="ncclient.manager.Manager.validate">
+<tt class="descname">validate</tt><big>(</big><em>source</em><big>)</big><a class="headerlink" href="#ncclient.manager.Manager.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate the contents of the specified configuration.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameter:</th><td class="field-body"><em>source</em> (<a class="reference internal" href="#srctarget-params"><em>Source and target parameters</em></a>) &#8211; name of the configuration datastore being validated or <em>&lt;config&gt;</em> element containing the configuration subtree to be validated</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.manager.Manager.async_mode">
+<tt class="descname">async_mode</tt><a class="headerlink" href="#ncclient.manager.Manager.async_mode" title="Permalink to this definition">¶</a></dt>
+<dd>Specify whether operations are executed asynchronously (<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/constants.html#True"><tt class="xref xref docutils literal"><span class="pre">True</span></tt></a>)
+or synchronously (<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/constants.html#False"><tt class="xref xref docutils literal"><span class="pre">False</span></tt></a>) (the default).</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.manager.Manager.raise_mode">
+<tt class="descname">raise_mode</tt><a class="headerlink" href="#ncclient.manager.Manager.raise_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specify which errors are raised as <a title="ncclient.operations.RPCError" class="reference external" href="operations.html#ncclient.operations.RPCError"><tt class="xref docutils literal"><span class="pre">RPCError</span></tt></a> exceptions.
+Valid values:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">&quot;all&quot;</span></tt> &#8211; any kind of <em>rpc-error</em> (error or warning)</li>
+<li><tt class="docutils literal"><span class="pre">&quot;errors&quot;</span></tt> &#8211; where the <em>error-type</em> element says it is an error</li>
+<li><tt class="docutils literal"><span class="pre">&quot;none&quot;</span></tt> &#8211; neither</li>
+</ul>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.manager.Manager.client_capabilities">
+<tt class="descname">client_capabilities</tt><a class="headerlink" href="#ncclient.manager.Manager.client_capabilities" title="Permalink to this definition">¶</a></dt>
+<dd><a title="ncclient.capabilities.Capabilities" class="reference external" href="capabilities.html#ncclient.capabilities.Capabilities"><tt class="xref docutils literal"><span class="pre">Capabilities</span></tt></a> object representing the client&#8217;s capabilities.</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.manager.Manager.server_capabilities">
+<tt class="descname">server_capabilities</tt><a class="headerlink" href="#ncclient.manager.Manager.server_capabilities" title="Permalink to this definition">¶</a></dt>
+<dd><a title="ncclient.capabilities.Capabilities" class="reference external" href="capabilities.html#ncclient.capabilities.Capabilities"><tt class="xref docutils literal"><span class="pre">Capabilities</span></tt></a> object representing the server&#8217;s capabilities.</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.manager.Manager.session_id">
+<tt class="descname">session_id</tt><a class="headerlink" href="#ncclient.manager.Manager.session_id" title="Permalink to this definition">¶</a></dt>
+<dd><em>session-id</em> assigned by the NETCONF server.</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.manager.Manager.connected">
+<tt class="descname">connected</tt><a class="headerlink" href="#ncclient.manager.Manager.connected" title="Permalink to this definition">¶</a></dt>
+<dd>Bolean value indicating whether currently connected to the NETCONF server.</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="special-kinds-of-parameters">
+<h2>Special kinds of parameters<a class="headerlink" href="#special-kinds-of-parameters" title="Permalink to this headline">¶</a></h2>
+<p>Some parameters can take on different types to keep the interface simple.</p>
+<div class="section" id="source-and-target-parameters">
+<span id="srctarget-params"></span><h3>Source and target parameters<a class="headerlink" href="#source-and-target-parameters" title="Permalink to this headline">¶</a></h3>
+<p>Where an method takes a <em>source</em> or <em>target</em> argument, usually a datastore name or URL is expected.
+The latter depends on the <tt class="docutils literal"><span class="pre">:url</span></tt> capability and on whether the specific URL scheme is supported.
+Either must be specified as a <a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/string.html#string"><tt class="xref docutils literal"><span class="pre">string</span></tt></a>. For example, <tt class="docutils literal"><span class="pre">&quot;running&quot;</span></tt>,
+<tt class="docutils literal"><span class="pre">&quot;ftp://user:pass&#64;host/config&quot;</span></tt>.</p>
+<p>If the source may be a <em>&lt;config&gt;</em> element, e.g. as allowed for the <em>validate</em> RPC, it can also be
+specified as an XML string or an <a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element"><tt class="xref docutils literal"><span class="pre">Element</span></tt></a> object.</p>
+</div>
+<div class="section" id="filter-parameters">
+<span id="filter-params"></span><h3>Filter parameters<a class="headerlink" href="#filter-parameters" title="Permalink to this headline">¶</a></h3>
+<p>Where a method takes a <em>filter</em> argument, it can take on the following types:</p>
+<ul>
+<li><p class="first">A <tt class="docutils literal"><span class="pre">tuple</span></tt> of <em>(type, criteria)</em>.</p>
+<blockquote>
+<p>Here <em>type</em> has to be one of <tt class="docutils literal"><span class="pre">&quot;xpath&quot;</span></tt> or <tt class="docutils literal"><span class="pre">&quot;subtree&quot;</span></tt>.</p>
+<ul class="simple">
+<li>For <tt class="docutils literal"><span class="pre">&quot;xpath&quot;</span></tt> the <em>criteria</em> should be a <a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/string.html#string"><tt class="xref docutils literal"><span class="pre">string</span></tt></a> containing the XPath expression.</li>
+<li>For <tt class="docutils literal"><span class="pre">&quot;subtree&quot;</span></tt> the <em>criteria</em> should be an XML string or an
+<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element"><tt class="xref docutils literal"><span class="pre">Element</span></tt></a> object containing the criteria.</li>
+</ul>
+</blockquote>
+</li>
+<li><p class="first">A <em>&lt;filter&gt;</em> element as an XML string or an <a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element"><tt class="xref docutils literal"><span class="pre">Element</span></tt></a> object.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<p align="center">
+  <a href="http://schmizz.net/ncclient">
+    <img src="static/logo.png" width="125" height="125"/>
+  </a>
+</p>
+
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#"><tt class="docutils literal"><span class="pre">manager</span></tt> &#8211; High-level API</a><ul>
+<li><a class="reference external" href="#module-data">Module data</a></li>
+<li><a class="reference external" href="#factory-functions">Factory functions</a></li>
+<li><a class="reference external" href="#manager">Manager</a></li>
+<li><a class="reference external" href="#special-kinds-of-parameters">Special kinds of parameters</a><ul>
+<li><a class="reference external" href="#source-and-target-parameters">Source and target parameters</a></li>
+<li><a class="reference external" href="#filter-parameters">Filter parameters</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="index.html"
+                                  title="previous chapter">Welcome</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="api.html"
+                                  title="next chapter">Complete API documentation</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="sources/manager.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api.html" title="Complete API documentation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome"
+             >previous</a> |</li>
+        <li><a href="index.html">ncclient v0.2a documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Shikhar Bhushan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+    </div>
+  </body>
+</html>

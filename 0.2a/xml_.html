@@ -1,0 +1,267 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>xml_ – XML handling &mdash; ncclient v0.2a documentation</title>
+    <link rel="stylesheet" href="static/default.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '0.2a',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="static/jquery.js"></script>
+    <script type="text/javascript" src="static/doctools.js"></script>
+    <link rel="top" title="ncclient v0.2a documentation" href="index.html" />
+    <link rel="up" title="Complete API documentation" href="api.html" />
+    <link rel="next" title="transport – Transport / Session layer" href="transport.html" />
+    <link rel="prev" title="capabilities – NETCONF Capabilities" href="capabilities.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="transport.html" title="transport – Transport / Session layer"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="capabilities.html" title="capabilities – NETCONF Capabilities"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">ncclient v0.2a documentation</a> &raquo;</li>
+          <li><a href="api.html" accesskey="U">Complete API documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-ncclient.xml_">
+<h1><tt class="xref docutils literal"><span class="pre">xml_</span></tt> &#8211; XML handling<a class="headerlink" href="#module-ncclient.xml_" title="Permalink to this headline">¶</a></h1>
+<dl class="exception">
+<dt id="ncclient.xml_.XMLError">
+<em class="property">exception </em><tt class="descclassname">ncclient.xml_.</tt><tt class="descname">XMLError</tt><a class="headerlink" href="#ncclient.xml_.XMLError" title="Permalink to this definition">¶</a></dt>
+<dd>Bases: <tt class="xref docutils literal"><span class="pre">ncclient.NCClientError</span></tt></dd></dl>
+
+<div class="section" id="namespaces">
+<h2>Namespaces<a class="headerlink" href="#namespaces" title="Permalink to this headline">¶</a></h2>
+<dl class="data">
+<dt id="ncclient.xml_.BASE_NS_1_0">
+<tt class="descclassname">ncclient.xml_.</tt><tt class="descname">BASE_NS_1_0</tt><a class="headerlink" href="#ncclient.xml_.BASE_NS_1_0" title="Permalink to this definition">¶</a></dt>
+<dd>Base NETCONF namespace</dd></dl>
+
+<dl class="data">
+<dt id="ncclient.xml_.TAILF_AAA_1_1">
+<tt class="descclassname">ncclient.xml_.</tt><tt class="descname">TAILF_AAA_1_1</tt><a class="headerlink" href="#ncclient.xml_.TAILF_AAA_1_1" title="Permalink to this definition">¶</a></dt>
+<dd>Namespace for Tail-f core data model</dd></dl>
+
+<dl class="data">
+<dt id="ncclient.xml_.TAILF_EXECD_1_1">
+<tt class="descclassname">ncclient.xml_.</tt><tt class="descname">TAILF_EXECD_1_1</tt><a class="headerlink" href="#ncclient.xml_.TAILF_EXECD_1_1" title="Permalink to this definition">¶</a></dt>
+<dd>Namespace for Tail-f execd data model</dd></dl>
+
+<dl class="data">
+<dt id="ncclient.xml_.CISCO_CPI_1_0">
+<tt class="descclassname">ncclient.xml_.</tt><tt class="descname">CISCO_CPI_1_0</tt><a class="headerlink" href="#ncclient.xml_.CISCO_CPI_1_0" title="Permalink to this definition">¶</a></dt>
+<dd>Namespace for Cisco data model</dd></dl>
+
+<dl class="data">
+<dt id="ncclient.xml_.FLOWMON_1_0">
+<tt class="descclassname">ncclient.xml_.</tt><tt class="descname">FLOWMON_1_0</tt><a class="headerlink" href="#ncclient.xml_.FLOWMON_1_0" title="Permalink to this definition">¶</a></dt>
+<dd>Namespace for Flowmon data model</dd></dl>
+
+<dl class="function">
+<dt id="ncclient.xml_.register_namespace">
+<tt class="descclassname">ncclient.xml_.</tt><tt class="descname">register_namespace</tt><big>(</big><em>prefix</em>, <em>uri</em><big>)</big><a class="headerlink" href="#ncclient.xml_.register_namespace" title="Permalink to this definition">¶</a></dt>
+<dd>ElementTree&#8217;s namespace map determines the prefixes for namespace URI&#8217;s when serializing to XML.
+This method allows modifying this map to specify a prefix for a namespace URI.</dd></dl>
+
+<dl class="function">
+<dt id="ncclient.xml_.qualify">
+<tt class="descclassname">ncclient.xml_.</tt><tt class="descname">qualify</tt><big>(</big><em>tag</em>, <em>ns='urn:ietf:params:xml:ns:netconf:base:1.0'</em><big>)</big><a class="headerlink" href="#ncclient.xml_.qualify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Qualify a tag name with a namespace, in <a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/xml.etree.elementtree.html#module-xml.etree.ElementTree"><tt class="xref docutils literal"><span class="pre">ElementTree</span></tt></a> fashion i.e. <em>{namespace}tagname</em>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><em>tag</em> &#8211; name of the tag</li>
+<li><em>ns</em> (<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/string.html#string"><tt class="xref docutils literal"><span class="pre">string</span></tt></a>) &#8211; namespace to qualify with</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="conversion">
+<h2>Conversion<a class="headerlink" href="#conversion" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ncclient.xml_.to_xml">
+<tt class="descclassname">ncclient.xml_.</tt><tt class="descname">to_xml</tt><big>(</big><em>ele</em>, <em>encoding='UTF-8'</em><big>)</big><a class="headerlink" href="#ncclient.xml_.to_xml" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert an <a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element"><tt class="xref docutils literal"><span class="pre">Element</span></tt></a> to XML.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><em>ele</em> &#8211; the <a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element"><tt class="xref docutils literal"><span class="pre">Element</span></tt></a></li>
+<li><em>encoding</em> &#8211; character encoding</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/string.html#string"><tt class="xref docutils literal"><span class="pre">string</span></tt></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ncclient.xml_.to_ele">
+<tt class="descclassname">ncclient.xml_.</tt><tt class="descname">to_ele</tt><big>(</big><em>x</em><big>)</big><a class="headerlink" href="#ncclient.xml_.to_ele" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert XML to <a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element"><tt class="xref docutils literal"><span class="pre">Element</span></tt></a>. If passed an
+<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element"><tt class="xref docutils literal"><span class="pre">Element</span></tt></a> simply returns that.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameter:</th><td class="field-body"><em>x</em> (<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/string.html#string"><tt class="xref docutils literal"><span class="pre">string</span></tt></a> or <a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element"><tt class="xref docutils literal"><span class="pre">Element</span></tt></a>) &#8211; the XML document or element</td>
+</tr>
+<tr class="field"><th class="field-name">Return type:</th><td class="field-body"><a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element"><tt class="xref docutils literal"><span class="pre">Element</span></tt></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ncclient.xml_.parse_root">
+<tt class="descclassname">ncclient.xml_.</tt><tt class="descname">parse_root</tt><big>(</big><em>raw</em><big>)</big><a class="headerlink" href="#ncclient.xml_.parse_root" title="Permalink to this definition">¶</a></dt>
+<dd><p>Efficiently parses the root element of an XML document.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameter:</th><td class="field-body"><em>raw</em> &#8211; XML document</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">a tuple of <tt class="docutils literal"><span class="pre">(tag,</span> <span class="pre">attrib)</span></tt>, where <em>tag</em> is the (qualified) name of the element and <em>attrib</em> is a dictionary of its attributes.</td>
+</tr>
+<tr class="field"><th class="field-name">Return type:</th><td class="field-body"><a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/functions.html#tuple"><tt class="xref docutils literal"><span class="pre">tuple</span></tt></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ncclient.xml_.validated_element">
+<tt class="descclassname">ncclient.xml_.</tt><tt class="descname">validated_element</tt><big>(</big><em>x</em>, <em>tags=None</em>, <em>attrs=None</em><big>)</big><a class="headerlink" href="#ncclient.xml_.validated_element" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if the root element of an XML document or Element meets the supplied criteria.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><em>tags</em> (<a title="(in Python v2.6)" class="reference external" href="http://docs.python.org/library/string.html#string"><tt class="xref docutils literal"><span class="pre">string</span></tt></a> or sequence of strings) &#8211; allowable tag name or sequence of allowable alternatives</li>
+<li><em>attrs</em> (sequence of strings or sequence of sequences of strings) &#8211; list of required attributes, each of which may be a sequence of several allowable alternatives</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><a title="ncclient.xml_.XMLError" class="reference internal" href="#ncclient.xml_.XMLError"><tt class="xref docutils literal"><span class="pre">XMLError</span></tt></a> if the requirements are not met</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<p align="center">
+  <a href="http://schmizz.net/ncclient">
+    <img src="static/logo.png" width="125" height="125"/>
+  </a>
+</p>
+
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#"><tt class="docutils literal"><span class="pre">xml_</span></tt> &#8211; XML handling</a><ul>
+<li><a class="reference external" href="#namespaces">Namespaces</a></li>
+<li><a class="reference external" href="#conversion">Conversion</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="capabilities.html"
+                                  title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">capabilities</span></tt> &#8211; NETCONF Capabilities</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="transport.html"
+                                  title="next chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">transport</span></tt> &#8211; Transport / Session layer</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="sources/xml_.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="transport.html" title="transport – Transport / Session layer"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="capabilities.html" title="capabilities – NETCONF Capabilities"
+             >previous</a> |</li>
+        <li><a href="index.html">ncclient v0.2a documentation</a> &raquo;</li>
+          <li><a href="api.html" >Complete API documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Shikhar Bhushan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+    </div>
+  </body>
+</html>
