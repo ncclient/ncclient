@@ -54,9 +54,9 @@ class RPCError(OperationError):
     def to_dict(self):
         return dict([ (attr[1:], getattr(self, attr)) for attr in RPCError.tag_to_attr.values() ])
     
-    "*rpc-error* element as returned."
     @property
     def xml(self):
+        "*rpc-error* element as returned."
         return self._raw
     
     @property
@@ -123,8 +123,12 @@ class RPCReply:
             if error is not None:
                 for err in root.getiterator(error.tag):
                     # Process a particular <rpc-error>
-                    self._errors.append(ERROR_CLS(err))
+                    self._errors.append(self.ERROR_CLS(err))
+        self._parsing_hook(root)
         self._parsed = True
+
+    def _parsing_hook(self, root):
+        pass
     
     @property
     def xml(self):
@@ -264,8 +268,7 @@ class RPC(object):
             logger.debug('Async request, returning %r', self)
             return self
         else:
-            logger.debug('Sync request, will wait for timeout=%r' %
-                         self._timeout)
+            logger.debug('Sync request, will wait for timeout=%r' % self._timeout)
             self._event.wait(self._timeout)
             if self._event.isSet():
                 if self._error:
@@ -283,7 +286,7 @@ class RPC(object):
             else:
                 raise TimeoutExpiredError
 
-    def request(self, *args, **kwds):
+    def request(self):
         """Subclasses must implement this method. Typically only the request needs to be built as an
         `~xml.etree.ElementTree.Element` and everything else can be handed off to
         :meth:`_request`."""
@@ -294,8 +297,7 @@ class RPC(object):
         server, before making a request that requires it. A :exc:`MissingCapabilityError` will be
         raised if the capability is not available."""
         if capability not in self._session.server_capabilities:
-            raise MissingCapabilityError('Server does not support [%s]' %
-                                         capability)
+            raise MissingCapabilityError('Server does not support [%s]' % capability)
     
     def deliver_reply(self, raw):
         # internal use

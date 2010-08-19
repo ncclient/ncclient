@@ -27,8 +27,7 @@ class EditConfig(RPC):
 
     "*<edit-config>* RPC"
     
-    def request(self, target, config, default_operation=None, test_option=None,
-                error_option=None):
+    def request(self, target, config, default_operation=None, test_option=None, error_option=None):
         node = new_ele("edit-config")
         node.append(util.datastore_or_url("target", target, self._assert))
         if error_option is not None:
@@ -95,7 +94,6 @@ class Commit(RPC):
             self._assert(":confirmed-commit")
             sub_ele(node, "confirmed")
             if timeout is not None:
-                # TODO check if timeout is a valid integer?
                 sub_ele(node, "confirm-timeout").text = timeout
         return self._request(node)
 

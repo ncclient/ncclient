@@ -26,7 +26,7 @@ class PoweroffMachine(RPC):
 
     DEPENDS = ["urn:liberouter:params:netconf:capability:power-control:1.0"]
     
-    def request(self, target):
+    def request(self):
         return self._request(new_ele(qualify("poweroff-machine", PC_URN)))
 
 class RebootMachine(RPC):
@@ -35,5 +35,5 @@ class RebootMachine(RPC):
 
     DEPENDS = ["urn:liberouter:params:netconf:capability:power-control:1.0"]
 
-    def request(self, target):
+    def request(self):
         return self._request(new_ele(qualify("reboot-machine", PC_URN)))

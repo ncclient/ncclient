@@ -71,8 +71,7 @@ def to_xml(ele, encoding="UTF-8"):
     return xml if xml.startswith('<?xml') else '<?xml version="1.0" encoding="%s"?>%s' % (encoding, xml)
 
 def to_ele(x):
-    """Convert XML to `~xml.etree.ElementTree.Element`. If passed an
-    `~xml.etree.ElementTree.Element` simply returns that.
+    """Convert XML to `~xml.etree.ElementTree.Element`. If passed an `~xml.etree.ElementTree.Element` simply returns that.
     
     :arg x: the XML document or element
     :type x: `string` or `~xml.etree.ElementTree.Element`

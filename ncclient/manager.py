@@ -19,6 +19,7 @@ import operations
 import transport
 
 import logging
+
 logger = logging.getLogger('ncclient.manager')
 
 CAPABILITIES = [
@@ -33,11 +34,8 @@ CAPABILITIES = [
     "urn:ietf:params:netconf:capability:xpath:1.0",
     "urn:liberouter:params:netconf:capability:power-control:1.0"
     "urn:ietf:params:netconf:capability:interleave:1.0"
-    #'urn:ietf:params:netconf:capability:notification:1.0', # TODO    
 ]
-"""A list of URI's representing the client's capabilities. This is used during the initial
-capability exchange. Modify this if you need to announce some capability not already included.
-"""
+"A list of URI's representing the client's capabilities. This is used during the initial capability exchange. Modify this if you need to announce some capability not already included."
 
 OPERATIONS = {
     "get": operations.Get,
@@ -55,19 +53,12 @@ OPERATIONS = {
     "poweroff_machine": operations.PoweroffMachine,
     "reboot_machine": operations.RebootMachine
 }
-"""Dictionary of method names and corresponding `~ncclient.operations.RPC` subclasses. It is used to
-lookup operations, e.g. "get_config" is mapped to `~ncclient.operations.GetConfig`. It is thus
-possible to add additional operations to the `Manager` API."""
+"""Dictionary of method names and corresponding `~ncclient.operations.RPC` subclasses. It is used to lookup operations, e.g. "get_config" is mapped to `~ncclient.operations.GetConfig`. It is thus possible to add additional operations to the `Manager` API."""
 
 def connect_ssh(*args, **kwds):
-    """Initializes a NETCONF session over SSH, and creates a connected `Manager` instance. *host*
-    must be specified, all the other arguments are optional and depend on the kind of host key
-    verification and user authentication you want to complete.
+    """Initializes a NETCONF session over SSH, and creates a connected `Manager` instance. *host* must be specified, all the other arguments are optional and depend on the kind of host key verification and user authentication you want to complete.
         
-    For the purpose of host key verification, on -NIX systems a user's :file:`~/.ssh/known_hosts`
-    file is automatically considered. The *unknown_host_cb* argument specifies a callback that will
-    be invoked when the server's host key cannot be verified. See
-    :func:`~ncclient.transport.ssh.default_unknown_host_cb` for function signature.
+    For the purpose of host key verification, on -NIX systems a user's :file:`~/.ssh/known_hosts` file is automatically considered. The *unknown_host_cb* argument specifies a callback that will be invoked when the server's host key cannot be verified. See :func:`~ncclient.transport.ssh.default_unknown_host_cb` for function signature.
     
     First, ``publickey`` authentication is attempted. If a specific *key_filename* is specified, it
     will be loaded and authentication attempted using it. If *allow_agent* is :const:`True` and an
@@ -76,8 +67,7 @@ def connect_ssh(*args, **kwds):
     an encrypted key file is encountered, the *password* argument will be used as a decryption
     passphrase.
     
-    If ``publickey`` authentication fails and the *password* argument has been supplied,
-    ``password`` / ``keyboard-interactive`` SSH authentication will be attempted.
+    If ``publickey`` authentication fails and the *password* argument has been supplied, ``password`` / ``keyboard-interactive`` SSH authentication will be attempted.
     
     :param host: hostname or address on which to connect
     :type host: `string`
@@ -110,7 +100,7 @@ def connect_ssh(*args, **kwds):
     :raises: :exc:`~ncclient.transport.AuthenticationError`
     
     :rtype: `Manager`
-    """    
+    """
     session = transport.SSHSession(capabilities.Capabilities(CAPABILITIES))
     session.load_known_hosts()
     session.connect(*args, **kwds)
@@ -119,34 +109,47 @@ def connect_ssh(*args, **kwds):
 connect = connect_ssh
 "Same as :func:`connect_ssh`, since SSH is the default (and currently, the only) transport."
 
+class OpExecutor(type):
+    def __new__(cls, name, bases, attrs):
+        def make_wrapper(op_cls):
+            def wrapper(self, *args, **kwds):
+                return self.execute(op_cls, *args, **kwds)
+            wrapper.func_doc = op_cls.request.func_doc
+            return wrapper
+        for op_name, op_cls in OPERATIONS.iteritems():
+            attrs[op_name] = make_wrapper(op_cls)
+        return super(OpExecutor, cls).__new__(cls, name, bases, attrs)
+
 class Manager(object):
+
+    __metaclass__ = OpExecutor
+
+    RAISE_NONE = 0
+    RAISE_ERRORS = 1
+    RAISE_ALL = 2
 
     def __init__(self, session):
         self._session = session
         self._async_mode = False
         self._timeout = None
-        self._raise_mode = 'all'
+        self._raise_mode = self.RAISE_ALL
 
     def __enter__(self):
         return self
 
-    def __exit__(self, *argss):
+    def __exit__(self, *args):
         self.close_session()
         return False
 
-    def __getattr__(self, name):
-        op = OPERATIONS.get(name, None)
-        if op is None:
-            raise AttributeError
-        else:
-            return op(self._session,
-                      async=self._async_mode,
-                      timeout=self._timeout,
-                      raise_mode=self._raise_mode).request
-    
+    def execute(self, cls, *args, **kwds):
+        return cls(self._session,
+                   async=self._async_mode,
+                   timeout=self._timeout,
+                   raise_mode=self._raise_mode).request(*args, **kwds)
+
     def locked(self, target):
         return operations.LockContext(self._session, target)
-    
+
     @property
     def client_capabilities(self):
         return self._session._client_capabilities
@@ -167,7 +170,7 @@ class Manager(object):
         self._async_mode = mode
 
     def set_raise_mode(self, mode):
-        assert(choice in ("all", "errors", "none"))
+        assert(choice in (self.RAISE_NONE, self.RAISE_ERRORS, self.RAISE_ALL))
         self._raise_mode = mode
 
     async_mode = property(fget=lambda self: self._async_mode, fset=set_async_mode)

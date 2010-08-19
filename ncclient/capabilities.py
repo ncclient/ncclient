@@ -12,20 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#_capability_map = {
-#    "urn:liberouter:params:netconf:capability:power-control:1.0":
-#        [":power-control", ":power-control:1.0"]
-#}
-
 def _abbreviate(uri):
     if uri.startswith("urn:ietf:params:netconf:"):
         splitted = uri.split(":")
         if ":capability:" in uri:
-            return [ ":" + splitted[5], ":" + splitted[5] + ":" + splitted[6] ]
+            name, version = splitted[5], splitted[6]
+            return [ ":" + name, ":" + name + ":" + version ]
         elif ":base:" in uri:
             return [ ":base", ":base" + ":" + splitted[5] ]
-    #elif uri in _capability_map:
-    #    return _capability_map[uri]
     return []
 
 def schemes(url_uri):
@@ -62,13 +56,10 @@ class Capabilities:
         return len(self._dict)
 
     def __iter__(self):
-        return self._dict.keys().__iter__()
+        return self._dict.iterkeys()
 
     def __repr__(self):
         return repr(self._dict.keys())
-
-    def __list__(self):
-        return self._dict.keys()
 
     def add(self, uri):
         "Add a capability."
@@ -78,9 +69,3 @@ class Capabilities:
         "Remove a capability."
         if key in self._dict:
             del self._dict[key]
-    
-    #def get_uri(self, shorthand):
-    #    "Returns the URI that is inferred for a given shorthand."
-    #    for uri, abbrs in self._dict.items():
-    #        if shorthand in abbrs:
-    #            return uri

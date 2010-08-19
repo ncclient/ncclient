@@ -28,7 +28,7 @@ class Lock(RPC):
     
     def request(self, target):
         node = new_ele("lock")
-        sub_ele(sub_ele(node, "target"), "running")
+        sub_ele(sub_ele(node, "target"), target)
         return self._request(node)
 
 
@@ -38,7 +38,7 @@ class Unlock(RPC):
     
     def request(self, target):
         node = new_ele("unlock")
-        sub_ele(sub_ele(node, "target"), "running")
+        sub_ele(sub_ele(node, "target"), target)
         return self._request(node)
 
 
