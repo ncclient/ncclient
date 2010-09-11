@@ -12,21 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-'Locking-related NETCONF operations'
+"Locking-related NETCONF operations"
 
 from ncclient.xml_ import *
 
-from rpc import RPC
+from rpc import RaiseMode, RPC
 
-# TODO:
-# should have some way to parse session-id from a lock-denied error, and raise
-# a tailored exception
+# TODO: parse session-id from a lock-denied error, and raise a tailored exception?
 
 class Lock(RPC):
 
-    "*<lock>* RPC"
+    "`lock` RPC"
     
     def request(self, target):
+        """Allows the client to lock the configuration system of a device.
+
+        *target* is the name of the configuration datastore to lock
+        """
         node = new_ele("lock")
         sub_ele(sub_ele(node, "target"), target)
         return self._request(node)
@@ -34,9 +36,13 @@ class Lock(RPC):
 
 class Unlock(RPC):
 
-    "*<unlock>* RPC"
+    "`unlock` RPC"
     
     def request(self, target):
+        """Release a configuration lock, previously obtained with the lock operation.
+
+        *target* is the name of the configuration datastore to unlock
+        """
         node = new_ele("unlock")
         sub_ele(sub_ele(node, "target"), target)
         return self._request(node)
@@ -44,13 +50,11 @@ class Unlock(RPC):
 
 class LockContext:
 
-    """
-    A context manager for the :class:`Lock` / :class:`Unlock` pair of RPC's.
-    
-    RPC errors are always raised as exceptions.
-    
-    Initialise with (:class:`Session <ncclient.transport.Session>`) instance
-    and lock target.
+    """A context manager for the :class:`Lock` / :class:`Unlock` pair of RPC's.
+
+    Any `rpc-error` will be raised as an exception.
+
+    Initialise with (:class:`Session <ncclient.transport.Session>`) instance and lock target.
     """
 
     def __init__(self, session, target):
@@ -58,9 +62,9 @@ class LockContext:
         self.target = target
 
     def __enter__(self):
-        Lock(self.session).request(self.target)
+        Lock(self.session, raise_mode=RaiseMode.ERRORS).request(self.target)
         return self
 
     def __exit__(self, *args):
-        Unlock(self.session).request(self.target)
+        Unlock(self.session, raise_mode=RaiseMode.ERRORS).request(self.target)
         return False

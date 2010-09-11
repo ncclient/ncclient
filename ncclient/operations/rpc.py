@@ -26,8 +26,7 @@ logger = logging.getLogger("ncclient.operations.rpc")
 
 class RPCError(OperationError):
 
-    """Represents an *rpc-error*. It is a type of :exc:`OperationError` and can be raised like any
-    other exception."""
+    "Represents an `rpc-error`. It is a type of :exc:`OperationError` and can be raised as such."
     
     tag_to_attr = {
         qualify("error-type"): "_type",
@@ -56,37 +55,37 @@ class RPCError(OperationError):
     
     @property
     def xml(self):
-        "*rpc-error* element as returned."
+        "The `rpc-error` element as returned in XML."
         return self._raw
     
     @property
     def type(self):
-        "`string` representing text of *error-type* element."
+        "The contents of the `error-type` element."
         return self._type
     
     @property
     def tag(self):
-        "`string` representing text of *error-tag* element."
+        "The contents of the `error-tag` element."
         return self._tag
     
     @property
     def severity(self):
-        "`string` representing text of *error-severity* element."
+        "The contents of the `error-severity` element."
         return self._severity
     
     @property
     def path(self):
-        "`string` or :const:`None`; representing text of *error-path* element."
+        "The contents of the `error-path` element if present or `None`."
         return self._path
     
     @property
     def message(self):
-        "`string` or :const:`None`; representing text of *error-message* element."
+        "The contents of the `error-message` element if present or `None`."
         return self._message
     
     @property
     def info(self):
-        "`string` (XML) or :const:`None`; representing *error-info* element."
+        "XML string or `None`; representing the `error-info` element."
         return self._info
 
 
@@ -128,6 +127,7 @@ class RPCReply:
         self._parsed = True
 
     def _parsing_hook(self, root):
+        "No-op by default. Gets given the *root* element."
         pass
     
     @property
@@ -142,7 +142,7 @@ class RPCReply:
     
     @property
     def error(self):
-        "Returns the first `RPCError` and :const:`None` if there were no errors."
+        "Returns the first :class:`RPCError` and `None` if there were no errors."
         self.parse()
         if self._errors:
             return self._errors[0]
@@ -151,8 +151,7 @@ class RPCReply:
     
     @property
     def errors(self):
-        """`list` of `RPCError` objects. Will be empty if there were no *rpc-error* elements in
-        reply."""
+        "List of `RPCError` objects. Will be empty if there were no *rpc-error* elements in reply."
         self.parse()
         return self._errors
 
@@ -207,21 +206,31 @@ class RPCReplyListener(SessionListener): # internal use
             self._id2rpc.clear()
 
 
+class RaiseMode(object):
+
+    NONE = 0
+    "Don't attempt to raise any type of `rpc-error` as :exc:`RPCError`."
+
+    ERRORS = 1
+    "Raise only when the `error-type` indicates it is an honest-to-god error."
+
+    ALL = 2
+    "Don't look at the `error-type`, always raise."
+
+
 class RPC(object):
     
     """Base class for all operations, directly corresponding to *rpc* requests. Handles making the
     request, and taking delivery of the reply."""
-    
+
     DEPENDS = []
-    """Subclasses can specify their dependencies on capabilities. List of URI's or abbreviated
-    names, e.g. ':writable-running'. These are verified at the time of instantiation. If the
-    capability is not available, a :exc:`MissingCapabilityError` is raised.
+    """Subclasses can specify their dependencies on capabilities. List of URI's or abbreviated names, e.g. ':writable-running'. These are verified at the time of instantiation. If the capability is not available, a :exc:`MissingCapabilityError` is raised.
     """
     
     REPLY_CLS = RPCReply
     "Subclasses can specify a different reply class, but it should be a subclass of `RPCReply`."
     
-    def __init__(self, session, async=False, timeout=None, raise_mode="none"):
+    def __init__(self, session, async=False, timeout=30, raise_mode=RaiseMode.NONE):
         self._session = session
         try:
             for cap in self.DEPENDS:
@@ -245,18 +254,13 @@ class RPC(object):
         return to_xml(ele)
 
     def _request(self, op):
-        """Implementations of :meth:`request` call this method to send the request and process the
-        reply.
+        """Implementations of :meth:`request` call this method to send the request and process the reply.
         
-        In synchronous mode, blocks until the reply is received and returns `RPCReply`. Depending on
-        the :attr:`raise_mode` a *rpc-error* element in the reply may lead to an :exc:`RPCError`
-        exception.
+        In synchronous mode, blocks until the reply is received and returns :class:`RPCReply`. Depending on the :attr:`raise_mode` a `rpc-error` element in the reply may lead to an :exc:`RPCError` exception.
         
-        In asynchronous mode, returns immediately, returning *self*. The :attr:`event` attribute
-        will be set when the reply has been received (see :attr:`reply`) or an error occured (see
-        :attr:`error`).
+        In asynchronous mode, returns immediately, returning *self*. The :attr:`event` attribute will be set when the reply has been received (see :attr:`reply`) or an error occured (see :attr:`error`).
         
-        :param op: operation to be requested
+        :param op: operation to b\e requested
         :type ops: `~xml.etree.ElementTree.Element`
         
         :rtype: `RPCReply` (sync) or `RPC` (async)
@@ -277,10 +281,9 @@ class RPC(object):
                 self._reply.parse()
                 if self._reply.error is not None:
                     # <rpc-error>'s [ RPCError ]
-                    if self._raise_mode == "all":
+                    if self._raise_mode == RaiseMode.ALL:
                         raise self._reply.error
-                    elif (self._raise_mode == "errors" and
-                          self._reply.error.type == "error"):
+                    elif (self._raise_mode == RaiseMode.ERRORS and self._reply.error.type == "error"):
                         raise self._reply.error
                 return self._reply
             else:
@@ -311,12 +314,12 @@ class RPC(object):
     
     @property
     def reply(self):
-        "`RPCReply` element if reply has been received or :const:`None`"
+        ":class:`RPCReply` element if reply has been received or `None`"
         return self._reply
     
     @property
     def error(self):
-        """:exc:`Exception` type if an error occured or :const:`None`.
+        """:exc:`Exception` type if an error occured or `None`.
         
         .. note::
             This represents an error which prevented a reply from being received. An *rpc-error*
@@ -341,36 +344,26 @@ class RPC(object):
         """
         return self._event
 
-    def set_async(self, async=True):
+    def __set_async(self, async=True):
         self._async = async
         if async and not session.can_pipeline:
             raise UserWarning('Asynchronous mode not supported for this device/session')
 
-    def set_raise_mode(self, mode):
+    def __set_raise_mode(self, mode):
         assert(choice in ("all", "errors", "none"))
         self._raise_mode = mode
 
-    def set_timeout(self, timeout):
+    def __set_timeout(self, timeout):
         self._timeout = timeout
 
-    raise_mode = property(fget=lambda self: self._raise_mode, fset=set_raise_mode)
-    """Depending on this exception raising mode, an *rpc-error* in the reply may be raised as
-    :exc:`RPCError` exceptions. Valid values:
+    raise_mode = property(fget=lambda self: self._raise_mode, fset=__set_raise_mode)
+    """Depending on this exception raising mode, an `rpc-error` in the reply may be raised as an :exc:`RPCError` exception. Valid values are the constants defined in :class:`RaiseMode`. """
     
-    * ``"all"`` -- any kind of *rpc-error* (error or warning)
-    * ``"errors"`` -- when the *error-type* element says it is an error
-    * ``"none"`` -- neither
-    """
+    is_async = property(fget=lambda self: self._async, fset=__set_async)
+    """Specifies whether this RPC will be / was requested asynchronously. By default RPC's are synchronous. """
     
-    is_async = property(fget=lambda self: self._async, fset=set_async)
-    """Specifies whether this RPC will be / was requested asynchronously. By default RPC's are
-    synchronous.
-    """
-    
-    timeout = property(fget=lambda self: self._timeout, fset=set_timeout)
-    """Timeout in seconds for synchronous waiting defining how long the RPC request will block on a
-    reply before raising :exc:`TimeoutExpiredError`. By default there is no timeout, represented by
-    :const:`None`.
+    timeout = property(fget=lambda self: self._timeout, fset=__set_timeout)
+    """Timeout in seconds for synchronous waiting defining how long the RPC request will block on a reply before raising :exc:`TimeoutExpiredError`.
     
     Irrelevant for asynchronous usage.
     """

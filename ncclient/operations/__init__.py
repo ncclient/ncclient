@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from errors import OperationError, TimeoutExpiredError, MissingCapabilityError
-from rpc import RPC, RPCReply, RPCError
+from rpc import RPC, RPCReply, RPCError, RaiseMode
 
 # rfc4741 ops
 from retrieve import Get, GetConfig, GetReply
@@ -27,6 +27,7 @@ __all__ = [
     'RPC',
     'RPCReply',
     'RPCError',
+    'RaiseMode',
     'Get',
     'GetConfig',
     'GetReply',

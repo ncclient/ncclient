@@ -30,7 +30,7 @@ class GetReply(RPCReply):
     
     @property
     def data_ele(self):
-        "*data* element as an `~xml.etree.ElementTree.Element`"
+        "*data* element as an :class:`~xml.etree.ElementTree.Element`"
         if not self._parsed:
             self.parse()
         return self._data
@@ -53,6 +53,11 @@ class Get(RPC):
     REPLY_CLS = GetReply
 
     def request(self, filter=None):
+        """Retrieve running configuration and device state information.
+
+        :param filter: portions of the device configuration to retrieve (by default entire configuration is retrieved)
+        :type filter: :ref:`filter_params`
+        """
         node = new_ele("get")
         if filter is not None:
             node.append(util.build_filter(filter))
@@ -66,6 +71,13 @@ class GetConfig(RPC):
     REPLY_CLS = GetReply
 
     def request(self, source, filter=None):
+        """Retrieve all or part of a specified configuration.
+
+        :param source: name of the configuration datastore being queried
+        :type source: string
+
+        :param filter: portions of the device configuration to retrieve (by default entire configuration is retrieved)
+        :type filter: :ref:`filter_params`"""
         node = new_ele("get-config")
         node.append(util.datastore_or_url("source", source, self._assert))
         if filter is not None:

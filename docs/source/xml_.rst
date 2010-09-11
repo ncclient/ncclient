@@ -1,7 +1,7 @@
 :mod:`~ncclient.xml_` -- XML handling
 =====================================
 
-.. module:: ncclient.xml_
+.. automodule:: ncclient.xml_
     :synopsis: XML handling
 
 .. autoexception:: XMLError
@@ -20,10 +20,7 @@ Namespaces
 
 .. autodata:: FLOWMON_1_0
 
-.. function:: register_namespace(prefix, uri)
-    
-    ElementTree's namespace map determines the prefixes for namespace URI's when serializing to XML.
-    This method allows modifying this map to specify a prefix for a namespace URI.
+.. autofunction:: register_namespace(prefix, uri)
 
 .. autofunction:: qualify
 
@@ -37,5 +34,3 @@ Conversion
 .. autofunction:: parse_root
 
 .. autofunction:: validated_element
-
-.. 

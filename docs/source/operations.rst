@@ -1,17 +1,21 @@
 :mod:`~ncclient.operations` -- Everything RPC
 =============================================
 
-Base classes
-------------
 
 .. module:: ncclient.operations
     :synopsis: Everything RPC
 
-.. autoclass:: RPC(session[, async=False, timeout=None, raise_mode="none"])
+.. autoclass:: RaiseMode
+    :members: NONE, ERRORS, ALL
+
+Base classes
+------------
+
+.. autoclass:: RPC(session, async=False, timeout=None, raise_mode="none")
     :members: DEPENDS, REPLY_CLS, _assert, _request, request, event, error, reply, raise_mode, is_async, timeout
 
 .. autoclass:: RPCReply
-    :members: xml, ok, error, errors
+    :members: xml, ok, error, errors, _parsing_hook
 
 .. autoexception:: RPCError
     :show-inheritance:
@@ -20,11 +24,7 @@ Base classes
 Operations
 ----------
 
-*TODO*
-
-The operation classes are currently undocumented. See documentation of `~ncclient.manager.Manager`
-for methods that utilize the operation classes. The parameters accepted by :meth:`~RPC.request` for
-these classes are the same.
+The operation classes are currently undocumented. See documentation of :class:`~ncclient.manager.Manager` for methods that utilize the operation classes. The parameters accepted by :meth:`~RPC.request` for these classes are the same.
 
 Replies with data
 -----------------

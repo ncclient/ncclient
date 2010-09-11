@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-'Session-related NETCONF operations'
+"Session-related NETCONF operations"
 
 from ncclient.xml_ import *
 
@@ -20,9 +20,10 @@ from rpc import RPC
 
 class CloseSession(RPC):
 
-    "*<close-session>* RPC. The connection to NETCONF server is also closed."
+    "`close-session` RPC. The connection to NETCONF server is also closed."
 
     def request(self):
+        "Request graceful termination of the NETCONF session, and also close the transport."
         try:
             return self._request(new_ele("close-session"))
         finally:
@@ -31,15 +32,13 @@ class CloseSession(RPC):
 
 class KillSession(RPC):
 
-    "*<kill-session>* RPC."
-    
+    "`kill-session` RPC."
+
     def request(self, session_id):
-        """
-        :arg session_id: *session-id* of NETCONF session to kill
-        :type session_id: `string`
+        """Force the termination of a NETCONF session (not the current one!)
+
+        *session_id* is the session identifier of the NETCONF session to be terminated as a string
         """
         node = new_ele("kill-session")
-        if not isinstance(session_id, basestring): # make sure
-            session_id = str(session_id)
         sub_ele(node, "session-id").text = session_id
         return self._request(node)

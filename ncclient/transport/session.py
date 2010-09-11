@@ -131,12 +131,7 @@ class Session(Thread):
         raise NotImplementedError
 
     def send(self, message):
-        """Send the supplied *message* to NETCONF server.
-
-        :arg message: an XML document
-
-        :type message: `string`
-        """
+        """Send the supplied *message* (xml string) to NETCONF server."""
         if not self.connected:
             raise TransportError('Not connected to NETCONF server')
         logger.debug('queueing %s' % message)
@@ -161,8 +156,7 @@ class Session(Thread):
 
     @property
     def id(self):
-        """A `string` representing the `session-id`. If the session has not
-        been initialized it will be :const:`None`"""
+        """A string representing the `session-id`. If the session has not been initialized it will be `None`"""
         return self._id
 
 
@@ -176,15 +170,11 @@ class SessionListener(object):
     """
 
     def callback(self, root, raw):
-        """Called when a new XML document is received. The `root` argument
-        allows the callback to determine whether it wants to further process the
-        document.
+        """Called when a new XML document is received. The *root* argument allows the callback to determine whether it wants to further process the document.
 
-        :arg root: tuple of `(tag, attributes)` where `tag` is the qualified name of the root element and `attributes` is a dictionary of its attributes (also qualified names)
-        :type root: `tuple`
+        Here, *root* is a tuple of *(tag, attributes)* where *tag* is the qualified name of the root element and *attributes* is a dictionary of its attributes (also qualified names).
 
-        :arg raw: XML document
-        :type raw: `string`
+        *raw* will contain the XML document as a string.
         """
         raise NotImplementedError
 

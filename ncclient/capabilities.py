@@ -23,21 +23,12 @@ def _abbreviate(uri):
     return []
 
 def schemes(url_uri):
-    """Given a URI that has a *scheme* query string (i.e. *:url* capability URI), will return a list
-    of supported schemes.
-    """
+    "Given a URI that has a *scheme* query string (i.e. `:url` capability URI), will return a list of supported schemes."
     return url_uri.partition("?scheme=")[2].split(",")
 
 class Capabilities:
 
-    """Represents the set of capabilities available to a NETCONF client or server. It is initialized
-    with a list of capability URI's. These can be iterated over.
-    
-    Presence of a capability can be checked with the *in* operation. In addition to the URI, for
-    capabilities of the form *urn:ietf:params:netconf:capability:$name:$version* their shorthand can
-    be used as a key. For example, for *urn:ietf:params:netconf:capability:candidate:1.0* the
-    shorthand would be *:candidate*. If version is significant, use *:candidate:1.0* as key.
-    """
+    "Represents the set of capabilities available to a NETCONF client or server. It is initialized with a list of capability URI's."
     
     def __init__(self, capabilities):
         self._dict = {}

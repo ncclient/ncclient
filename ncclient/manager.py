@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"This module is a thin layer of abstraction around the library. It exposes all core functionality."
+"""This module is a thin layer of abstraction around the library. It exposes all core functionality."""
 
 import capabilities
 import operations
@@ -35,7 +35,7 @@ CAPABILITIES = [
     "urn:liberouter:params:netconf:capability:power-control:1.0"
     "urn:ietf:params:netconf:capability:interleave:1.0"
 ]
-"A list of URI's representing the client's capabilities. This is used during the initial capability exchange. Modify this if you need to announce some capability not already included."
+"""A list of URI's representing the client's capabilities. This is used during the initial capability exchange. Modify this if you need to announce some capability not already included."""
 
 OPERATIONS = {
     "get": operations.Get,
@@ -53,53 +53,12 @@ OPERATIONS = {
     "poweroff_machine": operations.PoweroffMachine,
     "reboot_machine": operations.RebootMachine
 }
-"""Dictionary of method names and corresponding `~ncclient.operations.RPC` subclasses. It is used to lookup operations, e.g. "get_config" is mapped to `~ncclient.operations.GetConfig`. It is thus possible to add additional operations to the `Manager` API."""
+"""Dictionary of method names and corresponding :class:`~ncclient.operations.RPC` subclasses. It is used to lookup operations, e.g. `get_config` is mapped to :class:`~ncclient.operations.GetConfig`. It is thus possible to add additional operations to the :class:`Manager` API."""
 
 def connect_ssh(*args, **kwds):
-    """Initializes a NETCONF session over SSH, and creates a connected `Manager` instance. *host* must be specified, all the other arguments are optional and depend on the kind of host key verification and user authentication you want to complete.
-        
-    For the purpose of host key verification, on -NIX systems a user's :file:`~/.ssh/known_hosts` file is automatically considered. The *unknown_host_cb* argument specifies a callback that will be invoked when the server's host key cannot be verified. See :func:`~ncclient.transport.ssh.default_unknown_host_cb` for function signature.
-    
-    First, ``publickey`` authentication is attempted. If a specific *key_filename* is specified, it
-    will be loaded and authentication attempted using it. If *allow_agent* is :const:`True` and an
-    SSH agent is running, the keys provided by the agent will be tried. If *look_for_keys* is
-    :const:`True`, keys in the :file:`~/.ssh/id_rsa` and :file:`~.ssh/id_dsa` will be tried. In case
-    an encrypted key file is encountered, the *password* argument will be used as a decryption
-    passphrase.
-    
-    If ``publickey`` authentication fails and the *password* argument has been supplied, ``password`` / ``keyboard-interactive`` SSH authentication will be attempted.
-    
-    :param host: hostname or address on which to connect
-    :type host: `string`
-    
-    :param port: port on which to connect
-    :type port: `int`
-    
-    :param timeout: timeout for socket connect
-    :type timeout: `int`
-    
-    :param unknown_host_cb: optional; callback that is invoked when host key verification fails
-    :type unknown_host_cb: `function`
-    
-    :param username: username to authenticate with, if not specified the username of the logged-in user is used
-    :type username: `string`
-    
-    :param password: password for ``password`` authentication or passphrase for decrypting private key files
-    :type password: `string`
-    
-    :param key_filename: location of a private key file on the file system
-    :type key_filename: `string`
-    
-    :param allow_agent: whether to try connecting to SSH agent for keys
-    :type allow_agent: `bool`
-    
-    :param look_for_keys: whether to look in usual locations for keys
-    :type look_for_keys: `bool`
-    
-    :raises: :exc:`~ncclient.transport.SSHUnknownHostError`
-    :raises: :exc:`~ncclient.transport.AuthenticationError`
-    
-    :rtype: `Manager`
+    """Initialize a :class:`Manager` over the SSH transport. For documentation of arguments see :meth:`ncclient.transport.SSHSession.connect`.
+
+    The underlying :class:`ncclient.transport.SSHSession` is created with :data:`CAPABILITIES`. It is first instructed to :meth:`~ncclient.transport.SSHSession.load_known_hosts` and then  all the provided arguments are passed directly to its implementation of :meth:`~ncclient.transport.SSHSession.connect`.
     """
     session = transport.SSHSession(capabilities.Capabilities(CAPABILITIES))
     session.load_known_hosts()
@@ -110,6 +69,7 @@ connect = connect_ssh
 "Same as :func:`connect_ssh`, since SSH is the default (and currently, the only) transport."
 
 class OpExecutor(type):
+
     def __new__(cls, name, bases, attrs):
         def make_wrapper(op_cls):
             def wrapper(self, *args, **kwds):
@@ -122,17 +82,29 @@ class OpExecutor(type):
 
 class Manager(object):
 
+    """For details on the expected behavior of the operations and their parameters refer to :rfc:`4741`.
+
+    Manager instances are also context managers so you can use it like this::
+
+        with manager.connect("host") as m:
+            # do your stuff
+
+    ... or like this::
+
+        m = manager.connect("host")
+        try:
+            # do your stuff
+        finally:
+            m.close_session()
+    """
+
     __metaclass__ = OpExecutor
 
-    RAISE_NONE = 0
-    RAISE_ERRORS = 1
-    RAISE_ALL = 2
-
-    def __init__(self, session):
+    def __init__(self, session, timeout=30):
         self._session = session
         self._async_mode = False
-        self._timeout = None
-        self._raise_mode = self.RAISE_ALL
+        self._timeout = timeout
+        self._raise_mode = operations.RaiseMode.ALL
 
     def __enter__(self):
         return self
@@ -141,6 +113,13 @@ class Manager(object):
         self.close_session()
         return False
 
+    def __set_async_mode(self, mode):
+        self._async_mode = mode
+
+    def __set_raise_mode(self, mode):
+        assert(choice in (operations.RaiseMode.NONE, operations.RaiseMode.ERRORS, operations.RaiseMode.ALL))
+        self._raise_mode = mode
+
     def execute(self, cls, *args, **kwds):
         return cls(self._session,
                    async=self._async_mode,
@@ -148,31 +127,44 @@ class Manager(object):
                    raise_mode=self._raise_mode).request(*args, **kwds)
 
     def locked(self, target):
+        """Returns a context manager for a lock on a datastore, where *target* is the name of the configuration datastore to lock, e.g.::
+
+            with m.locked("running"):
+                # do your stuff
+
+        ... instead of::
+
+            m.lock("running")
+            try:
+                # do your stuff
+            finally:
+                m.unlock("running")
+        """
         return operations.LockContext(self._session, target)
 
     @property
     def client_capabilities(self):
+        ":class:`~ncclient.capabilities.Capabilities` object representing the client's capabilities."
         return self._session._client_capabilities
 
     @property
     def server_capabilities(self):
+        ":class:`~ncclient.capabilities.Capabilities` object representing the server's capabilities."
         return self._session._server_capabilities
 
     @property
     def session_id(self):
+        "`session-id` assigned by the NETCONF server."
         return self._session.id
 
     @property
     def connected(self):
+        "Whether currently connected to the NETCONF server."
         return self._session.connected
 
-    def set_async_mode(self, mode):
-        self._async_mode = mode
+    async_mode = property(fget=lambda self: self._async_mode, fset=__set_async_mode)
+    "Specify whether operations are executed asynchronously (`True`) or synchronously (`False`) (the default)."
 
-    def set_raise_mode(self, mode):
-        assert(choice in (self.RAISE_NONE, self.RAISE_ERRORS, self.RAISE_ALL))
-        self._raise_mode = mode
 
-    async_mode = property(fget=lambda self: self._async_mode, fset=set_async_mode)
-
-    raise_mode = property(fget=lambda self: self._raise_mode, fset=set_raise_mode)
+    raise_mode = property(fget=lambda self: self._raise_mode, fset=__set_raise_mode)
+    "Specify which errors are raised as :exc:`~ncclient.operations.RPCError` exceptions. Valid values are the constants defined in :class:`~ncclient.operations.RaiseMode`. The default value is :attr:`~ncclient.operations.RaiseMode.ALL`."

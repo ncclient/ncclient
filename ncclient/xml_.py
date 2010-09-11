@@ -41,6 +41,7 @@ except AttributeError:
         from xml.etree import ElementTree
         # cElementTree uses ElementTree's _namespace_map, so that's ok
         ElementTree._namespace_map[uri] = prefix
+register_namespace.func_doc = "ElementTree's namespace map determines the prefixes for namespace URI's when serializing to XML. This method allows modifying this map to specify a prefix for a namespace URI."
 
 for (ns, pre) in {
     BASE_NS_1_0: 'nc',
@@ -51,41 +52,19 @@ for (ns, pre) in {
 }.items(): register_namespace(pre, ns)
 
 qualify = lambda tag, ns=BASE_NS_1_0: tag if ns is None else "{%s}%s" % (ns, tag)
-"""Qualify a tag name with a namespace, in :mod:`~xml.etree.ElementTree` fashion i.e. *{namespace}tagname*.
-
-:arg tag: name of the tag
-:type arg: `string`
-
-:arg ns: namespace to qualify with
-:type ns: `string`
-"""
+"""Qualify a *tag* name with a *namespace*, in :mod:`~xml.etree.ElementTree` fashion i.e. *{namespace}tagname*."""
 
 def to_xml(ele, encoding="UTF-8"):
-    """Convert an `~xml.etree.ElementTree.Element` to XML.
-    
-    :arg ele: the `~xml.etree.ElementTree.Element`
-    :arg encoding: character encoding
-    :rtype: `string`
-    """
+    "Convert and return the XML for an *ele* (:class:`~xml.etree.ElementTree.Element`) with specified *encoding*."
     xml = ET.tostring(ele, encoding)
     return xml if xml.startswith('<?xml') else '<?xml version="1.0" encoding="%s"?>%s' % (encoding, xml)
 
 def to_ele(x):
-    """Convert XML to `~xml.etree.ElementTree.Element`. If passed an `~xml.etree.ElementTree.Element` simply returns that.
-    
-    :arg x: the XML document or element
-    :type x: `string` or `~xml.etree.ElementTree.Element`
-    :rtype: `~xml.etree.ElementTree.Element`
-    """
+    "Convert and return the :class:`~xml.etree.ElementTree.Element` for the XML document *x*. If *x* is already an :class:`~xml.etree.ElementTree.Element` simply returns that."
     return x if ET.iselement(x) else ET.fromstring(x)
 
 def parse_root(raw):
-    """Efficiently parses the root element of an XML document.
-
-    :arg raw: XML document
-    :returns: a tuple of ``(tag, attrib)``, where *tag* is the (qualified) name of the element and *attrib* is a dictionary of its attributes.
-    :rtype: `tuple`
-    """
+    "Efficiently parses the root element of a *raw* XML document, returning a tuple of its qualified name and attribute dictionary."
     fp = StringIO(raw)
     for event, element in ET.iterparse(fp, events=('start',)):
         return (element.tag, element.attrib)
@@ -93,13 +72,11 @@ def parse_root(raw):
 def validated_element(x, tags=None, attrs=None):
     """Checks if the root element of an XML document or Element meets the supplied criteria.
     
-    :arg tags: allowable tag name or sequence of allowable alternatives
-    :type tags: `string` or sequence of strings
-    
-    :arg attrs: list of required attributes, each of which may be a sequence of several allowable alternatives
-    :type attrs: sequence of strings or sequence of sequences of strings
-    
-    :raises: `XMLError` if the requirements are not met
+    *tags* if specified is either a single allowable tag name or sequence of allowable alternatives
+
+    *attrs* if specified is a sequence of required attributes, each of which may be a sequence of several allowable alternatives
+
+    Raises :exc:`XMLError` if the requirements are not met.
     """
     ele = to_ele(x)
     if tags:

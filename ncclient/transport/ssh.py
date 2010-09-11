@@ -32,19 +32,15 @@ MSG_DELIM = "]]>]]>"
 TICK = 0.1
 
 def default_unknown_host_cb(host, fingerprint):
-    """An `unknown host callback` returns :const:`True` if it finds the key acceptable, and
-    :const:`False` if not.
+    """An unknown host callback returns `True` if it finds the key acceptable, and `False` if not.
 
-    This default callback always returns :const:`False`, which would lead to :meth:`connect` raising
-    a :exc:`SSHUnknownHost` exception.
+    This default callback always returns `False`, which would lead to :meth:`connect` raising a :exc:`SSHUnknownHost` exception.
     
     Supply another valid callback if you need to verify the host key programatically.
 
-    :arg host: the hostname that needs to be verified
-    :type host: `string`
+    *host* is the hostname that needs to be verified
 
-    :arg fingerprint: a hex string representing the host key fingerprint, colon-delimited e.g. *4b:69:6c:72:6f:79:20:77:61:73:20:68:65:72:65:21*
-    :type fingerprint: `string`
+    *fingerprint* is a hex string representing the host key fingerprint, colon-delimited e.g. `"4b:69:6c:72:6f:79:20:77:61:73:20:68:65:72:65:21"`
     """
     return False
 
@@ -70,11 +66,7 @@ class SSHSession(Session):
         self._parsing_pos = 0
     
     def _parse(self):
-        """Messages ae delimited by MSG_DELIM. The buffer could have grown by a
-        maximum of BUF_SIZE bytes everytime this method is called. Retains state
-        across method calls and if a byte has been read it will not be
-        considered again.
-        """
+        "Messages ae delimited by MSG_DELIM. The buffer could have grown by a maximum of BUF_SIZE bytes everytime this method is called. Retains state across method calls and if a byte has been read it will not be considered again."
         delim = MSG_DELIM
         n = len(delim) - 1
         expect = self._parsing_state
@@ -115,10 +107,9 @@ class SSHSession(Session):
         self._parsing_pos = self._buffer.tell()
 
     def load_known_hosts(self, filename=None):
-        """Load host keys from a :file:`known_hosts`-style file. Can be called multiple times.
+        """Load host keys from an openssh :file:`known_hosts`-style file. Can be called multiple times.
 
-        If *filename* is not specified, looks in the default locations i.e.
-        :file:`~/.ssh/known_hosts` and :file:`~/ssh/known_hosts` for Windows.
+        If *filename* is not specified, looks in the default locations i.e. :file:`~/.ssh/known_hosts` and :file:`~/ssh/known_hosts` for Windows.
         """
         if filename is None:
             filename = os.path.expanduser('~/.ssh/known_hosts')
@@ -139,44 +130,40 @@ class SSHSession(Session):
             self._transport.close()
         self._connected = False
 
-    def connect(self, host, port=830, timeout=None,
-                unknown_host_cb=default_unknown_host_cb,
-                username=None, password=None,
-                key_filename=None, allow_agent=True, look_for_keys=True):
-        """Connect via SSH and initialize the NETCONF session. First attempts the publickey
-        authentication method and then password authentication.
+    # REMEMBER to update transport.rst if sig. changes, since it is hardcoded there
+    def connect(self, host, port=830, timeout=None, unknown_host_cb=default_unknown_host_cb,
+                username=None, password=None, key_filename=None, allow_agent=True, look_for_keys=True):
+        """Connect via SSH and initialize the NETCONF session. First attempts the publickey authentication method and then password authentication.
 
-        To disable attemting publickey authentication altogether, call with *allow_agent* and
-        *look_for_keys* as :const:`False`.
+        To disable attempting publickey authentication altogether, call with *allow_agent* and *look_for_keys* as `False`.
 
         :arg host: the hostname or IP address to connect to
-        :type host: `string`
+        :type host: string
 
         :arg port: by default 830, but some devices use the default SSH port of 22 so this may need to be specified
-        :type port: `int`
+        :type port: int
 
         :arg timeout: an optional timeout for socket connect
-        :type timeout: `int`
+        :type timeout: int
 
         :arg unknown_host_cb: called when the server host key is not recognized
-        :type unknown_host_cb: see :meth:`signature <ssh.default_unknown_host_cb>`
+        :type unknown_host_cb: see the signature of :func:`default_unknown_host_cb`
 
         :arg username: the username to use for SSH authentication
-        :type username: `string`
+        :type username: string
 
         :arg password: the password used if using password authentication, or the passphrase to use for unlocking keys that require it
-        :type password: `string`
+        :type password: string
 
         :arg key_filename: a filename where a the private key to be used can be found
-        :type key_filename: `string`
+        :type key_filename: string
 
         :arg allow_agent: enables querying SSH agent (if found) for keys
-        :type allow_agent: `bool`
+        :type allow_agent: bool
 
         :arg look_for_keys: enables looking in the usual locations for ssh keys (e.g. :file:`~/.ssh/id_*`)
-        :type look_for_keys: `bool`
+        :type look_for_keys: bool
         """
-
         if username is None:
             username = getpass.getuser()
         
@@ -306,13 +293,9 @@ class SSHSession(Session):
         q = self._q
         try:
             while True:
-                # select on a paramiko ssh channel object does not ever return
-                # it in the writable list, so it channel's don't exactly emulate
-                # the socket api
+                # select on a paramiko ssh channel object does not ever return it in the writable list, so channels don't exactly emulate the socket api
                 r, w, e = select([chan], [], [], TICK)
-                # will wakeup evey TICK seconds to check if something
-                # to send, more if something to read (due to select returning
-                # chan in readable list)
+                # will wakeup evey TICK seconds to check if something to send, more if something to read (due to select returning chan in readable list)
                 if r:
                     data = chan.recv(BUF_SIZE)
                     if data:
@@ -335,8 +318,5 @@ class SSHSession(Session):
 
     @property
     def transport(self):
-        """Underlying `paramiko.Transport
-        <http://www.lag.net/paramiko/docs/paramiko.Transport-class.html>`_
-        object. This makes it possible to call methods like set_keepalive on it.
-        """
+        "Underlying `paramiko.Transport <http://www.lag.net/paramiko/docs/paramiko.Transport-class.html>`_ object. This makes it possible to call methods like set_keepalive on it."
         return self._transport
