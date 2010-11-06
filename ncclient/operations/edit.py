@@ -64,8 +64,9 @@ class DeleteConfig(RPC):
     def request(self, target):
         """Delete a configuration datastore.
 
-        :param target: name or URL of configuration datastore to delete
-        :type: :ref:`srctarget_params`"""
+        *target* specifies the  name or URL of configuration datastore to delete
+
+        :seealso: :ref:`srctarget_params`"""
         node = new_ele("delete-config")
         node.append(util.datastore_or_url("target", target, self._assert))
         return self._request(node)
@@ -78,11 +79,11 @@ class CopyConfig(RPC):
         """Create or replace an entire configuration datastore with the contents of another complete
         configuration datastore.
 
-        :param source: configuration datastore to use as the source of the copy operation or `config` element containing the configuration subtree to copy
-        :type source: :ref:`srctarget_params`
+        *source* is the name of the configuration datastore to use as the source of the copy operation or `config` element containing the configuration subtree to copy
 
-        :param target: configuration datastore to use as the destination of the copy operation
-        :type target: :ref:`srctarget_params`"""
+        *target* is the name of the configuration datastore to use as the destination of the copy operation
+
+        :seealso: :ref:`srctarget_params`"""
         node = new_ele("copy-config")
         node.append(util.datastore_or_url("target", target, self._assert))
         node.append(util.datastore_or_url("source", source, self._assert))
@@ -97,8 +98,9 @@ class Validate(RPC):
     def request(self, source):
         """Validate the contents of the specified configuration.
 
-        :param source: name of the configuration datastore being validated or `config` element containing the configuration subtree to be validated
-        :type source: :ref:`srctarget_params`"""
+        *source* is the name of the configuration datastore being validated or `config` element containing the configuration subtree to be validated
+
+        :seealso: :ref:`srctarget_params`"""
         node = new_ele("validate")
         try:
             src = validated_element(source, ("config", qualify("config")))
@@ -119,11 +121,9 @@ class Commit(RPC):
 
         A confirmed commit (i.e. if *confirmed* is `True`) is reverted if there is no followup commit within the *timeout* interval. If no timeout is specified the confirm timeout defaults to 600 seconds (10 minutes). A confirming commit may have the *confirmed* parameter but this is not required. Depends on the `:confirmed-commit` capability.
 
-        :param confirmed: whether this is a confirmed commit
-        :type confirmed: bool
+        *confirmed* whether this is a confirmed commit
 
-        :param timeout: confirm timeout in seconds
-        :type timeout: int"""
+        *timeout* confirm timeout in seconds"""
         node = new_ele("commit")
         if confirmed:
             self._assert(":confirmed-commit")

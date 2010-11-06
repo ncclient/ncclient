@@ -260,10 +260,9 @@ class RPC(object):
         
         In asynchronous mode, returns immediately, returning *self*. The :attr:`event` attribute will be set when the reply has been received (see :attr:`reply`) or an error occured (see :attr:`error`).
         
-        :param op: operation to b\e requested
-        :type ops: `~xml.etree.ElementTree.Element`
+        *op* operation to be requested as an `~xml.etree.ElementTree.Element`
         
-        :rtype: `RPCReply` (sync) or `RPC` (async)
+        Returns :class:`RPCReply` (sync) or :class:`RPC` (async)
         """
         logger.info('Requesting %r' % self.__class__.__name__)
         req = self._wrap(op)

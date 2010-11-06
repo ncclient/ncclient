@@ -137,32 +137,23 @@ class SSHSession(Session):
 
         To disable attempting publickey authentication altogether, call with *allow_agent* and *look_for_keys* as `False`.
 
-        :arg host: the hostname or IP address to connect to
-        :type host: string
+        *host* is the hostname or IP address to connect to
 
-        :arg port: by default 830, but some devices use the default SSH port of 22 so this may need to be specified
-        :type port: int
+        *port* is by default 830, but some devices use the default SSH port of 22 so this may need to be specified
 
-        :arg timeout: an optional timeout for socket connect
-        :type timeout: int
+        *timeout* is an optional timeout for socket connect
 
-        :arg unknown_host_cb: called when the server host key is not recognized
-        :type unknown_host_cb: see the signature of :func:`default_unknown_host_cb`
+        *unknown_host_cb* is called when the server host key is not recognized. It takes two arguments, the hostname and the fingerprint (see the signature of :func:`default_unknown_host_cb`)
 
-        :arg username: the username to use for SSH authentication
-        :type username: string
+        *username* is the username to use for SSH authentication
 
-        :arg password: the password used if using password authentication, or the passphrase to use for unlocking keys that require it
-        :type password: string
+        *password* is the password used if using password authentication, or the passphrase to use for unlocking keys that require it
 
-        :arg key_filename: a filename where a the private key to be used can be found
-        :type key_filename: string
+        *key_filename* is a filename where a the private key to be used can be found
 
-        :arg allow_agent: enables querying SSH agent (if found) for keys
-        :type allow_agent: bool
+        *allow_agent* enables querying SSH agent (if found) for keys
 
-        :arg look_for_keys: enables looking in the usual locations for ssh keys (e.g. :file:`~/.ssh/id_*`)
-        :type look_for_keys: bool
+        *look_for_keys* enables looking in the usual locations for ssh keys (e.g. :file:`~/.ssh/id_*`)
         """
         if username is None:
             username = getpass.getuser()
