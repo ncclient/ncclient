@@ -1,0 +1,156 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>capabilities – NETCONF Capabilities &mdash; ncclient v0.3 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="ncclient v0.3 documentation" href="index.html" />
+    <link rel="up" title="Complete API documentation" href="api.html" />
+    <link rel="next" title="xml_ – XML handling" href="xml_.html" />
+    <link rel="prev" title="Complete API documentation" href="api.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="xml_.html" title="xml_ – XML handling"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api.html" title="Complete API documentation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">ncclient v0.3 documentation</a> &raquo;</li>
+          <li><a href="api.html" accesskey="U">Complete API documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-ncclient.capabilities">
+<span id="capabilities-netconf-capabilities"></span><h1><a class="reference internal" href="#module-ncclient.capabilities" title="ncclient.capabilities"><tt class="xref py py-mod docutils literal"><span class="pre">capabilities</span></tt></a> &#8211; NETCONF Capabilities<a class="headerlink" href="#module-ncclient.capabilities" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="ncclient.capabilities.schemes">
+<tt class="descclassname">ncclient.capabilities.</tt><tt class="descname">schemes</tt><big>(</big><em>url_uri</em><big>)</big><a class="headerlink" href="#ncclient.capabilities.schemes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a URI that has a <em>scheme</em> query string (i.e. <cite>:url</cite> capability URI), will return a list of supported schemes.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="ncclient.capabilities.Capabilities">
+<em class="property">class </em><tt class="descclassname">ncclient.capabilities.</tt><tt class="descname">Capabilities</tt><big>(</big><em>capabilities</em><big>)</big><a class="headerlink" href="#ncclient.capabilities.Capabilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represents the set of capabilities available to a NETCONF client or server. It is initialized with a list of capability URI&#8217;s.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Members :</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="describe">
+<dt>
+<tt class="descname">&quot;:cap&quot; in caps</tt></dt>
+<dd><p>Check for the presence of capability. In addition to the URI, for capabilities of the form <cite>urn:ietf:params:netconf:capability:$name:$version</cite> their shorthand can be used as a key. For example, for <cite>urn:ietf:params:netconf:capability:candidate:1.0</cite> the shorthand would be <cite>:candidate</cite>. If version is significant, use <cite>:candidate:1.0</cite> as key.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<tt class="descname">iter(caps)</tt></dt>
+<dd><p>Return an iterator over the full URI&#8217;s of capabilities represented by this object.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<p align="center">
+  <a href="http://schmizz.net/ncclient">
+    <img src="_static/logo.png" width="125" height="125"/>
+  </a>
+</p>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api.html"
+                        title="previous chapter">Complete API documentation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="xml_.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">xml_</span></tt> &#8211; XML handling</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/capabilities.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="xml_.html" title="xml_ – XML handling"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api.html" title="Complete API documentation"
+             >previous</a> |</li>
+        <li><a href="index.html">ncclient v0.3 documentation</a> &raquo;</li>
+          <li><a href="api.html" >Complete API documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2009, Shikhar Bhushan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.3.
+    </div>
+  </body>
+</html>
