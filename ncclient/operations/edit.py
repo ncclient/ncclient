@@ -123,7 +123,7 @@ class Commit(RPC):
 
         *confirmed* whether this is a confirmed commit
 
-        *timeout* confirm timeout in seconds"""
+        *timeout* specifies the confirm timeout in seconds"""
         node = new_ele("commit")
         if confirmed:
             self._assert(":confirmed-commit")

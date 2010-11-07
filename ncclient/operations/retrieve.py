@@ -20,8 +20,7 @@ import util
 
 class GetReply(RPCReply):
 
-    """Adds attributes for the *data* element to `RPCReply`. This pertains to the `Get` and
-    `GetConfig` operations."""
+    """Adds attributes for the *data* element to `RPCReply`."""
 
     def _parsing_hook(self, root):
         self._data = None
@@ -51,6 +50,7 @@ class Get(RPC):
     "The *get* RPC."
 
     REPLY_CLS = GetReply
+    "See :class:`GetReply`."
 
     def request(self, filter=None):
         """Retrieve running configuration and device state information.
@@ -70,6 +70,7 @@ class GetConfig(RPC):
     "The *get-config* RPC."
 
     REPLY_CLS = GetReply
+    "See :class:`GetReply`."
 
     def request(self, source, filter=None):
         """Retrieve all or part of a specified configuration.

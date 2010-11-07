@@ -95,7 +95,7 @@ class RPCReply:
 
     .. note::
         If the reply has not yet been parsed there is an implicit, one-time parsing overhead to
-        accessing the attributes defined by this class and any subclasses.
+        accessing some of the attributes defined by this class.
     """
     
     ERROR_CLS = RPCError
@@ -127,7 +127,7 @@ class RPCReply:
         self._parsed = True
 
     def _parsing_hook(self, root):
-        "No-op by default. Gets given the *root* element."
+        "No-op by default. Gets passed the *root* element for the reply."
         pass
     
     @property
@@ -220,17 +220,24 @@ class RaiseMode(object):
 
 class RPC(object):
     
-    """Base class for all operations, directly corresponding to *rpc* requests. Handles making the
-    request, and taking delivery of the reply."""
+    """Base class for all operations, directly corresponding to *rpc* requests. Handles making the request, and taking delivery of the reply."""
 
     DEPENDS = []
-    """Subclasses can specify their dependencies on capabilities. List of URI's or abbreviated names, e.g. ':writable-running'. These are verified at the time of instantiation. If the capability is not available, a :exc:`MissingCapabilityError` is raised.
-    """
+    """Subclasses can specify their dependencies on capabilities as a list of URI's or abbreviated names, e.g. ':writable-running'. These are verified at the time of instantiation. If the capability is not available, :exc:`MissingCapabilityError` is raised."""
     
     REPLY_CLS = RPCReply
-    "Subclasses can specify a different reply class, but it should be a subclass of `RPCReply`."
+    "By default :class:`RPCReply`. Subclasses can specify a :class:`RPCReply` subclass."
     
     def __init__(self, session, async=False, timeout=30, raise_mode=RaiseMode.NONE):
+        """
+        *session* is the :class:`~ncclient.transport.Session` instance
+
+        *async* specifies whether the request is to be made asynchronously, see :attr:`is_async`
+
+        *timeout* is the timeout for a synchronous request, see :attr:`timeout`
+
+        *raise_mode* specifies the exception raising mode, see :attr:`raise_mode`
+        """
         self._session = session
         try:
             for cap in self.DEPENDS:
@@ -258,11 +265,9 @@ class RPC(object):
         
         In synchronous mode, blocks until the reply is received and returns :class:`RPCReply`. Depending on the :attr:`raise_mode` a `rpc-error` element in the reply may lead to an :exc:`RPCError` exception.
         
-        In asynchronous mode, returns immediately, returning *self*. The :attr:`event` attribute will be set when the reply has been received (see :attr:`reply`) or an error occured (see :attr:`error`).
+        In asynchronous mode, returns immediately, returning `self`. The :attr:`event` attribute will be set when the reply has been received (see :attr:`reply`) or an error occured (see :attr:`error`).
         
-        *op* operation to be requested as an `~xml.etree.ElementTree.Element`
-        
-        Returns :class:`RPCReply` (sync) or :class:`RPC` (async)
+        *op* is the operation to be requested as an :class:`~xml.etree.ElementTree.Element`
         """
         logger.info('Requesting %r' % self.__class__.__name__)
         req = self._wrap(op)
@@ -290,7 +295,7 @@ class RPC(object):
 
     def request(self):
         """Subclasses must implement this method. Typically only the request needs to be built as an
-        `~xml.etree.ElementTree.Element` and everything else can be handed off to
+        :class:`~xml.etree.ElementTree.Element` and everything else can be handed off to
         :meth:`_request`."""
         pass
     
@@ -338,7 +343,7 @@ class RPC(object):
 
     @property
     def event(self):
-        """`~threading.Event` that is set when reply has been received or when an error preventing
+        """:class:`~threading.Event` that is set when reply has been received or when an error preventing
         delivery of the reply occurs.
         """
         return self._event
@@ -359,7 +364,7 @@ class RPC(object):
     """Depending on this exception raising mode, an `rpc-error` in the reply may be raised as an :exc:`RPCError` exception. Valid values are the constants defined in :class:`RaiseMode`. """
     
     is_async = property(fget=lambda self: self._async, fset=__set_async)
-    """Specifies whether this RPC will be / was requested asynchronously. By default RPC's are synchronous. """
+    """Specifies whether this RPC will be / was requested asynchronously. By default RPC's are synchronous."""
     
     timeout = property(fget=lambda self: self._timeout, fset=__set_timeout)
     """Timeout in seconds for synchronous waiting defining how long the RPC request will block on a reply before raising :exc:`TimeoutExpiredError`.
