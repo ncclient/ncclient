@@ -1,0 +1,667 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>operations – Everything RPC &mdash; ncclient v0.3.1 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.3.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="ncclient v0.3.1 documentation" href="index.html" />
+    <link rel="up" title="Complete API documentation" href="api.html" />
+    <link rel="prev" title="transport – Transport / Session layer" href="transport.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="transport.html" title="transport – Transport / Session layer"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">ncclient v0.3.1 documentation</a> &raquo;</li>
+          <li><a href="api.html" accesskey="U">Complete API documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-ncclient.operations">
+<span id="operations-everything-rpc"></span><h1><a class="reference internal" href="#module-ncclient.operations" title="ncclient.operations: Everything RPC"><tt class="xref py py-mod docutils literal"><span class="pre">operations</span></tt></a> &#8211; Everything RPC<a class="headerlink" href="#module-ncclient.operations" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="ncclient.operations.RaiseMode">
+<em class="property">class </em><tt class="descclassname">ncclient.operations.</tt><tt class="descname">RaiseMode</tt><a class="headerlink" href="#ncclient.operations.RaiseMode" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="ncclient.operations.RaiseMode.NONE">
+<tt class="descname">NONE</tt><a class="headerlink" href="#ncclient.operations.RaiseMode.NONE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Don&#8217;t attempt to raise any type of <cite>rpc-error</cite> as <a class="reference internal" href="#ncclient.operations.RPCError" title="ncclient.operations.RPCError"><tt class="xref py py-exc docutils literal"><span class="pre">RPCError</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RaiseMode.ERRORS">
+<tt class="descname">ERRORS</tt><a class="headerlink" href="#ncclient.operations.RaiseMode.ERRORS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raise only when the <cite>error-type</cite> indicates it is an honest-to-god error.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RaiseMode.ALL">
+<tt class="descname">ALL</tt><a class="headerlink" href="#ncclient.operations.RaiseMode.ALL" title="Permalink to this definition">¶</a></dt>
+<dd><p>Don&#8217;t look at the <cite>error-type</cite>, always raise.</p>
+</dd></dl>
+
+</dd></dl>
+
+<div class="section" id="base-classes">
+<h2>Base classes<a class="headerlink" href="#base-classes" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ncclient.operations.RPC">
+<em class="property">class </em><tt class="descclassname">ncclient.operations.</tt><tt class="descname">RPC</tt><big>(</big><em>session</em>, <em>async=False</em>, <em>timeout=30</em>, <em>raise_mode=0</em><big>)</big><a class="headerlink" href="#ncclient.operations.RPC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for all operations, directly corresponding to <em>rpc</em> requests. Handles making the request, and taking delivery of the reply.</p>
+<p><em>session</em> is the <a class="reference internal" href="transport.html#ncclient.transport.Session" title="ncclient.transport.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> instance</p>
+<p><em>async</em> specifies whether the request is to be made asynchronously, see <a class="reference internal" href="#ncclient.operations.RPC.is_async" title="ncclient.operations.RPC.is_async"><tt class="xref py py-attr docutils literal"><span class="pre">is_async</span></tt></a></p>
+<p><em>timeout</em> is the timeout for a synchronous request, see <a class="reference internal" href="#ncclient.operations.RPC.timeout" title="ncclient.operations.RPC.timeout"><tt class="xref py py-attr docutils literal"><span class="pre">timeout</span></tt></a></p>
+<p><em>raise_mode</em> specifies the exception raising mode, see <a class="reference internal" href="#ncclient.operations.RPC.raise_mode" title="ncclient.operations.RPC.raise_mode"><tt class="xref py py-attr docutils literal"><span class="pre">raise_mode</span></tt></a></p>
+<dl class="attribute">
+<dt id="ncclient.operations.RPC.DEPENDS">
+<tt class="descname">DEPENDS</tt><a class="headerlink" href="#ncclient.operations.RPC.DEPENDS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subclasses can specify their dependencies on capabilities as a list of URI&#8217;s or abbreviated names, e.g. &#8216;:writable-running&#8217;. These are verified at the time of instantiation. If the capability is not available, <a class="reference internal" href="#ncclient.operations.MissingCapabilityError" title="ncclient.operations.MissingCapabilityError"><tt class="xref py py-exc docutils literal"><span class="pre">MissingCapabilityError</span></tt></a> is raised.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPC.REPLY_CLS">
+<tt class="descname">REPLY_CLS</tt><a class="headerlink" href="#ncclient.operations.RPC.REPLY_CLS" title="Permalink to this definition">¶</a></dt>
+<dd><p>By default <a class="reference internal" href="#ncclient.operations.RPCReply" title="ncclient.operations.RPCReply"><tt class="xref py py-class docutils literal"><span class="pre">RPCReply</span></tt></a>. Subclasses can specify a <a class="reference internal" href="#ncclient.operations.RPCReply" title="ncclient.operations.RPCReply"><tt class="xref py py-class docutils literal"><span class="pre">RPCReply</span></tt></a> subclass.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ncclient.operations.RPC._assert">
+<tt class="descname">_assert</tt><big>(</big><em>capability</em><big>)</big><a class="headerlink" href="#ncclient.operations.RPC._assert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subclasses can use this method to verify that a capability is available with the NETCONF
+server, before making a request that requires it. A <a class="reference internal" href="#ncclient.operations.MissingCapabilityError" title="ncclient.operations.MissingCapabilityError"><tt class="xref py py-exc docutils literal"><span class="pre">MissingCapabilityError</span></tt></a> will be
+raised if the capability is not available.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ncclient.operations.RPC._request">
+<tt class="descname">_request</tt><big>(</big><em>op</em><big>)</big><a class="headerlink" href="#ncclient.operations.RPC._request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implementations of <a class="reference internal" href="#ncclient.operations.RPC.request" title="ncclient.operations.RPC.request"><tt class="xref py py-meth docutils literal"><span class="pre">request()</span></tt></a> call this method to send the request and process the reply.</p>
+<p>In synchronous mode, blocks until the reply is received and returns <a class="reference internal" href="#ncclient.operations.RPCReply" title="ncclient.operations.RPCReply"><tt class="xref py py-class docutils literal"><span class="pre">RPCReply</span></tt></a>. Depending on the <a class="reference internal" href="#ncclient.operations.RPC.raise_mode" title="ncclient.operations.RPC.raise_mode"><tt class="xref py py-attr docutils literal"><span class="pre">raise_mode</span></tt></a> a <cite>rpc-error</cite> element in the reply may lead to an <a class="reference internal" href="#ncclient.operations.RPCError" title="ncclient.operations.RPCError"><tt class="xref py py-exc docutils literal"><span class="pre">RPCError</span></tt></a> exception.</p>
+<p>In asynchronous mode, returns immediately, returning <cite>self</cite>. The <a class="reference internal" href="#ncclient.operations.RPC.event" title="ncclient.operations.RPC.event"><tt class="xref py py-attr docutils literal"><span class="pre">event</span></tt></a> attribute will be set when the reply has been received (see <a class="reference internal" href="#ncclient.operations.RPC.reply" title="ncclient.operations.RPC.reply"><tt class="xref py py-attr docutils literal"><span class="pre">reply</span></tt></a>) or an error occured (see <a class="reference internal" href="#ncclient.operations.RPC.error" title="ncclient.operations.RPC.error"><tt class="xref py py-attr docutils literal"><span class="pre">error</span></tt></a>).</p>
+<p><em>op</em> is the operation to be requested as an <a class="reference external" href="http://docs.python.org/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">Element</span></tt></a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ncclient.operations.RPC.request">
+<tt class="descname">request</tt><big>(</big><big>)</big><a class="headerlink" href="#ncclient.operations.RPC.request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subclasses must implement this method. Typically only the request needs to be built as an
+<a class="reference external" href="http://docs.python.org/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">Element</span></tt></a> and everything else can be handed off to
+<a class="reference internal" href="#ncclient.operations.RPC._request" title="ncclient.operations.RPC._request"><tt class="xref py py-meth docutils literal"><span class="pre">_request()</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPC.event">
+<tt class="descname">event</tt><a class="headerlink" href="#ncclient.operations.RPC.event" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference external" href="http://docs.python.org/library/threading.html#threading.Event" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">Event</span></tt></a> that is set when reply has been received or when an error preventing
+delivery of the reply occurs.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPC.error">
+<tt class="descname">error</tt><a class="headerlink" href="#ncclient.operations.RPC.error" title="Permalink to this definition">¶</a></dt>
+<dd><p><tt class="xref py py-exc docutils literal"><span class="pre">Exception</span></tt> type if an error occured or <cite>None</cite>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This represents an error which prevented a reply from being received. An <em>rpc-error</em>
+does not fall in that category &#8211; see <cite>RPCReply</cite> for that.</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPC.reply">
+<tt class="descname">reply</tt><a class="headerlink" href="#ncclient.operations.RPC.reply" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#ncclient.operations.RPCReply" title="ncclient.operations.RPCReply"><tt class="xref py py-class docutils literal"><span class="pre">RPCReply</span></tt></a> element if reply has been received or <cite>None</cite></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPC.raise_mode">
+<tt class="descname">raise_mode</tt><a class="headerlink" href="#ncclient.operations.RPC.raise_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Depending on this exception raising mode, an <cite>rpc-error</cite> in the reply may be raised as an <a class="reference internal" href="#ncclient.operations.RPCError" title="ncclient.operations.RPCError"><tt class="xref py py-exc docutils literal"><span class="pre">RPCError</span></tt></a> exception. Valid values are the constants defined in <a class="reference internal" href="#ncclient.operations.RaiseMode" title="ncclient.operations.RaiseMode"><tt class="xref py py-class docutils literal"><span class="pre">RaiseMode</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPC.is_async">
+<tt class="descname">is_async</tt><a class="headerlink" href="#ncclient.operations.RPC.is_async" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specifies whether this RPC will be / was requested asynchronously. By default RPC&#8217;s are synchronous.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPC.timeout">
+<tt class="descname">timeout</tt><a class="headerlink" href="#ncclient.operations.RPC.timeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Timeout in seconds for synchronous waiting defining how long the RPC request will block on a reply before raising <a class="reference internal" href="#ncclient.operations.TimeoutExpiredError" title="ncclient.operations.TimeoutExpiredError"><tt class="xref py py-exc docutils literal"><span class="pre">TimeoutExpiredError</span></tt></a>.</p>
+<p>Irrelevant for asynchronous usage.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ncclient.operations.RPCReply">
+<em class="property">class </em><tt class="descclassname">ncclient.operations.</tt><tt class="descname">RPCReply</tt><big>(</big><em>raw</em><big>)</big><a class="headerlink" href="#ncclient.operations.RPCReply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represents an <em>rpc-reply</em>. Only concerns itself with whether the operation was successful.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If the reply has not yet been parsed there is an implicit, one-time parsing overhead to
+accessing some of the attributes defined by this class.</p>
+</div>
+<dl class="attribute">
+<dt id="ncclient.operations.RPCReply.xml">
+<tt class="descname">xml</tt><a class="headerlink" href="#ncclient.operations.RPCReply.xml" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>rpc-reply</em> element as returned.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPCReply.ok">
+<tt class="descname">ok</tt><a class="headerlink" href="#ncclient.operations.RPCReply.ok" title="Permalink to this definition">¶</a></dt>
+<dd><p>Boolean value indicating if there were no errors.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPCReply.error">
+<tt class="descname">error</tt><a class="headerlink" href="#ncclient.operations.RPCReply.error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the first <a class="reference internal" href="#ncclient.operations.RPCError" title="ncclient.operations.RPCError"><tt class="xref py py-class docutils literal"><span class="pre">RPCError</span></tt></a> and <cite>None</cite> if there were no errors.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPCReply.errors">
+<tt class="descname">errors</tt><a class="headerlink" href="#ncclient.operations.RPCReply.errors" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of <cite>RPCError</cite> objects. Will be empty if there were no <em>rpc-error</em> elements in reply.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ncclient.operations.RPCReply._parsing_hook">
+<tt class="descname">_parsing_hook</tt><big>(</big><em>root</em><big>)</big><a class="headerlink" href="#ncclient.operations.RPCReply._parsing_hook" title="Permalink to this definition">¶</a></dt>
+<dd><p>No-op by default. Gets passed the <em>root</em> element for the reply.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="ncclient.operations.RPCError">
+<em class="property">exception </em><tt class="descclassname">ncclient.operations.</tt><tt class="descname">RPCError</tt><big>(</big><em>raw</em><big>)</big><a class="headerlink" href="#ncclient.operations.RPCError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">ncclient.operations.errors.OperationError</span></tt></p>
+<p>Represents an <cite>rpc-error</cite>. It is a type of <a class="reference internal" href="#ncclient.operations.OperationError" title="ncclient.operations.OperationError"><tt class="xref py py-exc docutils literal"><span class="pre">OperationError</span></tt></a> and can be raised as such.</p>
+<dl class="attribute">
+<dt id="ncclient.operations.RPCError.type">
+<tt class="descname">type</tt><a class="headerlink" href="#ncclient.operations.RPCError.type" title="Permalink to this definition">¶</a></dt>
+<dd><p>The contents of the <cite>error-type</cite> element.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPCError.severity">
+<tt class="descname">severity</tt><a class="headerlink" href="#ncclient.operations.RPCError.severity" title="Permalink to this definition">¶</a></dt>
+<dd><p>The contents of the <cite>error-severity</cite> element.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPCError.tag">
+<tt class="descname">tag</tt><a class="headerlink" href="#ncclient.operations.RPCError.tag" title="Permalink to this definition">¶</a></dt>
+<dd><p>The contents of the <cite>error-tag</cite> element.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPCError.path">
+<tt class="descname">path</tt><a class="headerlink" href="#ncclient.operations.RPCError.path" title="Permalink to this definition">¶</a></dt>
+<dd><p>The contents of the <cite>error-path</cite> element if present or <cite>None</cite>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPCError.message">
+<tt class="descname">message</tt><a class="headerlink" href="#ncclient.operations.RPCError.message" title="Permalink to this definition">¶</a></dt>
+<dd><p>The contents of the <cite>error-message</cite> element if present or <cite>None</cite>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.RPCError.info">
+<tt class="descname">info</tt><a class="headerlink" href="#ncclient.operations.RPCError.info" title="Permalink to this definition">¶</a></dt>
+<dd><p>XML string or <cite>None</cite>; representing the <cite>error-info</cite> element.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="operations">
+<h2>Operations<a class="headerlink" href="#operations" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="retrieval">
+<h3>Retrieval<a class="headerlink" href="#retrieval" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="ncclient.operations.Get">
+<em class="property">class </em><tt class="descclassname">ncclient.operations.</tt><tt class="descname">Get</tt><big>(</big><em>session</em>, <em>async=False</em>, <em>timeout=30</em>, <em>raise_mode=0</em><big>)</big><a class="headerlink" href="#ncclient.operations.Get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">ncclient.operations.rpc.RPC</span></tt></p>
+<p>The <em>get</em> RPC.</p>
+<p><em>session</em> is the <a class="reference internal" href="transport.html#ncclient.transport.Session" title="ncclient.transport.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> instance</p>
+<p><em>async</em> specifies whether the request is to be made asynchronously, see <tt class="xref py py-attr docutils literal"><span class="pre">is_async</span></tt></p>
+<p><em>timeout</em> is the timeout for a synchronous request, see <tt class="xref py py-attr docutils literal"><span class="pre">timeout</span></tt></p>
+<p><em>raise_mode</em> specifies the exception raising mode, see <tt class="xref py py-attr docutils literal"><span class="pre">raise_mode</span></tt></p>
+<dl class="attribute">
+<dt id="ncclient.operations.Get.REPLY_CLS">
+<tt class="descname">REPLY_CLS</tt><a class="headerlink" href="#ncclient.operations.Get.REPLY_CLS" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="#ncclient.operations.GetReply" title="ncclient.operations.GetReply"><tt class="xref py py-class docutils literal"><span class="pre">GetReply</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ncclient.operations.Get.request">
+<tt class="descname">request</tt><big>(</big><em>filter=None</em><big>)</big><a class="headerlink" href="#ncclient.operations.Get.request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve running configuration and device state information.</p>
+<p><em>filter</em> specifies the portion of the configuration to retrieve (by default entire configuration is retrieved)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Seealso :</th><td class="field-body"><a class="reference internal" href="manager.html#filter-params"><em>Filter parameters</em></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ncclient.operations.GetConfig">
+<em class="property">class </em><tt class="descclassname">ncclient.operations.</tt><tt class="descname">GetConfig</tt><big>(</big><em>session</em>, <em>async=False</em>, <em>timeout=30</em>, <em>raise_mode=0</em><big>)</big><a class="headerlink" href="#ncclient.operations.GetConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">ncclient.operations.rpc.RPC</span></tt></p>
+<p>The <em>get-config</em> RPC.</p>
+<p><em>session</em> is the <a class="reference internal" href="transport.html#ncclient.transport.Session" title="ncclient.transport.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> instance</p>
+<p><em>async</em> specifies whether the request is to be made asynchronously, see <tt class="xref py py-attr docutils literal"><span class="pre">is_async</span></tt></p>
+<p><em>timeout</em> is the timeout for a synchronous request, see <tt class="xref py py-attr docutils literal"><span class="pre">timeout</span></tt></p>
+<p><em>raise_mode</em> specifies the exception raising mode, see <tt class="xref py py-attr docutils literal"><span class="pre">raise_mode</span></tt></p>
+<dl class="attribute">
+<dt id="ncclient.operations.GetConfig.REPLY_CLS">
+<tt class="descname">REPLY_CLS</tt><a class="headerlink" href="#ncclient.operations.GetConfig.REPLY_CLS" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="#ncclient.operations.GetReply" title="ncclient.operations.GetReply"><tt class="xref py py-class docutils literal"><span class="pre">GetReply</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ncclient.operations.GetConfig.request">
+<tt class="descname">request</tt><big>(</big><em>source</em>, <em>filter=None</em><big>)</big><a class="headerlink" href="#ncclient.operations.GetConfig.request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve all or part of a specified configuration.</p>
+<p><em>source</em> name of the configuration datastore being queried</p>
+<p><em>filter</em> specifies the portion of the configuration to retrieve (by default entire configuration is retrieved)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Seealso :</th><td class="field-body"><a class="reference internal" href="manager.html#filter-params"><em>Filter parameters</em></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ncclient.operations.GetReply">
+<em class="property">class </em><tt class="descclassname">ncclient.operations.</tt><tt class="descname">GetReply</tt><big>(</big><em>raw</em><big>)</big><a class="headerlink" href="#ncclient.operations.GetReply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">ncclient.operations.rpc.RPCReply</span></tt></p>
+<p>Adds attributes for the <em>data</em> element to <cite>RPCReply</cite>.</p>
+<dl class="attribute">
+<dt id="ncclient.operations.GetReply.data">
+<tt class="descname">data</tt><a class="headerlink" href="#ncclient.operations.GetReply.data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Same as <a class="reference internal" href="#ncclient.operations.GetReply.data_ele" title="ncclient.operations.GetReply.data_ele"><tt class="xref py py-attr docutils literal"><span class="pre">data_ele</span></tt></a></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.GetReply.data_ele">
+<tt class="descname">data_ele</tt><a class="headerlink" href="#ncclient.operations.GetReply.data_ele" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>data</em> element as an <a class="reference external" href="http://docs.python.org/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">Element</span></tt></a></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.operations.GetReply.data_xml">
+<tt class="descname">data_xml</tt><a class="headerlink" href="#ncclient.operations.GetReply.data_xml" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>data</em> element as an XML string</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="editing">
+<h3>Editing<a class="headerlink" href="#editing" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="ncclient.operations.EditConfig">
+<em class="property">class </em><tt class="descclassname">ncclient.operations.</tt><tt class="descname">EditConfig</tt><big>(</big><em>session</em>, <em>async=False</em>, <em>timeout=30</em>, <em>raise_mode=0</em><big>)</big><a class="headerlink" href="#ncclient.operations.EditConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">ncclient.operations.rpc.RPC</span></tt></p>
+<p><cite>edit-config</cite> RPC</p>
+<p><em>session</em> is the <a class="reference internal" href="transport.html#ncclient.transport.Session" title="ncclient.transport.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> instance</p>
+<p><em>async</em> specifies whether the request is to be made asynchronously, see <tt class="xref py py-attr docutils literal"><span class="pre">is_async</span></tt></p>
+<p><em>timeout</em> is the timeout for a synchronous request, see <tt class="xref py py-attr docutils literal"><span class="pre">timeout</span></tt></p>
+<p><em>raise_mode</em> specifies the exception raising mode, see <tt class="xref py py-attr docutils literal"><span class="pre">raise_mode</span></tt></p>
+<dl class="method">
+<dt id="ncclient.operations.EditConfig.request">
+<tt class="descname">request</tt><big>(</big><em>target</em>, <em>config</em>, <em>default_operation=None</em>, <em>test_option=None</em>, <em>error_option=None</em><big>)</big><a class="headerlink" href="#ncclient.operations.EditConfig.request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads all or part of the specified <em>config</em> to the <em>target</em> configuration datastore.</p>
+<p><em>target</em> is the name of the configuration datastore being edited</p>
+<p><em>config</em> is the configuration, which must be rooted in the <cite>config</cite> element. It can be specified either as a string or an <a class="reference external" href="http://docs.python.org/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">Element</span></tt></a>.</p>
+<p><em>default_operation</em> if specified must be one of { <cite>&#8220;merge&#8221;</cite>, <cite>&#8220;replace&#8221;</cite>, or <cite>&#8220;none&#8221;</cite> }</p>
+<p><em>test_option</em> if specified must be one of { <cite>&#8220;test_then_set&#8221;</cite>, <cite>&#8220;set&#8221;</cite> }</p>
+<p><em>error_option</em> if specified must be one of { <cite>&#8220;stop-on-error&#8221;</cite>, <cite>&#8220;continue-on-error&#8221;</cite>, <cite>&#8220;rollback-on-error&#8221;</cite> }</p>
+<p>The <cite>&#8220;rollback-on-error&#8221;</cite> <em>error_option</em> depends on the <cite>:rollback-on-error</cite> capability.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ncclient.operations.DeleteConfig">
+<em class="property">class </em><tt class="descclassname">ncclient.operations.</tt><tt class="descname">DeleteConfig</tt><big>(</big><em>session</em>, <em>async=False</em>, <em>timeout=30</em>, <em>raise_mode=0</em><big>)</big><a class="headerlink" href="#ncclient.operations.DeleteConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">ncclient.operations.rpc.RPC</span></tt></p>
+<p><cite>delete-config</cite> RPC</p>
+<p><em>session</em> is the <a class="reference internal" href="transport.html#ncclient.transport.Session" title="ncclient.transport.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> instance</p>
+<p><em>async</em> specifies whether the request is to be made asynchronously, see <tt class="xref py py-attr docutils literal"><span class="pre">is_async</span></tt></p>
+<p><em>timeout</em> is the timeout for a synchronous request, see <tt class="xref py py-attr docutils literal"><span class="pre">timeout</span></tt></p>
+<p><em>raise_mode</em> specifies the exception raising mode, see <tt class="xref py py-attr docutils literal"><span class="pre">raise_mode</span></tt></p>
+<dl class="method">
+<dt id="ncclient.operations.DeleteConfig.request">
+<tt class="descname">request</tt><big>(</big><em>target</em><big>)</big><a class="headerlink" href="#ncclient.operations.DeleteConfig.request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete a configuration datastore.</p>
+<p><em>target</em> specifies the  name or URL of configuration datastore to delete</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Seealso :</th><td class="field-body"><a class="reference internal" href="manager.html#srctarget-params"><em>Source and target parameters</em></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ncclient.operations.CopyConfig">
+<em class="property">class </em><tt class="descclassname">ncclient.operations.</tt><tt class="descname">CopyConfig</tt><big>(</big><em>session</em>, <em>async=False</em>, <em>timeout=30</em>, <em>raise_mode=0</em><big>)</big><a class="headerlink" href="#ncclient.operations.CopyConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">ncclient.operations.rpc.RPC</span></tt></p>
+<p><cite>copy-config</cite> RPC</p>
+<p><em>session</em> is the <a class="reference internal" href="transport.html#ncclient.transport.Session" title="ncclient.transport.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> instance</p>
+<p><em>async</em> specifies whether the request is to be made asynchronously, see <tt class="xref py py-attr docutils literal"><span class="pre">is_async</span></tt></p>
+<p><em>timeout</em> is the timeout for a synchronous request, see <tt class="xref py py-attr docutils literal"><span class="pre">timeout</span></tt></p>
+<p><em>raise_mode</em> specifies the exception raising mode, see <tt class="xref py py-attr docutils literal"><span class="pre">raise_mode</span></tt></p>
+<dl class="method">
+<dt id="ncclient.operations.CopyConfig.request">
+<tt class="descname">request</tt><big>(</big><em>source</em>, <em>target</em><big>)</big><a class="headerlink" href="#ncclient.operations.CopyConfig.request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create or replace an entire configuration datastore with the contents of another complete
+configuration datastore.</p>
+<p><em>source</em> is the name of the configuration datastore to use as the source of the copy operation or <cite>config</cite> element containing the configuration subtree to copy</p>
+<p><em>target</em> is the name of the configuration datastore to use as the destination of the copy operation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Seealso :</th><td class="field-body"><a class="reference internal" href="manager.html#srctarget-params"><em>Source and target parameters</em></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ncclient.operations.Validate">
+<em class="property">class </em><tt class="descclassname">ncclient.operations.</tt><tt class="descname">Validate</tt><big>(</big><em>session</em>, <em>async=False</em>, <em>timeout=30</em>, <em>raise_mode=0</em><big>)</big><a class="headerlink" href="#ncclient.operations.Validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">ncclient.operations.rpc.RPC</span></tt></p>
+<p><cite>validate</cite> RPC. Depends on the <cite>:validate</cite> capability.</p>
+<p><em>session</em> is the <a class="reference internal" href="transport.html#ncclient.transport.Session" title="ncclient.transport.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> instance</p>
+<p><em>async</em> specifies whether the request is to be made asynchronously, see <tt class="xref py py-attr docutils literal"><span class="pre">is_async</span></tt></p>
+<p><em>timeout</em> is the timeout for a synchronous request, see <tt class="xref py py-attr docutils literal"><span class="pre">timeout</span></tt></p>
+<p><em>raise_mode</em> specifies the exception raising mode, see <tt class="xref py py-attr docutils literal"><span class="pre">raise_mode</span></tt></p>
+<dl class="method">
+<dt id="ncclient.operations.Validate.request">
+<tt class="descname">request</tt><big>(</big><em>source</em><big>)</big><a class="headerlink" href="#ncclient.operations.Validate.request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate the contents of the specified configuration.</p>
+<p><em>source</em> is the name of the configuration datastore being validated or <cite>config</cite> element containing the configuration subtree to be validated</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Seealso :</th><td class="field-body"><a class="reference internal" href="manager.html#srctarget-params"><em>Source and target parameters</em></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ncclient.operations.Commit">
+<em class="property">class </em><tt class="descclassname">ncclient.operations.</tt><tt class="descname">Commit</tt><big>(</big><em>session</em>, <em>async=False</em>, <em>timeout=30</em>, <em>raise_mode=0</em><big>)</big><a class="headerlink" href="#ncclient.operations.Commit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">ncclient.operations.rpc.RPC</span></tt></p>
+<p><cite>commit</cite> RPC. Depends on the <cite>:candidate</cite> capability, and the <cite>:confirmed-commit</cite>.</p>
+<p><em>session</em> is the <a class="reference internal" href="transport.html#ncclient.transport.Session" title="ncclient.transport.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> instance</p>
+<p><em>async</em> specifies whether the request is to be made asynchronously, see <tt class="xref py py-attr docutils literal"><span class="pre">is_async</span></tt></p>
+<p><em>timeout</em> is the timeout for a synchronous request, see <tt class="xref py py-attr docutils literal"><span class="pre">timeout</span></tt></p>
+<p><em>raise_mode</em> specifies the exception raising mode, see <tt class="xref py py-attr docutils literal"><span class="pre">raise_mode</span></tt></p>
+<dl class="method">
+<dt id="ncclient.operations.Commit.request">
+<tt class="descname">request</tt><big>(</big><em>confirmed=False</em>, <em>timeout=None</em><big>)</big><a class="headerlink" href="#ncclient.operations.Commit.request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Commit the candidate configuration as the device&#8217;s new current configuration. Depends on the <cite>:candidate</cite> capability.</p>
+<p>A confirmed commit (i.e. if <em>confirmed</em> is <cite>True</cite>) is reverted if there is no followup commit within the <em>timeout</em> interval. If no timeout is specified the confirm timeout defaults to 600 seconds (10 minutes). A confirming commit may have the <em>confirmed</em> parameter but this is not required. Depends on the <cite>:confirmed-commit</cite> capability.</p>
+<p><em>confirmed</em> whether this is a confirmed commit</p>
+<p><em>timeout</em> specifies the confirm timeout in seconds</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ncclient.operations.DiscardChanges">
+<em class="property">class </em><tt class="descclassname">ncclient.operations.</tt><tt class="descname">DiscardChanges</tt><big>(</big><em>session</em>, <em>async=False</em>, <em>timeout=30</em>, <em>raise_mode=0</em><big>)</big><a class="headerlink" href="#ncclient.operations.DiscardChanges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">ncclient.operations.rpc.RPC</span></tt></p>
+<p><cite>discard-changes</cite> RPC. Depends on the <cite>:candidate</cite> capability.</p>
+<p><em>session</em> is the <a class="reference internal" href="transport.html#ncclient.transport.Session" title="ncclient.transport.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> instance</p>
+<p><em>async</em> specifies whether the request is to be made asynchronously, see <tt class="xref py py-attr docutils literal"><span class="pre">is_async</span></tt></p>
+<p><em>timeout</em> is the timeout for a synchronous request, see <tt class="xref py py-attr docutils literal"><span class="pre">timeout</span></tt></p>
+<p><em>raise_mode</em> specifies the exception raising mode, see <tt class="xref py py-attr docutils literal"><span class="pre">raise_mode</span></tt></p>
+<dl class="method">
+<dt id="ncclient.operations.DiscardChanges.request">
+<tt class="descname">request</tt><big>(</big><big>)</big><a class="headerlink" href="#ncclient.operations.DiscardChanges.request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Revert the candidate configuration to the currently running configuration. Any uncommitted changes are discarded.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="locking">
+<h3>Locking<a class="headerlink" href="#locking" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="ncclient.operations.Lock">
+<em class="property">class </em><tt class="descclassname">ncclient.operations.</tt><tt class="descname">Lock</tt><big>(</big><em>session</em>, <em>async=False</em>, <em>timeout=30</em>, <em>raise_mode=0</em><big>)</big><a class="headerlink" href="#ncclient.operations.Lock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">ncclient.operations.rpc.RPC</span></tt></p>
+<p><cite>lock</cite> RPC</p>
+<p><em>session</em> is the <a class="reference internal" href="transport.html#ncclient.transport.Session" title="ncclient.transport.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> instance</p>
+<p><em>async</em> specifies whether the request is to be made asynchronously, see <tt class="xref py py-attr docutils literal"><span class="pre">is_async</span></tt></p>
+<p><em>timeout</em> is the timeout for a synchronous request, see <tt class="xref py py-attr docutils literal"><span class="pre">timeout</span></tt></p>
+<p><em>raise_mode</em> specifies the exception raising mode, see <tt class="xref py py-attr docutils literal"><span class="pre">raise_mode</span></tt></p>
+<dl class="method">
+<dt id="ncclient.operations.Lock.request">
+<tt class="descname">request</tt><big>(</big><em>target</em><big>)</big><a class="headerlink" href="#ncclient.operations.Lock.request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allows the client to lock the configuration system of a device.</p>
+<p><em>target</em> is the name of the configuration datastore to lock</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ncclient.operations.Unlock">
+<em class="property">class </em><tt class="descclassname">ncclient.operations.</tt><tt class="descname">Unlock</tt><big>(</big><em>session</em>, <em>async=False</em>, <em>timeout=30</em>, <em>raise_mode=0</em><big>)</big><a class="headerlink" href="#ncclient.operations.Unlock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">ncclient.operations.rpc.RPC</span></tt></p>
+<p><cite>unlock</cite> RPC</p>
+<p><em>session</em> is the <a class="reference internal" href="transport.html#ncclient.transport.Session" title="ncclient.transport.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> instance</p>
+<p><em>async</em> specifies whether the request is to be made asynchronously, see <tt class="xref py py-attr docutils literal"><span class="pre">is_async</span></tt></p>
+<p><em>timeout</em> is the timeout for a synchronous request, see <tt class="xref py py-attr docutils literal"><span class="pre">timeout</span></tt></p>
+<p><em>raise_mode</em> specifies the exception raising mode, see <tt class="xref py py-attr docutils literal"><span class="pre">raise_mode</span></tt></p>
+<dl class="method">
+<dt id="ncclient.operations.Unlock.request">
+<tt class="descname">request</tt><big>(</big><em>target</em><big>)</big><a class="headerlink" href="#ncclient.operations.Unlock.request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Release a configuration lock, previously obtained with the lock operation.</p>
+<p><em>target</em> is the name of the configuration datastore to unlock</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="session">
+<h3>Session<a class="headerlink" href="#session" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="ncclient.operations.CloseSession">
+<em class="property">class </em><tt class="descclassname">ncclient.operations.</tt><tt class="descname">CloseSession</tt><big>(</big><em>session</em>, <em>async=False</em>, <em>timeout=30</em>, <em>raise_mode=0</em><big>)</big><a class="headerlink" href="#ncclient.operations.CloseSession" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">ncclient.operations.rpc.RPC</span></tt></p>
+<p><cite>close-session</cite> RPC. The connection to NETCONF server is also closed.</p>
+<p><em>session</em> is the <a class="reference internal" href="transport.html#ncclient.transport.Session" title="ncclient.transport.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> instance</p>
+<p><em>async</em> specifies whether the request is to be made asynchronously, see <tt class="xref py py-attr docutils literal"><span class="pre">is_async</span></tt></p>
+<p><em>timeout</em> is the timeout for a synchronous request, see <tt class="xref py py-attr docutils literal"><span class="pre">timeout</span></tt></p>
+<p><em>raise_mode</em> specifies the exception raising mode, see <tt class="xref py py-attr docutils literal"><span class="pre">raise_mode</span></tt></p>
+<dl class="method">
+<dt id="ncclient.operations.CloseSession.request">
+<tt class="descname">request</tt><big>(</big><big>)</big><a class="headerlink" href="#ncclient.operations.CloseSession.request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Request graceful termination of the NETCONF session, and also close the transport.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ncclient.operations.KillSession">
+<em class="property">class </em><tt class="descclassname">ncclient.operations.</tt><tt class="descname">KillSession</tt><big>(</big><em>session</em>, <em>async=False</em>, <em>timeout=30</em>, <em>raise_mode=0</em><big>)</big><a class="headerlink" href="#ncclient.operations.KillSession" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">ncclient.operations.rpc.RPC</span></tt></p>
+<p><cite>kill-session</cite> RPC.</p>
+<p><em>session</em> is the <a class="reference internal" href="transport.html#ncclient.transport.Session" title="ncclient.transport.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> instance</p>
+<p><em>async</em> specifies whether the request is to be made asynchronously, see <tt class="xref py py-attr docutils literal"><span class="pre">is_async</span></tt></p>
+<p><em>timeout</em> is the timeout for a synchronous request, see <tt class="xref py py-attr docutils literal"><span class="pre">timeout</span></tt></p>
+<p><em>raise_mode</em> specifies the exception raising mode, see <tt class="xref py py-attr docutils literal"><span class="pre">raise_mode</span></tt></p>
+<dl class="method">
+<dt id="ncclient.operations.KillSession.request">
+<tt class="descname">request</tt><big>(</big><em>session_id</em><big>)</big><a class="headerlink" href="#ncclient.operations.KillSession.request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Force the termination of a NETCONF session (not the current one!)</p>
+<p><em>session_id</em> is the session identifier of the NETCONF session to be terminated as a string</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="exceptions">
+<h2>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="ncclient.operations.OperationError">
+<em class="property">exception </em><tt class="descclassname">ncclient.operations.</tt><tt class="descname">OperationError</tt><a class="headerlink" href="#ncclient.operations.OperationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">ncclient.NCClientError</span></tt></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="ncclient.operations.MissingCapabilityError">
+<em class="property">exception </em><tt class="descclassname">ncclient.operations.</tt><tt class="descname">MissingCapabilityError</tt><a class="headerlink" href="#ncclient.operations.MissingCapabilityError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">ncclient.NCClientError</span></tt></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="ncclient.operations.TimeoutExpiredError">
+<em class="property">exception </em><tt class="descclassname">ncclient.operations.</tt><tt class="descname">TimeoutExpiredError</tt><a class="headerlink" href="#ncclient.operations.TimeoutExpiredError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">ncclient.NCClientError</span></tt></p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<p align="center">
+  <a href="http://oss.schmizz.net/ncclient">
+    <img src="_static/logo.png" width="125" height="125"/>
+  </a>
+</p>
+
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">operations</span></tt> &#8211; Everything RPC</a><ul>
+<li><a class="reference internal" href="#base-classes">Base classes</a></li>
+<li><a class="reference internal" href="#operations">Operations</a><ul>
+<li><a class="reference internal" href="#retrieval">Retrieval</a></li>
+<li><a class="reference internal" href="#editing">Editing</a></li>
+<li><a class="reference internal" href="#locking">Locking</a></li>
+<li><a class="reference internal" href="#session">Session</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#exceptions">Exceptions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="transport.html"
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">transport</span></tt> &#8211; Transport / Session layer</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/operations.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="transport.html" title="transport – Transport / Session layer"
+             >previous</a> |</li>
+        <li><a href="index.html">ncclient v0.3.1 documentation</a> &raquo;</li>
+          <li><a href="api.html" >Complete API documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2009, Shikhar Bhushan.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>
