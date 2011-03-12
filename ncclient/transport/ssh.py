@@ -280,7 +280,6 @@ class SSHSession(Session):
 
     def run(self):
         chan = self._channel
-        chan.setblocking(0)
         q = self._q
         try:
             while True:
