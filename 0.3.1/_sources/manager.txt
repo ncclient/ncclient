@@ -67,6 +67,8 @@ Presence of capabilities is verified to the extent possible, and you can expect 
 
     .. autoattribute:: async_mode
 
+    .. autoattribute:: timeout
+
     .. autoattribute:: raise_mode
 
     .. autoattribute:: client_capabilities
