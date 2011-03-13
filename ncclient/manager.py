@@ -113,6 +113,9 @@ class Manager(object):
         self.close_session()
         return False
 
+    def __set_timeout(self, timeout):
+        self._timeout = timeout
+
     def __set_async_mode(self, mode):
         self._async_mode = mode
 
@@ -165,6 +168,8 @@ class Manager(object):
     async_mode = property(fget=lambda self: self._async_mode, fset=__set_async_mode)
     "Specify whether operations are executed asynchronously (`True`) or synchronously (`False`) (the default)."
 
+    timeout = property(fget=lambda self: self._timeout, fset=__set_timeout)
+    "Specify the timeout for synchronous RPC requests."
 
     raise_mode = property(fget=lambda self: self._raise_mode, fset=__set_raise_mode)
     "Specify which errors are raised as :exc:`~ncclient.operations.RPCError` exceptions. Valid values are the constants defined in :class:`~ncclient.operations.RaiseMode`. The default value is :attr:`~ncclient.operations.RaiseMode.ALL`."
