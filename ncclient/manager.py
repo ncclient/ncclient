@@ -120,7 +120,7 @@ class Manager(object):
         self._async_mode = mode
 
     def __set_raise_mode(self, mode):
-        assert(choice in (operations.RaiseMode.NONE, operations.RaiseMode.ERRORS, operations.RaiseMode.ALL))
+        assert(mode in (operations.RaiseMode.NONE, operations.RaiseMode.ERRORS, operations.RaiseMode.ALL))
         self._raise_mode = mode
 
     def execute(self, cls, *args, **kwds):
