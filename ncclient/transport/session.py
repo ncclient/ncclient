@@ -194,7 +194,7 @@ class HelloHandler(SessionListener):
 
     def callback(self, root, raw):
         tag, attrs = root
-        if tag == qualify("hello"):
+        if (tag == qualify("hello")) or (tag == "hello"):
             try:
                 id, capabilities = HelloHandler.parse(raw)
             except Exception as e:
@@ -220,10 +220,10 @@ class HelloHandler(SessionListener):
         sid, capabilities = 0, []
         root = to_ele(raw)
         for child in root.getchildren():
-            if child.tag == qualify("session-id"):
+            if child.tag == qualify("session-id") or child.tag == "session-id":
                 sid = child.text
-            elif child.tag == qualify("capabilities"):
+            elif child.tag == qualify("capabilities") or child.tag == "capabilities" :
                 for cap in child.getchildren():
-                    if cap.tag == qualify("capability"):
+                    if cap.tag == qualify("capability") or cap.tag == "capability":
                         capabilities.append(cap.text)
         return sid, Capabilities(capabilities)
