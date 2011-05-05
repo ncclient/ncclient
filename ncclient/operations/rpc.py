@@ -256,7 +256,7 @@ class RPC(object):
     
     def _wrap(self, subele):
         # internal use
-        ele = new_ele("rpc", {"message-id": self._id}, xmlns=BASE_NS_1_0)
+        ele = new_ele("rpc", {"message-id": self._id})
         ele.append(subele)
         return to_xml(ele)
 
