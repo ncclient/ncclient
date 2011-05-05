@@ -94,6 +94,6 @@ def validated_element(x, tags=None, attrs=None):
                 raise XMLError("Element [%s] does not have required attributes" % ele.tag)
     return ele
 
-new_ele = lambda tag, attrs={}, **extra: ET.Element(tag, attrs, **extra)
+new_ele = lambda tag, attrs={}, **extra: ET.Element(qualify(tag), attrs, **extra)
 
-sub_ele = lambda parent, tag, attrs={}, **extra: ET.SubElement(parent, tag, attrs, **extra)
+sub_ele = lambda parent, tag, attrs={}, **extra: ET.SubElement(parent, qualify(tag), attrs, **extra)
