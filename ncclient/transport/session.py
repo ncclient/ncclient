@@ -208,7 +208,7 @@ class HelloHandler(SessionListener):
     @staticmethod
     def build(capabilities):
         "Given a list of capability URI's returns <hello> message XML string"
-        hello = new_ele("hello", xmlns=BASE_NS_1_0)
+        hello = new_ele("hello")
         caps = sub_ele(hello, "capabilities")
         def fun(uri): sub_ele(caps, "capability").text = uri
         map(fun, capabilities)
