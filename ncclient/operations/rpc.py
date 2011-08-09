@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Debojyoti Dutta added some code for interoperability with Cisco's
+# Nexus family of switches. Tested with Nexus 7000 series.  
+
 from threading import Event, Lock
 from uuid import uuid1
 
@@ -256,7 +259,11 @@ class RPC(object):
     
     def _wrap(self, subele):
         # internal use
-        ele = new_ele("rpc", {"message-id": self._id}, xmlns=BASE_NS_1_0)
+        ele = new_ele("rpc", {"message-id": self._id}, 
+                      **{"xmlns":BASE_NS_1_0, 
+                         "xmlns:nxos":"http://www.cisco.com/nxos:1.0", 
+                         "xmlns:if":"http://www.cisco.com/nxos:1.0:if_manager"
+                         })
         ele.append(subele)
         return to_xml(ele)
 
