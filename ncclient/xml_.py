@@ -17,6 +17,9 @@
 from cStringIO import StringIO
 from xml.etree import cElementTree as ET
 
+# in case problems occur include the ElementTree file from the parent dir
+# import ElementTree as ET
+
 from ncclient import NCClientError
 
 class XMLError(NCClientError): pass
@@ -33,7 +36,9 @@ TAILF_EXECD_1_1 = "http://tail-f.com/ns/execd/1.1"
 CISCO_CPI_1_0 = "http://www.cisco.com/cpi_10/schema"
 #: Namespace for Flowmon data model
 FLOWMON_1_0 = "http://www.liberouter.org/ns/netopeer/flowmon/1.0"
-
+#: Namespace for Juniper 9.6R4
+JUNIPER_1_1 = "http://xml.juniper.net/xnm/1.1/xnm"
+#
 try:
     register_namespace = ET.register_namespace
 except AttributeError:
@@ -49,7 +54,9 @@ for (ns, pre) in {
     TAILF_EXECD_1_1: 'execd',
     CISCO_CPI_1_0: 'cpi',
     FLOWMON_1_0: 'fm',
-}.items(): register_namespace(pre, ns)
+    JUNIPER_1_1: 'junos',
+}.items(): 
+    register_namespace(pre, ns)
 
 qualify = lambda tag, ns=BASE_NS_1_0: tag if ns is None else "{%s}%s" % (ns, tag)
 """Qualify a *tag* name with a *namespace*, in :mod:`~xml.etree.ElementTree` fashion i.e. *{namespace}tagname*."""

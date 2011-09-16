@@ -85,3 +85,26 @@ class GetConfig(RPC):
         if filter is not None:
             node.append(util.build_filter(filter))
         return self._request(node)
+
+class Dispatch(RPC):
+    """Generic retrieving wrapper. Eg. dispatch('clear-arp-table') or dispatch element  
+    like :
+    xsd_fetch = new_ele('get-xnm-information')
+    sub_ele(xsd_fetch, 'type').text="xml-schema"
+    sub_ele(xsd_fetch, 'namespace').text="junos-configuration
+    dispatch(xsd_fetch)    
+    to fetch entire xsd sxhema file from Juniper
+    """
+    
+    REPLY_CLS = GetReply
+    
+    def request(self, rpc_command, source=None, filter=None):
+        if ET.iselement(rpc_command):
+            node = rpc_command
+        else:
+            node = new_ele(rpc_command)
+        if source is not None:
+            node.append(util.datastore_or_url("source", source, self._assert))
+        if filter is not None:
+            node.append(util.build_filter(filter))
+        return self._request(node)

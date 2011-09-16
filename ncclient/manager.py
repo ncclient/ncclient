@@ -40,6 +40,7 @@ CAPABILITIES = [
 OPERATIONS = {
     "get": operations.Get,
     "get_config": operations.GetConfig,
+    "dispatch": operations.Dispatch,
     "edit_config": operations.EditConfig,
     "copy_config": operations.CopyConfig,
     "validate": operations.Validate,
