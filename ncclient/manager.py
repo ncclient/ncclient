@@ -23,7 +23,7 @@ import logging
 logger = logging.getLogger('ncclient.manager')
 
 CAPABILITIES = [
-    "urn:ietf:params:netconf:base:1.0",
+    "urn:ietf:params:xml:ns:netconf:base:1.0",
     "urn:ietf:params:netconf:capability:writable-running:1.0",
     "urn:ietf:params:netconf:capability:candidate:1.0",
     "urn:ietf:params:netconf:capability:confirmed-commit:1.0",

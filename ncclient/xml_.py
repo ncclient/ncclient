@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Debojyoti Dutta added some code for interoperability with Cisco's
-# Nexus family of switches. Tested with Nexus 7000 series.  
-
 "Methods for creating, parsing, and dealing with XML and ElementTree objects."
 
 from cStringIO import StringIO
