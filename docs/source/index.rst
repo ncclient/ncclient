@@ -9,7 +9,7 @@ Welcome
 * Keeping XML out of the way unless really needed.
 * Extensible. New transport mappings and capabilities/operations can be easily added.
 
-It is suitable for Python 2.6+ (not Python 3 yet, though), and depends on `paramiko <http://www.lag.net/paramiko/>`_, an SSH library.
+It is suitable for Python 2.6+ (not Python 3 yet, though), and depends on `paramiko 1.7.7.1+ <http://www.lag.net/paramiko/>`_, an SSH library.
 
 The best way to introduce is through a simple code example::
 

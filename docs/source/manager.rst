@@ -47,6 +47,8 @@ Presence of capabilities is verified to the extent possible, and you can expect 
 
     .. automethod:: delete_config(target)
 
+    .. automethod:: dispatch(rpc_command, source=None, filter=None)
+
     .. automethod:: lock(target)
         
     .. automethod:: unlock(target)
