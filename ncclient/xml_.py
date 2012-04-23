@@ -37,7 +37,7 @@ TAILF_EXECD_1_1 = "http://tail-f.com/ns/execd/1.1"
 CISCO_CPI_1_0 = "http://www.cisco.com/cpi_10/schema"
 #: Namespace for Flowmon data model
 FLOWMON_1_0 = "http://www.liberouter.org/ns/netopeer/flowmon/1.0"
-#: Namespace for Juniper 9.6R4
+#: Namespace for Juniper 9.6R4. Tested with Junos 9.6R4+
 JUNIPER_1_1 = "http://xml.juniper.net/xnm/1.1/xnm"
 #
 try:
