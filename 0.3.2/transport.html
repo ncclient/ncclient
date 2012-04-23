@@ -1,0 +1,322 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>transport – Transport / Session layer &mdash; ncclient 0.3.2 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.3.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="ncclient 0.3.2 documentation" href="index.html" />
+    <link rel="up" title="Complete API documentation" href="api.html" />
+    <link rel="next" title="operations – Everything RPC" href="operations.html" />
+    <link rel="prev" title="xml_ – XML handling" href="xml_.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="operations.html" title="operations – Everything RPC"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="xml_.html" title="xml_ – XML handling"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">ncclient 0.3.2 documentation</a> &raquo;</li>
+          <li><a href="api.html" accesskey="U">Complete API documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-ncclient.transport">
+<span id="transport-transport-session-layer"></span><h1><a class="reference internal" href="#module-ncclient.transport" title="ncclient.transport: Transport / Session layer"><tt class="xref py py-mod docutils literal"><span class="pre">transport</span></tt></a> &#8211; Transport / Session layer<a class="headerlink" href="#module-ncclient.transport" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="base-types">
+<h2>Base types<a class="headerlink" href="#base-types" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ncclient.transport.Session">
+<em class="property">class </em><tt class="descclassname">ncclient.transport.</tt><tt class="descname">Session</tt><big>(</big><em>capabilities</em><big>)</big><a class="headerlink" href="#ncclient.transport.Session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for use by transport protocol implementations.</p>
+<dl class="method">
+<dt id="ncclient.transport.Session.add_listener">
+<tt class="descname">add_listener</tt><big>(</big><em>listener</em><big>)</big><a class="headerlink" href="#ncclient.transport.Session.add_listener" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register a listener that will be notified of incoming messages and
+errors.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ncclient.transport.Session.remove_listener">
+<tt class="descname">remove_listener</tt><big>(</big><em>listener</em><big>)</big><a class="headerlink" href="#ncclient.transport.Session.remove_listener" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unregister some listener; ignore if the listener was never
+registered.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ncclient.transport.Session.get_listener_instance">
+<tt class="descname">get_listener_instance</tt><big>(</big><em>cls</em><big>)</big><a class="headerlink" href="#ncclient.transport.Session.get_listener_instance" title="Permalink to this definition">¶</a></dt>
+<dd><p>If a listener of the specified type is registered, returns the
+instance.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.transport.Session.client_capabilities">
+<tt class="descname">client_capabilities</tt><a class="headerlink" href="#ncclient.transport.Session.client_capabilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Client&#8217;s <tt class="xref py py-class docutils literal"><span class="pre">Capabilities</span></tt></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.transport.Session.server_capabilities">
+<tt class="descname">server_capabilities</tt><a class="headerlink" href="#ncclient.transport.Session.server_capabilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Server&#8217;s <tt class="xref py py-class docutils literal"><span class="pre">Capabilities</span></tt></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.transport.Session.connected">
+<tt class="descname">connected</tt><a class="headerlink" href="#ncclient.transport.Session.connected" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connection status of the session.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.transport.Session.id">
+<tt class="descname">id</tt><a class="headerlink" href="#ncclient.transport.Session.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>A string representing the <cite>session-id</cite>. If the session has not been initialized it will be <cite>None</cite></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ncclient.transport.SessionListener">
+<em class="property">class </em><tt class="descclassname">ncclient.transport.</tt><tt class="descname">SessionListener</tt><a class="headerlink" href="#ncclient.transport.SessionListener" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for <a class="reference internal" href="#ncclient.transport.Session" title="ncclient.transport.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> listeners, which are notified when a new
+NETCONF message is received or an error occurs.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Avoid time-intensive tasks in a callback&#8217;s context.</p>
+</div>
+<dl class="method">
+<dt id="ncclient.transport.SessionListener.callback">
+<tt class="descname">callback</tt><big>(</big><em>root</em>, <em>raw</em><big>)</big><a class="headerlink" href="#ncclient.transport.SessionListener.callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when a new XML document is received. The <em>root</em> argument allows the callback to determine whether it wants to further process the document.</p>
+<p>Here, <em>root</em> is a tuple of <em>(tag, attributes)</em> where <em>tag</em> is the qualified name of the root element and <em>attributes</em> is a dictionary of its attributes (also qualified names).</p>
+<p><em>raw</em> will contain the XML document as a string.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ncclient.transport.SessionListener.errback">
+<tt class="descname">errback</tt><big>(</big><em>ex</em><big>)</big><a class="headerlink" href="#ncclient.transport.SessionListener.errback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when an error occurs.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="ssh-session-implementation">
+<h2>SSH session implementation<a class="headerlink" href="#ssh-session-implementation" title="Permalink to this headline">¶</a></h2>
+<dl class="staticmethod">
+<dt id="ncclient.transport.ssh.default_unknown_host_cb">
+<em class="property">static </em><tt class="descclassname">ssh.</tt><tt class="descname">default_unknown_host_cb</tt><big>(</big><em>host</em>, <em>fingerprint</em><big>)</big><a class="headerlink" href="#ncclient.transport.ssh.default_unknown_host_cb" title="Permalink to this definition">¶</a></dt>
+<dd><p>An unknown host callback returns <cite>True</cite> if it finds the key acceptable, and <cite>False</cite> if not.</p>
+<p>This default callback always returns <cite>False</cite>, which would lead to <tt class="xref py py-meth docutils literal"><span class="pre">connect()</span></tt> raising a <tt class="xref py py-exc docutils literal"><span class="pre">SSHUnknownHost</span></tt> exception.</p>
+<p>Supply another valid callback if you need to verify the host key programatically.</p>
+<p><em>host</em> is the hostname that needs to be verified</p>
+<p><em>fingerprint</em> is a hex string representing the host key fingerprint, colon-delimited e.g. <cite>&#8220;4b:69:6c:72:6f:79:20:77:61:73:20:68:65:72:65:21&#8221;</cite></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="ncclient.transport.SSHSession">
+<em class="property">class </em><tt class="descclassname">ncclient.transport.</tt><tt class="descname">SSHSession</tt><big>(</big><em>capabilities</em><big>)</big><a class="headerlink" href="#ncclient.transport.SSHSession" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">ncclient.transport.session.Session</span></tt></p>
+<p>Implements a <span class="target" id="index-0"></span><a class="rfc reference external" href="http://tools.ietf.org/html/rfc4742.html"><strong>RFC 4742</strong></a> NETCONF session over SSH.</p>
+<dl class="method">
+<dt id="ncclient.transport.SSHSession.connect">
+<tt class="descname">connect</tt><big>(</big><em>host</em><span class="optional">[</span>, <em>port=830</em>, <em>timeout=None</em>, <em>unknown_host_cb=default_unknown_host_cb</em>, <em>username=None</em>, <em>password=None</em>, <em>key_filename=None</em>, <em>allow_agent=True</em>, <em>look_for_keys=True</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#ncclient.transport.SSHSession.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connect via SSH and initialize the NETCONF session. First attempts the publickey authentication method and then password authentication.</p>
+<p>To disable attempting publickey authentication altogether, call with <em>allow_agent</em> and <em>look_for_keys</em> as <cite>False</cite>.</p>
+<p><em>host</em> is the hostname or IP address to connect to</p>
+<p><em>port</em> is by default 830, but some devices use the default SSH port of 22 so this may need to be specified</p>
+<p><em>timeout</em> is an optional timeout for socket connect</p>
+<p><em>unknown_host_cb</em> is called when the server host key is not recognized. It takes two arguments, the hostname and the fingerprint (see the signature of <tt class="xref py py-func docutils literal"><span class="pre">default_unknown_host_cb()</span></tt>)</p>
+<p><em>username</em> is the username to use for SSH authentication</p>
+<p><em>password</em> is the password used if using password authentication, or the passphrase to use for unlocking keys that require it</p>
+<p><em>key_filename</em> is a filename where a the private key to be used can be found</p>
+<p><em>allow_agent</em> enables querying SSH agent (if found) for keys</p>
+<p><em>look_for_keys</em> enables looking in the usual locations for ssh keys (e.g. <tt class="file docutils literal"><span class="pre">~/.ssh/id_*</span></tt>)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ncclient.transport.SSHSession.load_known_hosts">
+<tt class="descname">load_known_hosts</tt><big>(</big><em>filename=None</em><big>)</big><a class="headerlink" href="#ncclient.transport.SSHSession.load_known_hosts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load host keys from an openssh <tt class="file docutils literal"><span class="pre">known_hosts</span></tt>-style file. Can be called multiple times.</p>
+<p>If <em>filename</em> is not specified, looks in the default locations i.e. <tt class="file docutils literal"><span class="pre">~/.ssh/known_hosts</span></tt> and <tt class="file docutils literal"><span class="pre">~/ssh/known_hosts</span></tt> for Windows.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ncclient.transport.SSHSession.transport">
+<tt class="descname">transport</tt><a class="headerlink" href="#ncclient.transport.SSHSession.transport" title="Permalink to this definition">¶</a></dt>
+<dd><p>Underlying <a class="reference external" href="http://www.lag.net/paramiko/docs/paramiko.Transport-class.html">paramiko.Transport</a> object. This makes it possible to call methods like <tt class="xref py py-meth docutils literal"><span class="pre">set_keepalive()</span></tt> on it.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="errors">
+<h2>Errors<a class="headerlink" href="#errors" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="ncclient.transport.TransportError">
+<em class="property">exception </em><tt class="descclassname">ncclient.transport.</tt><tt class="descname">TransportError</tt><a class="headerlink" href="#ncclient.transport.TransportError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">ncclient.NCClientError</span></tt></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="ncclient.transport.SessionCloseError">
+<em class="property">exception </em><tt class="descclassname">ncclient.transport.</tt><tt class="descname">SessionCloseError</tt><big>(</big><em>in_buf</em>, <em>out_buf=None</em><big>)</big><a class="headerlink" href="#ncclient.transport.SessionCloseError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">ncclient.transport.errors.TransportError</span></tt></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="ncclient.transport.SSHError">
+<em class="property">exception </em><tt class="descclassname">ncclient.transport.</tt><tt class="descname">SSHError</tt><a class="headerlink" href="#ncclient.transport.SSHError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">ncclient.transport.errors.TransportError</span></tt></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="ncclient.transport.AuthenticationError">
+<em class="property">exception </em><tt class="descclassname">ncclient.transport.</tt><tt class="descname">AuthenticationError</tt><a class="headerlink" href="#ncclient.transport.AuthenticationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">ncclient.transport.errors.TransportError</span></tt></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="ncclient.transport.SSHUnknownHostError">
+<em class="property">exception </em><tt class="descclassname">ncclient.transport.</tt><tt class="descname">SSHUnknownHostError</tt><big>(</big><em>host</em>, <em>fingerprint</em><big>)</big><a class="headerlink" href="#ncclient.transport.SSHUnknownHostError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">ncclient.transport.errors.SSHError</span></tt></p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<p align="center">
+  <a href="http://oss.schmizz.net/ncclient">
+    <img src="_static/logo.png" width="125" height="125"/>
+  </a>
+</p>
+
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">transport</span></tt> &#8211; Transport / Session layer</a><ul>
+<li><a class="reference internal" href="#base-types">Base types</a></li>
+<li><a class="reference internal" href="#ssh-session-implementation">SSH session implementation</a></li>
+<li><a class="reference internal" href="#errors">Errors</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="xml_.html"
+                        title="previous chapter"><tt class="docutils literal docutils literal"><span class="pre">xml_</span></tt> &#8211; XML handling</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="operations.html"
+                        title="next chapter"><tt class="docutils literal docutils literal"><span class="pre">operations</span></tt> &#8211; Everything RPC</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/transport.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="operations.html" title="operations – Everything RPC"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="xml_.html" title="xml_ – XML handling"
+             >previous</a> |</li>
+        <li><a href="index.html">ncclient 0.3.2 documentation</a> &raquo;</li>
+          <li><a href="api.html" >Complete API documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2009, Shikhar Bhushan; 2011, Leonidas Poulopoulos.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>
