@@ -87,18 +87,34 @@ class GetConfig(RPC):
         return self._request(node)
 
 class Dispatch(RPC):
-    """Generic retrieving wrapper. Eg. dispatch('clear-arp-table') or dispatch element  
-    like :
-    xsd_fetch = new_ele('get-xnm-information')
-    sub_ele(xsd_fetch, 'type').text="xml-schema"
-    sub_ele(xsd_fetch, 'namespace').text="junos-configuration
-    dispatch(xsd_fetch)    
-    to fetch entire xsd sxhema file from Juniper
-    """
-    
+
+   "Generic retrieving wrapper"
+
     REPLY_CLS = GetReply
-    
+    "See :class:`GetReply`."
+
     def request(self, rpc_command, source=None, filter=None):
+        """
+        *rpc_command* specifies rpc command to be dispatched either in plain text or in xml element format (depending on command)
+
+        *source* name of the configuration datastore being queried
+
+        *filter* specifies the portion of the configuration to retrieve (by default entire configuration is retrieved)
+
+        :seealso: :ref:`filter_params`
+
+        Examples of usage::
+
+        dispatch('clear-arp-table')
+
+        or dispatch element like ::
+
+        xsd_fetch = new_ele('get-xnm-information')
+        sub_ele(xsd_fetch, 'type').text="xml-schema"
+        sub_ele(xsd_fetch, 'namespace').text="junos-configuration"
+        dispatch(xsd_fetch)
+        """
+
         if ET.iselement(rpc_command):
             node = rpc_command
         else:
@@ -108,3 +124,4 @@ class Dispatch(RPC):
         if filter is not None:
             node.append(util.build_filter(filter))
         return self._request(node)
+

@@ -1,4 +1,5 @@
 # Copyright 2009 Shikhar Bhushan
+# Copyright 2011 Leonidas Poulopoulos
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,8 +18,8 @@
 from cStringIO import StringIO
 from xml.etree import cElementTree as ET
 
-# in case problems occur include the ElementTree file from the parent dir
-# import ElementTree as ET
+# In case issues come up with XML generation/parsing
+# make sure you have the ElementTree v1.2.7+ lib
 
 from ncclient import NCClientError
 
@@ -104,3 +105,4 @@ def validated_element(x, tags=None, attrs=None):
 new_ele = lambda tag, attrs={}, **extra: ET.Element(qualify(tag), attrs, **extra)
 
 sub_ele = lambda parent, tag, attrs={}, **extra: ET.SubElement(parent, qualify(tag), attrs, **extra)
+
