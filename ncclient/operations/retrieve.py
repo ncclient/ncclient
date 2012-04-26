@@ -88,7 +88,7 @@ class GetConfig(RPC):
 
 class Dispatch(RPC):
 
-   "Generic retrieving wrapper"
+    "Generic retrieving wrapper"
 
     REPLY_CLS = GetReply
     "See :class:`GetReply`."
