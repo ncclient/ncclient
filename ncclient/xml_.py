@@ -16,8 +16,8 @@
 "Methods for creating, parsing, and dealing with XML and ElementTree objects."
 
 from cStringIO import StringIO
-from xml.etree import cElementTree as ET
-
+from lxml import etree as ET
+import io
 # In case issues come up with XML generation/parsing
 # make sure you have the ElementTree v1.2.7+ lib
 
@@ -26,7 +26,7 @@ from ncclient import NCClientError
 class XMLError(NCClientError): pass
 
 ### Namespace-related
-
+LOOSE_NAMESPACE = True
 #: Base NETCONF namespace
 BASE_NS_1_0 = "urn:ietf:params:xml:ns:netconf:base:1.0"
 #: Namespace for Tail-f core data model
@@ -59,22 +59,33 @@ for (ns, pre) in {
 }.items(): 
     register_namespace(pre, ns)
 
-qualify = lambda tag, ns=BASE_NS_1_0: tag if ns is None else "{%s}%s" % (ns, tag)
+def qualify(tag, ns=BASE_NS_1_0):
+    if LOOSE_NAMESPACE:
+        return tag
+    else:
+        if ns is None:
+            return tag
+        else:
+            return "{%s}%s" % (ns, tag)
+
+#qualify = lambda tag, ns=BASE_NS_1_0: tag if ns is None else "%s" % (tag)
 """Qualify a *tag* name with a *namespace*, in :mod:`~xml.etree.ElementTree` fashion i.e. *{namespace}tagname*."""
 
 def to_xml(ele, encoding="UTF-8"):
     "Convert and return the XML for an *ele* (:class:`~xml.etree.ElementTree.Element`) with specified *encoding*."
-    xml = ET.tostring(ele, encoding)
+    xml = ET.tostring(ele, encoding=encoding)
     return xml if xml.startswith('<?xml') else '<?xml version="1.0" encoding="%s"?>%s' % (encoding, xml)
 
 def to_ele(x):
     "Convert and return the :class:`~xml.etree.ElementTree.Element` for the XML document *x*. If *x* is already an :class:`~xml.etree.ElementTree.Element` simply returns that."
-    return x if ET.iselement(x) else ET.fromstring(x)
+    ele = x if ET.iselement(x) else ET.fromstring(x)
+    return rm_ns(ele)
 
 def parse_root(raw):
     "Efficiently parses the root element of a *raw* XML document, returning a tuple of its qualified name and attribute dictionary."
     fp = StringIO(raw)
     for event, element in ET.iterparse(fp, events=('start',)):
+        element = rm_ns(element)
         return (element.tag, element.attrib)
 
 def validated_element(x, tags=None, attrs=None):
@@ -105,4 +116,37 @@ def validated_element(x, tags=None, attrs=None):
 new_ele = lambda tag, attrs={}, **extra: ET.Element(qualify(tag), attrs, **extra)
 
 sub_ele = lambda parent, tag, attrs={}, **extra: ET.SubElement(parent, qualify(tag), attrs, **extra)
+
+xslt='''<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:output method="xml" indent="no"/>
+
+<xsl:template match="/|comment()|processing-instruction()">
+    <xsl:copy>
+      <xsl:apply-templates/>
+    </xsl:copy>
+</xsl:template>
+
+<xsl:template match="*">
+    <xsl:element name="{local-name()}">
+      <xsl:apply-templates select="@*|node()"/>
+    </xsl:element>
+</xsl:template>
+
+<xsl:template match="@*">
+    <xsl:attribute name="{local-name()}">
+      <xsl:value-of select="."/>
+    </xsl:attribute>
+</xsl:template>
+</xsl:stylesheet>
+'''
+
+xslt_doc=ET.parse(io.BytesIO(xslt))
+transform=ET.XSLT(xslt_doc)
+
+
+def rm_ns(ele):
+    if LOOSE_NAMESPACE:
+        return ET.fromstring(ET.tostring(transform(ele)))
+    else:
+        return ele
 
