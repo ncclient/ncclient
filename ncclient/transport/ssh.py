@@ -204,8 +204,8 @@ class SSHSession(Session):
         self._connected = True # there was no error authenticating
 
         c = self._channel = self._transport.open_session()
-        c.set_name("netconf")
-        c.invoke_subsystem("netconf")
+        c.set_name("xmlagent")
+        c.invoke_subsystem("xmlagent")
 
         self._post_connect()
     
