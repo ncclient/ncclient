@@ -5,15 +5,17 @@
 #
 # $ ./nc02.py broccoli
 
-import sys, os, warnings
+import sys, os, warnings, logging
 warnings.simplefilter("ignore", DeprecationWarning)
 from ncclient import manager
 
-def demo(host, user):
+def demo(host, user, source='candidate'):
     with manager.connect(host=host, port=22, username=user) as m:
-        c = m.get_config(source='running').data_xml
+        c = m.get_config(source).data_xml
         with open("%s.xml" % host, 'w') as f:
             f.write(c)
 
 if __name__ == '__main__':
-    demo(sys.argv[1], os.getenv("USER"))
+    logging.basicConfig(level=logging.INFO)
+    if len(sys.argv) == 3: demo(sys.argv[1], os.getenv("USER"), sys.argv[2])
+    else: demo(sys.argv[1], os.getenv("USER"))

@@ -6,16 +6,18 @@
 #
 # $ ./nc03.py broccoli "aaa/authentication/users/user[name='schoenw']"
 
-import sys, os, warnings
+import sys, os, warnings, logging
 warnings.simplefilter("ignore", DeprecationWarning)
 from ncclient import manager
 
-def demo(host, user, expr):
-    with manager.connect(host=host, port=22, username=user) as m:
+def demo(host, user, source='candidate', expr='interfaces/interface[name="eth0"]'):
+    with manager.connect(host=host, port=830, username='vagrant', password='vagrant') as m:
         assert(":xpath" in m.server_capabilities)
-        c = m.get_config(source='running', filter=('xpath', expr)).data_xml
+        c = m.get_config(source, filter=('xpath', expr)).data_xml
         with open("%s.xml" % host, 'w') as f:
             f.write(c)
 
 if __name__ == '__main__':
-    demo(sys.argv[1], os.getenv("USER"), sys.argv[2])
+    logging.basicConfig(level=logging.INFO)
+    if len(sys.argv) == 4: demo(sys.argv[1], os.getenv("USER"), sys.argv[2], sys.argv[3])
+    else: demo(sys.argv[1], os.getenv("USER"))

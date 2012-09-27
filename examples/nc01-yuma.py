@@ -8,14 +8,16 @@
 #
 # $ ./nc01.py broccoli
 
-import sys, os, warnings
+import sys, os, warnings, logging
 warnings.simplefilter("ignore", DeprecationWarning)
 from ncclient import manager
 
 def demo(host, user):
-    with manager.connect(host=host, port=22, username=user) as m:
+    with manager.connect(host=host, port=830, username='vagrant',
+        password='vagrant') as m:
         for c in m.server_capabilities:
             print c
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
     demo(sys.argv[1], os.getenv("USER"))

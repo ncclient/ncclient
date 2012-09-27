@@ -6,7 +6,7 @@
 #
 # $ ./nc05.py broccoli bob
 
-import sys, os, warnings
+import sys, os, warnings, logging
 warnings.simplefilter("ignore", DeprecationWarning)
 from ncclient import manager
 
@@ -23,4 +23,5 @@ def demo(host, user, name):
                       test_option='test-then-set')
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
     demo(sys.argv[1], os.getenv("USER"), sys.argv[2])
