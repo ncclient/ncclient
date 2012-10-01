@@ -23,19 +23,24 @@ import paramiko
 
 from errors import AuthenticationError, SessionCloseError, SSHError, SSHUnknownHostError
 from session import Session
+from ncclient.xml_ import *
 
 import logging
 logger = logging.getLogger("ncclient.transport.ssh")
 
 BUF_SIZE = 4096
+# v1.0: RFC 4742
 MSG_DELIM = "]]>]]>"
+# v1.1: RFC 6242
+END_DELIM = '\n##\n'
+
 TICK = 0.1
 
 def default_unknown_host_cb(host, fingerprint):
     """An unknown host callback returns `True` if it finds the key acceptable, and `False` if not.
 
     This default callback always returns `False`, which would lead to :meth:`connect` raising a :exc:`SSHUnknownHost` exception.
-    
+
     Supply another valid callback if you need to verify the host key programatically.
 
     *host* is the hostname that needs to be verified
@@ -64,9 +69,14 @@ class SSHSession(Session):
         # parsing-related, see _parse()
         self._parsing_state = 0
         self._parsing_pos = 0
-    
+
     def _parse(self):
-        "Messages ae delimited by MSG_DELIM. The buffer could have grown by a maximum of BUF_SIZE bytes everytime this method is called. Retains state across method calls and if a byte has been read it will not be considered again."
+
+        """Messages are delimited by MSG_DELIM. The buffer could have grown by
+        a maximum of BUF_SIZE bytes everytime this method is called. Retains
+        state across method calls and if a byte has been read it will not be
+        considered again."""
+
         delim = MSG_DELIM
         n = len(delim) - 1
         expect = self._parsing_state
@@ -157,7 +167,7 @@ class SSHSession(Session):
         """
         if username is None:
             username = getpass.getuser()
-        
+
         sock = None
         for res in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket.SOCK_STREAM):
             af, socktype, proto, canonname, sa = res
@@ -208,7 +218,7 @@ class SSHSession(Session):
         c.invoke_subsystem("netconf")
 
         self._post_connect()
-    
+
     # on the lines of paramiko.SSHClient._auth()
     def _auth(self, username, password, key_filenames, allow_agent,
               look_for_keys):
@@ -281,11 +291,22 @@ class SSHSession(Session):
     def run(self):
         chan = self._channel
         q = self._q
+
+        def start_delim(data_len): return '\n#%s\n'%(data_len)
+
         try:
             while True:
-                # select on a paramiko ssh channel object does not ever return it in the writable list, so channels don't exactly emulate the socket api
+
+                # select on a paramiko ssh channel object does not ever return
+                # it in the writable list, so channels don't exactly emulate
+                # the socket api
+
                 r, w, e = select([chan], [], [], TICK)
-                # will wakeup evey TICK seconds to check if something to send, more if something to read (due to select returning chan in readable list)
+
+                # will wakeup evey TICK seconds to check if something to send,
+                # more if something to read (due to select returning chan in
+                # readable list)
+
                 if r:
                     data = chan.recv(BUF_SIZE)
                     if data:
@@ -294,8 +315,15 @@ class SSHSession(Session):
                     else:
                         raise SessionCloseError(self._buffer.getvalue())
                 if not q.empty() and chan.send_ready():
-                    logger.debug("Sending message")
-                    data = q.get() + MSG_DELIM
+                    data = q.get()
+                    try:
+                      validated_element(data, tags='{urn:ietf:params:xml:ns:netconf:base:1.0}hello')
+                      data = "%s%s"%(data, MSG_DELIM)
+                      logger.debug("Sending: %s", data)
+                    except XMLError:
+                      data = "%s%s%s"%(start_delim(len(data)), data, END_DELIM)
+                      logger.debug("Sending: %s", data)
+
                     while data:
                         n = chan.send(data)
                         if n <= 0:
