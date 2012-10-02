@@ -59,6 +59,7 @@ class SSHSession(Session):
 
     "Implements a :rfc:`4742` NETCONF session over SSH."
 
+
     def __init__(self, capabilities):
         Session.__init__(self, capabilities)
         self._host_keys = paramiko.HostKeys()
@@ -67,21 +68,24 @@ class SSHSession(Session):
         self._channel = None
         self._buffer = StringIO() # for incoming data
         # parsing-related, see _parse()
-        self._parsing_state = 0
-        self._parsing_pos = 0
+        self._parsing_state10 = 0
+        self._parsing_pos10 = 0
+        self._parsing_pos11 = 0
+        self._parsing_state11 = 0
 
-    def _parse(self):
+    def _parse10(self):
 
         """Messages are delimited by MSG_DELIM. The buffer could have grown by
         a maximum of BUF_SIZE bytes everytime this method is called. Retains
         state across method calls and if a byte has been read it will not be
         considered again."""
 
+        logger.debug("parsing netconf v1.0")
         delim = MSG_DELIM
         n = len(delim) - 1
-        expect = self._parsing_state
+        expect = self._parsing_state10
         buf = self._buffer
-        buf.seek(self._parsing_pos)
+        buf.seek(self._parsing_pos10)
         while True:
             x = buf.read(1)
             if not x: # done reading
@@ -114,13 +118,118 @@ class SSHSession(Session):
                 expect = 0
         self._buffer = buf
         self._parsing_state = expect
-        self._parsing_pos = self._buffer.tell()
+        self._parsing_pos10 = self._buffer.tell()
+
+    def _parse11(self):
+        logger.debug("parsing netconf v1.1")
+        expchunksize = curchunksize = 0
+        message = None
+        idle, instart, inmsg, inbetween, inend = range(5)
+        state = self._parsing_state11 = idle
+        MAX_STARTCHUNK_SIZE = 10 # 4294967295
+        pre = 'invalid base:1:1 frame'
+        buf = self._buffer
+        buf.seek(self._parsing_pos11)
+        num = []
+        while True:
+            x = buf.read(1)
+            if state == idle:
+                if x == '\n':
+                    state = instart
+                    inendpos = 1
+                else:
+                    logger.debug('%s (%s: expect newline)'%(pre, state))
+                    raise Exception
+            elif state == instart:
+                if inendpos == 1:
+                    if x == '#':
+                        inendpos += 1
+                    else:
+                        logger.debug('%s (%s: expect "#")'%(pre, state))
+                        raise Exception
+                elif inendpos == 2:
+                    if x.isdigit():
+                        inendpos += 1 # == 3 now #
+                        num.append(x)
+                    else:
+                        logger.debug('%s (%s: expect digit)'%(pre, state))
+                        raise Exception
+                else:
+                    if inendpos == MAX_STARTCHUNK_SIZE:
+                        logger.debug('%s (%s: no. too long)'%(pre, state))
+                        raise Exception
+                    elif x == '\n':
+                        num = ''.join(num)
+                        try: num = long(num)
+                        except:
+                            logger.debug('%s (%s: invalid no.)'%(pre, state))
+                            raise Exception
+                        else:
+                            state = inmsg
+                            chunksize = num
+                            inendpos += 1
+                    elif x.isdigit():
+                        inendpos += 1 # > 3 now #
+                        num.append(x)
+                    else:
+                        log.debug('%s (%s: expect digit)'%(pre, state))
+                        raise Exception
+            elif state == inmsg:
+                buf.seek(inendpos)
+                message = buf.read(chunksize).strip()
+                inendpos = 0
+                state = inbetween
+                logger.debug('response length: %d'%chunksize)
+                logger.debug('parsed new message: %s'%(message))
+            elif state == inbetween:
+                if inendpos == 0:
+                    if x == '\n': inendpos += 1
+                    else:
+                        logger.debug('%s (%s: expect newline)'%(pre, state))
+                        raise Exception
+                elif inendpos == 1:
+                    if x == '#': inendpos += 1
+                    else:
+                        logger.debug('%s (%s: expect "#")'%(pre, state))
+                        raise Exception
+                else:
+                    if x == '#':
+                        inendpos += 1 # == 3 now #
+                        state = inend
+                    else:
+                        logger.debug('%s (%s: expect "#")'%(pre, state))
+                        raise Exception
+            elif state == inend:
+                if inendpos == 3:
+                    if x == '\n':
+                        inendpos = 0
+                        state = idle
+                        logger.debug('dispatching message')
+                        self._dispatch_message(message)
+                        rest = buf.read()
+                        buf = StringIO()
+                        buf.write(rest)
+                        buf.seek(0)
+                        break
+                    else:
+                        logger.debug('%s (%s: expect newline)'%(pre, state))
+                        raise Exception
+            else:
+                logger.debug('%s (%s invalid state)'%(pre, state))
+                raise Exception
+
+        self._buffer = buf
+        self._parsing_pos11 = self._buffer.tell()
+
 
     def load_known_hosts(self, filename=None):
-        """Load host keys from an openssh :file:`known_hosts`-style file. Can be called multiple times.
+
+        """Load host keys from an openssh :file:`known_hosts`-style file. Can
+        be called multiple times.
 
         If *filename* is not specified, looks in the default locations i.e. :file:`~/.ssh/known_hosts` and :file:`~/ssh/known_hosts` for Windows.
         """
+
         if filename is None:
             filename = os.path.expanduser('~/.ssh/known_hosts')
             try:
@@ -311,24 +420,39 @@ class SSHSession(Session):
                     data = chan.recv(BUF_SIZE)
                     if data:
                         self._buffer.write(data)
-                        self._parse()
+                        if self._server_capabilities:
+                            if 'urn:ietf:params:netconf:base:1.1' in self._server_capabilities: self._parse11()
+                            elif 'urn:ietf:params:netconf:base:1.0' in self._server_capabilities: self._parse10()
+                            else: raise Exception
+                        else: self._parse10() # HELLO msg uses EOM markers.
                     else:
                         raise SessionCloseError(self._buffer.getvalue())
                 if not q.empty() and chan.send_ready():
                     data = q.get()
                     try:
-                      validated_element(data, tags='{urn:ietf:params:xml:ns:netconf:base:1.0}hello')
-                      data = "%s%s"%(data, MSG_DELIM)
-                      logger.debug("Sending: %s", data)
+                        # send a HELLO msg using v1.0 EOM markers.
+                        validated_element(data, tags='{urn:ietf:params:xml:ns:netconf:base:1.0}hello')
+                        data = "%s%s"%(data, MSG_DELIM)
                     except XMLError:
-                      data = "%s%s%s"%(start_delim(len(data)), data, END_DELIM)
-                      logger.debug("Sending: %s", data)
-
-                    while data:
-                        n = chan.send(data)
-                        if n <= 0:
-                            raise SessionCloseError(self._buffer.getvalue(), data)
-                        data = data[n:]
+                        # this is not a HELLO msg
+                        if self._server_capabilities:
+                            if 'urn:ietf:params:netconf:base:1.1' in self._server_capabilities:
+                                # send using v1.1 chunked framing
+                                data = "%s%s%s"%(start_delim(len(data)), data, END_DELIM)
+                            elif 'urn:ietf:params:netconf:base:1.0' in self._server_capabilities:
+                                # send using v1.0 EOM markers
+                                data = "%s%s"%(data, MSG_DELIM)
+                            else: raise Exception
+                        else:
+                            logger.debug('HELLO msg was sent, but server capabilities are still not known')
+                            raise Exception
+                    finally:
+                        logger.debug("Sending: %s", data)
+                        while data:
+                            n = chan.send(data)
+                            if n <= 0:
+                                raise SessionCloseError(self._buffer.getvalue(), data)
+                            data = data[n:]
         except Exception as e:
             logger.debug("Broke out of main loop, error=%r", e)
             self.close()

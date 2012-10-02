@@ -18,5 +18,5 @@ def demo(host, user):
             print c
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     demo(sys.argv[1], os.getenv("USER"))
