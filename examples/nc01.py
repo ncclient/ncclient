@@ -3,10 +3,11 @@
 # Copyright 2012 Vaibhav Bajpai <contact@vaibhavbajpai.com>
 # Copyright 2009 Shikhar Bhushan <shikhar@schmizz.net>
 #
-# Delete a list of existing users from the running configuration using
-# edit-config; protect the transaction using a lock.
+# Connect to the NETCONF server passed on the command line and
+# display their capabilities. For brevity and clarity of the
+# examples, we omit proper exception handling.
 #
-# $ ./nc06.py cook bob alice
+# $ ./nc01.py cook
 
 import sys, os, warnings, logging, argparse
 warnings.simplefilter("ignore", DeprecationWarning)
@@ -20,19 +21,13 @@ LEVELS = {
            'critical':logging.CRITICAL,
          }
 
-template = """<config xmlns:xc="urn:ietf:params:xml:ns:netconf:base:1.0">
-              <aaa xmlns="http://tail-f.com/ns/aaa/1.1">
-              <authentication> <users> <user xc:operation="delete">
-              <name>%s</name> </user></users></authentication></aaa></config>
-           """
-def connect(host, port, user, password, names):
+def connect(host, port, user, password):
     with manager.connect(
                           host=host, port=port,
                           username=user, password=password
                         ) as m:
-        with m.locked(target='running'):
-            for n in names:
-                m.edit_config(targeti='running', config=template % n)
+        for c in m.server_capabilities:
+            print c
 
 def parse_arguments():
 
@@ -41,12 +36,6 @@ def parse_arguments():
                         'hostname',
                         action='store',
                         help='hostname or IP address'
-                       )
-    parser.add_argument(
-                        'names',
-                        nargs='+',
-                        action='store',
-                        help='usernames of the users'
                        )
     parser.add_argument(
                         '--port',
@@ -73,8 +62,8 @@ def parse_arguments():
     parser.add_argument(
                         '--password',
                         action='store',
+                        help='password',
                         dest='password',
-                        help='password'
                        )
     results = parser.parse_args()
     return results
@@ -89,6 +78,5 @@ if __name__ == '__main__':
     setlogging_level(results.level_name)
     connect(
             results.hostname, results.port,
-            results.username, results.password,
-            results.names
+            results.username, results.password
            )

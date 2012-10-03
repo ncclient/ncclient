@@ -3,10 +3,10 @@
 # Copyright 2012 Vaibhav Bajpai <contact@vaibhavbajpai.com>
 # Copyright 2009 Shikhar Bhushan <shikhar@schmizz.net>
 #
-# Delete a list of existing users from the running configuration using
-# edit-config; protect the transaction using a lock.
+# Retreive configuration from the candidate datastore after performing
+# a discard-changes on it.
 #
-# $ ./nc06.py cook bob alice
+# $ ./nc08.py cook
 
 import sys, os, warnings, logging, argparse
 warnings.simplefilter("ignore", DeprecationWarning)
@@ -20,19 +20,17 @@ LEVELS = {
            'critical':logging.CRITICAL,
          }
 
-template = """<config xmlns:xc="urn:ietf:params:xml:ns:netconf:base:1.0">
-              <aaa xmlns="http://tail-f.com/ns/aaa/1.1">
-              <authentication> <users> <user xc:operation="delete">
-              <name>%s</name> </user></users></authentication></aaa></config>
-           """
-def connect(host, port, user, password, names):
+def connect(host, port, user, password):
     with manager.connect(
                           host=host, port=port,
                           username=user, password=password
                         ) as m:
-        with m.locked(target='running'):
-            for n in names:
-                m.edit_config(targeti='running', config=template % n)
+        assert(":candidate" in m.server_capabilities)
+        with m.locked(target='candidate'):
+            m.discard_changes()
+            c = m.get_config('candidate').data_xml
+            with open("%s.xml" % host, 'w') as f:
+                f.write(c)
 
 def parse_arguments():
 
@@ -41,12 +39,6 @@ def parse_arguments():
                         'hostname',
                         action='store',
                         help='hostname or IP address'
-                       )
-    parser.add_argument(
-                        'names',
-                        nargs='+',
-                        action='store',
-                        help='usernames of the users'
                        )
     parser.add_argument(
                         '--port',
@@ -89,6 +81,5 @@ if __name__ == '__main__':
     setlogging_level(results.level_name)
     connect(
             results.hostname, results.port,
-            results.username, results.password,
-            results.names
+            results.username, results.password
            )

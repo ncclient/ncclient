@@ -3,10 +3,12 @@
 # Copyright 2012 Vaibhav Bajpai <contact@vaibhavbajpai.com>
 # Copyright 2009 Shikhar Bhushan <shikhar@schmizz.net>
 #
-# Delete a list of existing users from the running configuration using
-# edit-config; protect the transaction using a lock.
+# Retrieve a config portion selected by an XPATH expression from the
+# configuration store passed on the command line using
+# get-config and write the XML configs to files.
 #
-# $ ./nc06.py cook bob alice
+# $ ./nc03.py cook "aaa/authentication/users/user[name='schoenw']"
+# $ ./nc03.py yuma "interfaces/interface[name='eth0']"
 
 import sys, os, warnings, logging, argparse
 warnings.simplefilter("ignore", DeprecationWarning)
@@ -20,19 +22,15 @@ LEVELS = {
            'critical':logging.CRITICAL,
          }
 
-template = """<config xmlns:xc="urn:ietf:params:xml:ns:netconf:base:1.0">
-              <aaa xmlns="http://tail-f.com/ns/aaa/1.1">
-              <authentication> <users> <user xc:operation="delete">
-              <name>%s</name> </user></users></authentication></aaa></config>
-           """
-def connect(host, port, user, password, names):
+def connect(host, port, user, password, source, expression):
     with manager.connect(
                           host=host, port=port,
                           username=user, password=password
                         ) as m:
-        with m.locked(target='running'):
-            for n in names:
-                m.edit_config(targeti='running', config=template % n)
+        assert(":xpath" in m.server_capabilities)
+        c = m.get_config(source, filter=('xpath', expression)).data_xml
+        with open("%s.xml" % host, 'w') as f:
+            f.write(c)
 
 def parse_arguments():
 
@@ -43,10 +41,9 @@ def parse_arguments():
                         help='hostname or IP address'
                        )
     parser.add_argument(
-                        'names',
-                        nargs='+',
+                        'expression',
                         action='store',
-                        help='usernames of the users'
+                        help='xpath expression'
                        )
     parser.add_argument(
                         '--port',
@@ -76,6 +73,13 @@ def parse_arguments():
                         dest='password',
                         help='password'
                        )
+    parser.add_argument(
+                        '--source',
+                        action='store',
+                        default='running',
+                        help='running/candidate/startup [default: running]',
+                        dest='source',
+                       )
     results = parser.parse_args()
     return results
 
@@ -90,5 +94,5 @@ if __name__ == '__main__':
     connect(
             results.hostname, results.port,
             results.username, results.password,
-            results.names
+            results.source, results.expression
            )
