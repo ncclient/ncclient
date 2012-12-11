@@ -1,0 +1,4 @@
+distribute==0.6.31
+paramiko==1.9.0
+pycrypto==2.6
+wsgiref==0.1.2
