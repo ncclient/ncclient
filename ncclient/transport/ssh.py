@@ -422,8 +422,8 @@ class SSHSession(Session):
                     if data:
                         self._buffer.write(data)
                         if self._server_capabilities:
-                            if 'urn:ietf:params:netconf:base:1.1' in self._server_capabilities: self._parse11()
-                            elif 'urn:ietf:params:netconf:base:1.0' in self._server_capabilities: self._parse10()
+                            if 'urn:ietf:params:netconf:base:1.1' in self._server_capabilities and 'urn:ietf:params:netconf:base:1.1' in self._client_capabilities: self._parse11()
+                            elif 'urn:ietf:params:netconf:base:1.0' in self._server_capabilities or 'urn:ietf:params:netconf:base:1.0' in self._client_capabilities: self._parse10()
                             else: raise Exception
                         else: self._parse10() # HELLO msg uses EOM markers.
                     else:
@@ -436,17 +436,23 @@ class SSHSession(Session):
                         data = "%s%s"%(data, MSG_DELIM)
                     except XMLError:
                         # this is not a HELLO msg
-                        if self._server_capabilities:
-                            if 'urn:ietf:params:netconf:base:1.1' in self._server_capabilities:
-                                # send using v1.1 chunked framing
-                                data = "%s%s%s"%(start_delim(len(data)), data, END_DELIM)
-                            elif 'urn:ietf:params:netconf:base:1.0' in self._server_capabilities:
-                                # send using v1.0 EOM markers
-                                data = "%s%s"%(data, MSG_DELIM)
-                            else: raise Exception
+                        # we publish v1.1 support
+                        if 'urn:ietf:params:netconf:base:1.1' in self._client_capabilities:
+                            if self._server_capabilities:
+                                if 'urn:ietf:params:netconf:base:1.1' in self._server_capabilities:
+                                    # send using v1.1 chunked framing
+                                    data = "%s%s%s"%(start_delim(len(data)), data, END_DELIM)
+                                elif 'urn:ietf:params:netconf:base:1.0' in self._server_capabilities:
+                                    # send using v1.0 EOM markers
+                                    data = "%s%s"%(data, MSG_DELIM)
+                                else: raise Exception
+                            else:
+                                logger.debug('HELLO msg was sent, but server capabilities are still not known')
+                                raise Exception
+                        # we publish only v1.0 support
                         else:
-                            logger.debug('HELLO msg was sent, but server capabilities are still not known')
-                            raise Exception
+                            # send using v1.0 EOM markers
+                            data = "%s%s"%(data, MSG_DELIM)
                     finally:
                         logger.debug("Sending: %s", data)
                         while data:
