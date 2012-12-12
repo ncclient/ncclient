@@ -73,6 +73,10 @@ class SSHSession(Session):
         self._parsing_pos10 = 0
         self._parsing_pos11 = 0
         self._parsing_state11 = 0
+        self._expchunksize = 0
+        self._curchunksize = 0
+        self._inendpos = 0
+        self._message = []
 
     def _parse10(self):
 
@@ -123,17 +127,22 @@ class SSHSession(Session):
 
     def _parse11(self):
         logger.debug("parsing netconf v1.1")
-        expchunksize = curchunksize = 0
-        message = None
+        message = self._message 
+        expchunksize = self._expchunksize
+        curchunksize = self._curchunksize
         idle, instart, inmsg, inbetween, inend = range(5)
-        state = self._parsing_state11 = idle
+        state = self._parsing_state11
+        inendpos = self._inendpos
         MAX_STARTCHUNK_SIZE = 10 # 4294967295
         pre = 'invalid base:1:1 frame'
         buf = self._buffer
         buf.seek(self._parsing_pos11)
         num = []
+
         while True:
             x = buf.read(1)
+            if not x: break # done reading
+            logger.debug('x: %s', x)
             if state == idle:
                 if x == '\n':
                     state = instart
@@ -167,7 +176,9 @@ class SSHSession(Session):
                             raise Exception
                         else:
                             state = inmsg
-                            chunksize = num
+                            expchunksize = num
+                            logger.debug('response length: %d'%expchunksize)
+                            curchunksize = 0
                             inendpos += 1
                     elif x.isdigit():
                         inendpos += 1 # > 3 now #
@@ -176,12 +187,14 @@ class SSHSession(Session):
                         log.debug('%s (%s: expect digit)'%(pre, state))
                         raise Exception
             elif state == inmsg:
-                buf.seek(inendpos)
-                message = buf.read(chunksize).strip()
-                inendpos = 0
-                state = inbetween
-                logger.debug('response length: %d'%chunksize)
-                logger.debug('parsed new message: %s'%(message))
+                message.append(x)
+                curchunksize += 1
+                chunkleft = expchunksize - curchunksize
+                if chunkleft == 0:
+                    inendpos = 0
+                    state = inbetween
+                    message = ''.join(message)
+                    logger.debug('parsed new message: %s'%(message))
             elif state == inbetween:
                 if inendpos == 0:
                     if x == '\n': inendpos += 1
@@ -207,10 +220,15 @@ class SSHSession(Session):
                         state = idle
                         logger.debug('dispatching message')
                         self._dispatch_message(message)
+                        # reset
                         rest = buf.read()
                         buf = StringIO()
                         buf.write(rest)
                         buf.seek(0)
+                        message = []
+                        expchunksize = chunksize = 0
+                        parsing_state11 = idle
+                        inendpos = parsing_pos11 = 0
                         break
                     else:
                         logger.debug('%s (%s: expect newline)'%(pre, state))
@@ -219,8 +237,14 @@ class SSHSession(Session):
                 logger.debug('%s (%s invalid state)'%(pre, state))
                 raise Exception
 
+        self._message = message
+        self._expchunksize = expchunksize
+        self._curchunksize = curchunksize
+        self._parsing_state11 = state
+        self._inendpos = inendpos
         self._buffer = buf
         self._parsing_pos11 = self._buffer.tell()
+        logger.debug('parse11 ending ...')
 
 
     def load_known_hosts(self, filename=None):

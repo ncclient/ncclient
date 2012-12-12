@@ -32,7 +32,7 @@ def connect(host, port, user, password, names):
                         ) as m:
         with m.locked(target='running'):
             for n in names:
-                m.edit_config(targeti='running', config=template % n)
+                m.edit_config(target='running', config=template % n)
 
 def parse_arguments():
 
