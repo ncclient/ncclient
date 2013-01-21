@@ -348,8 +348,17 @@ class SSHSession(Session):
         self._connected = True # there was no error authenticating
 
         c = self._channel = self._transport.open_session()
-        c.set_name("netconf")
-        c.invoke_subsystem("netconf")
+        c.set_name("netconf-subsystem")
+        try: c.invoke_subsystem("netconf")
+        except paramiko.SSHException as e:
+          logger.info("%s (subsystem request rejected)", e)
+          # if a ssh server implementation does not have subsystem support
+          # (dropbear for instance) then fallback to a remote command
+          # invocation. The server side must have netconf in the SEARCH PATH
+          # to allow the communication to work.
+          c = self._channel = self._transport.open_session()
+          c.set_name("netconf-command")
+          c.exec_command("netconf")
 
         self._post_connect()
 
