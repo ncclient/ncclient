@@ -3,12 +3,10 @@
 # Copyright 2012 Vaibhav Bajpai <contact@vaibhavbajpai.com>
 # Copyright 2009 Shikhar Bhushan <shikhar@schmizz.net>
 #
-# Retrieve a config portion selected by an XPATH expression from the
-# configuration store passed on the command line using
-# get-config and write the XML configs to files.
+# Retreive configuration from the candidate datastore after performing
+# a discard-changes on it.
 #
-# $ ./nc03.py cook "aaa/authentication/users/user[name='schoenw']"
-# $ ./nc03.py yuma "interfaces/interface[name='eth0']"
+# $ ./nc08.py cook
 
 import sys, os, warnings, logging, argparse
 warnings.simplefilter("ignore", DeprecationWarning)
@@ -22,15 +20,17 @@ LEVELS = {
            'critical':logging.CRITICAL,
          }
 
-def connect(host, port, user, password, source, expression):
+def connect(host, port, user, password):
     with manager.connect(
                           host=host, port=port,
                           username=user, password=password
                         ) as m:
-        assert(":xpath" in m.server_capabilities)
-        c = m.get_config(source, filter=('xpath', expression)).data_xml
-        with open("%s.xml" % host, 'w') as f:
-            f.write(c)
+        assert(":candidate" in m.server_capabilities)
+        with m.locked(target='candidate'):
+            m.discard_changes()
+            c = m.get_config('candidate').data_xml
+            with open("%s.xml" % host, 'w') as f:
+                f.write(c)
 
 def parse_arguments():
 
@@ -39,11 +39,6 @@ def parse_arguments():
                         'hostname',
                         action='store',
                         help='hostname or IP address'
-                       )
-    parser.add_argument(
-                        'expression',
-                        action='store',
-                        help='xpath expression'
                        )
     parser.add_argument(
                         '--port',
@@ -73,13 +68,6 @@ def parse_arguments():
                         dest='password',
                         help='password'
                        )
-    parser.add_argument(
-                        '--source',
-                        action='store',
-                        default='running',
-                        help='running/candidate/startup [default: running]',
-                        dest='source',
-                       )
     results = parser.parse_args()
     return results
 
@@ -93,6 +81,5 @@ if __name__ == '__main__':
     setlogging_level(results.level_name)
     connect(
             results.hostname, results.port,
-            results.username, results.password,
-            results.source, results.expression
+            results.username, results.password
            )

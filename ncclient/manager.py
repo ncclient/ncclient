@@ -1,5 +1,6 @@
-# Copyright 2009 Shikhar Bhushan
+# Copyright 2012 Vaibhav Bajpai
 # Copyright 2011 Leonidas Poulopoulos
+# Copyright 2009 Shikhar Bhushan
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,6 +26,7 @@ logger = logging.getLogger('ncclient.manager')
 
 CAPABILITIES = [
     "urn:ietf:params:netconf:base:1.0",
+    "urn:ietf:params:netconf:base:1.1",
     "urn:ietf:params:netconf:capability:writable-running:1.0",
     "urn:ietf:params:netconf:capability:candidate:1.0",
     "urn:ietf:params:netconf:capability:confirmed-commit:1.0",
