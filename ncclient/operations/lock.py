@@ -24,7 +24,7 @@ class Lock(RPC):
 
     "`lock` RPC"
     
-    def request(self, target):
+    def request(self, target="candidate"):
         """Allows the client to lock the configuration system of a device.
 
         *target* is the name of the configuration datastore to lock
@@ -38,7 +38,7 @@ class Unlock(RPC):
 
     "`unlock` RPC"
     
-    def request(self, target):
+    def request(self, target="candidate"):
         """Release a configuration lock, previously obtained with the lock operation.
 
         *target* is the name of the configuration datastore to unlock
@@ -48,7 +48,7 @@ class Unlock(RPC):
         return self._request(node)
 
 
-class LockContext:
+class LockContext(object):
 
     """A context manager for the :class:`Lock` / :class:`Unlock` pair of RPC's.
 

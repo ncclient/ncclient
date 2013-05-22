@@ -115,7 +115,7 @@ class Dispatch(RPC):
         dispatch(xsd_fetch)
         """
 
-        if ET.iselement(rpc_command):
+        if etree.iselement(rpc_command):
             node = rpc_command
         else:
             node = new_ele(rpc_command)

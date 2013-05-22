@@ -132,7 +132,8 @@ class SSHSession(Session):
 
     # REMEMBER to update transport.rst if sig. changes, since it is hardcoded there
     def connect(self, host, port=830, timeout=None, unknown_host_cb=default_unknown_host_cb,
-                username=None, password=None, key_filename=None, allow_agent=True, look_for_keys=True):
+                username=None, password=None, key_filename=None, allow_agent=True,
+                hostkey_verify=True, look_for_keys=True):
         """Connect via SSH and initialize the NETCONF session. First attempts the publickey authentication method and then password authentication.
 
         To disable attempting publickey authentication altogether, call with *allow_agent* and *look_for_keys* as `False`.
@@ -152,6 +153,8 @@ class SSHSession(Session):
         *key_filename* is a filename where a the private key to be used can be found
 
         *allow_agent* enables querying SSH agent (if found) for keys
+
+        *hostkey_verify* enables hostkey verification from ~/.ssh/known_hosts
 
         *look_for_keys* enables looking in the usual locations for ssh keys (e.g. :file:`~/.ssh/id_*`)
         """
@@ -189,8 +192,9 @@ class SSHSession(Session):
 
         fingerprint = _colonify(hexlify(server_key.get_fingerprint()))
 
-        if not known_host and not unknown_host_cb(host, fingerprint):
-            raise SSHUnknownHostError(host, fingerprint)
+        if hostkey_verify:
+            if not known_host and not unknown_host_cb(host, fingerprint):
+                raise SSHUnknownHostError(host, fingerprint)
 
         if key_filename is None:
             key_filenames = []
@@ -203,10 +207,17 @@ class SSHSession(Session):
 
         self._connected = True # there was no error authenticating
 
-        c = self._channel = self._transport.open_session()
-        c.set_name("netconf")
-        c.invoke_subsystem("netconf")
-
+        c = self._channel = self._transport.open_channel(kind="session")
+        self._channel_id = c.get_id()
+        c.set_name("netconf-subsystem-" + str(self._channel_id))
+        try:
+            c.invoke_subsystem("netconf")
+        except paramiko.SSHException as e:
+            logger.info("%s (subsystem request rejected)", e)
+            c = self._channel = self._transport.open_channel(kind="session")
+            c.set_name("netconf-command-" + str(self._channel_id))
+            c.exec_command("xml-mode netconf need-trailer")
+        self._channel_name = c.get_name()
         self._post_connect()
     
     # on the lines of paramiko.SSHClient._auth()

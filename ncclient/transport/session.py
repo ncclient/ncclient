@@ -137,6 +137,9 @@ class Session(Thread):
         logger.debug('queueing %s' % message)
         self._q.put(message)
 
+    def scp(self):
+        raise NotImplementedError
+
     ### Properties
 
     @property

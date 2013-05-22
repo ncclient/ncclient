@@ -89,7 +89,7 @@ class RPCError(OperationError):
         return self._info
 
 
-class RPCReply:
+class RPCReply(object):
 
     """Represents an *rpc-reply*. Only concerns itself with whether the operation was successful.
 
@@ -289,7 +289,7 @@ class RPC(object):
                         raise self._reply.error
                     elif (self._raise_mode == RaiseMode.ERRORS and self._reply.error.type == "error"):
                         raise self._reply.error
-                return self._reply
+                return NCElement(self._reply)
             else:
                 raise TimeoutExpiredError
 
