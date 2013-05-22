@@ -14,6 +14,8 @@ Requirements:
 * setuptools 0.6+
 * Paramiko 1.7+
 * lxml 3.0+
+* libxml2 (libxml2-dev on Ubuntu/Debian)
+* libxslt (libxslt1-dev on Ubuntu/Debian)
 
 Installation:
 
