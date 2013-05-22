@@ -6,7 +6,8 @@ and application development around the NETCONF protocol. `ncclient` was
 developed by [Shikar Bhushan](http://schmizz.net). It is now maintained
 by [Leonidas Poulopoulos](http://ncclient.grnet.gr)
 
-This is a [Juniper Networks](http://www.juniper.net) fork of `ncclient`
+This is a [Juniper Networks](http://www.juniper.net) fork of `ncclient` based
+off of [leopoul/ncclient v0.3.2](https://github.com/leopoul/ncclient)
 
 Requirements:
 * Python 2.6 <= version < 3.0
