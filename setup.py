@@ -16,7 +16,7 @@
 from setuptools import setup
 
 setup(name='ncclient',
-      version='1.0.0',
+      version='0.1a',
       description="Python library for NETCONF clients",
       author="Shikhar Bhushan, Leonidas Poulopoulos, Ebben Aries",
       author_email="shikhar@schmizz.net, leopoul@noc.grnet.gr, earies@juniper.net",
