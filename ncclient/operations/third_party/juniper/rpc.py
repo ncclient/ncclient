@@ -31,8 +31,8 @@ class LoadConfiguration(RPC):
             return self._request(node)
 
 class CompareConfiguration(RPC):
-    def request(self):
-        node = new_ele('get-configuration', {'compare':'rollback', 'rollback':'0'})
+    def request(self, rollback=0):
+        node = new_ele('get-configuration', {'compare':'rollback', 'rollback':str(rollback)})
         return self._request(node)
 
 class ExecuteRpc(RPC):
