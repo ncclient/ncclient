@@ -1,0 +1,12 @@
+ncclient: Python library for NETCONF clients
+============================================
+
+Old Homepage: http://oss.schmizz.net/ncclient
+New homepage: http://ncclient.grnet.gr
+
+Requirements:
+* Python 2.6 <= version < 3.0
+* Paramiko 1.7.7.1+
+
+To install:
+$ python setup.py install
