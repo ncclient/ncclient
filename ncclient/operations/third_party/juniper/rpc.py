@@ -42,12 +42,17 @@ class ExecuteRpc(RPC):
         return self._request(rpc)
 
 class Command(RPC):
-    def request(self, command=None):
-        node = new_ele('command', {'format':'text'})
+    def request(self, command=None, format='xml'):
+        node = new_ele('command', {'format':format})
         node.text = command
         return self._request(node)
 
 class Reboot(RPC):
     def request(self):
         node = new_ele('request-reboot')
+        return self._request(node)
+
+class Halt(RPC):
+    def request(self):
+        node = new_ele('request-halt')
         return self._request(node)

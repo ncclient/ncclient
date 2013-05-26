@@ -24,7 +24,7 @@ from lock import Lock, Unlock, LockContext
 from flowmon import PoweroffMachine, RebootMachine
 
 from third_party.juniper.rpc import GetConfiguration, LoadConfiguration, CompareConfiguration
-from third_party.juniper.rpc import ExecuteRpc, Command, Reboot
+from third_party.juniper.rpc import ExecuteRpc, Command, Reboot, Halt
 
 __all__ = [
     'RPC',
@@ -56,5 +56,6 @@ __all__ = [
     'CompareConfiguration',
     'ExecuteRpc',
     'Command',
-    'Reboot'
+    'Reboot',
+    'Halt'
 ]
