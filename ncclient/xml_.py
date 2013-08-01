@@ -127,6 +127,10 @@ class NCElement(object):
     def tostring(self):
         return etree.tostring(self.__doc, pretty_print=True)
 
+    @property
+    def data_xml(self):
+        return to_xml(self.__doc)
+
     def remove_namespaces(self, rpc_reply):
         self.__xslt='''<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
         <xsl:output method="xml" indent="no"/>

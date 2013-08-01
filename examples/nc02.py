@@ -10,7 +10,7 @@ warnings.simplefilter("ignore", DeprecationWarning)
 from ncclient import manager
 
 def demo(host, user):
-    with manager.connect(host=host, port=22, username=user) as m:
+    with manager.connect(host=host, port=22, username=user, hostkey_verify=False) as m:
         c = m.get_config(source='running').data_xml
         with open("%s.xml" % host, 'w') as f:
             f.write(c)
