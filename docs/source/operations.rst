@@ -42,6 +42,12 @@ Retrieval
     :show-inheritance:
     :members: data, data_ele, data_xml
 
+.. autoclass:: Dispatch
+    :members: request
+    :show-inheritance:
+
+    .. autoattribute:: REPLY_CLS
+
 Editing
 ........
 
@@ -102,3 +108,4 @@ Exceptions
 
 .. autoexception:: TimeoutExpiredError
     :show-inheritance:
+

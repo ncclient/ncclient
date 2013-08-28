@@ -40,6 +40,7 @@ class Session(Thread):
         self._connected = False # to be set/cleared by subclass implementation
         logger.debug('%r created: client_capabilities=%r' %
                      (self, self._client_capabilities))
+        self._device_handler = None # Should be set by child class
 
     def _dispatch_message(self, raw):
         try:
@@ -52,14 +53,14 @@ class Session(Thread):
         for l in listeners:
             logger.debug('dispatching message to %r: %s' % (l, raw))
             l.callback(root, raw) # no try-except; fail loudly if you must!
-    
+
     def _dispatch_error(self, err):
         with self._lock:
             listeners = list(self._listeners)
         for l in listeners:
             logger.debug('dispatching error to %r' % l)
             try: # here we can be more considerate with catching exceptions
-                l.errback(err) 
+                l.errback(err)
             except Exception as e:
                 logger.warning('error dispatching to %r: %r' % (l, e))
 
@@ -77,7 +78,7 @@ class Session(Thread):
             init_event.set()
         listener = HelloHandler(ok_cb, err_cb)
         self.add_listener(listener)
-        self.send(HelloHandler.build(self._client_capabilities))
+        self.send(HelloHandler.build(self._client_capabilities, self._device_handler))
         logger.debug('starting main loop')
         self.start()
         # we expect server's hello message
@@ -194,7 +195,7 @@ class HelloHandler(SessionListener):
 
     def callback(self, root, raw):
         tag, attrs = root
-        if tag == qualify("hello"):
+        if (tag == qualify("hello")) or (tag == "hello"):
             try:
                 id, capabilities = HelloHandler.parse(raw)
             except Exception as e:
@@ -206,9 +207,13 @@ class HelloHandler(SessionListener):
         self._error_cb(err)
 
     @staticmethod
-    def build(capabilities):
+    def build(capabilities, device_handler):
         "Given a list of capability URI's returns <hello> message XML string"
-        hello = new_ele("hello", xmlns=BASE_NS_1_0)
+        if device_handler:
+            xml_namespace_kwargs = device_handler.get_xml_base_namespace_dict()
+        else:
+            xml_namespace_kwargs = {}
+        hello = new_ele("hello", **xml_namespace_kwargs)
         caps = sub_ele(hello, "capabilities")
         def fun(uri): sub_ele(caps, "capability").text = uri
         map(fun, capabilities)
@@ -220,10 +225,10 @@ class HelloHandler(SessionListener):
         sid, capabilities = 0, []
         root = to_ele(raw)
         for child in root.getchildren():
-            if child.tag == qualify("session-id"):
+            if child.tag == qualify("session-id") or child.tag == "session-id":
                 sid = child.text
-            elif child.tag == qualify("capabilities"):
+            elif child.tag == qualify("capabilities") or child.tag == "capabilities" :
                 for cap in child.getchildren():
-                    if cap.tag == qualify("capability"):
+                    if cap.tag == qualify("capability") or cap.tag == "capability":
                         capabilities.append(cap.text)
         return sid, Capabilities(capabilities)

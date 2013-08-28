@@ -19,6 +19,8 @@ from binascii import hexlify
 from cStringIO import StringIO
 from select import select
 
+from ncclient.capabilities import Capabilities
+
 import paramiko
 
 from errors import AuthenticationError, SessionCloseError, SSHError, SSHUnknownHostError
@@ -35,7 +37,7 @@ def default_unknown_host_cb(host, fingerprint):
     """An unknown host callback returns `True` if it finds the key acceptable, and `False` if not.
 
     This default callback always returns `False`, which would lead to :meth:`connect` raising a :exc:`SSHUnknownHost` exception.
-    
+
     Supply another valid callback if you need to verify the host key programatically.
 
     *host* is the hostname that needs to be verified
@@ -54,7 +56,8 @@ class SSHSession(Session):
 
     "Implements a :rfc:`4742` NETCONF session over SSH."
 
-    def __init__(self, capabilities):
+    def __init__(self, device_handler):
+        capabilities = Capabilities(device_handler.get_capabilities())
         Session.__init__(self, capabilities)
         self._host_keys = paramiko.HostKeys()
         self._transport = None
@@ -64,7 +67,8 @@ class SSHSession(Session):
         # parsing-related, see _parse()
         self._parsing_state = 0
         self._parsing_pos = 0
-    
+        self._device_handler = device_handler
+
     def _parse(self):
         "Messages ae delimited by MSG_DELIM. The buffer could have grown by a maximum of BUF_SIZE bytes everytime this method is called. Retains state across method calls and if a byte has been read it will not be considered again."
         delim = MSG_DELIM
@@ -157,7 +161,7 @@ class SSHSession(Session):
         """
         if username is None:
             username = getpass.getuser()
-        
+
         sock = None
         for res in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket.SOCK_STREAM):
             af, socktype, proto, canonname, sa = res
@@ -204,11 +208,12 @@ class SSHSession(Session):
         self._connected = True # there was no error authenticating
 
         c = self._channel = self._transport.open_session()
-        c.set_name("xmlagent")
-        c.invoke_subsystem("xmlagent")
+        subsystem_name = self._device_handler.get_ssh_subsystem_name()
+        c.set_name(subsystem_name)
+        c.invoke_subsystem(subsystem_name)
 
         self._post_connect()
-    
+
     # on the lines of paramiko.SSHClient._auth()
     def _auth(self, username, password, key_filenames, allow_agent,
               look_for_keys):

@@ -18,6 +18,8 @@ Namespaces
 
 .. autodata:: CISCO_CPI_1_0
 
+.. autodata:: JUNIPER_1_1
+
 .. autodata:: FLOWMON_1_0
 
 .. autofunction:: register_namespace(prefix, uri)
@@ -34,3 +36,4 @@ Conversion
 .. autofunction:: parse_root
 
 .. autofunction:: validated_element
+

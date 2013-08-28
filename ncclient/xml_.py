@@ -1,4 +1,5 @@
 # Copyright 2009 Shikhar Bhushan
+# Copyright 2011 Leonidas Poulopoulos
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,6 +17,9 @@
 
 from cStringIO import StringIO
 from xml.etree import cElementTree as ET
+
+# In case issues come up with XML generation/parsing
+# make sure you have the ElementTree v1.2.7+ lib
 
 from ncclient import NCClientError
 
@@ -37,7 +41,9 @@ TAILF_EXECD_1_1 = "http://tail-f.com/ns/execd/1.1"
 CISCO_CPI_1_0 = "http://www.cisco.com/cpi_10/schema"
 #: Namespace for Flowmon data model
 FLOWMON_1_0 = "http://www.liberouter.org/ns/netopeer/flowmon/1.0"
-
+#: Namespace for Juniper 9.6R4. Tested with Junos 9.6R4+
+JUNIPER_1_1 = "http://xml.juniper.net/xnm/1.1/xnm"
+#
 try:
     register_namespace = ET.register_namespace
 except AttributeError:
@@ -55,7 +61,9 @@ for (ns, pre) in {
     TAILF_EXECD_1_1: 'execd',
     CISCO_CPI_1_0: 'cpi',
     FLOWMON_1_0: 'fm',
-}.items(): register_namespace(pre, ns)
+    JUNIPER_1_1: 'junos',
+}.items():
+    register_namespace(pre, ns)
 
 qualify = lambda tag, ns=BASE_NS_1_0: tag if ns is None else "{%s}%s" % (ns, tag)
 """Qualify a *tag* name with a *namespace*, in :mod:`~xml.etree.ElementTree` fashion i.e. *{namespace}tagname*."""
@@ -77,7 +85,7 @@ def parse_root(raw):
 
 def validated_element(x, tags=None, attrs=None):
     """Checks if the root element of an XML document or Element meets the supplied criteria.
-    
+
     *tags* if specified is either a single allowable tag name or sequence of allowable alternatives
 
     *attrs* if specified is a sequence of required attributes, each of which may be a sequence of several allowable alternatives
@@ -100,6 +108,7 @@ def validated_element(x, tags=None, attrs=None):
                 raise XMLError("Element [%s] does not have required attributes" % ele.tag)
     return ele
 
-new_ele = lambda tag, attrs={}, **extra: ET.Element(tag, attrs, **extra)
+new_ele = lambda tag, attrs={}, **extra: ET.Element(qualify(tag), attrs, **extra)
 
-sub_ele = lambda parent, tag, attrs={}, **extra: ET.SubElement(parent, tag, attrs, **extra)
+sub_ele = lambda parent, tag, attrs={}, **extra: ET.SubElement(parent, qualify(tag, ns=None), attrs, **extra)
+
