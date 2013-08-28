@@ -21,6 +21,13 @@ class NexusDeviceHandler(DefaultDeviceHandler):
     Cisco Nexus handler for device specific information.
 
     """
+    _EXEMPT_ERRORS = [
+        "*VLAN with the same name exists*", # returned even if VLAN was created, but
+                                            # name was already in use (switch will
+                                            # automatically choose different, unique
+                                            # name for VLAN)
+    ]
+
     def __init__(self, device_params):
         super(NexusDeviceHandler, self).__init__(device_params)
 

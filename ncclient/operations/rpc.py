@@ -207,7 +207,14 @@ class RPCReplyListener(SessionListener): # internal use
 
 
 class RaiseMode(object):
+    """
+    Define how errors indicated by RPC should be handled.
 
+    Note that any error_filters defined in the device handler will still be
+    applied, even if ERRORS or ALL is defined: If the filter matches, an exception
+    will NOT be raised.
+
+    """
     NONE = 0
     "Don't attempt to raise any type of `rpc-error` as :exc:`RPCError`."
 
@@ -288,7 +295,9 @@ class RPC(object):
                     # Error that prevented reply delivery
                     raise self._error
                 self._reply.parse()
-                if self._reply.error is not None:
+                if self._reply.error is not None  and  \
+                                 not self._device_handler.is_rpc_error_exempt( \
+                                                            self._reply.error.message):
                     # <rpc-error>'s [ RPCError ]
                     if self._raise_mode == RaiseMode.ALL:
                         raise self._reply.error
