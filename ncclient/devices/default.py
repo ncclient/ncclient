@@ -56,6 +56,17 @@ class DefaultDeviceHandler(object):
                 self._exempt_errors_exact_match.append(e)
 
 
+    def add_additional_ssh_connect_params(self, kwargs):
+        """
+        Add device specific parameters for the SSH connect.
+
+        Pass in the keyword-argument dictionary for the SSH connect call. The
+        dictionary will be modified (!) with the additional device-specific parameters.
+
+        """
+        pass
+
+
     def get_capabilities(self):
         """
         Return the capability list.
@@ -79,7 +90,7 @@ class DefaultDeviceHandler(object):
             "urn:ietf:params:netconf:capability:interleave:1.0"
         ]
 
-    def get_xml_base_namespace_dict():
+    def get_xml_base_namespace_dict(self):
         """
         A dictionary containing an "xmlns" element.
 

@@ -79,7 +79,9 @@ def connect_ssh(*args, **kwds):
         del kwds["device_params"]
     else:
         device_params = None
+
     device_handler = make_device_handler(device_params)
+    device_handler.add_additional_ssh_connect_params(kwds)
 
     session = transport.SSHSession(device_handler)
     session.load_known_hosts()
