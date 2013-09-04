@@ -161,13 +161,14 @@ class RPCReplyListener(SessionListener): # internal use
     creation_lock = Lock()
 
     # one instance per session -- maybe there is a better way??
-    def __new__(cls, session):
+    def __new__(cls, session, device_handler):
         with RPCReplyListener.creation_lock:
             instance = session.get_listener_instance(cls)
             if instance is None:
                 instance = object.__new__(cls)
                 instance._lock = Lock()
                 instance._id2rpc = {}
+                instance._device_handler = device_handler
                 #instance._pipelined = session.can_pipeline
                 session.add_listener(instance)
             return instance
@@ -178,8 +179,9 @@ class RPCReplyListener(SessionListener): # internal use
 
     def callback(self, root, raw):
         tag, attrs = root
-        if tag != qualify("rpc-reply"):
-            return
+        if self._device_handler.perform_qualify_check():
+            if tag != qualify("rpc-reply"):
+                return
         for key in attrs: # in the <rpc-reply> attributes
             if key == "message-id": # if we found msgid attr
                 id = attrs[key] # get the msgid
@@ -257,7 +259,7 @@ class RPC(object):
         self._timeout = timeout
         self._raise_mode = raise_mode
         self._id = uuid1().urn # Keeps things simple instead of having a class attr with running ID that has to be locked
-        self._listener = RPCReplyListener(session)
+        self._listener = RPCReplyListener(session, device_handler)
         self._listener.register(self._id, self)
         self._reply = None
         self._error = None

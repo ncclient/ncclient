@@ -157,6 +157,17 @@ class DefaultDeviceHandler(object):
         return False
 
 
+    def perform_qualify_check(self):
+        """
+        During RPC operations, we perform some initial sanity checks on the responses.
+
+        This check will fail for some devices, in which case this function here should
+        return False in order to skip the test.
+
+        """
+        return True
+
+
 
 
 

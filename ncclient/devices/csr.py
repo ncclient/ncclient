@@ -23,7 +23,15 @@ class CsrDeviceHandler(DefaultDeviceHandler):
     def __init__(self, device_params):
         super(CsrDeviceHandler, self).__init__(device_params)
 
+    def get_capabilities(self):
+        # Just need to replace a single value in the default capabilities
+        c = super(CsrDeviceHandler, self).get_capabilities()
+        c[0] = "urn:ietf:params:xml:ns:netconf:base:1.0"
+        return c
+
     def add_additional_ssh_connect_params(self, kwargs):
         kwargs['allow_agent']   = False
         kwargs['look_for_keys'] = False
 
+    def perform_qualify_check(self):
+        return False
