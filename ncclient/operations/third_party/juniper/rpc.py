@@ -27,7 +27,6 @@ class LoadConfiguration(RPC):
                 config_node = sub_ele(node, 'configuration-text').text = config
             if action == 'set' and format == 'text':
                 config_node = sub_ele(node, 'configuration-set').text = config
-            print to_xml(node)
             return self._request(node)
 
 class CompareConfiguration(RPC):
