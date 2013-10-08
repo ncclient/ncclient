@@ -104,12 +104,17 @@ class DefaultDeviceHandler(object):
         """
         return {}
 
-    def get_ssh_subsystem_name(self):
+    def get_ssh_subsystem_names(self):
         """
-        Return the name of the SSH subsystem on the server.
+        Return a list of names to try for the SSH subsystems.
+
+        This always returns a list, even if only a single subsystem name is used.
+
+        If the returned list contains multiple names then the various subsystems are
+        tried in order, until one of them can successfully connect.
 
         """
-        return "netconf"
+        return [ "netconf" ]
 
     def is_rpc_error_exempt(self, error_text):
         """

@@ -207,12 +207,22 @@ class SSHSession(Session):
 
         self._connected = True # there was no error authenticating
 
-        c = self._channel = self._transport.open_session()
-        subsystem_name = self._device_handler.get_ssh_subsystem_name()
-        c.set_name(subsystem_name)
-        c.invoke_subsystem(subsystem_name)
-
-        self._post_connect()
+        subsystem_names = self._device_handler.get_ssh_subsystem_names()
+        for subname in subsystem_names:
+            c = self._channel = self._transport.open_session()
+            try:
+                # Try the subsystem names in order. Connect and use the first one that
+                # is accepted.
+                c.set_name(subname)
+                c.invoke_subsystem(subname)
+                self._post_connect()
+                return
+            except paramiko.SSHException as e:
+                # Ignore the exception, since we continue to try the different
+                # subsystem names until we find one that can connect.
+                pass
+        raise SSHError("Could not open connection, possibly due to unacceptable"
+                       " SSH subsystem name.")
 
     # on the lines of paramiko.SSHClient._auth()
     def _auth(self, username, password, key_filenames, allow_agent,

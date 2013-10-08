@@ -48,6 +48,13 @@ class NexusDeviceHandler(DefaultDeviceHandler):
         d.update(self.get_xml_base_namespace_dict())
         return d
 
-    def get_ssh_subsystem_name(self):
-        return "xmlagent"
+    def get_ssh_subsystem_names(self):
+        """
+        Return a list of possible SSH subsystem names.
+
+        Different NXOS versions use different SSH subsystem names for netconf.
+        Therefore, we return a list so that several can be tried, if necessary.
+
+        """
+        return [ "xmlagent", "netconf", "xmlagent" ]
 
