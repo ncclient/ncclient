@@ -20,6 +20,12 @@ class NexusDeviceHandler(DefaultDeviceHandler):
     """
     Cisco Nexus handler for device specific information.
 
+    In the device_params dictionary, which is passed to __init__, you can specify
+    the parameter "ssh_subsystem_name". That allows you to configure the preferred
+    SSH subsystem name that should be tried on your Nexus switch. If connecting with
+    that name fails, or you didn't specify that name, the other known subsystem names
+    will be tried. However, if you specify it then this name will be tried first.
+
     """
     _EXEMPT_ERRORS = [
         "*VLAN with the same name exists*", # returned even if VLAN was created, but
@@ -55,6 +61,14 @@ class NexusDeviceHandler(DefaultDeviceHandler):
         Different NXOS versions use different SSH subsystem names for netconf.
         Therefore, we return a list so that several can be tried, if necessary.
 
+        The Nexus device handler also accepts
+
         """
-        return [ "xmlagent", "netconf", "xmlagent" ]
+        preferred_ssh_subsystem = self.device_params.get("ssh_subsystem_name")
+        name_list = [ "netconf", "xmlagent" ]
+        if preferred_ssh_subsystem:
+            return [ preferred_ssh_subsystem ] + \
+                        [ n for n in name_list if n != preferred_ssh_subsystem ]
+        else:
+            return name_list
 
