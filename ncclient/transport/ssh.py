@@ -26,6 +26,8 @@ from session import Session
 
 import logging
 logger = logging.getLogger("ncclient.transport.ssh")
+logger.setLevel(logging.WARNING)
+logging.getLogger("paramiko").setLevel(logging.DEBUG)
 
 BUF_SIZE = 4096
 MSG_DELIM = "]]>]]>"
