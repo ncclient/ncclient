@@ -22,7 +22,7 @@ from errors import OperationError, TimeoutExpiredError, MissingCapabilityError
 
 import logging
 logger = logging.getLogger("ncclient.operations.rpc")
-
+logger.setLevel(logging.WARNING)
 
 class RPCError(OperationError):
 
