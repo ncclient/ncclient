@@ -24,6 +24,7 @@ from errors import TransportError
 
 import logging
 logger = logging.getLogger('ncclient.transport.session')
+logger.setLevel(logging.WARNING)
 
 class Session(Thread):
 
