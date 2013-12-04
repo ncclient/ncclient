@@ -19,6 +19,8 @@ from binascii import hexlify
 from cStringIO import StringIO
 from select import select
 
+from ncclient.capabilities import Capabilities
+
 import paramiko
 
 from errors import AuthenticationError, SessionCloseError, SSHError, SSHUnknownHostError
@@ -56,7 +58,8 @@ class SSHSession(Session):
 
     "Implements a :rfc:`4742` NETCONF session over SSH."
 
-    def __init__(self, capabilities):
+    def __init__(self, device_handler):
+        capabilities = Capabilities(device_handler.get_capabilities())
         Session.__init__(self, capabilities)
         self._host_keys = paramiko.HostKeys()
         self._transport = None
@@ -66,6 +69,7 @@ class SSHSession(Session):
         # parsing-related, see _parse()
         self._parsing_state = 0
         self._parsing_pos = 0
+        self._device_handler = device_handler
 
     def _parse(self):
         "Messages ae delimited by MSG_DELIM. The buffer could have grown by a maximum of BUF_SIZE bytes everytime this method is called. Retains state across method calls and if a byte has been read it will not be considered again."
@@ -210,27 +214,48 @@ class SSHSession(Session):
 
         self._connected = True # there was no error authenticating
 
-# TODO: leopoul: review if this is Juniper specific
+# TODO: Like the idea of Cisco and the approach by Juniper... must mix them
 # <<<<<<< HEAD
-#         c = self._channel = self._transport.open_session()
-#         c.set_name("netconf")
-#         c.invoke_subsystem("netconf")
+# # TODO: leopoul: review if this is Juniper specific
+# # <<<<<<< HEAD
+# #         c = self._channel = self._transport.open_session()
+# #         c.set_name("netconf")
+# #         c.invoke_subsystem("netconf")
+
+# # =======
+#         c = self._channel = self._transport.open_channel(kind="session")
+#         self._channel_id = c.get_id()
+#         c.set_name("netconf-subsystem-" + str(self._channel_id))
+#         try:
+#             c.invoke_subsystem("netconf")
+#         except paramiko.SSHException as e:
+#             logger.info("%s (subsystem request rejected)", e)
+#             c = self._channel = self._transport.open_channel(kind="session")
+#             c.set_name("netconf-command-" + str(self._channel_id))
+#             c.exec_command("xml-mode netconf need-trailer")
+#         self._channel_name = c.get_name()
+# # >>>>>>> juniper
+#         self._post_connect()
 
 # =======
-        c = self._channel = self._transport.open_channel(kind="session")
-        self._channel_id = c.get_id()
-        c.set_name("netconf-subsystem-" + str(self._channel_id))
-        try:
-            c.invoke_subsystem("netconf")
-        except paramiko.SSHException as e:
-            logger.info("%s (subsystem request rejected)", e)
-            c = self._channel = self._transport.open_channel(kind="session")
-            c.set_name("netconf-command-" + str(self._channel_id))
-            c.exec_command("xml-mode netconf need-trailer")
-        self._channel_name = c.get_name()
-# >>>>>>> juniper
-        self._post_connect()
+        subsystem_names = self._device_handler.get_ssh_subsystem_names()
+        for subname in subsystem_names:
+            c = self._channel = self._transport.open_session()
+            try:
+                # Try the subsystem names in order. Connect and use the first one that
+                # is accepted.
+                c.set_name(subname)
+                c.invoke_subsystem(subname)
+                self._post_connect()
+                return
+            except paramiko.SSHException as e:
+                # Ignore the exception, since we continue to try the different
+                # subsystem names until we find one that can connect.
+                pass
+        raise SSHError("Could not open connection, possibly due to unacceptable"
+                       " SSH subsystem name.")
 
+# >>>>>>> master_merge_cisco
     # on the lines of paramiko.SSHClient._auth()
     def _auth(self, username, password, key_filenames, allow_agent,
               look_for_keys):

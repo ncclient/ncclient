@@ -162,13 +162,14 @@ class RPCReplyListener(SessionListener): # internal use
     creation_lock = Lock()
 
     # one instance per session -- maybe there is a better way??
-    def __new__(cls, session):
+    def __new__(cls, session, device_handler):
         with RPCReplyListener.creation_lock:
             instance = session.get_listener_instance(cls)
             if instance is None:
                 instance = object.__new__(cls)
                 instance._lock = Lock()
                 instance._id2rpc = {}
+                instance._device_handler = device_handler
                 #instance._pipelined = session.can_pipeline
                 session.add_listener(instance)
             return instance
@@ -179,8 +180,9 @@ class RPCReplyListener(SessionListener): # internal use
 
     def callback(self, root, raw):
         tag, attrs = root
-        if tag != qualify("rpc-reply"):
-            return
+        if self._device_handler.perform_qualify_check():
+            if tag != qualify("rpc-reply"):
+                return
         for key in attrs: # in the <rpc-reply> attributes
             if key == "message-id": # if we found msgid attr
                 id = attrs[key] # get the msgid
@@ -208,7 +210,14 @@ class RPCReplyListener(SessionListener): # internal use
 
 
 class RaiseMode(object):
+    """
+    Define how errors indicated by RPC should be handled.
 
+    Note that any error_filters defined in the device handler will still be
+    applied, even if ERRORS or ALL is defined: If the filter matches, an exception
+    will NOT be raised.
+
+    """
     NONE = 0
     "Don't attempt to raise any type of `rpc-error` as :exc:`RPCError`."
 
@@ -229,9 +238,12 @@ class RPC(object):
     REPLY_CLS = RPCReply
     "By default :class:`RPCReply`. Subclasses can specify a :class:`RPCReply` subclass."
 
-    def __init__(self, session, async=False, timeout=30, raise_mode=RaiseMode.NONE):
+
+    def __init__(self, session, device_handler, async=False, timeout=30, raise_mode=RaiseMode.NONE):
         """
         *session* is the :class:`~ncclient.transport.Session` instance
+
+        *device_handler" is the :class:`~ncclient.devices.*.*DeviceHandler` instance
 
         *async* specifies whether the request is to be made asynchronously, see :attr:`is_async`
 
@@ -249,16 +261,20 @@ class RPC(object):
         self._timeout = timeout
         self._raise_mode = raise_mode
         self._id = uuid1().urn # Keeps things simple instead of having a class attr with running ID that has to be locked
-        self._listener = RPCReplyListener(session)
+        self._listener = RPCReplyListener(session, device_handler)
         self._listener.register(self._id, self)
         self._reply = None
         self._error = None
         self._event = Event()
+        self._device_handler = device_handler
+
 
     def _wrap(self, subele):
         # internal use
-        ele = new_ele("rpc", {"message-id": self._id})
+        ele = new_ele("rpc", {"message-id": self._id},
+                      **self._device_handler.get_xml_extra_prefix_kwargs())
         ele.append(subele)
+        #print to_xml(ele)
         return to_xml(ele)
 
     def _request(self, op):
@@ -284,7 +300,9 @@ class RPC(object):
                     # Error that prevented reply delivery
                     raise self._error
                 self._reply.parse()
-                if self._reply.error is not None:
+                if self._reply.error is not None  and  \
+                                 not self._device_handler.is_rpc_error_exempt( \
+                                                            self._reply.error.message):
                     # <rpc-error>'s [ RPCError ]
                     if self._raise_mode == RaiseMode.ALL:
                         raise self._reply.error

@@ -34,6 +34,10 @@ class XMLError(NCClientError):
 
 #: Base NETCONF namespace
 BASE_NS_1_0 = "urn:ietf:params:xml:ns:netconf:base:1.0"
+# NXOS_1_0
+NXOS_1_0 = "http://www.cisco.com/nxos:1.0"
+# NXOS_IF
+NXOS_IF = "http://www.cisco.com/nxos:1.0:if_manager"
 #: Namespace for Tail-f core data model
 TAILF_AAA_1_1 = "http://tail-f.com/ns/aaa/1.1"
 #: Namespace for Tail-f execd data model
@@ -55,6 +59,8 @@ except AttributeError:
 
 for (ns, pre) in {
     BASE_NS_1_0: 'nc',
+    NXOS_1_0: 'nxos',
+    NXOS_IF: 'if',
     TAILF_AAA_1_1: 'aaa',
     TAILF_EXECD_1_1: 'execd',
     CISCO_CPI_1_0: 'cpi',

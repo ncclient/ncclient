@@ -25,21 +25,6 @@ from ncclient.xml_ import *
 
 logger = logging.getLogger('ncclient.manager')
 
-CAPABILITIES = [
-    "urn:ietf:params:netconf:base:1.0",
-    "urn:ietf:params:netconf:capability:writable-running:1.0",
-    "urn:ietf:params:netconf:capability:candidate:1.0",
-    "urn:ietf:params:netconf:capability:confirmed-commit:1.0",
-    "urn:ietf:params:netconf:capability:rollback-on-error:1.0",
-    "urn:ietf:params:netconf:capability:startup:1.0",
-    "urn:ietf:params:netconf:capability:url:1.0?scheme=http,ftp,file,https,sftp",
-    "urn:ietf:params:netconf:capability:validate:1.0",
-    "urn:ietf:params:netconf:capability:xpath:1.0",
-    "urn:liberouter:params:netconf:capability:power-control:1.0",
-    "urn:ietf:params:netconf:capability:interleave:1.0"
-]
-"""A list of URI's representing the client's capabilities. This is used during the initial capability exchange. Modify this if you need to announce some capability not already included."""
-
 OPERATIONS = {
     "get": operations.Get,
     "get_config": operations.GetConfig,
@@ -66,15 +51,52 @@ OPERATIONS = {
 }
 """Dictionary of method names and corresponding :class:`~ncclient.operations.RPC` subclasses. It is used to lookup operations, e.g. `get_config` is mapped to :class:`~ncclient.operations.GetConfig`. It is thus possible to add additional operations to the :class:`Manager` API."""
 
+def make_device_handler(device_params):
+    """
+    Create a device handler object that provides device specific parameters and
+    functions, which are called in various places throughout our code.
+
+    If no device_params are defined or the "name" in the parameter dict is not
+    known then a default handler will be returned.
+
+    """
+    if device_params is None:
+        device_params = {}
+
+    device_name = device_params.get("name", "default")
+    # Attempt to import device handler class. All device handlers are
+    # in a module called "ncclient.devices.<devicename>" and in a class named
+    # "<devicename>DeviceHandler", with the first letter capitalized.
+    class_name          = "%sDeviceHandler" % device_name.capitalize()
+    devices_module_name = "ncclient.devices.%s" % device_name
+    dev_module_obj      = __import__(devices_module_name)
+    handler_module_obj  = getattr(getattr(dev_module_obj, "devices"), device_name)
+    class_obj           = getattr(handler_module_obj, class_name)
+    handler_obj         = class_obj(device_params)
+    return handler_obj
+
 def connect_ssh(*args, **kwds):
     """Initialize a :class:`Manager` over the SSH transport. For documentation of arguments see :meth:`ncclient.transport.SSHSession.connect`.
 
     The underlying :class:`ncclient.transport.SSHSession` is created with :data:`CAPABILITIES`. It is first instructed to :meth:`~ncclient.transport.SSHSession.load_known_hosts` and then  all the provided arguments are passed directly to its implementation of :meth:`~ncclient.transport.SSHSession.connect`.
     """
-    session = transport.SSHSession(capabilities.Capabilities(CAPABILITIES))
+    # Extract device parameter dict, if it was passed into this function. Need to
+    # remove it from kwds, since the session.connect() doesn't like extra stuff in
+    # there.
+    if "device_params" in kwds:
+        device_params = kwds["device_params"]
+        del kwds["device_params"]
+    else:
+        device_params = None
+
+    device_handler = make_device_handler(device_params)
+    device_handler.add_additional_ssh_connect_params(kwds)
+
+    session = transport.SSHSession(device_handler)
     session.load_known_hosts()
+
     session.connect(*args, **kwds)
-    return Manager(session)
+    return Manager(session, device_handler, **kwds)
 
 connect = connect_ssh
 "Same as :func:`connect_ssh`, since SSH is the default (and currently, the only) transport."
@@ -111,11 +133,12 @@ class Manager(object):
 
     __metaclass__ = OpExecutor
 
-    def __init__(self, session, timeout=30):
+    def __init__(self, session, device_handler, timeout=30, *args, **kwargs):
         self._session = session
         self._async_mode = False
         self._timeout = timeout
         self._raise_mode = operations.RaiseMode.ALL
+        self._device_handler = device_handler
 
     def __enter__(self):
         return self
@@ -136,6 +159,7 @@ class Manager(object):
 
     def execute(self, cls, *args, **kwds):
         return cls(self._session,
+                   device_handler=self._device_handler,
                    async=self._async_mode,
                    timeout=self._timeout,
                    raise_mode=self._raise_mode).request(*args, **kwds)
