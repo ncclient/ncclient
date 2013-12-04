@@ -23,6 +23,13 @@ from lock import Lock, Unlock, LockContext
 # others...
 from flowmon import PoweroffMachine, RebootMachine
 
+# TODO: leopoul: needs review!!!!
+# <<<<<<< HEAD
+# =======
+# from third_party.juniper.rpc import GetConfiguration, LoadConfiguration, CompareConfiguration
+# from third_party.juniper.rpc import ExecuteRpc, Command, Reboot, Halt
+
+# >>>>>>> juniper
 __all__ = [
     'RPC',
     'RPCReply',
@@ -47,5 +54,12 @@ __all__ = [
     'KillSession',
     'OperationError',
     'TimeoutExpiredError',
-    'MissingCapabilityError'
+    'MissingCapabilityError',
+    'GetConfiguration',
+    'LoadConfiguration',
+    'CompareConfiguration',
+    'ExecuteRpc',
+    'Command',
+    'Reboot',
+    'Halt'
 ]

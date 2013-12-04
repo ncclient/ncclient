@@ -26,7 +26,7 @@ class GetReply(RPCReply):
         self._data = None
         if not self._errors:
             self._data = root.find(qualify("data"))
-    
+
     @property
     def data_ele(self):
         "*data* element as an :class:`~xml.etree.ElementTree.Element`"
@@ -40,7 +40,7 @@ class GetReply(RPCReply):
         if not self._parsed:
             self.parse()
         return to_xml(self._data)
-    
+
     data = data_ele
     "Same as :attr:`data_ele`"
 
@@ -115,7 +115,8 @@ class Dispatch(RPC):
         dispatch(xsd_fetch)
         """
 
-        if ET.iselement(rpc_command):
+
+        if etree.iselement(rpc_command):
             node = rpc_command
         else:
             node = new_ele(rpc_command)

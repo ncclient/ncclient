@@ -26,6 +26,8 @@ from session import Session
 
 import logging
 logger = logging.getLogger("ncclient.transport.ssh")
+logger.setLevel(logging.WARNING)
+logging.getLogger("paramiko").setLevel(logging.DEBUG)
 
 BUF_SIZE = 4096
 MSG_DELIM = "]]>]]>"
@@ -35,7 +37,7 @@ def default_unknown_host_cb(host, fingerprint):
     """An unknown host callback returns `True` if it finds the key acceptable, and `False` if not.
 
     This default callback always returns `False`, which would lead to :meth:`connect` raising a :exc:`SSHUnknownHost` exception.
-    
+
     Supply another valid callback if you need to verify the host key programatically.
 
     *host* is the hostname that needs to be verified
@@ -64,7 +66,7 @@ class SSHSession(Session):
         # parsing-related, see _parse()
         self._parsing_state = 0
         self._parsing_pos = 0
-    
+
     def _parse(self):
         "Messages ae delimited by MSG_DELIM. The buffer could have grown by a maximum of BUF_SIZE bytes everytime this method is called. Retains state across method calls and if a byte has been read it will not be considered again."
         delim = MSG_DELIM
@@ -132,7 +134,9 @@ class SSHSession(Session):
 
     # REMEMBER to update transport.rst if sig. changes, since it is hardcoded there
     def connect(self, host, port=830, timeout=None, unknown_host_cb=default_unknown_host_cb,
-                username=None, password=None, key_filename=None, allow_agent=True, look_for_keys=True):
+                username=None, password=None, key_filename=None, allow_agent=True,
+                hostkey_verify=True, look_for_keys=True):
+
         """Connect via SSH and initialize the NETCONF session. First attempts the publickey authentication method and then password authentication.
 
         To disable attempting publickey authentication altogether, call with *allow_agent* and *look_for_keys* as `False`.
@@ -153,11 +157,13 @@ class SSHSession(Session):
 
         *allow_agent* enables querying SSH agent (if found) for keys
 
+        *hostkey_verify* enables hostkey verification from ~/.ssh/known_hosts
+
         *look_for_keys* enables looking in the usual locations for ssh keys (e.g. :file:`~/.ssh/id_*`)
         """
         if username is None:
             username = getpass.getuser()
-        
+
         sock = None
         for res in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket.SOCK_STREAM):
             af, socktype, proto, canonname, sa = res
@@ -189,8 +195,9 @@ class SSHSession(Session):
 
         fingerprint = _colonify(hexlify(server_key.get_fingerprint()))
 
-        if not known_host and not unknown_host_cb(host, fingerprint):
-            raise SSHUnknownHostError(host, fingerprint)
+        if hostkey_verify:
+            if not known_host and not unknown_host_cb(host, fingerprint):
+                raise SSHUnknownHostError(host, fingerprint)
 
         if key_filename is None:
             key_filenames = []
@@ -203,12 +210,27 @@ class SSHSession(Session):
 
         self._connected = True # there was no error authenticating
 
-        c = self._channel = self._transport.open_session()
-        c.set_name("netconf")
-        c.invoke_subsystem("netconf")
+# TODO: leopoul: review if this is Juniper specific
+# <<<<<<< HEAD
+#         c = self._channel = self._transport.open_session()
+#         c.set_name("netconf")
+#         c.invoke_subsystem("netconf")
 
+# =======
+        c = self._channel = self._transport.open_channel(kind="session")
+        self._channel_id = c.get_id()
+        c.set_name("netconf-subsystem-" + str(self._channel_id))
+        try:
+            c.invoke_subsystem("netconf")
+        except paramiko.SSHException as e:
+            logger.info("%s (subsystem request rejected)", e)
+            c = self._channel = self._transport.open_channel(kind="session")
+            c.set_name("netconf-command-" + str(self._channel_id))
+            c.exec_command("xml-mode netconf need-trailer")
+        self._channel_name = c.get_name()
+# >>>>>>> juniper
         self._post_connect()
-    
+
     # on the lines of paramiko.SSHClient._auth()
     def _auth(self, username, password, key_filenames, allow_agent,
               look_for_keys):

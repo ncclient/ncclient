@@ -57,8 +57,11 @@ def build_filter(spec, capcheck=None):
         else:
             raise OperationError("Invalid filter type")
     else:
-        rep = validated_element(spec, ("filter", qualify("filter")),
-                                        attrs=("type",))
+
+        rep = validated_element(spec, ("filter", qualify("filter")))
+        # results in XMLError: line 105 ncclient/xml_.py - commented by earies - 5/10/13
+        #rep = validated_element(spec, ("filter", qualify("filter")),
+        #                                attrs=("type",))
         # TODO set type var here, check if select attr present in case of xpath..
     if type == "xpath" and capcheck is not None:
         capcheck(":xpath")

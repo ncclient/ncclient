@@ -15,15 +15,20 @@
 
 "Methods for creating, parsing, and dealing with XML and ElementTree objects."
 
-from cStringIO import StringIO
-from xml.etree import cElementTree as ET
+
+import io
+
+from StringIO import StringIO
+from lxml import etree
 
 # In case issues come up with XML generation/parsing
-# make sure you have the ElementTree v1.2.7+ lib
+# make sure you have the ElementTree v1.2.7+ lib as
+# well as lxml v3.0+
 
 from ncclient import NCClientError
 
-class XMLError(NCClientError): pass
+class XMLError(NCClientError):
+    pass
 
 ### Namespace-related
 
@@ -41,13 +46,12 @@ FLOWMON_1_0 = "http://www.liberouter.org/ns/netopeer/flowmon/1.0"
 JUNIPER_1_1 = "http://xml.juniper.net/xnm/1.1/xnm"
 #
 try:
-    register_namespace = ET.register_namespace
+    register_namespace = etree.register_namespace
 except AttributeError:
     def register_namespace(prefix, uri):
         from xml.etree import ElementTree
         # cElementTree uses ElementTree's _namespace_map, so that's ok
         ElementTree._namespace_map[uri] = prefix
-register_namespace.func_doc = "ElementTree's namespace map determines the prefixes for namespace URI's when serializing to XML. This method allows modifying this map to specify a prefix for a namespace URI."
 
 for (ns, pre) in {
     BASE_NS_1_0: 'nc',
@@ -56,30 +60,31 @@ for (ns, pre) in {
     CISCO_CPI_1_0: 'cpi',
     FLOWMON_1_0: 'fm',
     JUNIPER_1_1: 'junos',
-}.items(): 
+}.items():
     register_namespace(pre, ns)
 
 qualify = lambda tag, ns=BASE_NS_1_0: tag if ns is None else "{%s}%s" % (ns, tag)
 """Qualify a *tag* name with a *namespace*, in :mod:`~xml.etree.ElementTree` fashion i.e. *{namespace}tagname*."""
 
-def to_xml(ele, encoding="UTF-8"):
+
+def to_xml(ele, encoding="UTF-8", pretty_print=False):
     "Convert and return the XML for an *ele* (:class:`~xml.etree.ElementTree.Element`) with specified *encoding*."
-    xml = ET.tostring(ele, encoding)
+    xml = etree.tostring(ele, encoding=encoding, pretty_print=pretty_print)
     return xml if xml.startswith('<?xml') else '<?xml version="1.0" encoding="%s"?>%s' % (encoding, xml)
 
 def to_ele(x):
     "Convert and return the :class:`~xml.etree.ElementTree.Element` for the XML document *x*. If *x* is already an :class:`~xml.etree.ElementTree.Element` simply returns that."
-    return x if ET.iselement(x) else ET.fromstring(x)
+    return x if etree.iselement(x) else etree.fromstring(x)
 
 def parse_root(raw):
     "Efficiently parses the root element of a *raw* XML document, returning a tuple of its qualified name and attribute dictionary."
     fp = StringIO(raw)
-    for event, element in ET.iterparse(fp, events=('start',)):
+    for event, element in etree.iterparse(fp, events=('start',)):
         return (element.tag, element.attrib)
 
 def validated_element(x, tags=None, attrs=None):
     """Checks if the root element of an XML document or Element meets the supplied criteria.
-    
+
     *tags* if specified is either a single allowable tag name or sequence of allowable alternatives
 
     *attrs* if specified is a sequence of required attributes, each of which may be a sequence of several allowable alternatives
@@ -102,7 +107,61 @@ def validated_element(x, tags=None, attrs=None):
                 raise XMLError("Element [%s] does not have required attributes" % ele.tag)
     return ele
 
-new_ele = lambda tag, attrs={}, **extra: ET.Element(qualify(tag), attrs, **extra)
+XPATH_NAMESPACES = {
+    're':'http://exslt.org/regular-expressions'
+}
 
-sub_ele = lambda parent, tag, attrs={}, **extra: ET.SubElement(parent, qualify(tag), attrs, **extra)
+class NCElement(object):
+    def __init__(self, result):
+        self.__result = result
+        self.__doc = self.remove_namespaces(self.__result)
 
+    def xpath(self, expression):
+        self.__expression = expression
+        self.__namespaces = XPATH_NAMESPACES
+        return self.__doc.xpath(self.__expression, namespaces=self.__namespaces)
+
+    def find(self, expression):
+        self.__expression = expression
+        return self.__doc.find(self.__expression)
+
+    @property
+    def tostring(self):
+        return etree.tostring(self.__doc, pretty_print=True)
+
+    @property
+    def data_xml(self):
+        return to_xml(self.__doc)
+
+    def remove_namespaces(self, rpc_reply):
+        self.__xslt='''<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+        <xsl:output method="xml" indent="no"/>
+
+        <xsl:template match="/|comment()|processing-instruction()">
+            <xsl:copy>
+                <xsl:apply-templates/>
+            </xsl:copy>
+        </xsl:template>
+
+        <xsl:template match="*">
+            <xsl:element name="{local-name()}">
+                <xsl:apply-templates select="@*|node()"/>
+            </xsl:element>
+        </xsl:template>
+
+        <xsl:template match="@*">
+            <xsl:attribute name="{local-name()}">
+                <xsl:value-of select="."/>
+            </xsl:attribute>
+        </xsl:template>
+        </xsl:stylesheet>
+        '''
+        self.__parser = etree.XMLParser(remove_blank_text=True)
+        self.__xslt_doc = etree.parse(io.BytesIO(self.__xslt), self.__parser)
+        self.__transform = etree.XSLT(self.__xslt_doc)
+        self.__root = etree.fromstring(str(self.__transform(etree.parse(StringIO(rpc_reply)))))
+        return self.__root
+
+new_ele = lambda tag, attrs={}, **extra: etree.Element(qualify(tag), attrs, **extra)
+
+sub_ele = lambda parent, tag, attrs={}, **extra: etree.SubElement(parent, qualify(tag), attrs, **extra)

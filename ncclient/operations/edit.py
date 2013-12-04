@@ -27,7 +27,8 @@ logger = logging.getLogger("ncclient.operations.edit")
 class EditConfig(RPC):
     "`edit-config` RPC"
 
-    def request(self, target, config, default_operation=None, test_option=None, error_option=None):
+    def request(self, config, format='xml', target='candidate', default_operation=None,
+            test_option=None, error_option=None):
         """Loads all or part of the specified *config* to the *target* configuration datastore.
 
         *target* is the name of the configuration datastore being edited
@@ -54,7 +55,15 @@ class EditConfig(RPC):
         if default_operation is not None:
         # TODO: check if it is a valid default-operation
             sub_ele(node, "default-operation").text = default_operation
-        node.append(validated_element(config, ("config", qualify("config"))))
+# <<<<<<< HEAD
+#         node.append(validated_element(config, ("config", qualify("config"))))
+# =======
+        if format == 'xml':
+            node.append(validated_element(config, ("config", qualify("config"))))
+        if format == 'text':
+            config_text = sub_ele(node, "config-text")
+            sub_ele(config_text, "configuration-text").text = config
+# >>>>>>> juniper
         return self._request(node)
 
 
@@ -95,19 +104,22 @@ class Validate(RPC):
 
     DEPENDS = [':validate']
 
-    def request(self, source):
+    def request(self, source="candidate"):
         """Validate the contents of the specified configuration.
 
         *source* is the name of the configuration datastore being validated or `config` element containing the configuration subtree to be validated
 
+
+        ** modified to only accept valid string as source argument.  Elements no longer accepted - earies - 04/22/2013
+
         :seealso: :ref:`srctarget_params`"""
         node = new_ele("validate")
-        try:
-            src = validated_element(source, ("config", qualify("config")))
-        except Exception as e:
-            logger.debug(e)
-            src = util.datastore_or_url("source", source, self._assert)
-        (node if src.tag == "source" else sub_ele(node, "source")).append(src)
+        # rfc6241 sec 8.6.4 states valid source can be <candidate> or <config> elements
+        tags = ("config", "candidate")
+        if source not in tags:
+            raise XMLError("Invalid source type: [%s], must be one of %s" % (source, tags))
+        src_ele = sub_ele(node, "source")
+        sub_ele(src_ele, source)
         return self._request(node)
 
 
@@ -140,4 +152,5 @@ class DiscardChanges(RPC):
 
     def request(self):
         """Revert the candidate configuration to the currently running configuration. Any uncommitted changes are discarded."""
+
         return self._request(new_ele("discard-changes"))

@@ -21,6 +21,8 @@ import transport
 
 import logging
 
+from ncclient.xml_ import *
+
 logger = logging.getLogger('ncclient.manager')
 
 CAPABILITIES = [
@@ -53,7 +55,14 @@ OPERATIONS = {
     "close_session": operations.CloseSession,
     "kill_session": operations.KillSession,
     "poweroff_machine": operations.PoweroffMachine,
-    "reboot_machine": operations.RebootMachine
+    "reboot_machine": operations.RebootMachine,
+    "rpc": operations.ExecuteRpc,
+    "get_configuration": operations.GetConfiguration,
+    "load_configuration": operations.LoadConfiguration,
+    "compare_configuration": operations.CompareConfiguration,
+    "command": operations.Command,
+    "reboot": operations.Reboot,
+    "halt": operations.Halt
 }
 """Dictionary of method names and corresponding :class:`~ncclient.operations.RPC` subclasses. It is used to lookup operations, e.g. `get_config` is mapped to :class:`~ncclient.operations.GetConfig`. It is thus possible to add additional operations to the :class:`Manager` API."""
 
@@ -147,6 +156,25 @@ class Manager(object):
         """
         return operations.LockContext(self._session, target)
 
+    def scp(self):
+        return self._session.scp()
+
+    def session(self):
+        raise NotImplementedError
+
+    def __getattr__(self, method):
+        """Parse args/kwargs correctly in order to build XML element"""
+        def _missing(*args, **kwargs):
+            m = method.replace('_', '-')
+            root = new_ele(m)
+            if args:
+                for arg in args:
+                    sub_ele(root, arg)
+            r = self.rpc(root)
+            return r
+        return _missing
+
+
     @property
     def client_capabilities(self):
         ":class:`~ncclient.capabilities.Capabilities` object representing the client's capabilities."
@@ -156,6 +184,14 @@ class Manager(object):
     def server_capabilities(self):
         ":class:`~ncclient.capabilities.Capabilities` object representing the server's capabilities."
         return self._session._server_capabilities
+
+    @property
+    def channel_id(self):
+        return self._session._channel_id
+
+    @property
+    def channel_name(self):
+        return self._session._channel_name
 
     @property
     def session_id(self):

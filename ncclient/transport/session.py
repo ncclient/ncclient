@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+<<<<<<< HEAD
+=======
+import re
+
+>>>>>>> juniper
 from Queue import Queue
 from threading import Thread, Lock, Event
 
@@ -22,6 +27,8 @@ from errors import TransportError
 
 import logging
 logger = logging.getLogger('ncclient.transport.session')
+logger.setLevel(logging.WARNING)
+
 
 class Session(Thread):
 
@@ -45,21 +52,31 @@ class Session(Thread):
         try:
             root = parse_root(raw)
         except Exception as e:
+# TODO: leopoul: review exception handling
+# <<<<<<< HEAD
             logger.error('error parsing dispatch message: %s' % e)
             return
+# =======
+#             if 'routing-engine' in raw:
+#                 raw = re.sub(r'<ok/>', '</routing-engine>\n<ok/>', raw)
+#                 root = parse_root(raw)
+#             else:
+#                 logger.error('error parsing dispatch message: %s' % e)
+#                 return
+# >>>>>>> juniper
         with self._lock:
             listeners = list(self._listeners)
         for l in listeners:
             logger.debug('dispatching message to %r: %s' % (l, raw))
             l.callback(root, raw) # no try-except; fail loudly if you must!
-    
+
     def _dispatch_error(self, err):
         with self._lock:
             listeners = list(self._listeners)
         for l in listeners:
             logger.debug('dispatching error to %r' % l)
             try: # here we can be more considerate with catching exceptions
-                l.errback(err) 
+                l.errback(err)
             except Exception as e:
                 logger.warning('error dispatching to %r: %r' % (l, e))
 
@@ -137,6 +154,8 @@ class Session(Thread):
         logger.debug('queueing %s' % message)
         self._q.put(message)
 
+    def scp(self):
+        raise NotImplementedError
     ### Properties
 
     @property

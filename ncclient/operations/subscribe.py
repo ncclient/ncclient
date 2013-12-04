@@ -14,11 +14,13 @@
 
 # TODO
 
-class Notification:
+class Notification(object):
     pass
 
-class CreateSubscription:
+
+class CreateSubscription(object):
     pass
 
-class NotificationListener:
+
+class NotificationListener(object):
     pass

@@ -32,10 +32,10 @@ def schemes(url_uri):
     "Given a URI that has a *scheme* query string (i.e. `:url` capability URI), will return a list of supported schemes."
     return url_uri.partition("?scheme=")[2].split(",")
 
-class Capabilities:
+class Capabilities(object):
 
     "Represents the set of capabilities available to a NETCONF client or server. It is initialized with a list of capability URI's."
-    
+
     def __init__(self, capabilities):
         self._dict = {}
         for uri in capabilities:
