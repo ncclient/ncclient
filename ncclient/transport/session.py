@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-<<<<<<< HEAD
-=======
+# <<<<<<< HEAD
+# =======
 import re
 
->>>>>>> juniper
+# >>>>>>> juniper
 from Queue import Queue
 from threading import Thread, Lock, Event
 
