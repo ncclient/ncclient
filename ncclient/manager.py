@@ -41,14 +41,10 @@ OPERATIONS = {
     "kill_session": operations.KillSession,
     "poweroff_machine": operations.PoweroffMachine,
     "reboot_machine": operations.RebootMachine,
-    "rpc": operations.ExecuteRpc,
-    "get_configuration": operations.GetConfiguration,
-    "load_configuration": operations.LoadConfiguration,
-    "compare_configuration": operations.CompareConfiguration,
-    "command": operations.Command,
-    "reboot": operations.Reboot,
-    "halt": operations.Halt
 }
+
+VENDOR_OPERATIONS = {}
+
 """Dictionary of method names and corresponding :class:`~ncclient.operations.RPC` subclasses. It is used to lookup operations, e.g. `get_config` is mapped to :class:`~ncclient.operations.GetConfig`. It is thus possible to add additional operations to the :class:`Manager` API."""
 
 def make_device_handler(device_params):
@@ -91,7 +87,8 @@ def connect_ssh(*args, **kwds):
 
     device_handler = make_device_handler(device_params)
     device_handler.add_additional_ssh_connect_params(kwds)
-
+    global VENDOR_OPERATIONS
+    VENDOR_OPERATIONS.update(device_handler.add_additional_operations())
     session = transport.SSHSession(device_handler)
     session.load_known_hosts()
 
@@ -113,6 +110,18 @@ class OpExecutor(type):
             attrs[op_name] = make_wrapper(op_cls)
         return super(OpExecutor, cls).__new__(cls, name, bases, attrs)
 
+    def __call__(cls, *args, **kwargs):
+        def make_wrapper(op_cls):
+            def wrapper(self, *args, **kwds):
+                return self.execute(op_cls, *args, **kwds)
+            wrapper.func_doc = op_cls.request.func_doc
+            return wrapper
+        if VENDOR_OPERATIONS:
+            for op_name, op_cls in VENDOR_OPERATIONS.iteritems():
+                setattr(cls, op_name, make_wrapper(op_cls))
+        return super(OpExecutor, cls).__call__(*args, **kwargs)
+
+
 class Manager(object):
 
     """For details on the expected behavior of the operations and their parameters refer to :rfc:`4741`.
@@ -132,7 +141,6 @@ class Manager(object):
     """
 
     __metaclass__ = OpExecutor
-
     def __init__(self, session, device_handler, timeout=30, *args, **kwargs):
         self._session = session
         self._async_mode = False
