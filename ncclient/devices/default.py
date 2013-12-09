@@ -173,6 +173,14 @@ class DefaultDeviceHandler(object):
         return True
 
 
+    def add_additional_operations(self):
+        """
+        Add device/vendor specific operations.
+
+        """
+        return {}
+
+
 
 
 
