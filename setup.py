@@ -30,7 +30,7 @@ setup(name='ncclient',
           "ncclient/operations",
           "ncclient/operations/third_party",
           "ncclient/operations/third_party/juniper",
-          "ncclient/operations/third_party/cisco"],
+          ],
       install_requires=[
           "Paramiko > 1.7",
           "lxml > 3.0"],
