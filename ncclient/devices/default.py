@@ -181,9 +181,14 @@ class DefaultDeviceHandler(object):
         return {}
 
 
+    def handle_raw_dispatch(self, raw):
+        return False
 
 
+    def handle_connection_exceptions(self, sshsession):
+        return False
 
-
-
+    
+    def transform_reply(self):
+        return False
 
