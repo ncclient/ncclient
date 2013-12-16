@@ -65,6 +65,8 @@ class SSHSession(Session):
         self._transport = None
         self._connected = False
         self._channel = None
+        self._channel_id = None
+        self._channel_name = None
         self._buffer = StringIO() # for incoming data
         # parsing-related, see _parse()
         self._parsing_state = 0
@@ -213,50 +215,29 @@ class SSHSession(Session):
         self._auth(username, password, key_filenames, allow_agent, look_for_keys)
 
         self._connected = True # there was no error authenticating
-
-# TODO: Like the idea of Cisco and the approach by Juniper... must mix them
-# <<<<<<< HEAD
-# # TODO: leopoul: review if this is Juniper specific
-# # <<<<<<< HEAD
-# #         c = self._channel = self._transport.open_session()
-# #         c.set_name("netconf")
-# #         c.invoke_subsystem("netconf")
-
-# # =======
-#         c = self._channel = self._transport.open_channel(kind="session")
-#         self._channel_id = c.get_id()
-#         c.set_name("netconf-subsystem-" + str(self._channel_id))
-#         try:
-#             c.invoke_subsystem("netconf")
-#         except paramiko.SSHException as e:
-#             logger.info("%s (subsystem request rejected)", e)
-#             c = self._channel = self._transport.open_channel(kind="session")
-#             c.set_name("netconf-command-" + str(self._channel_id))
-#             c.exec_command("xml-mode netconf need-trailer")
-#         self._channel_name = c.get_name()
-# # >>>>>>> juniper
-#         self._post_connect()
-
-# =======
+        # TODO: leopoul: Review, test, and if needed rewrite this part
         subsystem_names = self._device_handler.get_ssh_subsystem_names()
         for subname in subsystem_names:
             c = self._channel = self._transport.open_session()
+            self._channel_id = c.get_id()
+            channel_name = "%s-subsystem-%s" % (subname, str(self._channel_id))
+            c.set_name(channel_name)
             try:
-                # Try the subsystem names in order. Connect and use the first one that
-                # is accepted.
-                c.set_name(subname)
                 c.invoke_subsystem(subname)
-                self._post_connect()
-                return
             except paramiko.SSHException as e:
+                logger.info("%s (subsystem request rejected)", e)
+                handle_exception = self._device_handler.handle_connection_exceptions(self)
                 # Ignore the exception, since we continue to try the different
                 # subsystem names until we find one that can connect.
-                pass
+                #have to handle exception for each vendor here
+                if not handle_exception:
+                    continue
+            self._channel_name = c.get_name()
+            self._post_connect()
+            return
         raise SSHError("Could not open connection, possibly due to unacceptable"
                        " SSH subsystem name.")
 
-# >>>>>>> master_merge_cisco
-    # on the lines of paramiko.SSHClient._auth()
     def _auth(self, username, password, key_filenames, allow_agent,
               look_for_keys):
         saved_exception = None
