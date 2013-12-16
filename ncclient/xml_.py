@@ -118,9 +118,11 @@ XPATH_NAMESPACES = {
 }
 
 class NCElement(object):
-    def __init__(self, result):
+    def __init__(self, result, transform_reply):
         self.__result = result
+        self.__transform_reply = transform_reply
         self.__doc = self.remove_namespaces(self.__result)
+        
 
     def xpath(self, expression):
         self.__expression = expression
@@ -140,33 +142,13 @@ class NCElement(object):
         return to_xml(self.__doc)
 
     def remove_namespaces(self, rpc_reply):
-        self.__xslt='''<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-        <xsl:output method="xml" indent="no"/>
-
-        <xsl:template match="/|comment()|processing-instruction()">
-            <xsl:copy>
-                <xsl:apply-templates/>
-            </xsl:copy>
-        </xsl:template>
-
-        <xsl:template match="*">
-            <xsl:element name="{local-name()}">
-                <xsl:apply-templates select="@*|node()"/>
-            </xsl:element>
-        </xsl:template>
-
-        <xsl:template match="@*">
-            <xsl:attribute name="{local-name()}">
-                <xsl:value-of select="."/>
-            </xsl:attribute>
-        </xsl:template>
-        </xsl:stylesheet>
-        '''
+        self.__xslt=self.__transform_reply
         self.__parser = etree.XMLParser(remove_blank_text=True)
         self.__xslt_doc = etree.parse(io.BytesIO(self.__xslt), self.__parser)
         self.__transform = etree.XSLT(self.__xslt_doc)
         self.__root = etree.fromstring(str(self.__transform(etree.parse(StringIO(rpc_reply)))))
         return self.__root
+        
 
 new_ele = lambda tag, attrs={}, **extra: etree.Element(qualify(tag), attrs, **extra)
 
