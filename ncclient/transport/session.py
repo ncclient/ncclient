@@ -12,11 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# <<<<<<< HEAD
-# =======
+
 import re
 
-# >>>>>>> juniper
 from Queue import Queue
 from threading import Thread, Lock, Event
 
@@ -53,18 +51,12 @@ class Session(Thread):
         try:
             root = parse_root(raw)
         except Exception as e:
-# TODO: leopoul: review exception handling
-# <<<<<<< HEAD
-            logger.error('error parsing dispatch message: %s' % e)
-            return
-# =======
-#             if 'routing-engine' in raw:
-#                 raw = re.sub(r'<ok/>', '</routing-engine>\n<ok/>', raw)
-#                 root = parse_root(raw)
-#             else:
-#                 logger.error('error parsing dispatch message: %s' % e)
-#                 return
-# >>>>>>> juniper
+            if self._device_handler.handle_raw_dispatch(raw):
+                raw = self._device_handler.handle_raw_dispatch(raw)
+                root = parse_root(raw)
+            else:
+                logger.error('error parsing dispatch message: %s' % e)
+                return
         with self._lock:
             listeners = list(self._listeners)
         for l in listeners:
