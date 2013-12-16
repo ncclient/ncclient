@@ -308,8 +308,10 @@ class RPC(object):
                         raise self._reply.error
                     elif (self._raise_mode == RaiseMode.ERRORS and self._reply.error.type == "error"):
                         raise self._reply.error
-
-                return NCElement(self._reply)
+                if self._device_handler.transform_reply():
+                    return NCElement(self._reply, self._device_handler.transform_reply())
+                else:
+                    return self._reply
             else:
                 raise TimeoutExpiredError
 
