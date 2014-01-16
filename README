@@ -33,7 +33,7 @@ or integrate the following in your code:
 
     from ncclient import manager
 
-    with manager.connect(host=host, port=22, username=user, hostkey_verify=False) as m:
+    with manager.connect(host=host, port=830, username=user, hostkey_verify=False) as m:
         c = m.get_config(source='running').data_xml
         with open("%s.xml" % host, 'w') as f:
             f.write(c)
@@ -45,7 +45,7 @@ For example to invoke Juniper's functions annd params one has to re-write the ab
 
     from ncclient import manager
 
-    with manager.connect(host=host, port=22, username=user, hostkey_verify=False, name='junos') as m:
+    with manager.connect(host=host, port=830, username=user, hostkey_verify=False, name='junos') as m:
         c = m.get_config(source='running').data_xml
         with open("%s.xml" % host, 'w') as f:
             f.write(c)
@@ -58,4 +58,8 @@ Device handlers are easy to implement and prove to be futureproof.
 * Add Juniper, Cisco and default device handlers
 * Allow preferred SSH subsystem name in device params
 * Allow iteration over multiple SSH subsystem names.
+
+Many thanks, primarily to [Jeremy Schulman](https://github.com/jeremyschulman) (Juniper) for providing his precious feedback,
+to [Eben Aries](https://github.com/earies) (Juniper) for his contribution, to Juergen Brendel (Cisco) for the Cisco fork and
+to all contributors from Cisco and Juniper.
 

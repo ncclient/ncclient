@@ -1,7 +1,7 @@
 ncclient: Python library for NETCONF clients
 --------------------------------------------
 
-`ncclient` is a Python library that facilitates client-side scripting
+ncclient is a Python library that facilitates client-side scripting
 and application development around the NETCONF protocol. `ncclient` was
 developed by [Shikar Bhushan](http://schmizz.net). It is now maintained
 by [Leonidas Poulopoulos](http://ncclient.grnet.gr)
@@ -33,22 +33,19 @@ or integrate the following in your code:
 
     from ncclient import manager
 
-    with manager.connect(host=host, port=22, username=user, hostkey_verify=False) as m:
+    with manager.connect(host=host, port=830, username=user, hostkey_verify=False) as m:
         c = m.get_config(source='running').data_xml
         with open("%s.xml" % host, 'w') as f:
             f.write(c)
 
-As this version integrates Juniper's and Cisco's forks,
-lots of new concepts have been introduced that ease
-management of Juniper and Cisco devices respectively.
-The biggest change is the introduction of device handlers
-via the param ***name*** in connection. For example to invoke
-Juniper's functions annd params one has to re-write the
-above with name = ***junos***:
+As this version integrates Juniper's and Cisco's forks, lots of new concepts
+have been introduced that ease management of Juniper and Cisco devices respectively.
+The biggest change is the introduction of device handlers via the param ***name*** in connection.
+For example to invoke Juniper's functions annd params one has to re-write the above with name = ***junos***:
 
     from ncclient import manager
 
-    with manager.connect(host=host, port=22, username=user, hostkey_verify=False, name='junos') as m:
+    with manager.connect(host=host, port=830, username=user, hostkey_verify=False, name='junos') as m:
         c = m.get_config(source='running').data_xml
         with open("%s.xml" % host, 'w') as f:
             f.write(c)
@@ -61,3 +58,8 @@ Device handlers are easy to implement and prove to be futureproof.
 * Add Juniper, Cisco and default device handlers
 * Allow preferred SSH subsystem name in device params
 * Allow iteration over multiple SSH subsystem names.
+
+### Acknowledgements
+Many thanks, primarily to [Jeremy Schulman](https://github.com/jeremyschulman) (Juniper) for providing his precious feedback,
+to [Eben Aries](https://github.com/earies) (Juniper) for his contribution, to Juergen Brendel (Cisco) for the Cisco fork and
+to all contributors from Cisco and Juniper.
