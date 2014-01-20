@@ -29,7 +29,7 @@ if sys.version_info.major == 2 and sys.version_info.minor < 6:
 addextra = []
 
 if platform.system() == 'Linux':
-    if platform.linux_distrubution()[0] in ['Debian', 'Ubuntu']:
+    if platform.linux_distribution()[0] in ['Debian', 'Ubuntu']:
         addextra = ["libxml2-dev", "libxslt1-dev"]
     
 install_requires=[
