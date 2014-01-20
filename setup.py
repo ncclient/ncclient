@@ -51,7 +51,7 @@ setup(name='ncclient',
           "ncclient/operations/third_party",
           "ncclient/operations/third_party/juniper",
           ],
-      install_requires=install_requires
+      install_requires=install_requires,
       license="Apache License 2.0",
       platforms=["Posix; OS X; Windows"],
       #classifiers=[]
