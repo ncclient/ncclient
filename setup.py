@@ -30,29 +30,13 @@ if sys.version_info.major == 2 and sys.version_info.minor < 6:
 
 addextra = []
 
-if platform.system() == 'Linux':
-    if platform.linux_distribution()[0] in ['Debian', 'Ubuntu']:
-        addextra = ["libxml2-dev", "libxslt1-dev"]
-
 install_requires=[
           "setuptools>0.6",
           "paramiko>1.7",
           "lxml>3.0"]
 
-class install(_install):
-    def run(self):
-        _install.run(self)
-        self.execute(_post_install, (self.install_lib,),
-                     msg="")
-
-def _post_install(dir):
-    global addextra
-    if addextra:
-      print "\nNote: If you haven't done so, consider installing the %s libraries (aptitude install %s)\n" %(", ".join(addextra), " ".join(addextra) )
-
-
 setup(name='ncclient',
-      version='0.4.0',
+      version='0.4.0rc1',
       description="Python library for NETCONF clients",
 # TODO: leopoul: review Cisco ncclient/devices and bring them into third party
       author="Shikhar Bhushan, Leonidas Poulopoulos, Ebben Aries",
