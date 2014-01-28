@@ -67,10 +67,10 @@ class Get(RPC):
 
 class GetConfig(RPC):
 
-    "The *get-config* RPC."
+    """The *get-config* RPC."""
 
     REPLY_CLS = GetReply
-    "See :class:`GetReply`."
+    """See :class:`GetReply`."""
 
     def request(self, source, filter=None):
         """Retrieve all or part of a specified configuration.
@@ -88,10 +88,10 @@ class GetConfig(RPC):
 
 class Dispatch(RPC):
 
-    "Generic retrieving wrapper"
+    """Generic retrieving wrapper"""
 
     REPLY_CLS = GetReply
-    "See :class:`GetReply`."
+    """See :class:`GetReply`."""
 
     def request(self, rpc_command, source=None, filter=None):
         """
@@ -105,14 +105,14 @@ class Dispatch(RPC):
 
         Examples of usage::
 
-        dispatch('clear-arp-table')
+            dispatch('clear-arp-table')
 
         or dispatch element like ::
 
-        xsd_fetch = new_ele('get-xnm-information')
-        sub_ele(xsd_fetch, 'type').text="xml-schema"
-        sub_ele(xsd_fetch, 'namespace').text="junos-configuration"
-        dispatch(xsd_fetch)
+            xsd_fetch = new_ele('get-xnm-information')
+            sub_ele(xsd_fetch, 'type').text="xml-schema"
+            sub_ele(xsd_fetch, 'namespace').text="junos-configuration"
+            dispatch(xsd_fetch)
         """
 
 

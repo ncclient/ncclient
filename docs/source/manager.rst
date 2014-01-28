@@ -12,7 +12,6 @@ These attributes control what capabilties are exchanged with the NETCONF server 
 
 .. autodata:: OPERATIONS
 
-.. autodata:: CAPABILITIES
 
 
 Factory functions
@@ -50,13 +49,13 @@ Presence of capabilities is verified to the extent possible, and you can expect 
     .. automethod:: dispatch(rpc_command, source=None, filter=None)
 
     .. automethod:: lock(target)
-        
+
     .. automethod:: unlock(target)
 
     .. automethod:: locked(target)
 
     .. automethod:: get()
-    
+
     .. automethod:: close_session()
 
     .. automethod:: kill_session(session_id)
@@ -104,9 +103,9 @@ Filter parameters
 Where a method takes a *filter* argument, it can take on the following types:
 
 * A tuple of *(type, criteria)*.
-    
+
     Here *type* has to be one of `"xpath"` or `"subtree"`.
-    
+
     * For `"xpath"` the *criteria* should be a string containing the XPath expression.
     * For `"subtree"` the *criteria* should be an XML string or an :class:`~xml.etree.ElementTree.Element` object containing the criteria.
 

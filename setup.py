@@ -15,6 +15,8 @@
 # limitations under the License.
 
 from setuptools import setup
+from distutils.command.install import install as _install
+
 import sys
 import platform
 
@@ -31,11 +33,23 @@ addextra = []
 if platform.system() == 'Linux':
     if platform.linux_distribution()[0] in ['Debian', 'Ubuntu']:
         addextra = ["libxml2-dev", "libxslt1-dev"]
-    
+
 install_requires=[
           "setuptools>0.6",
           "paramiko>1.7",
-          "lxml>3.0"] + addextra
+          "lxml>3.0"]
+
+class install(_install):
+    def run(self):
+        _install.run(self)
+        self.execute(_post_install, (self.install_lib,),
+                     msg="")
+
+def _post_install(dir):
+    global addextra
+    if addextra:
+      print "\nNote: If you haven't done so, consider installing the %s libraries (aptitude install %s)\n" %(", ".join(addextra), " ".join(addextra) )
+
 
 setup(name='ncclient',
       version='0.4.0',
@@ -54,5 +68,13 @@ setup(name='ncclient',
       install_requires=install_requires,
       license="Apache License 2.0",
       platforms=["Posix; OS X; Windows"],
+      cmdclass={'install': install},
       #classifiers=[]
       )
+
+
+
+
+
+
+
