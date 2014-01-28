@@ -15,8 +15,12 @@ on [leopoul/ncclient v0.3.2](https://github.com/leopoul/ncclient)
 * setuptools 0.6+
 * Paramiko 1.7+
 * lxml 3.0+
-* libxml2 (libxml2-dev on Ubuntu/Debian)
-* libxslt (libxslt1-dev on Ubuntu/Debian)
+* libxml2
+* libxslt
+
+If you are on Debian/Ubuntu install the following libs (via aptitude or apt-get):
+* libxml2-dev
+* libxslt1-dev
 
 #### Installation:
 
@@ -40,17 +44,17 @@ or integrate the following in your code:
 
 As this version integrates Juniper's and Cisco's forks, lots of new concepts
 have been introduced that ease management of Juniper and Cisco devices respectively.
-The biggest change is the introduction of device handlers via the param ***name*** in connection.
-For example to invoke Juniper's functions annd params one has to re-write the above with name = ***junos***:
+The biggest change is the introduction of device handlers in connection paramms.
+For example to invoke Juniper's functions annd params one has to re-write the above with ***device_params={'name':'junos'}***:
 
     from ncclient import manager
 
-    with manager.connect(host=host, port=830, username=user, hostkey_verify=False, name='junos') as m:
+    with manager.connect(host=host, port=830, username=user, hostkey_verify=False, device_params={'name':'junos'}) as m:
         c = m.get_config(source='running').data_xml
         with open("%s.xml" % host, 'w') as f:
             f.write(c)
 
-Respectively, for Cisco nxos, the name is ***nxos***.
+Respectively, for Cisco nxos, the name is **nxos**.
 Device handlers are easy to implement and prove to be futureproof.
 
 ### Changes | brief
