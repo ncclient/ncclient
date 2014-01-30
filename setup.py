@@ -30,7 +30,7 @@ if sys.version_info.major == 2 and sys.version_info.minor < 6:
 
 
 setup(name='ncclient',
-      version='0.4.0rc1',
+      version='0.4.0',
       description="Python library for NETCONF clients",
       author="Shikhar Bhushan, Leonidas Poulopoulos, Ebben Aries",
       author_email="shikhar@schmizz.net, leopoul@noc.grnet.gr, earies@juniper.net",
@@ -43,12 +43,12 @@ setup(name='ncclient',
           "ncclient/operations/third_party/juniper",
           ],
       install_requires=[
+                    "setuptools>0.6",
                     "paramiko>=1.7.7.1",
                     "lxml>3.0"
-                        ],
+                    ],
       license="Apache License 2.0",
       platforms=["Posix; OS X; Windows"],
-      cmdclass={'install': install},
       classifiers=[
           'Programming Language :: Python',
           'Topic :: System :: Networking',
