@@ -1,5 +1,5 @@
 # Copyright 2009 Shikhar Bhushan
-# Copyright 20{13,14} Leonidas Poulopoulos
+# Copyright 201[2-4] Leonidas Poulopoulos (@leopoul)
 # Copyright 2013 Ebben Aries
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from setuptools import setup
+from setuptools import setup, find_packages
 from distutils.command.install import install as _install
 
 import sys
@@ -28,17 +28,10 @@ if sys.version_info.major == 2 and sys.version_info.minor < 6:
     print "Sorry, Python < 2.6 is not supported"
     exit()
 
-addextra = []
-
-install_requires=[
-          "setuptools>0.6",
-          "paramiko>1.7",
-          "lxml>3.0"]
 
 setup(name='ncclient',
       version='0.4.0rc1',
       description="Python library for NETCONF clients",
-# TODO: leopoul: review Cisco ncclient/devices and bring them into third party
       author="Shikhar Bhushan, Leonidas Poulopoulos, Ebben Aries",
       author_email="shikhar@schmizz.net, leopoul@noc.grnet.gr, earies@juniper.net",
       url="http://ncclient.grnet.gr/",
@@ -49,11 +42,20 @@ setup(name='ncclient',
           "ncclient/operations/third_party",
           "ncclient/operations/third_party/juniper",
           ],
-      install_requires=install_requires,
+      install_requires=[
+                    "paramiko>=1.7.7.1",
+                    "lxml>3.0"
+                        ],
       license="Apache License 2.0",
       platforms=["Posix; OS X; Windows"],
       cmdclass={'install': install},
-      #classifiers=[]
+      classifiers=[
+          'Programming Language :: Python',
+          'Topic :: System :: Networking',
+          'Intended Audience :: Developers',
+          'Operating System :: OS Independent',
+          'Topic :: Software Development :: Libraries :: Python Modules',
+      ]
       )
 
 
