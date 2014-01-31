@@ -11,6 +11,7 @@ and [Cisco Systems](http://www.cisco.com) respective ncclient forks based
 on [leopoul/ncclient v0.3.2](https://github.com/leopoul/ncclient)
 
 Docs: [http://ncclient.readthedocs.org](http://ncclient.readthedocs.org)
+PyPI: [https://pypi.python.org/pypi/ncclient](https://pypi.python.org/pypi/ncclient)
 
 #### Requirements:
 * Python 2.6 <= version < 3.0
@@ -27,6 +28,10 @@ If you are on Debian/Ubuntu install the following libs (via aptitude or apt-get)
 #### Installation:
 
     [ncclient] $ sudo python setup.py install
+    
+or via pip:
+
+    pip install ncclient
 
 #### Examples:
 
