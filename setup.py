@@ -24,7 +24,7 @@ if not sys.version_info[0] == 2:
     print "Sorry, Python 3 is not supported (yet)"
     exit()
 
-if sys.version_info.major == 2 and sys.version_info.minor < 6:
+if sys.version_info[0] == 2 and sys.version_info[1] < 6:
     print "Sorry, Python < 2.6 is not supported"
     exit()
 
