@@ -28,13 +28,9 @@ if sys.version_info[0] == 2 and sys.version_info[1] < 6:
     print "Sorry, Python < 2.6 is not supported"
     exit()
 
-with open('README.rst') as file:
-    long_description = file.read()
-
 setup(name='ncclient',
-      version='0.4.0',
+      version='0.4.1',
       description="Python library for NETCONF clients",
-      long_description=long_description,
       author="Shikhar Bhushan, Leonidas Poulopoulos, Ebben Aries",
       author_email="shikhar@schmizz.net, leopoul@noc.grnet.gr, earies@juniper.net",
       url="http://ncclient.grnet.gr/",
