@@ -64,5 +64,5 @@ class Capabilities(object):
 
     def remove(self, uri):
         "Remove a capability."
-        if key in self._dict:
-            del self._dict[key]
+        if uri in self._dict:
+            del self._dict[uri]
