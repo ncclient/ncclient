@@ -120,6 +120,9 @@ class RPCReply(object):
         if ok is None:
             # Create RPCError objects from <rpc-error> elements
             error = root.find(qualify("rpc-error"))
+            if error is None:
+                # Might be a <commit-results> reply
+                error = root.find(qualify("commit-results")+"/"+qualify("rpc-error"))
             if error is not None:
                 for err in root.getiterator(error.tag):
                     # Process a particular <rpc-error>
