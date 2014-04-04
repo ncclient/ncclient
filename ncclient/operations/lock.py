@@ -58,14 +58,15 @@ class LockContext(object):
     Initialise with (:class:`Session <ncclient.transport.Session>`) instance and lock target.
     """
 
-    def __init__(self, session, target):
+    def __init__(self, session, target, device_handler):
         self.session = session
         self.target = target
+        self.device_handler = device_handler
 
     def __enter__(self):
-        Lock(self.session, raise_mode=RaiseMode.ERRORS).request(self.target)
+        Lock(self.session, self.device_handler, raise_mode=RaiseMode.ERRORS).request(self.target)
         return self
 
     def __exit__(self, *args):
-        Unlock(self.session, raise_mode=RaiseMode.ERRORS).request(self.target)
+        Unlock(self.session, self.device_handler, raise_mode=RaiseMode.ERRORS).request(self.target)
         return False
