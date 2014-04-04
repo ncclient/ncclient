@@ -11,6 +11,7 @@ def connect(host, port, user, password, source):
             username=user,
             password=password,
             timeout=10,
+            device_params = {'name':'junos'},
             hostkey_verify=False)
 
     compare_config = conn.compare_configuration(rollback=3)

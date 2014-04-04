@@ -9,6 +9,7 @@ def connect(host, port, user, password, source):
             username=user,
             password=password,
             timeout=10,
+            device_params = {'name':'junos'},
             hostkey_verify=False)
 
     template = """<system><scripts><commit><file delete="delete"><name>test.slax</name></file></commit></scripts></system>"""

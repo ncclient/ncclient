@@ -11,7 +11,8 @@ def connect(host, port, user, password, source):
                 username=user,
                 password=password,
                 timeout=10,
-                hostkey_verify=False)
+                device_params = {'name':'junos'},
+            hostkey_verify=False)
 
         print 'connected:', conn.connected, ' .... to host', host, 'on port:', port
         print 'session-id:', conn.session_id
