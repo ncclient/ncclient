@@ -10,6 +10,7 @@ def connect(host, port, user, password, source):
             username=user,
             password=password,
             timeout=10,
+            device_params = {'name':'junos'},
             hostkey_verify=False)
 
     print 'Retrieving full config, please wait ...'

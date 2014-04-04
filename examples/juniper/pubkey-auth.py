@@ -7,6 +7,7 @@ def connect(host, port, user):
             port=port,
             username=user,
             timeout=10,
+            device_params = {'name':'junos'},
             hostkey_verify=False)
 
 

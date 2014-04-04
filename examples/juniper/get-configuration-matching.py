@@ -9,6 +9,7 @@ def connect(host, port, user, password, source):
             username=user,
             password=password,
             timeout=10,
+            device_params = {'name':'junos'},
             hostkey_verify=False)
 
     result_xml = conn.get_configuration(format='xml')

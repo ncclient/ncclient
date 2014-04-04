@@ -68,5 +68,5 @@ Device handlers are easy to implement and prove to be futureproof.
 
 ### Acknowledgements
 Many thanks, primarily to [Jeremy Schulman](https://github.com/jeremyschulman) (Juniper) for providing his precious feedback,
-to [Eben Aries](https://github.com/earies) (Juniper) for his contribution, to Juergen Brendel (Cisco) for the Cisco fork and
+to [Ebben Aries](https://github.com/earies) (Juniper) for his contribution, to Juergen Brendel (Cisco) for the Cisco fork and
 to all contributors from Cisco and Juniper.
