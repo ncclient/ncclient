@@ -44,12 +44,14 @@ class NexusDeviceHandler(DefaultDeviceHandler):
         return c
 
     def get_xml_base_namespace_dict(self):
-        return { "xmlns":BASE_NS_1_0 }
+        return { None: BASE_NS_1_0 }
 
     def get_xml_extra_prefix_kwargs(self):
         d = {
                 "nxos":"http://www.cisco.com/nxos:1.0",
-                "if":"http://www.cisco.com/nxos:1.0:if_manager"
+                "if":"http://www.cisco.com/nxos:1.0:if_manager",
+                "nfcli": "http://www.cisco.com/nxos:1.0:nfcli",
+                "vlan_mgr_cli": "http://www.cisco.com/nxos:1.0:vlan_mgr_cli", 
             }
         d.update(self.get_xml_base_namespace_dict())
         return {'nsmap': d}
@@ -71,6 +73,3 @@ class NexusDeviceHandler(DefaultDeviceHandler):
                         [ n for n in name_list if n != preferred_ssh_subsystem ]
         else:
             return name_list
-
-    def perform_qualify_check(self):
-        return False
