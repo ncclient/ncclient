@@ -48,11 +48,11 @@ class NexusDeviceHandler(DefaultDeviceHandler):
 
     def get_xml_extra_prefix_kwargs(self):
         d = {
-                "xmlns:nxos":"http://www.cisco.com/nxos:1.0",
-                "xmlns:if":"http://www.cisco.com/nxos:1.0:if_manager"
+                "nxos":"http://www.cisco.com/nxos:1.0",
+                "if":"http://www.cisco.com/nxos:1.0:if_manager"
             }
         d.update(self.get_xml_base_namespace_dict())
-        return d
+        return {'nsmap': d}
 
     def get_ssh_subsystem_names(self):
         """
@@ -72,3 +72,5 @@ class NexusDeviceHandler(DefaultDeviceHandler):
         else:
             return name_list
 
+    def perform_qualify_check(self):
+        return False
