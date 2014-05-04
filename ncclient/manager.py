@@ -187,7 +187,7 @@ class Manager(object):
             finally:
                 m.unlock("running")
         """
-        return operations.LockContext(self._session, target)
+        return operations.LockContext(self._session, self._device_handler, target)
 
     def scp(self):
         return self._session.scp()
