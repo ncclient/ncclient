@@ -96,8 +96,32 @@ def connect_ssh(*args, **kwds):
     session.connect(*args, **kwds)
     return Manager(session, device_handler, **kwds)
 
-connect = connect_ssh
-"Same as :func:`connect_ssh`, since SSH is the default (and currently, the only) transport."
+def connect_ioproc(*args, **kwds):
+    if "device_params" in kwds:
+        device_params = kwds["device_params"]
+        del kwds["device_params"]
+        import_string = 'ncclient.transport.third_party.'
+        import_string += device_params['name'] + '.ioproc'
+        third_party_import = __import__(import_string, fromlist=['IOProc'])
+    else:
+        device_params = None
+
+    device_handler = make_device_handler(device_params)
+
+    global VENDOR_OPERATIONS
+    VENDOR_OPERATIONS.update(device_handler.add_additional_operations())
+    session = third_party_import.IOProc(device_handler)
+    session.connect()
+
+    return Manager(session, device_handler, **kwds)
+
+def connect(*args, **kwds):
+    if "host" in kwds:
+        host = kwds["host"]
+        if host != 'localhost':
+            return connect_ssh(*args, **kwds)
+        else:
+            return connect_ioproc(*args, **kwds)
 
 class OpExecutor(type):
 
