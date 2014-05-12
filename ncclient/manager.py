@@ -15,9 +15,9 @@
 
 """This module is a thin layer of abstraction around the library. It exposes all core functionality."""
 
-import capabilities
-import operations
-import transport
+from . import capabilities
+from . import operations
+from . import transport
 
 import logging
 
@@ -46,6 +46,7 @@ OPERATIONS = {
 
 VENDOR_OPERATIONS = {}
 
+
 def make_device_handler(device_params):
     """
     Create a device handler object that provides device specific parameters and
@@ -62,13 +63,18 @@ def make_device_handler(device_params):
     # Attempt to import device handler class. All device handlers are
     # in a module called "ncclient.devices.<devicename>" and in a class named
     # "<devicename>DeviceHandler", with the first letter capitalized.
-    class_name          = "%sDeviceHandler" % device_name.capitalize()
+    class_name = "%sDeviceHandler" % device_name.capitalize()
     devices_module_name = "ncclient.devices.%s" % device_name
-    dev_module_obj      = __import__(devices_module_name)
-    handler_module_obj  = getattr(getattr(dev_module_obj, "devices"), device_name)
-    class_obj           = getattr(handler_module_obj, class_name)
-    handler_obj         = class_obj(device_params)
+    dev_module_obj = __import__(devices_module_name)
+    handler_module_obj = getattr(
+        getattr(
+            dev_module_obj,
+            "devices"),
+        device_name)
+    class_obj = getattr(handler_module_obj, class_name)
+    handler_obj = class_obj(device_params)
     return handler_obj
+
 
 def connect_ssh(*args, **kwds):
     """Initialize a :class:`Manager` over the SSH transport. For documentation of arguments see :meth:`ncclient.transport.SSHSession.connect`.
@@ -96,6 +102,7 @@ def connect_ssh(*args, **kwds):
     session.connect(*args, **kwds)
     return Manager(session, device_handler, **kwds)
 
+
 def connect_ioproc(*args, **kwds):
     if "device_params" in kwds:
         device_params = kwds["device_params"]
@@ -115,6 +122,7 @@ def connect_ioproc(*args, **kwds):
 
     return Manager(session, device_handler, **kwds)
 
+
 def connect(*args, **kwds):
     if "host" in kwds:
         host = kwds["host"]
@@ -122,6 +130,7 @@ def connect(*args, **kwds):
             return connect_ssh(*args, **kwds)
         else:
             return connect_ioproc(*args, **kwds)
+
 
 class OpExecutor(type):
 
@@ -166,6 +175,7 @@ class Manager(object):
     """
 
     __metaclass__ = OpExecutor
+
     def __init__(self, session, device_handler, timeout=30, *args, **kwargs):
         self._session = session
         self._async_mode = False
@@ -187,7 +197,11 @@ class Manager(object):
         self._async_mode = mode
 
     def __set_raise_mode(self, mode):
-        assert(mode in (operations.RaiseMode.NONE, operations.RaiseMode.ERRORS, operations.RaiseMode.ALL))
+        assert(
+            mode in (
+                operations.RaiseMode.NONE,
+                operations.RaiseMode.ERRORS,
+                operations.RaiseMode.ALL))
         self._raise_mode = mode
 
     def execute(self, cls, *args, **kwds):
@@ -211,7 +225,8 @@ class Manager(object):
             finally:
                 m.unlock("running")
         """
-        return operations.LockContext(self._session, self._device_handler, target)
+        return operations.LockContext(
+            self._session, self._device_handler, target)
 
     def scp(self):
         return self._session.scp()
@@ -230,7 +245,6 @@ class Manager(object):
             r = self.rpc(root)
             return r
         return _missing
-
 
     @property
     def client_capabilities(self):
@@ -260,11 +274,15 @@ class Manager(object):
         """Whether currently connected to the NETCONF server."""
         return self._session.connected
 
-    async_mode = property(fget=lambda self: self._async_mode, fset=__set_async_mode)
+    async_mode = property(
+        fget=lambda self: self._async_mode,
+        fset=__set_async_mode)
     """Specify whether operations are executed asynchronously (`True`) or synchronously (`False`) (the default)."""
 
     timeout = property(fget=lambda self: self._timeout, fset=__set_timeout)
     """Specify the timeout for synchronous RPC requests."""
 
-    raise_mode = property(fget=lambda self: self._raise_mode, fset=__set_raise_mode)
+    raise_mode = property(
+        fget=lambda self: self._raise_mode,
+        fset=__set_raise_mode)
     """Specify which errors are raised as :exc:`~ncclient.operations.RPCError` exceptions. Valid values are the constants defined in :class:`~ncclient.operations.RaiseMode`. The default value is :attr:`~ncclient.operations.RaiseMode.ALL`."""

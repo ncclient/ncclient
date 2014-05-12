@@ -8,7 +8,8 @@ from ncclient.transport.ssh import SSHSession
 
 MSG_DELIM = "]]>]]>"
 TICK = 0.1
-NETCONF_SHELL = 'cli xml-mode netconf need-trailer'
+NETCONF_SHELL = 'xml-mode netconf need-trailer'
+
 
 class IOProc(SSHSession):
 
@@ -46,9 +47,9 @@ class IOProc(SSHSession):
         try:
             while True:
                 r, w, e = select([chan.stdout], [], [], TICK)
-		data = ''
+                data = ''
                 if r:
-                    while 1:
+                    while True:
                         data += chan.stdout.readline()
                         if MSG_DELIM in data:
                             break
@@ -62,7 +63,7 @@ class IOProc(SSHSession):
                     while data:
                         chan.stdin.write(data)
                         chan.stdin.flush()
-			data = False
+                        data = False
         except Exception as e:
             self.close()
             self._dispatch_error(e)
