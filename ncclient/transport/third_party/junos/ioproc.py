@@ -9,10 +9,7 @@ from ncclient.transport.ssh import SSHSession
 MSG_DELIM = "]]>]]>"
 TICK = 0.1
 NETCONF_SHELL = 'xml-mode netconf need-trailer'
-<<<<<<< HEAD
 
-=======
->>>>>>> dca1ae88b1c76ef15d8bff0e9cc87e7a68baed2f
 
 class IOProc(SSHSession):
 
