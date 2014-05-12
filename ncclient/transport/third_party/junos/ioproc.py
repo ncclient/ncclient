@@ -8,7 +8,7 @@ from ncclient.transport.ssh import SSHSession
 
 MSG_DELIM = "]]>]]>"
 TICK = 0.1
-NETCONF_SHELL = 'cli xml-mode netconf need-trailer'
+NETCONF_SHELL = 'xml-mode netconf need-trailer'
 
 class IOProc(SSHSession):
 
