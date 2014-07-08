@@ -13,7 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""This module is a thin layer of abstraction around the library. It exposes all core functionality."""
+"""
+This module is a thin layer of abstraction around the library.
+It exposes all core functionality.
+"""
 
 import capabilities
 import operations
@@ -71,11 +74,20 @@ def make_device_handler(device_params):
     return handler_obj
 
 def connect_ssh(*args, **kwds):
-    """Initialize a :class:`Manager` over the SSH transport. For documentation of arguments see :meth:`ncclient.transport.SSHSession.connect`.
+    """
+    Initialize a :class:`Manager` over the SSH transport.
+    For documentation of arguments see :meth:
+        `ncclient.transport.SSHSession.connect`.
 
-    The underlying :class:`ncclient.transport.SSHSession` is created with :data:`CAPABILITIES`. It is first instructed to :meth:`~ncclient.transport.SSHSession.load_known_hosts` and then  all the provided arguments are passed directly to its implementation of :meth:`~ncclient.transport.SSHSession.connect`.
+    The underlying :class:`ncclient.transport.SSHSession` is created with
+        :data:`CAPABILITIES`. It is first instructed to
+        :meth:`~ncclient.transport.SSHSession.load_known_hosts` and then
+        all the provided arguments are passed directly to its implementation
+        of :meth:`~ncclient.transport.SSHSession.connect`.
 
-    To invoke advanced vendor related operation add device_params = {'name':'<vendor_alias>'} in connection paramerers. For the time, 'junos' and 'nxos' are supported for Juniper and Cisco Nexus respectively.
+    To invoke advanced vendor related operation add device_params =
+        {'name':'<vendor_alias>'} in connection paramerers. For the time,
+        'junos' and 'nxos' are supported for Juniper and Cisco Nexus respectively.
     """
     # Extract device parameter dict, if it was passed into this function. Need to
     # remove it from kwds, since the session.connect() doesn't like extra stuff in
@@ -97,7 +109,7 @@ def connect_ssh(*args, **kwds):
     return Manager(session, device_handler, **kwds)
 
 connect = connect_ssh
-"Same as :func:`connect_ssh`, since SSH is the default (and currently, the only) transport."
+"Same as :func:`connect_ssh`, since SSH is currently the only transport."
 
 class OpExecutor(type):
 
@@ -125,7 +137,9 @@ class OpExecutor(type):
 
 class Manager(object):
 
-    """For details on the expected behavior of the operations and their parameters refer to :rfc:`4741`.
+    """
+    For details on the expected behavior of the operations and their
+        parameters refer to :rfc:`4741`.
 
     Manager instances are also context managers so you can use it like this::
 
