@@ -1,0 +1,14 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/12.1X46/junos">
+    <software-information>
+        <host-name>R1</host-name>
+        <product-model>firefly-perimeter</product-model>
+        <product-name>firefly-perimeter</product-name>
+        <package-information>
+            <name>junos</name>
+            <comment>JUNOS Software Release [12.1X46-D10.2]</comment>
+        </package-information>
+    </software-information>
+    <cli>
+        <banner></banner>
+    </cli>
+</rpc-reply>
