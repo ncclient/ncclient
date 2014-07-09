@@ -5,5 +5,4 @@ install:
 - pip install .
 - pip install -r requirements.txt
 - pip install rednose coverage
-- git branch --list
 script: nosetests test --rednose --verbosity=3 --with-coverage --cover-package ncclient.xml_
