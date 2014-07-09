@@ -45,7 +45,13 @@ OPERATIONS = {
     "poweroff_machine": operations.PoweroffMachine,
     "reboot_machine": operations.RebootMachine,
 }
-"""Dictionary of base method names and corresponding :class:`~ncclient.operations.RPC` subclasses. It is used to lookup operations, e.g. `get_config` is mapped to :class:`~ncclient.operations.GetConfig`. It is thus possible to add additional operations to the :class:`Manager` API."""
+
+"""
+Dictionary of base method names and corresponding :class:`~ncclient.operations.RPC`
+subclasses. It is used to lookup operations, e.g. `get_config` is mapped to
+:class:`~ncclient.operations.GetConfig`. It is thus possible to add additional
+operations to the :class:`Manager` API.
+"""
 
 VENDOR_OPERATIONS = {}
 
@@ -188,7 +194,8 @@ class Manager(object):
                    raise_mode=self._raise_mode).request(*args, **kwds)
 
     def locked(self, target):
-        """Returns a context manager for a lock on a datastore, where *target* is the name of the configuration datastore to lock, e.g.::
+        """Returns a context manager for a lock on a datastore, where
+        *target* is the name of the configuration datastore to lock, e.g.::
 
             with m.locked("running"):
                 # do your stuff
@@ -224,12 +231,14 @@ class Manager(object):
 
     @property
     def client_capabilities(self):
-        """:class:`~ncclient.capabilities.Capabilities` object representing the client's capabilities."""
+        """:class:`~ncclient.capabilities.Capabilities` object representing
+        the client's capabilities."""
         return self._session._client_capabilities
 
     @property
     def server_capabilities(self):
-        """:class:`~ncclient.capabilities.Capabilities` object representing the server's capabilities."""
+        """:class:`~ncclient.capabilities.Capabilities` object representing
+        the server's capabilities."""
         return self._session._server_capabilities
 
     @property
@@ -250,11 +259,17 @@ class Manager(object):
         """Whether currently connected to the NETCONF server."""
         return self._session.connected
 
-    async_mode = property(fget=lambda self: self._async_mode, fset=__set_async_mode)
-    """Specify whether operations are executed asynchronously (`True`) or synchronously (`False`) (the default)."""
+    async_mode = property(fget=lambda self: self._async_mode,
+                          fset=__set_async_mode)
+    """Specify whether operations are executed asynchronously (`True`) or
+    synchronously (`False`) (the default)."""
 
     timeout = property(fget=lambda self: self._timeout, fset=__set_timeout)
     """Specify the timeout for synchronous RPC requests."""
 
-    raise_mode = property(fget=lambda self: self._raise_mode, fset=__set_raise_mode)
-    """Specify which errors are raised as :exc:`~ncclient.operations.RPCError` exceptions. Valid values are the constants defined in :class:`~ncclient.operations.RaiseMode`. The default value is :attr:`~ncclient.operations.RaiseMode.ALL`."""
+    raise_mode = property(fget=lambda self: self._raise_mode,
+                          fset=__set_raise_mode)
+    """Specify which errors are raised as :exc:`~ncclient.operations.RPCError`
+    exceptions. Valid values are the constants defined in
+    :class:`~ncclient.operations.RaiseMode`.
+    The default value is :attr:`~ncclient.operations.RaiseMode.ALL`."""
