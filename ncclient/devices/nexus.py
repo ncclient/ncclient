@@ -63,7 +63,9 @@ class NexusDeviceHandler(DefaultDeviceHandler):
         """
         d = {
                 "nxos":"http://www.cisco.com/nxos:1.0",
-                "if":"http://www.cisco.com/nxos:1.0:if_manager"
+                "if":"http://www.cisco.com/nxos:1.0:if_manager",
+                "nfcli": "http://www.cisco.com/nxos:1.0:nfcli",
+                "vlan_mgr_cli": "http://www.cisco.com/nxos:1.0:vlan_mgr_cli"
             }
         d.update(self.get_xml_base_namespace_dict())
         return { "nsmap" : d }
