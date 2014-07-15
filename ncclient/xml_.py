@@ -122,7 +122,7 @@ class NCElement(object):
         self.__result = result
         self.__transform_reply = transform_reply
         self.__doc = self.remove_namespaces(self.__result)
-        
+
 
     def xpath(self, expression):
         self.__expression = expression
@@ -148,7 +148,7 @@ class NCElement(object):
         self.__transform = etree.XSLT(self.__xslt_doc)
         self.__root = etree.fromstring(str(self.__transform(etree.parse(StringIO(rpc_reply)))))
         return self.__root
-        
+
 
 new_ele = lambda tag, attrs={}, **extra: etree.Element(qualify(tag), attrs, **extra)
 
