@@ -176,8 +176,6 @@ class SSHSession(Session):
             config.parse(open(os.path.expanduser(ssh_config)))
             config = config.lookup(host)
             host = config.get("hostname", host)
-            if port is None:
-                port = config.get("port", 830)
             if username is None:
                 username = config.get("user")
             if key_filename is None:
