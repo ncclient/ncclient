@@ -141,7 +141,7 @@ class SSHSession(Session):
     # REMEMBER to update transport.rst if sig. changes, since it is hardcoded there
     def connect(self, host, port=830, timeout=None, unknown_host_cb=default_unknown_host_cb,
                 username=None, password=None, key_filename=None, allow_agent=True,
-                hostkey_verify=True, look_for_keys=True):
+                hostkey_verify=True, look_for_keys=True, ssh_config=None):
 
         """Connect via SSH and initialize the NETCONF session. First attempts the publickey authentication method and then password authentication.
 
@@ -166,7 +166,23 @@ class SSHSession(Session):
         *hostkey_verify* enables hostkey verification from ~/.ssh/known_hosts
 
         *look_for_keys* enables looking in the usual locations for ssh keys (e.g. :file:`~/.ssh/id_*`)
+
+        *ssh_config* enables parsing of an OpenSSH configuration file. Use `None` if you want to disable this feature.
         """
+        # Optionaly, parse .ssh/config
+        config = {}
+        if ssh_config is not None:
+            config = paramiko.SSHConfig()
+            config.parse(open(os.path.expanduser(ssh_config)))
+            config = config.lookup(host)
+            host = config.get("hostname", host)
+            if port is None:
+                port = config.get("port", 830)
+            if username is None:
+                username = config.get("user")
+            if key_filename is None:
+                key_filename = config.get("identityfile")
+
         if username is None:
             username = getpass.getuser()
 
