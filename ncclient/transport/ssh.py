@@ -187,21 +187,24 @@ class SSHSession(Session):
             username = getpass.getuser()
 
         sock = None
-        for res in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket.SOCK_STREAM):
-            af, socktype, proto, canonname, sa = res
-            try:
-                sock = socket.socket(af, socktype, proto)
-                sock.settimeout(timeout)
-            except socket.error:
-                continue
-            try:
-                sock.connect(sa)
-            except socket.error:
-                sock.close()
-                continue
-            break
+        if config.get("proxycommand"):
+            sock = paramiko.proxy.ProxyCommand(config.get("proxycommand"))
         else:
-            raise SSHError("Could not open socket to %s:%s" % (host, port))
+            for res in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket.SOCK_STREAM):
+                af, socktype, proto, canonname, sa = res
+                try:
+                    sock = socket.socket(af, socktype, proto)
+                    sock.settimeout(timeout)
+                except socket.error:
+                    continue
+                try:
+                    sock.connect(sa)
+                except socket.error:
+                    sock.close()
+                    continue
+                break
+            else:
+                raise SSHError("Could not open socket to %s:%s" % (host, port))
 
         t = self._transport = paramiko.Transport(sock)
         t.set_log_channel(logger.name)
