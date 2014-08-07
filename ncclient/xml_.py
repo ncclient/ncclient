@@ -50,6 +50,10 @@ CISCO_CPI_1_0 = "http://www.cisco.com/cpi_10/schema"
 FLOWMON_1_0 = "http://www.liberouter.org/ns/netopeer/flowmon/1.0"
 #: Namespace for Juniper 9.6R4. Tested with Junos 9.6R4+
 JUNIPER_1_1 = "http://xml.juniper.net/xnm/1.1/xnm"
+#: Namespace for Huawei data model
+HUAWEI_1_1 = "http://www.huawei.com/netconf/vrp"
+#: Namespace for H3C data model
+H3C_1_0 = "http://www.h3c.com/netconf/config:1.0"
 #
 try:
     register_namespace = etree.register_namespace
