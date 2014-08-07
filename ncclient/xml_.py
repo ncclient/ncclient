@@ -27,6 +27,8 @@ from lxml import etree
 
 from ncclient import NCClientError
 
+parser = etree.XMLParser(recover=True)
+
 class XMLError(NCClientError):
     pass
 
@@ -80,7 +82,7 @@ def to_xml(ele, encoding="UTF-8", pretty_print=False):
 
 def to_ele(x):
     "Convert and return the :class:`~xml.etree.ElementTree.Element` for the XML document *x*. If *x* is already an :class:`~xml.etree.ElementTree.Element` simply returns that."
-    return x if etree.iselement(x) else etree.fromstring(x)
+    return x if etree.iselement(x) else etree.fromstring(x, parser=parser)
 
 def parse_root(raw):
     "Efficiently parses the root element of a *raw* XML document, returning a tuple of its qualified name and attribute dictionary."
@@ -122,7 +124,7 @@ class NCElement(object):
         self.__result = result
         self.__transform_reply = transform_reply
         self.__doc = self.remove_namespaces(self.__result)
-        
+
 
     def xpath(self, expression):
         self.__expression = expression
@@ -148,7 +150,7 @@ class NCElement(object):
         self.__transform = etree.XSLT(self.__xslt_doc)
         self.__root = etree.fromstring(str(self.__transform(etree.parse(StringIO(rpc_reply)))))
         return self.__root
-        
+
 
 new_ele = lambda tag, attrs={}, **extra: etree.Element(qualify(tag), attrs, **extra)
 

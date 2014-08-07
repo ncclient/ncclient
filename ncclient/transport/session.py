@@ -221,7 +221,9 @@ class HelloHandler(SessionListener):
     def build(capabilities, device_handler):
         "Given a list of capability URI's returns <hello> message XML string"
         if device_handler:
-            xml_namespace_kwargs = device_handler.get_xml_base_namespace_dict()
+            # This is used as kwargs dictionary for lxml's Element() function.
+            # Therefore the arg-name ("nsmap") is used as key here.
+            xml_namespace_kwargs = { "nsmap" : device_handler.get_xml_base_namespace_dict() }
         else:
             xml_namespace_kwargs = {}
         hello = new_ele("hello", **xml_namespace_kwargs)
