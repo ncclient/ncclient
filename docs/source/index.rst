@@ -35,6 +35,8 @@ For example to invoke Juniper's functions annd params one has to re-write the ab
 Respectively, for Cisco nxos, the name is **nxos**.
 Device handlers are easy to implement and prove to be futureproof.
 
+The latest pull request merge includes support for Huawei devices with name **huawei** in device_params.
+
 Contents:
 
 .. toctree::
