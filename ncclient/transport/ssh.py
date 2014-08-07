@@ -317,6 +317,9 @@ class SSHSession(Session):
                 if r:
                     data = chan.recv(BUF_SIZE)
                     if data:
+                        # print "------------recv start-------------"
+                        # print data
+                        # print "------------recv end---------------"
                         self._buffer.write(data)
                         self._parse()
                     else:
@@ -325,6 +328,9 @@ class SSHSession(Session):
                     logger.debug("Sending message")
                     data = q.get() + MSG_DELIM
                     while data:
+                        # print "------------send start-------------"
+                        # print data
+                        # print "------------send end---------------"
                         n = chan.send(data)
                         if n <= 0:
                             raise SessionCloseError(self._buffer.getvalue(), data)
