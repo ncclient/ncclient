@@ -127,23 +127,43 @@ class NCElement(object):
 
 
     def xpath(self, expression):
+        """
+            return result for a call to lxml xpath()
+            output will be a list
+        """
         self.__expression = expression
         self.__namespaces = XPATH_NAMESPACES
         return self.__doc.xpath(self.__expression, namespaces=self.__namespaces)
 
     def find(self, expression):
+        """return result for a call to lxml ElementPath find()"""
         self.__expression = expression
         return self.__doc.find(self.__expression)
 
+    def findtext(self, expression):
+        """return result for a call to lxml ElementPath findtext()"""
+        self.__expression = expression
+        return self.__doc.findtext(self.__expression)
+
+
+    def __str__(self):
+        """syntactic sugar for str() - alias to tostring"""
+        return self.tostring
+
     @property
     def tostring(self):
-        return etree.tostring(self.__doc, pretty_print=True)
+        """return a pretty-printed string output for rpc reply"""
+        parser = etree.XMLParser(remove_blank_text=True)
+        outputtree = etree.XML(etree.tostring(self.__doc), parser)
+        return etree.tostring(outputtree, pretty_print=True)
 
     @property
     def data_xml(self):
+        """return an unmodified output for rpc reply"""
         return to_xml(self.__doc)
 
     def remove_namespaces(self, rpc_reply):
+        """remove xmlns attributes from rpc reply"""
         self.__xslt=self.__transform_reply
         self.__parser = etree.XMLParser(remove_blank_text=True)
         self.__xslt_doc = etree.parse(io.BytesIO(self.__xslt), self.__parser)

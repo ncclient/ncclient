@@ -13,7 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""This module is a thin layer of abstraction around the library. It exposes all core functionality."""
+"""
+This module is a thin layer of abstraction around the library.
+It exposes all core functionality.
+"""
 
 import capabilities
 import operations
@@ -42,7 +45,13 @@ OPERATIONS = {
     "poweroff_machine": operations.PoweroffMachine,
     "reboot_machine": operations.RebootMachine,
 }
-"""Dictionary of base method names and corresponding :class:`~ncclient.operations.RPC` subclasses. It is used to lookup operations, e.g. `get_config` is mapped to :class:`~ncclient.operations.GetConfig`. It is thus possible to add additional operations to the :class:`Manager` API."""
+
+"""
+Dictionary of base method names and corresponding :class:`~ncclient.operations.RPC`
+subclasses. It is used to lookup operations, e.g. `get_config` is mapped to
+:class:`~ncclient.operations.GetConfig`. It is thus possible to add additional
+operations to the :class:`Manager` API.
+"""
 
 VENDOR_OPERATIONS = {}
 
@@ -71,11 +80,20 @@ def make_device_handler(device_params):
     return handler_obj
 
 def connect_ssh(*args, **kwds):
-    """Initialize a :class:`Manager` over the SSH transport. For documentation of arguments see :meth:`ncclient.transport.SSHSession.connect`.
+    """
+    Initialize a :class:`Manager` over the SSH transport.
+    For documentation of arguments see :meth:
+        `ncclient.transport.SSHSession.connect`.
 
-    The underlying :class:`ncclient.transport.SSHSession` is created with :data:`CAPABILITIES`. It is first instructed to :meth:`~ncclient.transport.SSHSession.load_known_hosts` and then  all the provided arguments are passed directly to its implementation of :meth:`~ncclient.transport.SSHSession.connect`.
+    The underlying :class:`ncclient.transport.SSHSession` is created with
+        :data:`CAPABILITIES`. It is first instructed to
+        :meth:`~ncclient.transport.SSHSession.load_known_hosts` and then
+        all the provided arguments are passed directly to its implementation
+        of :meth:`~ncclient.transport.SSHSession.connect`.
 
-    To invoke advanced vendor related operation add device_params = {'name':'<vendor_alias>'} in connection paramerers. For the time, 'junos' and 'nxos' are supported for Juniper and Cisco Nexus respectively.
+    To invoke advanced vendor related operation add device_params =
+        {'name':'<vendor_alias>'} in connection paramerers. For the time,
+        'junos' and 'nxos' are supported for Juniper and Cisco Nexus respectively.
     """
     # Extract device parameter dict, if it was passed into this function. Need to
     # remove it from kwds, since the session.connect() doesn't like extra stuff in
@@ -97,7 +115,7 @@ def connect_ssh(*args, **kwds):
     return Manager(session, device_handler, **kwds)
 
 connect = connect_ssh
-"Same as :func:`connect_ssh`, since SSH is the default (and currently, the only) transport."
+"Same as :func:`connect_ssh`, since SSH is currently the only transport."
 
 class OpExecutor(type):
 
@@ -125,7 +143,9 @@ class OpExecutor(type):
 
 class Manager(object):
 
-    """For details on the expected behavior of the operations and their parameters refer to :rfc:`4741`.
+    """
+    For details on the expected behavior of the operations and their
+        parameters refer to :rfc:`4741`.
 
     Manager instances are also context managers so you can use it like this::
 
@@ -174,7 +194,8 @@ class Manager(object):
                    raise_mode=self._raise_mode).request(*args, **kwds)
 
     def locked(self, target):
-        """Returns a context manager for a lock on a datastore, where *target* is the name of the configuration datastore to lock, e.g.::
+        """Returns a context manager for a lock on a datastore, where
+        *target* is the name of the configuration datastore to lock, e.g.::
 
             with m.locked("running"):
                 # do your stuff
@@ -210,12 +231,14 @@ class Manager(object):
 
     @property
     def client_capabilities(self):
-        """:class:`~ncclient.capabilities.Capabilities` object representing the client's capabilities."""
+        """:class:`~ncclient.capabilities.Capabilities` object representing
+        the client's capabilities."""
         return self._session._client_capabilities
 
     @property
     def server_capabilities(self):
-        """:class:`~ncclient.capabilities.Capabilities` object representing the server's capabilities."""
+        """:class:`~ncclient.capabilities.Capabilities` object representing
+        the server's capabilities."""
         return self._session._server_capabilities
 
     @property
@@ -236,11 +259,17 @@ class Manager(object):
         """Whether currently connected to the NETCONF server."""
         return self._session.connected
 
-    async_mode = property(fget=lambda self: self._async_mode, fset=__set_async_mode)
-    """Specify whether operations are executed asynchronously (`True`) or synchronously (`False`) (the default)."""
+    async_mode = property(fget=lambda self: self._async_mode,
+                          fset=__set_async_mode)
+    """Specify whether operations are executed asynchronously (`True`) or
+    synchronously (`False`) (the default)."""
 
     timeout = property(fget=lambda self: self._timeout, fset=__set_timeout)
     """Specify the timeout for synchronous RPC requests."""
 
-    raise_mode = property(fget=lambda self: self._raise_mode, fset=__set_raise_mode)
-    """Specify which errors are raised as :exc:`~ncclient.operations.RPCError` exceptions. Valid values are the constants defined in :class:`~ncclient.operations.RaiseMode`. The default value is :attr:`~ncclient.operations.RaiseMode.ALL`."""
+    raise_mode = property(fget=lambda self: self._raise_mode,
+                          fset=__set_raise_mode)
+    """Specify which errors are raised as :exc:`~ncclient.operations.RPCError`
+    exceptions. Valid values are the constants defined in
+    :class:`~ncclient.operations.RaiseMode`.
+    The default value is :attr:`~ncclient.operations.RaiseMode.ALL`."""
