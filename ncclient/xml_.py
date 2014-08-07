@@ -27,6 +27,8 @@ from lxml import etree
 
 from ncclient import NCClientError
 
+parser = etree.XMLParser(recover=True)
+
 class XMLError(NCClientError):
     pass
 
@@ -73,10 +75,8 @@ for (ns, pre) in {
 }.items():
     register_namespace(pre, ns)
 
-qualify = lambda tag, ns=None: tag if ns is None else "{%s}%s" % (ns, tag)
+qualify = lambda tag, ns=BASE_NS_1_0: tag if ns is None else "{%s}%s" % (ns, tag)
 """Qualify a *tag* name with a *namespace*, in :mod:`~xml.etree.ElementTree` fashion i.e. *{namespace}tagname*."""
-
-qualify_base = lambda tag, ns=BASE_NS_1_0: tag if ns is None else "{%s}%s" % (ns, tag)
 
 
 def to_xml(ele, encoding="UTF-8", pretty_print=False):
@@ -86,7 +86,7 @@ def to_xml(ele, encoding="UTF-8", pretty_print=False):
 
 def to_ele(x):
     "Convert and return the :class:`~xml.etree.ElementTree.Element` for the XML document *x*. If *x* is already an :class:`~xml.etree.ElementTree.Element` simply returns that."
-    return x if etree.iselement(x) else etree.fromstring(x)
+    return x if etree.iselement(x) else etree.fromstring(x, parser=parser)
 
 def parse_root(raw):
     "Efficiently parses the root element of a *raw* XML document, returning a tuple of its qualified name and attribute dictionary."
@@ -128,33 +128,53 @@ class NCElement(object):
         self.__result = result
         self.__transform_reply = transform_reply
         self.__doc = self.remove_namespaces(self.__result)
-        
+
 
     def xpath(self, expression):
+        """
+            return result for a call to lxml xpath()
+            output will be a list
+        """
         self.__expression = expression
         self.__namespaces = XPATH_NAMESPACES
         return self.__doc.xpath(self.__expression, namespaces=self.__namespaces)
 
     def find(self, expression):
+        """return result for a call to lxml ElementPath find()"""
         self.__expression = expression
         return self.__doc.find(self.__expression)
 
+    def findtext(self, expression):
+        """return result for a call to lxml ElementPath findtext()"""
+        self.__expression = expression
+        return self.__doc.findtext(self.__expression)
+
+
+    def __str__(self):
+        """syntactic sugar for str() - alias to tostring"""
+        return self.tostring
+
     @property
     def tostring(self):
-        return etree.tostring(self.__doc, pretty_print=True)
+        """return a pretty-printed string output for rpc reply"""
+        parser = etree.XMLParser(remove_blank_text=True)
+        outputtree = etree.XML(etree.tostring(self.__doc), parser)
+        return etree.tostring(outputtree, pretty_print=True)
 
     @property
     def data_xml(self):
+        """return an unmodified output for rpc reply"""
         return to_xml(self.__doc)
 
     def remove_namespaces(self, rpc_reply):
+        """remove xmlns attributes from rpc reply"""
         self.__xslt=self.__transform_reply
         self.__parser = etree.XMLParser(remove_blank_text=True)
         self.__xslt_doc = etree.parse(io.BytesIO(self.__xslt), self.__parser)
         self.__transform = etree.XSLT(self.__xslt_doc)
         self.__root = etree.fromstring(str(self.__transform(etree.parse(StringIO(rpc_reply)))))
         return self.__root
-        
+
 
 new_ele = lambda tag, attrs={}, **extra: etree.Element(qualify(tag), attrs, **extra)
 

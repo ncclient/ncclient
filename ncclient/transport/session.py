@@ -206,7 +206,7 @@ class HelloHandler(SessionListener):
 
     def callback(self, root, raw):
         tag, attrs = root
-        if (tag == qualify_base("hello")) or (tag == "hello"):
+        if (tag == qualify("hello")) or (tag == "hello"):
             try:
                 id, capabilities = HelloHandler.parse(raw)
             except Exception as e:
@@ -221,7 +221,9 @@ class HelloHandler(SessionListener):
     def build(capabilities, device_handler):
         "Given a list of capability URI's returns <hello> message XML string"
         if device_handler:
-            xml_namespace_kwargs = device_handler.get_xml_base_namespace_dict()
+            # This is used as kwargs dictionary for lxml's Element() function.
+            # Therefore the arg-name ("nsmap") is used as key here.
+            xml_namespace_kwargs = { "nsmap" : device_handler.get_xml_base_namespace_dict() }
         else:
             xml_namespace_kwargs = {}
         hello = new_ele("hello", **xml_namespace_kwargs)
@@ -236,10 +238,10 @@ class HelloHandler(SessionListener):
         sid, capabilities = 0, []
         root = to_ele(raw)
         for child in root.getchildren():
-            if child.tag == qualify_base("session-id") or child.tag == "session-id":
+            if child.tag == qualify("session-id") or child.tag == "session-id":
                 sid = child.text
-            elif child.tag == qualify_base("capabilities") or child.tag == "capabilities" :
+            elif child.tag == qualify("capabilities") or child.tag == "capabilities" :
                 for cap in child.getchildren():
-                    if cap.tag == qualify_base("capability") or cap.tag == "capability":
+                    if cap.tag == qualify("capability") or cap.tag == "capability":
                         capabilities.append(cap.text)
         return sid, Capabilities(capabilities)

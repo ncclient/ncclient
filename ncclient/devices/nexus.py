@@ -44,15 +44,31 @@ class NexusDeviceHandler(DefaultDeviceHandler):
         return c
 
     def get_xml_base_namespace_dict(self):
-        return { "xmlns":BASE_NS_1_0 }
+        """
+        Base namespace needs a None key.
+
+        See 'nsmap' argument for lxml's Element().
+
+        """
+        return { None : BASE_NS_1_0 }
 
     def get_xml_extra_prefix_kwargs(self):
+        """
+        Return keyword arguments per request, which are applied to Element().
+
+        Mostly, this is a dictionary containing the "nsmap" key.
+
+        See 'nsmap' argument for lxml's Element().
+
+        """
         d = {
-                "xmlns:nxos":"http://www.cisco.com/nxos:1.0",
-                "xmlns:if":"http://www.cisco.com/nxos:1.0:if_manager"
+                "nxos":"http://www.cisco.com/nxos:1.0",
+                "if":"http://www.cisco.com/nxos:1.0:if_manager",
+                "nfcli": "http://www.cisco.com/nxos:1.0:nfcli",
+                "vlan_mgr_cli": "http://www.cisco.com/nxos:1.0:vlan_mgr_cli"
             }
         d.update(self.get_xml_base_namespace_dict())
-        return d
+        return { "nsmap" : d }
 
     def get_ssh_subsystem_names(self):
         """

@@ -92,7 +92,16 @@ class DefaultDeviceHandler(object):
 
     def get_xml_base_namespace_dict(self):
         """
-        A dictionary containing an "xmlns" element.
+        A dictionary containing the base namespace.
+
+        For lxml's nsmap, the base namespace should have a 'None' key.
+
+            {
+                None: "... base namespace... "
+            }
+
+        If no base namespace is needed, an empty dictionary should be
+        returned.
 
         """
         return {}
@@ -100,6 +109,17 @@ class DefaultDeviceHandler(object):
     def get_xml_extra_prefix_kwargs(self):
         """
         Return any extra prefix that should be sent with each RPC request.
+
+        Since these are used as kwargs, the function should return
+        either an empty dictionary if there are no additional arguments,
+        or a dictionary with keyword parameters suitable fo the Element()
+        function. Mostly, this is the "nsmap" argument.
+
+            {
+                "nsmap" : {
+                    ... namespace definitions ...
+                }
+            }
 
         """
         return {}
@@ -188,7 +208,7 @@ class DefaultDeviceHandler(object):
     def handle_connection_exceptions(self, sshsession):
         return False
 
-    
+
     def transform_reply(self):
         return False
 
