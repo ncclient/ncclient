@@ -106,13 +106,6 @@ class DefaultDeviceHandler(object):
         """
         return {}
 
-    def get_xml_app_namespace_dict(self):
-        return {}
-
-    def get_applications_name(self, type):
-
-        return "top"
-
     def get_xml_extra_prefix_kwargs(self):
         """
         Return any extra prefix that should be sent with each RPC request.
