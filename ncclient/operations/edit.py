@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#    http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+
 from ncclient.xml_ import *
-
 from rpc import RPC
-
 import util
 
 import logging
@@ -24,11 +24,12 @@ logger = logging.getLogger("ncclient.operations.edit")
 
 "Operations related to changing device configuration"
 
+
 class EditConfig(RPC):
     "`edit-config` RPC"
 
     def request(self, config, format='xml', target='candidate', default_operation=None,
-            test_option=None, error_option=None):
+                test_option=None, error_option=None):
         """Loads all or part of the specified *config* to the *target* configuration datastore.
 
         *target* is the name of the configuration datastore being edited
@@ -53,17 +54,14 @@ class EditConfig(RPC):
             self._assert(':validate')
             sub_ele(node, "test-option").text = test_option
         if default_operation is not None:
-        # TODO: check if it is a valid default-operation
+            # TODO: check if it is a valid default-operation
             sub_ele(node, "default-operation").text = default_operation
-# <<<<<<< HEAD
-#         node.append(validated_element(config, ("config", qualify("config"))))
-# =======
+
         if format == 'xml':
             node.append(validated_element(config, ("config", qualify("config"))))
         if format == 'text':
             config_text = sub_ele(node, "config-text")
             sub_ele(config_text, "configuration-text").text = config
-# >>>>>>> juniper
         return self._request(node)
 
 

@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#    http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,10 +15,9 @@
 
 "Methods for creating, parsing, and dealing with XML and ElementTree objects."
 
-
 import io
-
 from StringIO import StringIO
+
 from lxml import etree
 
 # In case issues come up with XML generation/parsing
@@ -28,6 +27,7 @@ from lxml import etree
 from ncclient import NCClientError
 
 parser = etree.XMLParser(recover=True)
+
 
 class XMLError(NCClientError):
     pass
@@ -84,15 +84,18 @@ def to_xml(ele, encoding="UTF-8", pretty_print=False):
     xml = etree.tostring(ele, encoding=encoding, pretty_print=pretty_print)
     return xml if xml.startswith('<?xml') else '<?xml version="1.0" encoding="%s"?>%s' % (encoding, xml)
 
+
 def to_ele(x):
     "Convert and return the :class:`~xml.etree.ElementTree.Element` for the XML document *x*. If *x* is already an :class:`~xml.etree.ElementTree.Element` simply returns that."
     return x if etree.iselement(x) else etree.fromstring(x, parser=parser)
+
 
 def parse_root(raw):
     "Efficiently parses the root element of a *raw* XML document, returning a tuple of its qualified name and attribute dictionary."
     fp = StringIO(raw)
     for event, element in etree.iterparse(fp, events=('start',)):
         return (element.tag, element.attrib)
+
 
 def validated_element(x, tags=None, attrs=None):
     """Checks if the root element of an XML document or Element meets the supplied criteria.
@@ -119,9 +122,11 @@ def validated_element(x, tags=None, attrs=None):
                 raise XMLError("Element [%s] does not have required attributes" % ele.tag)
     return ele
 
+
 XPATH_NAMESPACES = {
-    're':'http://exslt.org/regular-expressions'
+    're': 'http://exslt.org/regular-expressions'
 }
+
 
 class NCElement(object):
     def __init__(self, result, transform_reply):
@@ -168,7 +173,7 @@ class NCElement(object):
 
     def remove_namespaces(self, rpc_reply):
         """remove xmlns attributes from rpc reply"""
-        self.__xslt=self.__transform_reply
+        self.__xslt = self.__transform_reply
         self.__parser = etree.XMLParser(remove_blank_text=True)
         self.__xslt_doc = etree.parse(io.BytesIO(self.__xslt), self.__parser)
         self.__transform = etree.XSLT(self.__xslt_doc)
@@ -176,6 +181,6 @@ class NCElement(object):
         return self.__root
 
 
-new_ele = lambda tag, attrs={}, **extra: etree.Element(qualify(tag), attrs, **extra)
+new_ele = lambda tag, attrs={}, **extra: etree.Element(tag, attrs, **extra)
 
-sub_ele = lambda parent, tag, attrs={}, **extra: etree.SubElement(parent, qualify(tag), attrs, **extra)
+sub_ele = lambda parent, tag, attrs={}, **extra: etree.SubElement(parent, tag, attrs, **extra)
