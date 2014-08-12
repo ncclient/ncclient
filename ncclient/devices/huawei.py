@@ -18,7 +18,6 @@ from .default import DefaultDeviceHandler
 
 
 class HuaweiDeviceHandler(DefaultDeviceHandler):
-
     """
     Huawei handler for device specific information.
 
@@ -45,7 +44,7 @@ class HuaweiDeviceHandler(DefaultDeviceHandler):
     def get_xml_extra_prefix_kwargs(self):
         d = {}
         d.update(self.get_xml_base_namespace_dict())
-        return d
+        return {"nsmap": d}
 
     def perform_qualify_check(self):
         return False
