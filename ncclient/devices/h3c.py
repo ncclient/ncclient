@@ -18,6 +18,7 @@ from .default import DefaultDeviceHandler
 
 
 class H3cDeviceHandler(DefaultDeviceHandler):
+
     """
     H3C handler for device specific information.
 
