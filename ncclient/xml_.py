@@ -181,6 +181,6 @@ class NCElement(object):
         return self.__root
 
 
-new_ele = lambda tag, attrs={}, **extra: etree.Element(tag, attrs, **extra)
+new_ele = lambda tag, attrs={}, **extra: etree.Element(qualify(tag), attrs, **extra)
 
-sub_ele = lambda parent, tag, attrs={}, **extra: etree.SubElement(parent, tag, attrs, **extra)
+sub_ele = lambda parent, tag, attrs={}, **extra: etree.SubElement(parent, qualify(tag), attrs, **extra)
