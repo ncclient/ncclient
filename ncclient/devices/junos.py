@@ -14,7 +14,7 @@ generic information needed for interaction with a Netconf server.
 
 from .default import DefaultDeviceHandler
 from ncclient.operations.third_party.juniper.rpc import GetConfiguration, LoadConfiguration, CompareConfiguration
-from ncclient.operations.third_party.juniper.rpc import ExecuteRpc, Command, Reboot, Halt
+from ncclient.operations.third_party.juniper.rpc import ExecuteRpc, Command, Reboot, Halt, Commit
 
 class JunosDeviceHandler(DefaultDeviceHandler):
     """
@@ -33,6 +33,7 @@ class JunosDeviceHandler(DefaultDeviceHandler):
         dict["command"] = Command
         dict["reboot"] = Reboot
         dict["halt"] = Halt
+        dict["commit"] = Commit
         return dict
 
     def perform_qualify_check(self):
