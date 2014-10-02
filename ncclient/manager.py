@@ -95,7 +95,7 @@ def connect_ssh(*args, **kwds):
 
     To invoke advanced vendor related operation add device_params =
         {'name':'<vendor_alias>'} in connection paramerers. For the time,
-        'junos' and 'nxos' are supported for Juniper and Cisco Nexus respectively.
+        'junos' and 'nexus' are supported for Juniper and Cisco Nexus respectively.
     """
     # Extract device parameter dict, if it was passed into this function. Need to
     # remove it from kwds, since the session.connect() doesn't like extra stuff in
