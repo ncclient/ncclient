@@ -1,138 +1,152 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <title>Ncclient by leopoul</title>
+  </head>
 
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <body>
+    <div id="container">
+      <div class="inner">
 
-<head>
+        <header>
+          <h1>Ncclient</h1>
+          <h2>Python library for NETCONF clients</h2>
+        </header>
 
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <section id="downloads" class="clearfix">
+          <a href="https://github.com/leopoul/ncclient/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
+          <a href="https://github.com/leopoul/ncclient/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
+          <a href="https://github.com/leopoul/ncclient" id="view-on-github" class="button"><span>View on GitHub</span></a>
+        </section>
 
-    <title>ncclient</title>
+        <hr>
 
-    <style type="text/css">
-        body {
-            margin-top: 1.0em;
-            background-color: #ffffff;
-            font-family: "Helvetica,Arial,FreeSans";
-            color: #000000;
-        }
+        <section id="main_content">
+          <p><a href="https://travis-ci.org/leopoul/ncclient"><img src="https://travis-ci.org/leopoul/ncclient.svg?branch=master" alt="Build Status"></a></p>
 
-        #container {
-            margin: 0 auto;
-            width: 700px;
-        }
+<h2>
+<a name="ncclient-python-library-for-netconf-clients" class="anchor" href="#ncclient-python-library-for-netconf-clients"><span class="octicon octicon-link"></span></a>ncclient: Python library for NETCONF clients</h2>
 
-        h1 {
-            font-size: 3.8em;
-            color: #474747;
-            margin-bottom: 3px;
-        }
+<p>ncclient is a Python library that facilitates client-side scripting
+and application development around the NETCONF protocol. <code>ncclient</code> was
+developed by <a href="http://schmizz.net">Shikar Bhushan</a>. It is now maintained
+by <a href="http://ncclient.grnet.gr">Leonidas Poulopoulos (@leopoul)</a></p>
 
-        h1 a {
-            text-decoration: none
-        }
+<p>This version includes a merge of <a href="http://www.juniper.net">Juniper Networks</a>
+and <a href="http://www.cisco.com">Cisco Systems</a> respective ncclient forks based
+on <a href="https://github.com/leopoul/ncclient">leopoul/ncclient v0.3.2</a></p>
 
-        h2 {
-            font-size: 1.5em;
-            color: #474747;
-        }
+<p><strong>Docs</strong>: <a href="http://ncclient.readthedocs.org">http://ncclient.readthedocs.org</a></p>
 
-        h3 {
-            text-align: center;
-            color: #474747;
-        }
+<p><strong>PyPI</strong>: <a href="https://pypi.python.org/pypi/ncclient">https://pypi.python.org/pypi/ncclient</a></p>
 
-        a {
-            color: #474747;
-        }
+<h4>
+<a name="requirements" class="anchor" href="#requirements"><span class="octicon octicon-link"></span></a>Requirements:</h4>
 
-        .description {
-            font-size: 1.2em;
-            margin-bottom: 30px;
-            margin-top: 30px;
-            font-style: italic;
-        }
+<ul>
+<li>Python 2.6 &lt;= version &lt; 3.0</li>
+<li>setuptools 0.6+</li>
+<li>Paramiko 1.7+</li>
+<li>lxml 3.0+</li>
+<li>libxml2</li>
+<li>libxslt</li>
+</ul><p>If you are on Debian/Ubuntu install the following libs (via aptitude or apt-get):</p>
 
-        hr {
-            border: 0;
-            width: 80%;
-            border-bottom: 1px solid #aaa
-        }
+<ul>
+<li>libxml2-dev</li>
+<li>libxslt1-dev</li>
+</ul><h4>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation:</h4>
 
-        .footer {
-            text-align: center;
-            padding-top: 30px;
-            font-style: italic;
-        }
+<pre><code>[ncclient] $ sudo python setup.py install
+</code></pre>
 
-        pre {
-            background: #000;
-            color: #fff;
-            padding: 15px;
-        }
-    </style>
+<p>or via pip:</p>
 
-</head>
+<pre><code>pip install ncclient
+</code></pre>
 
-<body>
+<h4>
+<a name="examples" class="anchor" href="#examples"><span class="octicon octicon-link"></span></a>Examples:</h4>
 
-<img style="position: absolute; top: 0; left: 0; border: 0;" src="ncc.png" alt="ncclient"/>
+<pre><code>[ncclient] $ python examples/juniper/*.py
+</code></pre>
 
-<a href="http://github.com/shikhar/ncclient">
-    <img style="position: absolute; top: 0; right: 0; border: 0;"
-         src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"
-         alt="Fork me on GitHub"/></a>
+<h3>
+<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h3>
 
-<div id="container">
+<h5>
+<a name="get-device-running-config" class="anchor" href="#get-device-running-config"><span class="octicon octicon-link"></span></a>Get device running config</h5>
 
-    <h1>ncclient</h1>
+<p>Use either an interactive Python console (ipython)
+or integrate the following in your code:</p>
 
-    <div class="description">Python library for NETCONF clients</div>
+<pre><code>from ncclient import manager
 
-    <p><strong>ncclient</strong> is a Python library that facilitates client-side scripting and application development
-        around the NETCONF protocol.</p>
+with manager.connect(host=host, port=830, username=user, hostkey_verify=False) as m:
+    c = m.get_config(source='running').data_xml
+    with open("%s.xml" % host, 'w') as f:
+        f.write(c)
+</code></pre>
 
-    <h2>Releases</h2>
+<p>As this version integrates Juniper's and Cisco's forks, lots of new concepts
+have been introduced that ease management of Juniper and Cisco devices respectively.
+The biggest change is the introduction of device handlers in connection paramms.
+For example to invoke Juniper's functions annd params one has to re-write the above with <strong><em>device_params={'name':'junos'}</em></strong>:</p>
 
-    <p><em>v0.3.1</em>&nbsp;&nbsp;&nbsp;<a href="http://github.com/shikhar/ncclient/tarball/v0.3.1">Tarball</a> | <a
-            href="http://github.com/shikhar/ncclient/zipball/v0.3.1">Zip</a> | <a href="0.3.1/">Documentation</a>
+<pre><code>from ncclient import manager
 
-    <p><em>v0.3</em>&nbsp;&nbsp;&nbsp;<a href="http://github.com/shikhar/ncclient/tarball/v0.3">Tarball</a> | <a
-            href="http://github.com/shikhar/ncclient/zipball/v0.3">Zip</a> | <a href="0.3/">Documentation</a>
+with manager.connect(host=host, port=830, username=user, hostkey_verify=False, device_params={'name':'junos'}) as m:
+    c = m.get_config(source='running').data_xml
+    with open("%s.xml" % host, 'w') as f:
+        f.write(c)
+</code></pre>
 
-    <p><em>v0.2a</em>&nbsp;&nbsp;&nbsp;<a href="http://github.com/shikhar/ncclient/tarball/0.2a">Tarball</a> | <a
-            href="http://github.com/shikhar/ncclient/zipball/0.2a">Zip</a> | <a href="0.2a/docs">Documentation</a></p>
+<p>Respectively, for Cisco Nexus, the name is <strong>nexus</strong>.
+Device handlers are easy to implement and prove to be futureproof.</p>
 
-    <p><em>v0.1</em>&nbsp;&nbsp;&nbsp;<a href="0.1/ncclient-0.1.0.tar.gz">Tarball</a> | <a href="0.1/ncclient-0.1.pdf">Documentation</a>
-    </p>
+<h3>
+<a name="changes--brief" class="anchor" href="#changes--brief"><span class="octicon octicon-link"></span></a>Changes | brief</h3>
 
-    <h2>Development</h2>
+<ul>
+<li>Switch between replies if custom handler is found</li>
+<li>Add Juniper, Cisco and default device handlers</li>
+<li>Allow preferred SSH subsystem name in device params</li>
+<li>Allow iteration over multiple SSH subsystem names.</li>
+</ul><h3>
+<a name="acknowledgements" class="anchor" href="#acknowledgements"><span class="octicon octicon-link"></span></a>Acknowledgements</h3>
 
-    <p>You can download the development version in either <a href="http://github.com/shikhar/ncclient/zipball/master">zip</a>
-        or <a href="http://github.com/shikhar/ncclient/tarball/master">tar</a> formats.</p>
+<p>Many thanks, primarily to <a href="https://github.com/jeremyschulman">Jeremy Schulman</a> (Juniper) for providing his precious feedback,
+to <a href="https://github.com/earies">Ebben Aries</a> (Juniper) for his contribution, to Juergen Brendel (Cisco) for the Cisco fork and
+to all contributors from Cisco and Juniper.</p>
+        </section>
 
-    <p>You can also clone the project with <a href="http://git-scm.com">Git</a> by running:</p>
+        <footer>
+          Ncclient is maintained by <a href="https://github.com/leopoul">leopoul</a><br>
+          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
+        </footer>
 
-    <pre>$ git clone git://github.com/shikhar/ncclient</pre>
+                  <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-55440654-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
 
-    <h2>License</h2>
-
-    <p><a href="http://www.apache.org/licenses/LICENSE-2.0.html">Apache License 2.0</a></p>
-
-    <div class="footer">fhm</div>
-
-</div>
-
-<script type="text/javascript">
-    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-</script>
-<script type="text/javascript">
-    try {
-        var pageTracker = _gat._getTracker("UA-9735365-4");
-        pageTracker._trackPageview();
-    } catch(err) {
-    }
-</script>
-
-</body>
+      </div>
+    </div>
+  </body>
 </html>
