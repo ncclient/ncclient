@@ -167,7 +167,7 @@ class SSHSession(Session):
 
         *look_for_keys* enables looking in the usual locations for ssh keys (e.g. :file:`~/.ssh/id_*`)
 
-        *ssh_config* enables parsing of an OpenSSH configuration file. Use `None` if you want to disable this feature.
+        *ssh_config* enables parsing of an OpenSSH configuration file, if set to its path, e.g. ~/.ssh/config
         """
         # Optionaly, parse .ssh/config
         config = {}
