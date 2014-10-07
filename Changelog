@@ -1,0 +1,28 @@
+version 0.4.2
+-------------
+
+Features
+========
+ * Support for paramiko ProxyCommand via ~/.ssh/config parsing
+ * Add Juniper-specific commit operations
+ * Add Huawei devices support
+ * Tests/Travis support
+ * ioproc transport support for Juniper devices
+ * Update Cisco CSR device handler
+
+Fixes
+=====
+ * Fix issue with locked method missing device handler
+ * Fix for namespace definition with lxml
+ * Add missing SessionError exception
+ * Update docs for Nexus device handler
+ * Docstring fixes
+ * Typos
+ * Minor bugfixes
+ 
+
+Other
+=====
+ * Add an example for Cisco CSR1000v
+ 
+
