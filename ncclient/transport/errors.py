@@ -1,4 +1,5 @@
 # Copyright 2009 Shikhar Bhushan
+# Copyright 2014 Leonidas Poulopoulos
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,6 +16,9 @@
 from ncclient import NCClientError
 
 class TransportError(NCClientError):
+    pass
+
+class SessionError(NCClientError):
     pass
 
 class AuthenticationError(TransportError):
