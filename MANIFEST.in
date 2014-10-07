@@ -1,1 +1,2 @@
-include requirements.txt LICENSE
+include *.rst requirements.txt LICENSE
+
