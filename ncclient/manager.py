@@ -84,8 +84,7 @@ def make_device_handler(device_params):
 def connect_ssh(*args, **kwds):
     """
     Initialize a :class:`Manager` over the SSH transport.
-    For documentation of arguments see :meth:
-        `ncclient.transport.SSHSession.connect`.
+    For documentation of arguments see :meth:`ncclient.transport.SSHSession.connect`.
 
     The underlying :class:`ncclient.transport.SSHSession` is created with
         :data:`CAPABILITIES`. It is first instructed to
