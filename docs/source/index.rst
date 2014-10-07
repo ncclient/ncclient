@@ -37,6 +37,14 @@ Device handlers are easy to implement and prove to be futureproof.
 
 The latest pull request merge includes support for Huawei devices with name **huawei** in device_params.
 
+Supported device handlers
+-------------------------
+* Juniper: device_params={'name':'junos'}
+* Cisco CSR: device_params={'name':'csr'}
+* Cisco Nexus: device_params={'name':'nexus'}
+* Huawei: device_params={'name':'huawei'}
+
+
 Contents:
 
 .. toctree::
