@@ -34,18 +34,20 @@ install_reqs = list(filter(None, req_lines))
 
 
 setup(name='ncclient',
-      version='0.4.1',
+      version='0.4.2',
       description="Python library for NETCONF clients",
       author="Shikhar Bhushan, Leonidas Poulopoulos, Ebben Aries",
       author_email="shikhar@schmizz.net, leopoul@noc.grnet.gr, earies@juniper.net",
-      url="http://ncclient.grnet.gr/",
+      url="http://ncclient.leopoul.com",
       packages=find_packages('.'),
       install_requires=install_reqs,
       license="Apache License 2.0",
       platforms=["Posix; OS X; Windows"],
       keywords=('NETCONF', 'NETCONF Python client', 'Juniper Optimization', 'Cisco NXOS Optimization'),
       classifiers=[
-          'Programming Language :: Python',
+          'Development Status :: 5 - Production/Stable',
+          'Programming Language :: Python :: 2.6',
+          'Programming Language :: Python :: 2.7',
           'Topic :: System :: Networking',
           'Intended Audience :: Developers',
           'Operating System :: OS Independent',
