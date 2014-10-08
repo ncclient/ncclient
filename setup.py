@@ -32,10 +32,14 @@ if sys.version_info[0] == 2 and sys.version_info[1] < 6:
 req_lines = [line.strip() for line in open("requirements.txt").readlines()]
 install_reqs = list(filter(None, req_lines))
 
+with open('README.rst') as file:
+    long_description = file.read()
+
 
 setup(name='ncclient',
       version='0.4.2',
       description="Python library for NETCONF clients",
+      long_description = long_description,
       author="Shikhar Bhushan, Leonidas Poulopoulos, Ebben Aries",
       author_email="shikhar@schmizz.net, leopoul@noc.grnet.gr, earies@juniper.net",
       url="http://ncclient.leopoul.com",
