@@ -13,6 +13,7 @@ generic information needed for interaction with a Netconf server.
 """
 
 from ncclient.xml_ import BASE_NS_1_0
+from ncclient.operations.third_party.nexus.rpc import ExecCommand
 
 from .default import DefaultDeviceHandler
 
@@ -36,6 +37,9 @@ class NexusDeviceHandler(DefaultDeviceHandler):
 
     def __init__(self, device_params):
         super(NexusDeviceHandler, self).__init__(device_params)
+
+    def add_additional_operations(self):
+        return { "exec_command" : ExecCommand }
 
     def get_capabilities(self):
         # Just need to replace a single value in the default capabilities
