@@ -39,7 +39,9 @@ class NexusDeviceHandler(DefaultDeviceHandler):
         super(NexusDeviceHandler, self).__init__(device_params)
 
     def add_additional_operations(self):
-        return { "exec_command" : ExecCommand }
+        dict = {}
+        dict['exec_command'] = ExecCommand
+        return dict
 
     def get_capabilities(self):
         # Just need to replace a single value in the default capabilities
