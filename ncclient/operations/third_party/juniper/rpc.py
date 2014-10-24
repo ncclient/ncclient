@@ -78,7 +78,7 @@ class Commit(RPC):
         *at_time* Mutually exclusive with confirmed. The time at which the commit should happen. Junos expects either of these two formats:
             A time value of the form hh:mm[:ss] (hours, minutes, and, optionally, seconds)
             A date and time value of the form yyyy-mm-dd hh:mm[:ss] (year, month, date, hours, minutes, and, optionally, seconds)"""
-        node = new_ele("commit")
+        node = new_ele("commit-configuration")
         if confirmed and at_time is not None:
             raise NCClientError("'Commit confirmed' and 'commit at' are mutually exclusive.")
         if confirmed:
