@@ -69,7 +69,7 @@ class Commit(RPC):
 
         *confirmed* whether this is a confirmed commit. Mutually exclusive with at_time.
 
-        *timeout* specifies the confirm timeout in seconds
+        *timeout* specifies the confirm timeout in minutes
 
         *comment* a string to comment the commit with. Review on the device using 'show system commit'
 
