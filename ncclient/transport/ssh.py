@@ -348,8 +348,8 @@ class SSHSession(Session):
                         data = data[n:]
         except Exception as e:
             logger.debug("Broke out of main loop, error=%r", e)
-            self.close()
             self._dispatch_error(e)
+            self.close()
 
     @property
     def transport(self):
