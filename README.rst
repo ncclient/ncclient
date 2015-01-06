@@ -4,7 +4,7 @@ ncclient: Python library for NETCONF clients
 ncclient is a Python library that facilitates client-side scripting and
 application development around the NETCONF protocol. ``ncclient`` was
 developed by `Shikar Bhushan <http://schmizz.net>`_. It is now
-maintained by `Leonidas Poulopoulos (@leopoul) <http://ncclient.leopoul.com>`_
+maintained by `Leonidas Poulopoulos (@leopoul) <http://ncclient.org/ncclient>`_
 
 Docs:
 `http://ncclient.readthedocs.org <http://ncclient.readthedocs.org>`_
@@ -91,6 +91,14 @@ Supported device handlers
 Changes \| brief
 ~~~~~~~~~~~~~~~~
 
+**v0.4.3**
+
+- Nexus exec_command operation
+- Allow specifying multiple cmd elements in Cisco Nexus
+- Update rpc for nested rpc-errors
+- Prevent race condition in threading
+- Prevent hanging in session close
+
 **v0.4.2**
 
 - Support for paramiko ProxyCommand via ~/.ssh/config parsing
@@ -114,6 +122,7 @@ Changes \| brief
 Acknowledgements
 ~~~~~~~~~~~~~~~~
 
+- v0.4.3: Thanks to all contributors and bug hunters; `Jeremy Schulman <https://github.com/jeremyschulman>`_, `Ray Solomon <https://github.com/rsolomo>`_, `Rick Sherman <https://github.com/shermdog>`_, `subhak186 <https://github.com/subhak186>`_.
 - v0.4.2: Thanks to all contributors; `katharh <https://github.com/katharh>`_, `Francis Luong (Franco) <https://github.com/francisluong>`_, `Vincent Bernat <https://github.com/vincentbernat>`_, `Juergen Brendel <https://github.com/juergenbrendel>`_, `Quentin Loos <https://github.com/Kent1>`_, `Ray Solomon <https://github.com/rsolomo>`_, `Sebastian Wiesinger <https://github.com/sebastianw>`_, `Ebben Aries <https://github.com/earies>`_ .
 - v0.4.1: Many thanks, primarily to `Jeremy Schulman <https://github.com/jeremyschulman>`_ (Juniper) for providing his precious feedback, to `Eben Aries <https://github.com/earies>`_ (Juniper) for his contribution, to Juergen Brendel (Cisco) for the Cisco fork and to all contributors from Cisco and Juniper.
 

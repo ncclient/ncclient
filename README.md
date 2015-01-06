@@ -75,16 +75,14 @@ Device handlers are easy to implement and prove to be futureproof.
 
 ### Changes | brief
 
-* Support for paramiko ProxyCommand via ~/.ssh/config parsing
-* Add Juniper-specific commit operations
-* Add Huawei devices support
-* Tests/Travis support
-* ioproc transport support for Juniper devices
-* Update Cisco CSR device handler
-* Many minor and major fixes
+* Nexus exec_command operation
+* Allow specifying multiple cmd elements in Cisco Nexus
+* Update rpc for nested rpc-errors
+* Prevent race condition in threading
+* Prevent hanging in session close
 
 ### Acknowledgements
+* v0.4.3: Thanks to all contributors and bug hunters; [Jeremy Schulman](https://github.com/jeremyschulman), [Ray Solomon](https://github.com/rsolomo), [Rick Sherman](https://github.com/shermdog), [subhak186](https://github.com/subhak186)
 * v0.4.2: Thanks to all contributors; [katharh](https://github.com/katharh), [Francis Luong (Franco)](https://github.com/francisluong), [Vincent Bernat](https://github.com/vincentbernat), [Juergen Brendel](https://github.com/juergenbrendel), [Quentin Loos](https://github.com/Kent1), [Ray Solomon](https://github.com/rsolomo), [Sebastian Wiesinger](https://github.com/sebastianw), [Ebben Aries](https://github.com/earies) 
-* v0.4.1: Many thanks, primarily to [Jeremy Schulman](https://github.com/jeremyschulman) (Juniper) for providing his precious feedback,
-to [Ebben Aries](https://github.com/earies) (Juniper) for his contribution, to Juergen Brendel (Cisco) for the Cisco fork and
-to all contributors from Cisco and Juniper.
+* v0.4.1: Many thanks, primarily to [Jeremy Schulman](https://github.com/jeremyschulman) (Juniper) for providing his precious feedback, to [Ebben Aries](https://github.com/earies) (Juniper) for his contribution, to Juergen Brendel (Cisco) for the Cisco fork and to all contributors from Cisco and Juniper.
+

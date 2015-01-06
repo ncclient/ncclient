@@ -1,3 +1,17 @@
+version 0.4.3
+-------------
+
+Features
+========
+ * Nexus exec_command operation
+ * Allow specifying multiple cmd elements in Cisco Nexus
+ * Update rpc for nested rpc-errors
+
+Fixes
+=====
+ * Prevent race condition in threading
+ * Prevent hanging in session close
+
 version 0.4.2
 -------------
 
