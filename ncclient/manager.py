@@ -112,7 +112,12 @@ def connect_ssh(*args, **kwds):
     session = transport.SSHSession(device_handler)
     session.load_known_hosts()
 
-    session.connect(*args, **kwds)
+    try:
+       session.connect(*args, **kwds)
+    except Exception as ex:
+        if session.transport:
+            session.close()
+        raise ex
     return Manager(session, device_handler, **kwds)
 
 def connect_ioproc(*args, **kwds):
