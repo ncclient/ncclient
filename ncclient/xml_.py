@@ -51,9 +51,13 @@ FLOWMON_1_0 = "http://www.liberouter.org/ns/netopeer/flowmon/1.0"
 #: Namespace for Juniper 9.6R4. Tested with Junos 9.6R4+
 JUNIPER_1_1 = "http://xml.juniper.net/xnm/1.1/xnm"
 #: Namespace for Huawei data model
-HUAWEI_1_1 = "http://www.huawei.com/netconf/vrp"
+HUAWEI_NS = "http://www.huawei.com/netconf/vrp"
 #: Namespace for H3C data model
-H3C_1_0 = "http://www.h3c.com/netconf/config:1.0"
+H3C_DATA_1_0 = "http://www.h3c.com/netconf/data:1.0"
+#: Namespace for H3C config model
+H3C_CONFIG_1_0 = "http://www.h3c.com/netconf/config:1.0"
+#: Namespace for H3C data model
+H3C_ACTION_1_0 = "http://www.h3c.com/netconf/action:1.0"
 #
 try:
     register_namespace = etree.register_namespace
