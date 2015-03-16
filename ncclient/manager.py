@@ -17,7 +17,7 @@
 This module is a thin layer of abstraction around the library.
 It exposes all core functionality.
 """
-
+import pdb
 import capabilities
 import operations
 import transport
@@ -128,7 +128,7 @@ def connect_ioproc(*args, **kwds):
         import_string += device_params['name'] + '.ioproc'
         third_party_import = __import__(import_string, fromlist=['IOProc'])
     else:
-        device_params = None
+        return None  # We can't make any session so just return didn't work so we can connect_ssh
 
     device_handler = make_device_handler(device_params)
 
@@ -143,10 +143,10 @@ def connect_ioproc(*args, **kwds):
 def connect(*args, **kwds):
     if "host" in kwds:
         host = kwds["host"]
-        if host != 'localhost':
-            return connect_ssh(*args, **kwds)
-        else:
-            return connect_ioproc(*args, **kwds)
+        if host == 'localhost':     
+            tmp = connect_ioproc(*args, **kwds)
+            if tmp: return tmp
+        return connect_ssh(*args, **kwds)
 
 class OpExecutor(type):
 
