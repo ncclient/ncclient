@@ -13,16 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-import re
-
-from Queue import Queue
 from threading import Thread, Lock, Event
 
+from ncclient import compat
 from ncclient.xml_ import *
 from ncclient.capabilities import Capabilities
-
-from errors import TransportError, SessionError
+from ncclient.transport.errors import TransportError, SessionError
 
 import logging
 logger = logging.getLogger('ncclient.transport.session')
@@ -39,7 +35,7 @@ class Session(Thread):
         self._listeners = set()
         self._lock = Lock()
         self.setName('session')
-        self._q = Queue()
+        self._q = compat.Queue()
         self._client_capabilities = capabilities
         self._server_capabilities = None # yet
         self._id = None # session-id
@@ -62,7 +58,7 @@ class Session(Thread):
             listeners = list(self._listeners)
         for l in listeners:
             logger.debug('dispatching message to %r: %s' % (l, raw))
-            l.callback(root, raw) # no try-except; fail loudly if you must!
+            l.callback(root, compat.force_text(raw)) # no try-except; fail loudly if you must!
 
     def _dispatch_error(self, err):
         with self._lock:
@@ -229,8 +225,10 @@ class HelloHandler(SessionListener):
             xml_namespace_kwargs = {}
         hello = new_ele("hello", **xml_namespace_kwargs)
         caps = sub_ele(hello, "capabilities")
-        def fun(uri): sub_ele(caps, "capability").text = uri
-        map(fun, capabilities)
+
+        for cap in capabilities:
+            sub_ele(caps, "capability").text = cap
+
         return to_xml(hello)
 
     @staticmethod

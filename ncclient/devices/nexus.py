@@ -14,8 +14,8 @@ generic information needed for interaction with a Netconf server.
 
 from ncclient.xml_ import BASE_NS_1_0
 from ncclient.operations.third_party.nexus.rpc import ExecCommand
+from ncclient.devices.default import DefaultDeviceHandler
 
-from .default import DefaultDeviceHandler
 
 class NexusDeviceHandler(DefaultDeviceHandler):
     """

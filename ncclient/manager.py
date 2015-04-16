@@ -18,13 +18,13 @@ This module is a thin layer of abstraction around the library.
 It exposes all core functionality.
 """
 
-import capabilities
-import operations
-import transport
+from ncclient import capabilities
+from ncclient import compat
+from ncclient import operations
+from ncclient import transport
+from ncclient.xml_ import *
 
 import logging
-
-from ncclient.xml_ import *
 
 logger = logging.getLogger('ncclient.manager')
 
@@ -154,9 +154,8 @@ class OpExecutor(type):
         def make_wrapper(op_cls):
             def wrapper(self, *args, **kwds):
                 return self.execute(op_cls, *args, **kwds)
-            wrapper.func_doc = op_cls.request.func_doc
             return wrapper
-        for op_name, op_cls in OPERATIONS.iteritems():
+        for op_name, op_cls in compat.iteritems(OPERATIONS):
             attrs[op_name] = make_wrapper(op_cls)
         return super(OpExecutor, cls).__new__(cls, name, bases, attrs)
 
@@ -164,15 +163,14 @@ class OpExecutor(type):
         def make_wrapper(op_cls):
             def wrapper(self, *args, **kwds):
                 return self.execute(op_cls, *args, **kwds)
-            wrapper.func_doc = op_cls.request.func_doc
             return wrapper
         if VENDOR_OPERATIONS:
-            for op_name, op_cls in VENDOR_OPERATIONS.iteritems():
+            for op_name, op_cls in compat.iteritems(VENDOR_OPERATIONS):
                 setattr(cls, op_name, make_wrapper(op_cls))
         return super(OpExecutor, cls).__call__(*args, **kwargs)
 
 
-class Manager(object):
+class Manager(compat.with_metaclass(OpExecutor, object)):
 
     """
     For details on the expected behavior of the operations and their
@@ -191,8 +189,6 @@ class Manager(object):
         finally:
             m.close_session()
     """
-
-    __metaclass__ = OpExecutor
 
     def __init__(self, session, device_handler, timeout=30, *args, **kwargs):
         self._session = session
@@ -250,9 +246,12 @@ class Manager(object):
 
     def __getattr__(self, method):
         """Parse args/kwargs correctly in order to build XML element"""
+        print("Manager.__getattr__(%r)" % method)
         def _missing(*args, **kwargs):
             m = method.replace('_', '-')
             root = new_ele(m)
+            print("  m    = %r" % m)
+            print("  root = %r" % root)
             if args:
                 for arg in args:
                     sub_ele(root, arg)
