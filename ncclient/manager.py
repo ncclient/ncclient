@@ -246,12 +246,9 @@ class Manager(compat.with_metaclass(OpExecutor, object)):
 
     def __getattr__(self, method):
         """Parse args/kwargs correctly in order to build XML element"""
-        print("Manager.__getattr__(%r)" % method)
         def _missing(*args, **kwargs):
             m = method.replace('_', '-')
             root = new_ele(m)
-            print("  m    = %r" % m)
-            print("  root = %r" % root)
             if args:
                 for arg in args:
                     sub_ele(root, arg)
