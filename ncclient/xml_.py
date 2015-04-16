@@ -164,7 +164,7 @@ class NCElement(object):
         """return a pretty-printed string output for rpc reply"""
         parser = etree.XMLParser(remove_blank_text=True)
         outputtree = etree.XML(etree.tostring(self.__doc), parser)
-        return etree.tostring(outputtree, pretty_print=True)
+        return etree.tostring(outputtree, encoding='unicode', pretty_print=True)
 
     @property
     def data_xml(self):
