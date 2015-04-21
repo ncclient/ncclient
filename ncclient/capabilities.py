@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
+
 def _abbreviate(uri):
     if uri.startswith("urn:ietf:params") and ":netconf:" in uri:
         splitted = uri.split(":")
@@ -53,7 +55,10 @@ class Capabilities(object):
         return len(self._dict)
 
     def __iter__(self):
-        return self._dict.iterkeys()
+        if sys.version_info < (3,):
+            return self._dict.iterkeys()
+        else:
+            return iter(self._dict.keys())
 
     def __repr__(self):
         return repr(self._dict.keys())

@@ -22,6 +22,10 @@ All device-specific handlers derive from the DefaultDeviceHandler, which impleme
 generic information needed for interaction with a Netconf server.
 
 """
+import sys
+if sys.version_info < (3,):
+    range = xrange
+
 class DefaultDeviceHandler(object):
     """
     Default handler for device specific information.
@@ -43,7 +47,7 @@ class DefaultDeviceHandler(object):
         self._exempt_errors_startwith_wildcard_match = []
         self._exempt_errors_endwith_wildcard_match = []
         self._exempt_errors_full_wildcard_match = []
-        for i in xrange(len(self._EXEMPT_ERRORS)):
+        for i in range(len(self._EXEMPT_ERRORS)):
             e = self._EXEMPT_ERRORS[i].lower()
             if e.startswith("*"):
                 if e.endswith("*"):

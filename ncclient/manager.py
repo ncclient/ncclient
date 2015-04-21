@@ -18,9 +18,9 @@ This module is a thin layer of abstraction around the library.
 It exposes all core functionality.
 """
 
-import capabilities
-import operations
-import transport
+from ncclient import capabilities
+from ncclient import operations
+from ncclient import transport
 
 import logging
 

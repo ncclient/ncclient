@@ -17,8 +17,12 @@
 
 
 import io
+import sys
 
-from StringIO import StringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO, BytesIO
 from lxml import etree
 
 # In case issues come up with XML generation/parsing
@@ -86,7 +90,11 @@ qualify = lambda tag, ns=BASE_NS_1_0: tag if ns is None else "{%s}%s" % (ns, tag
 def to_xml(ele, encoding="UTF-8", pretty_print=False):
     "Convert and return the XML for an *ele* (:class:`~xml.etree.ElementTree.Element`) with specified *encoding*."
     xml = etree.tostring(ele, encoding=encoding, pretty_print=pretty_print)
-    return xml if xml.startswith('<?xml') else '<?xml version="1.0" encoding="%s"?>%s' % (encoding, xml)
+    if sys.version_info < (3,):
+        return xml if xml.startswith('<?xml') else '<?xml version="1.0" encoding="%s"?>%s' % (encoding, xml)
+    else:
+        return xml.decode('UTF-8') if xml.startswith(b'<?xml') \
+            else '<?xml version="1.0" encoding="%s"?>%s' % (encoding, xml.decode('UTF-8'))
 
 def to_ele(x):
     "Convert and return the :class:`~xml.etree.ElementTree.Element` for the XML document *x*. If *x* is already an :class:`~xml.etree.ElementTree.Element` simply returns that."
@@ -94,7 +102,10 @@ def to_ele(x):
 
 def parse_root(raw):
     "Efficiently parses the root element of a *raw* XML document, returning a tuple of its qualified name and attribute dictionary."
-    fp = StringIO(raw)
+    if sys.version_info < (3,):
+        fp = StringIO(raw)
+    else:
+        fp = BytesIO(raw.encode('UTF-8'))
     for event, element in etree.iterparse(fp, events=('start',)):
         return (element.tag, element.attrib)
 
@@ -109,13 +120,13 @@ def validated_element(x, tags=None, attrs=None):
     """
     ele = to_ele(x)
     if tags:
-        if isinstance(tags, basestring):
+        if isinstance(tags, (str, bytes)):
             tags = [tags]
         if ele.tag not in tags:
             raise XMLError("Element [%s] does not meet requirement" % ele.tag)
     if attrs:
         for req in attrs:
-            if isinstance(req, basestring): req = [req]
+            if isinstance(req, (str, bytes)): req = [req]
             for alt in req:
                 if alt in ele.attrib:
                     break
