@@ -376,7 +376,7 @@ class RPC(object):
             raise UserWarning('Asynchronous mode not supported for this device/session')
 
     def __set_raise_mode(self, mode):
-        assert(choice in ("all", "errors", "none"))
+        assert(mode in (RaiseMode.NONE, RaiseMode.ERRORS, RaiseMode.ALL))
         self._raise_mode = mode
 
     def __set_timeout(self, timeout):
