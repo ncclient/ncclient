@@ -117,7 +117,7 @@ def connect_ssh(*args, **kwds):
     except Exception as ex:
         if session.transport:
             session.close()
-        raise ex
+        raise
     return Manager(session, device_handler, **kwds)
 
 def connect_ioproc(*args, **kwds):
