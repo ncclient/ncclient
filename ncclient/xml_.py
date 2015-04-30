@@ -187,7 +187,7 @@ class NCElement(object):
         self.__parser = etree.XMLParser(remove_blank_text=True)
         self.__xslt_doc = etree.parse(io.BytesIO(self.__xslt), self.__parser)
         self.__transform = etree.XSLT(self.__xslt_doc)
-        self.__root = etree.fromstring(str(self.__transform(etree.parse(StringIO(rpc_reply)))))
+        self.__root = etree.fromstring(str(self.__transform(etree.parse(StringIO(repr(rpc_reply))))))
         return self.__root
 
 

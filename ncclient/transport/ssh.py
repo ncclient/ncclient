@@ -74,8 +74,10 @@ class SSHSession(Session):
         self._channel = None
         self._channel_id = None
         self._channel_name = None
-        #self._buffer = StringIO() # for incoming data
-        self._buffer = BytesIO() # for incoming data
+        if sys.version<'3':
+            self._buffer = StringIO() # for incoming data
+        else:
+            self._buffer = BytesIO() # for incoming data
         # parsing-related, see _parse()
         self._parsing_state = 0
         self._parsing_pos = 0
@@ -122,8 +124,11 @@ class SSHSession(Session):
                 else:
                     self._dispatch_message(buf.read(msg_till).strip().decode('UTF-8'))
                     buf.seek(n+1, os.SEEK_CUR)
-                    rest = buf.read().decode('UTF-8')
-                buf = StringIO()
+                    rest = buf.read()
+                if sys.version<'3':
+                    buf = StringIO()
+                else:
+                    buf = BytesIO()
                 buf.write(rest)
                 buf.seek(0)
                 expect = 0

@@ -53,7 +53,7 @@ class JunosDeviceHandler(DefaultDeviceHandler):
         return True
     
     def transform_reply(self):
-        return '''<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+        reply = '''<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
         <xsl:output method="xml" indent="no"/>
 
         <xsl:template match="/|comment()|processing-instruction()">
@@ -75,3 +75,8 @@ class JunosDeviceHandler(DefaultDeviceHandler):
         </xsl:template>
         </xsl:stylesheet>
         '''
+        import sys
+        if sys.version<'3':
+            return reply
+        else:
+            return reply.encode('UTF-8')
