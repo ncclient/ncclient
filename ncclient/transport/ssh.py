@@ -18,10 +18,7 @@ import getpass
 from binascii import hexlify
 import sys
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from io import StringIO, BytesIO
+from io import StringIO, BytesIO
 from lxml import etree
 from select import select
 
@@ -117,17 +114,15 @@ class SSHSession(Session):
                 msg_till = buf.tell() - n
                 buf.seek(0)
                 logger.debug('parsed new message')
-                if sys.version_info < (3,):
+                if sys.version < '3':
                     self._dispatch_message(buf.read(msg_till).strip())
                     buf.seek(n+1, os.SEEK_CUR)
                     rest = buf.read()
+                    buf = StringIO()
                 else:
                     self._dispatch_message(buf.read(msg_till).strip().decode('UTF-8'))
                     buf.seek(n+1, os.SEEK_CUR)
                     rest = buf.read()
-                if sys.version<'3':
-                    buf = StringIO()
-                else:
                     buf = BytesIO()
                 buf.write(rest)
                 buf.seek(0)

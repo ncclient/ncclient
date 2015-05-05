@@ -15,7 +15,7 @@
 
 
 import re
-
+import sys
 try:
     from Queue import Queue
 except ImportError:
@@ -235,7 +235,10 @@ class HelloHandler(SessionListener):
         caps = sub_ele(hello, "capabilities")
         def fun(uri): sub_ele(caps, "capability").text = uri
         #python3 changes
-        list(map(fun, capabilities))
+        if sys.version < '3':
+            map(fun, capabilities)
+        else:
+            list(map(fun, capabilities))
         return to_xml(hello)
 
     @staticmethod
