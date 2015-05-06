@@ -19,10 +19,7 @@
 import io
 import sys
 
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO, BytesIO
+from io import StringIO, BytesIO
 from lxml import etree
 
 # In case issues come up with XML generation/parsing
@@ -90,7 +87,7 @@ qualify = lambda tag, ns=BASE_NS_1_0: tag if ns is None else "{%s}%s" % (ns, tag
 def to_xml(ele, encoding="UTF-8", pretty_print=False):
     "Convert and return the XML for an *ele* (:class:`~xml.etree.ElementTree.Element`) with specified *encoding*."
     xml = etree.tostring(ele, encoding=encoding, pretty_print=pretty_print)
-    if sys.version_info < (3,):
+    if sys.version < '3':
         return xml if xml.startswith('<?xml') else '<?xml version="1.0" encoding="%s"?>%s' % (encoding, xml)
     else:
         return xml.decode('UTF-8') if xml.startswith(b'<?xml') \
@@ -102,7 +99,7 @@ def to_ele(x):
 
 def parse_root(raw):
     "Efficiently parses the root element of a *raw* XML document, returning a tuple of its qualified name and attribute dictionary."
-    if sys.version_info < (3,):
+    if sys.version < '3':
         fp = StringIO(raw)
     else:
         fp = BytesIO(raw.encode('UTF-8'))

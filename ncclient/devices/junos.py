@@ -76,7 +76,7 @@ class JunosDeviceHandler(DefaultDeviceHandler):
         </xsl:stylesheet>
         '''
         import sys
-        if sys.version<'3':
+        if sys.version < '3':
             return reply
         else:
             return reply.encode('UTF-8')

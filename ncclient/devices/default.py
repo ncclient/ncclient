@@ -23,8 +23,8 @@ generic information needed for interaction with a Netconf server.
 
 """
 import sys
-if sys.version_info < (3,):
-    range = xrange
+if sys.version >= '3':
+    xrange = range
 
 class DefaultDeviceHandler(object):
     """
@@ -47,7 +47,7 @@ class DefaultDeviceHandler(object):
         self._exempt_errors_startwith_wildcard_match = []
         self._exempt_errors_endwith_wildcard_match = []
         self._exempt_errors_full_wildcard_match = []
-        for i in range(len(self._EXEMPT_ERRORS)):
+        for i in xrange(len(self._EXEMPT_ERRORS)):
             e = self._EXEMPT_ERRORS[i].lower()
             if e.startswith("*"):
                 if e.endswith("*"):

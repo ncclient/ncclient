@@ -21,7 +21,7 @@ It exposes all core functionality.
 from ncclient import capabilities
 from ncclient import operations
 from ncclient import transport
-
+import six
 import logging
 
 from ncclient.xml_ import *
@@ -156,7 +156,7 @@ class OpExecutor(type):
                 return self.execute(op_cls, *args, **kwds)
             wrapper.__doc__ = op_cls.request.__doc__
             return wrapper
-        for op_name, op_cls in OPERATIONS.items():
+        for op_name, op_cls in six.iteritems(OPERATIONS):
             attrs[op_name] = make_wrapper(op_cls)
         return super(OpExecutor, cls).__new__(cls, name, bases, attrs)
 
@@ -167,12 +167,12 @@ class OpExecutor(type):
             wrapper.__doc__ = op_cls.request.__doc__
             return wrapper
         if VENDOR_OPERATIONS:
-            for op_name, op_cls in VENDOR_OPERATIONS.items():
+            for op_name, op_cls in six.iteritems(VENDOR_OPERATIONS):
                 setattr(cls, op_name, make_wrapper(op_cls))
         return super(OpExecutor, cls).__call__(*args, **kwargs)
 
 
-class Manager(object, metaclass=OpExecutor):
+class Manager(six.with_metaclass(OpExecutor, object)):
 
     """
     For details on the expected behavior of the operations and their
@@ -192,7 +192,7 @@ class Manager(object, metaclass=OpExecutor):
             m.close_session()
     """
 
-    __metaclass__ = OpExecutor
+   # __metaclass__ = OpExecutor
 
     def __init__(self, session, device_handler, timeout=30, *args, **kwargs):
         self._session = session

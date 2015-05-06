@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import sys
+import six
 
 def _abbreviate(uri):
     if uri.startswith("urn:ietf:params") and ":netconf:" in uri:
@@ -54,11 +55,9 @@ class Capabilities(object):
     def __len__(self):
         return len(self._dict)
 
+    # python 2 and 3 compatible
     def __iter__(self):
-        if sys.version_info < (3,):
-            return self._dict.iterkeys()
-        else:
-            return iter(self._dict.keys())
+        return six.iterkeys(self._dict)
 
     def __repr__(self):
         return repr(self._dict.keys())
