@@ -16,19 +16,17 @@
 
 import re
 import sys
+import logging
+from threading import Thread, Lock, Event
 try:
     from Queue import Queue
 except ImportError:
     from queue import Queue
-
-from threading import Thread, Lock, Event
-
 from ncclient.xml_ import *
 from ncclient.capabilities import Capabilities
-
 from ncclient.transport.errors import TransportError, SessionError
 
-import logging
+
 logger = logging.getLogger('ncclient.transport.session')
 logger.setLevel(logging.WARNING)
 

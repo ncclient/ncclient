@@ -172,7 +172,7 @@ class OpExecutor(type):
         return super(OpExecutor, cls).__call__(*args, **kwargs)
 
 
-class Manager(six.with_metaclass(OpExecutor,object )):
+class Manager(six.with_metaclass(OpExecutor, object)):
 
     """
     For details on the expected behavior of the operations and their
