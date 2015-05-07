@@ -18,7 +18,11 @@ import getpass
 from binascii import hexlify
 import sys
 
-from io import StringIO, BytesIO
+if sys.version < '3':
+    from StringIO import StringIO
+else: 
+    from io import StringIO
+from io import BytesIO
 from lxml import etree
 from select import select
 
