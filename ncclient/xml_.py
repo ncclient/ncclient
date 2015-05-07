@@ -19,7 +19,11 @@
 import io
 import sys
 
-from io import StringIO, BytesIO
+if sys.version < '3':
+    from StringIO import StringIO
+else:
+    from io import StringIO
+from io import BytesIO
 from lxml import etree
 
 # In case issues come up with XML generation/parsing
