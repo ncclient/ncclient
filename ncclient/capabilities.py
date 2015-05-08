@@ -47,7 +47,7 @@ class Capabilities(object):
     def __contains__(self, key):
         if key in self._dict:
             return True
-        for abbrs in self._dict.values():
+        for abbrs in six.itervalues(self._dict):
             if key in abbrs:
                 return True
         return False
@@ -60,7 +60,7 @@ class Capabilities(object):
         return six.iterkeys(self._dict)
 
     def __repr__(self):
-        return repr(self._dict.keys())
+        return repr(six.iterkeys(self._dict))
 
     def add(self, uri):
         "Add a capability."
