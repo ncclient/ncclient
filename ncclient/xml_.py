@@ -18,7 +18,7 @@
 
 import io
 import sys
-
+import six
 if sys.version < '3':
     from StringIO import StringIO
 else:
@@ -72,7 +72,7 @@ except AttributeError:
         # cElementTree uses ElementTree's _namespace_map, so that's ok
         ElementTree._namespace_map[uri] = prefix
 
-for (ns, pre) in {
+for (ns, pre) in six.iteritems({
     BASE_NS_1_0: 'nc',
     NXOS_1_0: 'nxos',
     NXOS_IF: 'if',
@@ -81,7 +81,7 @@ for (ns, pre) in {
     CISCO_CPI_1_0: 'cpi',
     FLOWMON_1_0: 'fm',
     JUNIPER_1_1: 'junos',
-}.items():
+}):
     register_namespace(pre, ns)
 
 qualify = lambda tag, ns=BASE_NS_1_0: tag if ns is None else "{%s}%s" % (ns, tag)

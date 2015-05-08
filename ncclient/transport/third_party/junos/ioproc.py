@@ -1,5 +1,10 @@
 import os
-from cStringIO import StringIO
+import sys
+
+if sys.version < '3':
+    from cStringIO import StringIO
+else:
+    from io import StringIO
 from select import select
 from subprocess import Popen, PIPE, STDOUT
 
