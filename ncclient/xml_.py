@@ -19,10 +19,7 @@
 import io
 import sys
 import six
-if sys.version < '3':
-    from StringIO import StringIO
-else:
-    from io import StringIO
+from six import StringIO
 from io import BytesIO
 from lxml import etree
 
