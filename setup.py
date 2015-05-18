@@ -21,7 +21,7 @@ import sys
 import platform
 
 if sys.version_info[0] == 2 and sys.version_info[1] < 6:
-    print "Sorry, Python < 2.6 is not supported"
+    print ("Sorry, Python < 2.6 is not supported")
     exit()
 
 #parse requirements
@@ -48,6 +48,7 @@ setup(name='ncclient',
           'Development Status :: 5 - Production/Stable',
           'Programming Language :: Python :: 2.6',
           'Programming Language :: Python :: 2.7',
+          'Programming Language :: Python :: 3.4',
           'Topic :: System :: Networking',
           'Intended Audience :: Developers',
           'Operating System :: OS Independent',
