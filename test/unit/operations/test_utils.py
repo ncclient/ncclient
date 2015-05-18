@@ -1,4 +1,4 @@
-import unittest2 as unittest
+import unittest
 from xml.etree import ElementTree
 from ncclient.operations.util import *
 from mock import MagicMock

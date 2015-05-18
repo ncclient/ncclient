@@ -1,5 +1,5 @@
 from ncclient.operations.edit import *
-import unittest2 as unittest
+import unittest
 from mock import patch, MagicMock
 from ncclient import manager
 import ncclient.manager

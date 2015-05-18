@@ -18,8 +18,6 @@ class Test_NCElement(object):
         device_handler = manager.make_device_handler(device_params)
         transform_reply = device_handler.transform_reply()
         result = NCElement(reply, transform_reply)
-        print type(result)
-        print type(result.data_xml)
         assert_equal(str(result), result.tostring)
         #data_xml != tostring
         assert_not_equal(result.tostring, result.data_xml)
@@ -34,7 +32,6 @@ class Test_NCElement(object):
         transform_reply = device_handler.transform_reply()
         result = NCElement(reply, transform_reply)
         # XPATH checks work
-        print result
         assert_equal(result.xpath("//host-name")[0].text, "R1")
         assert_equal(
             result.xpath("/rpc-reply/software-information/host-name")[0].text,
