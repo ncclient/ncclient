@@ -20,7 +20,7 @@ class Test_NCElement(object):
         device_handler = manager.make_device_handler(device_params)
         transform_reply = device_handler.transform_reply()
         result = NCElement(reply, transform_reply)
-        assert_equal(str(result), result.tostring)
+        assert_equal(str(result), result.tostring.decode('UTF-8'))
         #data_xml != tostring
         assert_not_equal(result.tostring, result.data_xml)
 

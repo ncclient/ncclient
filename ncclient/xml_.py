@@ -165,7 +165,10 @@ class NCElement(object):
 
     def __str__(self):
         """syntactic sugar for str() - alias to tostring"""
-        return self.tostring
+        if sys.version<'3':
+            return self.tostring
+        else:
+            return self.tostring.decode('UTF-8')
 
     @property
     def tostring(self):
