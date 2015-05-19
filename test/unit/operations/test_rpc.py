@@ -84,7 +84,7 @@ class TestRPC(unittest.TestCase):
         self.assertTrue(obj._parsed)
 
     @patch('ncclient.transport.Session.send')
-    @patch('threading._Event.isSet')
+    @patch('ncclient.operations.rpc.Event.isSet')
     def test_rpc_send(self, mock_thread, mock_send):
         device_handler = manager.make_device_handler({'name': 'junos'})
         capabilities = Capabilities(device_handler.get_capabilities())
@@ -112,7 +112,7 @@ class TestRPC(unittest.TestCase):
         self.assertEqual(reply, obj.reply)
 
     @patch('ncclient.transport.Session.send')
-    @patch('threading._Event.isSet')
+    @patch('ncclient.operations.rpc.Event.isSet')
     def test_rpc_async(self, mock_thread, mock_send):
         device_handler = manager.make_device_handler({'name': 'junos'})
         capabilities = Capabilities(device_handler.get_capabilities())
@@ -130,7 +130,7 @@ class TestRPC(unittest.TestCase):
         self.assertEqual(result, obj)
 
     @patch('ncclient.transport.Session.send')
-    @patch('threading._Event.isSet')
+    @patch('ncclient.operations.rpc.Event.isSet')
     def test_rpc_timeout_error(self, mock_thread, mock_send):
         device_handler = manager.make_device_handler({'name': 'junos'})
         capabilities = Capabilities(device_handler.get_capabilities())
@@ -145,7 +145,7 @@ class TestRPC(unittest.TestCase):
             obj._request(node)
 
     @patch('ncclient.transport.Session.send')
-    @patch('threading._Event.isSet')
+    @patch('ncclient.operations.rpc.Event.isSet')
     def test_rpc_rpcerror(self, mock_thread, mock_send):
         device_handler = manager.make_device_handler({'name': 'junos'})
         capabilities = Capabilities(device_handler.get_capabilities())
@@ -161,7 +161,7 @@ class TestRPC(unittest.TestCase):
             obj._request(node)
 
     @patch('ncclient.transport.Session.send')
-    @patch('threading._Event.isSet')
+    @patch('ncclient.operations.rpc.Event.isSet')
     def test_rpc_capability_error(self, mock_thread, mock_send):
         device_handler = manager.make_device_handler({'name': 'junos'})
         capabilities = Capabilities(device_handler.get_capabilities())

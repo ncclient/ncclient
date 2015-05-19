@@ -3,6 +3,7 @@ from ncclient.devices.junos import *
 import ncclient.transport
 from mock import patch
 import paramiko
+import sys
 
 xml = '''<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
         <xsl:output method="xml" indent="no"/>
@@ -77,7 +78,11 @@ class TestJunosDevice(unittest.TestCase):
         self.assertEqual(dict, self.obj.add_additional_operations())
 
     def test_transform_reply(self):
-        self.assertEqual(self.obj.transform_reply(), xml)
+        if sys.version >= '3':
+            reply = xml.encode('utf-8')
+        else:
+            reply = xml
+        self.assertEqual(self.obj.transform_reply(), reply)
 
     def test_perform_quality_check(self):
         self.assertFalse(self.obj.perform_qualify_check())
