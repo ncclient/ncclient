@@ -4,7 +4,8 @@ import unittest
 from nose.tools import assert_equal
 from nose.tools import assert_not_equal
 import os
-file_path = os.path.join(os.getcwd(),"test", "unit", "reply1")
+import sys
+file_path = os.path.join(os.getcwd(), "test", "unit", "reply1")
 
 
 class Test_NCElement(object):
@@ -19,7 +20,7 @@ class Test_NCElement(object):
         transform_reply = device_handler.transform_reply()
         result = NCElement(reply, transform_reply)
         result_str = result.tostring
-        if sys.version>='3':
+        if sys.version >= '3':
             result_str = result_str.decode('UTF-8')
         assert_equal(str(result), result_str)
         #data_xml != tostring
@@ -128,13 +129,17 @@ class TestXML(unittest.TestCase):
         device_handler = manager.make_device_handler(device_params)
         transform_reply = device_handler.transform_reply()
         result = NCElement(self.reply, transform_reply)
+        if sys.version >= '3':
+            result_xml = bytes(result.data_xml, "utf-8")
+        else:
+            result_xml = result.data_xml
         ele = validated_element(
-            bytes(result.data_xml, "utf-8"), tags=["rpc-reply", "rpc"], attrs=[["attrib1", "attrib2"]])
+            result_xml, tags=["rpc-reply", "rpc"], attrs=[["attrib1", "attrib2"]])
         self.assertEqual(ele.tag, "rpc-reply")
         ele = validated_element(
-            bytes(result.data_xml, "utf-8"), attrs=[["attrib1", "attrib2"]])
+            result_xml, attrs=[["attrib1", "attrib2"]])
         self.assertEqual(ele.tag, "rpc-reply")
-        ele = validated_element(bytes(result.data_xml, "utf-8"))
+        ele = validated_element(result_xml)
         self.assertEqual(ele.tag, "rpc-reply")
 
     def test_validated_element_fail(self):
@@ -143,9 +148,13 @@ class TestXML(unittest.TestCase):
         transform_reply = device_handler.transform_reply()
         result = NCElement(self.reply, transform_reply)
         XMLError.message = "Element does not meet requirement"
+        if sys.version >= '3':
+            result_xml = bytes(result.data_xml, "utf-8")
+        else:
+            result_xml = result.data_xml
         with self.assertRaises(XMLError):
             validated_element(
-                bytes(result.data_xml, "utf-8"), tags=["rpc"], attrs=[["attrib1", "attrib2"]])
+                result_xml, tags=["rpc"], attrs=[["attrib1", "attrib2"]])
 
     def test_validated_element_fail_2(self):
         device_params = {'name': 'junos'}
@@ -153,9 +162,13 @@ class TestXML(unittest.TestCase):
         transform_reply = device_handler.transform_reply()
         result = NCElement(self.reply, transform_reply)
         XMLError.message = "Element does not meet requirement"
+        if sys.version >= '3':
+            result_xml = bytes(result.data_xml, "utf-8")
+        else:
+            result_xml = result.data_xml
         with self.assertRaises(XMLError):
             validated_element(
-                bytes(result.data_xml, "utf-8"),
+                result_xml,
                 tags=[
                     "rpc-reply",
                     "rpc"],
@@ -169,5 +182,9 @@ class TestXML(unittest.TestCase):
         transform_reply = device_handler.transform_reply()
         result = NCElement(self.reply, transform_reply)
         XMLError.message = "Element does not meet requirement"
+        if sys.version >= '3':
+            result_xml = bytes(result.data_xml, "utf-8")
+        else:
+            result_xml = result.data_xml
         with self.assertRaises(XMLError):
-            validated_element(bytes(result.data_xml, "utf-8"), tags=["rpc"])
+            validated_element(result_xml, tags=["rpc"])

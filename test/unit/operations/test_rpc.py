@@ -1,12 +1,18 @@
 from ncclient.operations.rpc import *
 import unittest
-from mock import patch, MagicMock
+from mock import patch
 from ncclient import manager
 import ncclient.manager
 import ncclient.transport
 from ncclient.xml_ import *
 from ncclient.operations import RaiseMode
 from ncclient.capabilities import Capabilities
+import sys
+
+if sys.version >= '3':
+    patch_str = 'ncclient.operations.rpc.Event.isSet'
+else:
+    patch_str = 'threading._Event.isSet'
 
 xml1 = """<rpc-reply xmlns:junos="http://xml.juniper.net/junos/12.1X46/junos">
     <ok/>
@@ -84,7 +90,7 @@ class TestRPC(unittest.TestCase):
         self.assertTrue(obj._parsed)
 
     @patch('ncclient.transport.Session.send')
-    @patch('ncclient.operations.rpc.Event.isSet')
+    @patch(patch_str)
     def test_rpc_send(self, mock_thread, mock_send):
         device_handler = manager.make_device_handler({'name': 'junos'})
         capabilities = Capabilities(device_handler.get_capabilities())
@@ -112,7 +118,7 @@ class TestRPC(unittest.TestCase):
         self.assertEqual(reply, obj.reply)
 
     @patch('ncclient.transport.Session.send')
-    @patch('ncclient.operations.rpc.Event.isSet')
+    @patch(patch_str)
     def test_rpc_async(self, mock_thread, mock_send):
         device_handler = manager.make_device_handler({'name': 'junos'})
         capabilities = Capabilities(device_handler.get_capabilities())
@@ -130,7 +136,7 @@ class TestRPC(unittest.TestCase):
         self.assertEqual(result, obj)
 
     @patch('ncclient.transport.Session.send')
-    @patch('ncclient.operations.rpc.Event.isSet')
+    @patch(patch_str)
     def test_rpc_timeout_error(self, mock_thread, mock_send):
         device_handler = manager.make_device_handler({'name': 'junos'})
         capabilities = Capabilities(device_handler.get_capabilities())
@@ -145,7 +151,7 @@ class TestRPC(unittest.TestCase):
             obj._request(node)
 
     @patch('ncclient.transport.Session.send')
-    @patch('ncclient.operations.rpc.Event.isSet')
+    @patch(patch_str)
     def test_rpc_rpcerror(self, mock_thread, mock_send):
         device_handler = manager.make_device_handler({'name': 'junos'})
         capabilities = Capabilities(device_handler.get_capabilities())
@@ -161,7 +167,7 @@ class TestRPC(unittest.TestCase):
             obj._request(node)
 
     @patch('ncclient.transport.Session.send')
-    @patch('ncclient.operations.rpc.Event.isSet')
+    @patch(patch_str)
     def test_rpc_capability_error(self, mock_thread, mock_send):
         device_handler = manager.make_device_handler({'name': 'junos'})
         capabilities = Capabilities(device_handler.get_capabilities())
