@@ -23,10 +23,11 @@ class TestManager(unittest.TestCase):
         manager.connect(host='localhost')
         mock_ssh.assert_called_once_with(host='localhost')
 
+    @patch('socket.socket')
     @patch('paramiko.Transport')
     @patch('ncclient.transport.ssh.hexlify')
     @patch('ncclient.transport.ssh.Session._post_connect')
-    def test_ssh2(self, mock_session, mock_hex, mock_trans):
+    def test_ssh2(self, mock_session, mock_hex, mock_trans, mock_socket):
         conn = self._mock_manager()
         self.assertEqual(mock_trans.called, 1)
         self.assertEqual(conn._timeout, 10)
@@ -63,63 +64,72 @@ class TestManager(unittest.TestCase):
         conn.locked(None)
         mock_lock.assert_called_once_with(None, None, None)
 
+    @patch('socket.socket')
     @patch('paramiko.Transport')
     @patch('ncclient.transport.ssh.hexlify')
     @patch('ncclient.transport.ssh.Session._post_connect')
     def test_manager_client_capability(
-            self, mock_session, mock_hex, mock_trans):
+            self, mock_session, mock_hex, mock_trans, mock_socket):
         conn = self._mock_manager()
         self.assertEqual(
             conn.client_capabilities,
             conn._session.client_capabilities)
 
+    @patch('socket.socket')
     @patch('paramiko.Transport')
     @patch('ncclient.transport.ssh.hexlify')
     @patch('ncclient.transport.ssh.Session._post_connect')
     def test_manager_server_capability(
-            self, mock_session, mock_hex, mock_trans):
+            self, mock_session, mock_hex, mock_trans, mock_socket):
         conn = self._mock_manager()
         self.assertEqual(
             conn.server_capabilities,
             conn._session.server_capabilities)
 
+    @patch('socket.socket')
     @patch('paramiko.Transport')
     @patch('ncclient.transport.ssh.hexlify')
     @patch('ncclient.transport.ssh.Session._post_connect')
-    def test_manager_channel_id(self, mock_session, mock_hex, mock_trans):
+    def test_manager_channel_id(
+            self, mock_session, mock_hex, mock_trans, mock_socket):
         conn = self._mock_manager()
         self.assertEqual(conn.channel_id, conn._session._channel_id)
 
+    @patch('socket.socket')
     @patch('paramiko.Transport')
     @patch('ncclient.transport.ssh.hexlify')
     @patch('ncclient.transport.ssh.Session._post_connect')
-    def test_manager_channel_name(self, mock_session, mock_hex, mock_trans):
+    def test_manager_channel_name(
+            self, mock_session, mock_hex, mock_trans, mock_socket):
         conn = self._mock_manager()
         self.assertEqual(conn.channel_name, conn._session._channel_name)
 
+    @patch('socket.socket')
     @patch('paramiko.Transport')
     @patch('ncclient.transport.ssh.hexlify')
     @patch('ncclient.transport.ssh.Session._post_connect')
     def test_manager_channel_session_id(
-            self, mock_session, mock_hex, mock_trans):
+            self, mock_session, mock_hex, mock_trans, mock_socket):
         conn = self._mock_manager()
         self.assertEqual(conn.session_id, conn._session.id)
 
+    @patch('socket.socket')
     @patch('paramiko.Transport')
     @patch('ncclient.transport.ssh.hexlify')
     @patch('ncclient.transport.ssh.Session._post_connect')
-    def test_manager_connected(self, mock_session, mock_hex, mock_trans):
+    def test_manager_connected(
+            self, mock_session, mock_hex, mock_trans, mock_socket):
         conn = self._mock_manager()
         self.assertEqual(conn.connected, True)
 
     def _mock_manager(self):
-        conn = manager.connect(host='10.216.193.114',
+        conn = manager.connect(host='10.10.10.10',
                                     port=22,
                                     username='user',
                                     password='password',
                                     timeout=10,
                                     device_params={'name': 'junos'},
-                                    hostkey_verify=False)
+                                    hostkey_verify=False, allow_agent=False)
         return conn
 
 if __name__ == "__main__":

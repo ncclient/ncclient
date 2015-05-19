@@ -56,13 +56,16 @@ class Test_NCElement(object):
 
 class TestXML(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        cls.f = open(file_path, 'r')
+        cls.reply = cls.f.read()
+
     def test_ncelement_reply_001(self):
-        with open(file_path, 'r') as f:
-            reply = f.read()
         device_params = {'name': 'junos'}
         device_handler = manager.make_device_handler(device_params)
         transform_reply = device_handler.transform_reply()
-        result = NCElement(reply, transform_reply)
+        result = NCElement(self.reply, transform_reply)
         self.assertEqual(result.xpath("//name")[0].text, "junos")
         self.assertEqual(result.xpath("//name")[0].tag, "name")
         self.assertEqual(
@@ -70,70 +73,58 @@ class TestXML(unittest.TestCase):
             "package-information")
 
     def test_ncelement_find(self):
-        with open(file_path, 'r') as f:
-            reply = f.read()
         device_params = {'name': 'junos'}
         device_handler = manager.make_device_handler(device_params)
         transform_reply = device_handler.transform_reply()
-        result = NCElement(reply, transform_reply)
+        result = NCElement(self.reply, transform_reply)
         self.assertEqual(result.find(".//name").tag, "name")
         self.assertEqual(result.find(".//name").text, "junos")
 
     def test_ncelement_findtext(self):
-        with open(file_path, 'r') as f:
-            reply = f.read()
         device_params = {'name': 'junos'}
         device_handler = manager.make_device_handler(device_params)
         transform_reply = device_handler.transform_reply()
-        result = NCElement(reply, transform_reply)
+        result = NCElement(self.reply, transform_reply)
         self.assertEqual(result.findtext(".//name"), "junos")
 
     def test_ncelement_remove_namespace(self):
-        with open(file_path, 'r') as f:
-            reply = f.read()
         device_params = {'name': 'junos'}
         device_handler = manager.make_device_handler(device_params)
         transform_reply = device_handler.transform_reply()
-        result = NCElement(reply, transform_reply)
-        re = result.remove_namespaces(reply)
+        result = NCElement(self.reply, transform_reply)
+        re = result.remove_namespaces(self.reply)
         self.assertEqual(re.tag, "rpc-reply")
         ele = to_ele((result.find(".//name")))
         self.assertEqual(ele.tag, "name")
         self.assertEqual(ele.text, "junos")
-        ele = to_ele(reply)
+        ele = to_ele(self.reply)
         self.assertEqual(ele.tag, "rpc-reply")
 
     def test_to_ele(self):
-        with open(file_path, 'r') as f:
-            reply = f.read()
         device_params = {'name': 'junos'}
         device_handler = manager.make_device_handler(device_params)
         transform_reply = device_handler.transform_reply()
-        result = NCElement(reply, transform_reply)
+        result = NCElement(self.reply, transform_reply)
         ele = to_ele((result.find(".//name")))
         self.assertEqual(ele.tag, "name")
         self.assertEqual(ele.text, "junos")
-        ele = to_ele(reply)
+        ele = to_ele(self.reply)
         self.assertEqual(ele.tag, "rpc-reply")
 
     def test_parse_root(self):
-        with open(file_path, 'r') as f:
-            reply = f.read()
         device_params = {'name': 'junos'}
         device_handler = manager.make_device_handler(device_params)
         transform_reply = device_handler.transform_reply()
-        result = NCElement(reply, transform_reply)
+        result = NCElement(self.reply, transform_reply)
         tag, attrib = parse_root(result.data_xml)
         self.assertEqual(tag, "rpc-reply")
         self.assertEqual(attrib, {'attrib1': 'test'})
 
     def test_validated_element_pass(self):
-        with open(file_path, 'r') as f:
-            reply = f.read()
         device_params = {'name': 'junos'}
         device_handler = manager.make_device_handler(device_params)
         transform_reply = device_handler.transform_reply()
-        result = NCElement(reply, transform_reply)
+        result = NCElement(self.reply, transform_reply)
         ele = validated_element(
             result.data_xml, tags=["rpc-reply", "rpc"], attrs=[["attrib1", "attrib2"]])
         self.assertEqual(ele.tag, "rpc-reply")
@@ -144,24 +135,20 @@ class TestXML(unittest.TestCase):
         self.assertEqual(ele.tag, "rpc-reply")
 
     def test_validated_element_fail(self):
-        with open(file_path, 'r') as f:
-            reply = f.read()
         device_params = {'name': 'junos'}
         device_handler = manager.make_device_handler(device_params)
         transform_reply = device_handler.transform_reply()
-        result = NCElement(reply, transform_reply)
+        result = NCElement(self.reply, transform_reply)
         XMLError.message = "Element does not meet requirement"
         with self.assertRaises(XMLError):
             validated_element(
                 result.data_xml, tags=["rpc"], attrs=[["attrib1", "attrib2"]])
 
     def test_validated_element_fail_2(self):
-        with open(file_path, 'r') as f:
-            reply = f.read()
         device_params = {'name': 'junos'}
         device_handler = manager.make_device_handler(device_params)
         transform_reply = device_handler.transform_reply()
-        result = NCElement(reply, transform_reply)
+        result = NCElement(self.reply, transform_reply)
         XMLError.message = "Element does not meet requirement"
         with self.assertRaises(XMLError):
             validated_element(
@@ -174,12 +161,10 @@ class TestXML(unittest.TestCase):
                     ["attrib2"]])
 
     def test_validated_element_fail_3(self):
-        with open(file_path, 'r') as f:
-            reply = f.read()
         device_params = {'name': 'junos'}
         device_handler = manager.make_device_handler(device_params)
         transform_reply = device_handler.transform_reply()
-        result = NCElement(reply, transform_reply)
+        result = NCElement(self.reply, transform_reply)
         XMLError.message = "Element does not meet requirement"
         with self.assertRaises(XMLError):
             validated_element(result.data_xml, tags=["rpc"])
