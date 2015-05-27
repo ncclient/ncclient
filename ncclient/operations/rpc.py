@@ -271,8 +271,7 @@ class RPC(object):
 
     def _wrap(self, subele):
         # internal use
-        ele = new_ele("rpc", {"message-id": self._id},
-                      **self._device_handler.get_xml_extra_prefix_kwargs())
+        ele = new_ele("rpc", {"message-id": self._id})
         ele.append(subele)
         #print to_xml(ele)
         return to_xml(ele)
@@ -308,8 +307,6 @@ class RPC(object):
                         raise self._reply.error
                     elif (self._raise_mode == RaiseMode.ERRORS and self._reply.error.type == "error"):
                         raise self._reply.error
-                if self._device_handler.transform_reply():
-                    return NCElement(self._reply, self._device_handler.transform_reply())
                 else:
                     return self._reply
             else:
