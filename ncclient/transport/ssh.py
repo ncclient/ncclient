@@ -178,15 +178,20 @@ class SSHSession(Session):
             host = config.get("hostname", host)
             if username is None:
                 username = config.get("user")
-            if key_filename is None and config.get("identityfile"):
-                key_filename = os.path.expanduser(config.get("identityfile"))
+            if key_filename is None:
+                key_filename = config.get("identityfile")
 
         if username is None:
             username = getpass.getuser()
 
         sock = None
-        if config.get("proxycommand"):
-            sock = paramiko.proxy.ProxyCommand(os.path.expanduser(config.get("proxycommand")))
+        proxycommand = config.get("proxycommand")
+        if proxycommand:
+            if not isinstance(proxycommand, basestring):
+              proxycommand = [os.path.expanduser(elem) for elem in proxycommand]
+            else:
+              proxycommand = os.path.expanduser(proxycommand)
+            sock = paramiko.proxy.ProxyCommand(proxycommand)
         else:
             for res in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket.SOCK_STREAM):
                 af, socktype, proto, canonname, sa = res
