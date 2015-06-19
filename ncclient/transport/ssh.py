@@ -214,11 +214,11 @@ class SSHSession(Session):
 
         # host key verification
         server_key = t.get_remote_server_key()
-        known_host = self._host_keys.check(host, server_key)
 
         fingerprint = _colonify(hexlify(server_key.get_fingerprint()))
 
         if hostkey_verify:
+            known_host = self._host_keys.check(host, server_key)
             if not known_host and not unknown_host_cb(host, fingerprint):
                 raise SSHUnknownHostError(host, fingerprint)
 
