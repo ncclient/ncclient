@@ -94,7 +94,7 @@ class Session(Thread):
         # we expect server's hello message, if server doesn't responds in 60 seconds raise exception
         init_event.wait(60)
         if not init_event.is_set():
-            raise SSHError("Capability exchange timed out")
+            raise SessionError("Capability exchange timed out")
         # received hello message or an error happened
         self.remove_listener(listener)
         if error[0]:
