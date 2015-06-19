@@ -15,16 +15,17 @@
 import os
 import socket
 import getpass
+
 from binascii import hexlify
-from cStringIO import StringIO
 from select import select
 
+from ncclient import compat
 from ncclient.capabilities import Capabilities
 
 import paramiko
 
-from errors import AuthenticationError, SessionCloseError, SSHError, SSHUnknownHostError
-from session import Session
+from ncclient.transport.errors import AuthenticationError, SessionCloseError, SSHError, SSHUnknownHostError
+from ncclient.transport.session import Session
 
 import logging
 logger = logging.getLogger("ncclient.transport.ssh")
@@ -50,8 +51,9 @@ def default_unknown_host_cb(host, fingerprint):
 
 def _colonify(fp):
     finga = fp[:2]
-    for idx  in range(2, len(fp), 2):
-        finga += ":" + fp[idx:idx+2]
+    colon = compat.force_bytes(":")
+    for idx in compat.range_(2, len(fp), 2):
+        finga += colon + fp[idx:idx+2]
     return finga
 
 class SSHSession(Session):
@@ -67,7 +69,7 @@ class SSHSession(Session):
         self._channel = None
         self._channel_id = None
         self._channel_name = None
-        self._buffer = StringIO() # for incoming data
+        self._buffer = compat.BytesIO() # for incoming data
         # parsing-related, see _parse()
         self._parsing_state = 0
         self._parsing_pos = 0
@@ -81,7 +83,7 @@ class SSHSession(Session):
         buf = self._buffer
         buf.seek(self._parsing_pos)
         while True:
-            x = buf.read(1)
+            x = compat.force_text(buf.read(1))
             if not x: # done reading
                 break
             elif x == delim[expect]: # what we expected
@@ -90,8 +92,8 @@ class SSHSession(Session):
                 expect = 0
                 continue
             # loop till last delim char expected, break if other char encountered
-            for i in range(expect, n):
-                x = buf.read(1)
+            for i in compat.range_(expect, n):
+                x = compat.force_text(buf.read(1))
                 if not x: # done reading
                     break
                 if x == delim[expect]: # what we expected
@@ -106,7 +108,7 @@ class SSHSession(Session):
                 self._dispatch_message(buf.read(msg_till).strip())
                 buf.seek(n+1, os.SEEK_CUR)
                 rest = buf.read()
-                buf = StringIO()
+                buf = compat.BytesIO()
                 buf.write(rest)
                 buf.seek(0)
                 expect = 0
@@ -226,7 +228,7 @@ class SSHSession(Session):
 
         if key_filename is None:
             key_filenames = []
-        elif isinstance(key_filename, basestring):
+        elif isinstance(key_filename, compat.string_types):
             key_filenames = [ key_filename ]
         else:
             key_filenames = key_filename
@@ -335,6 +337,7 @@ class SSHSession(Session):
                 # will wakeup evey TICK seconds to check if something to send, more if something to read (due to select returning chan in readable list)
                 if r:
                     data = chan.recv(BUF_SIZE)
+                    #print('chan.recv(%r) = %r' % (BUF_SIZE, data))
                     if data:
                         self._buffer.write(data)
                         self._parse()
@@ -342,7 +345,7 @@ class SSHSession(Session):
                         raise SessionCloseError(self._buffer.getvalue())
                 if not q.empty() and chan.send_ready():
                     logger.debug("Sending message")
-                    data = q.get() + MSG_DELIM
+                    data = compat.force_text(q.get()) + MSG_DELIM
                     while data:
                         n = chan.send(data)
                         if n <= 0:

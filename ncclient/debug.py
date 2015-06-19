@@ -14,6 +14,7 @@
 
 from ncclient.transport import SessionListener
 
+
 class PrintListener(SessionListener):
 
     def callback(self, root, raw):

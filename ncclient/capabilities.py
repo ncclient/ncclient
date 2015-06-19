@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from ncclient import compat
+
 def _abbreviate(uri):
     if uri.startswith("urn:ietf:params") and ":netconf:" in uri:
         splitted = uri.split(":")
@@ -53,10 +55,11 @@ class Capabilities(object):
         return len(self._dict)
 
     def __iter__(self):
-        return self._dict.iterkeys()
+        for k in self._dict.keys():
+            yield k
 
     def __repr__(self):
-        return repr(self._dict.keys())
+        return repr(list(self._dict.keys()))
 
     def add(self, uri):
         "Add a capability."

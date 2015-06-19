@@ -13,7 +13,7 @@ generic information needed for interaction with a Netconf server.
 """
 
 
-from .default import DefaultDeviceHandler
+from ncclient.devices.default import DefaultDeviceHandler
 
 def csr_unknown_host_cb(host, fingerprint):
         #This will ignore the unknown host check when connecting to CSR devices

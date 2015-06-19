@@ -14,9 +14,8 @@
 
 "Locking-related NETCONF operations"
 
+from ncclient.operations.rpc import RaiseMode, RPC
 from ncclient.xml_ import *
-
-from rpc import RaiseMode, RPC
 
 # TODO: parse session-id from a lock-denied error, and raise a tailored exception?
 

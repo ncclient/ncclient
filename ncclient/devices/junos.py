@@ -12,9 +12,12 @@ generic information needed for interaction with a Netconf server.
 
 """
 
-from .default import DefaultDeviceHandler
+from ncclient.devices.default import DefaultDeviceHandler
 from ncclient.operations.third_party.juniper.rpc import GetConfiguration, LoadConfiguration, CompareConfiguration
 from ncclient.operations.third_party.juniper.rpc import ExecuteRpc, Command, Reboot, Halt, Commit
+
+import re
+
 
 class JunosDeviceHandler(DefaultDeviceHandler):
     """
@@ -40,6 +43,7 @@ class JunosDeviceHandler(DefaultDeviceHandler):
         return False
 
     def handle_raw_dispatch(self, raw):
+        print("junos handle raw dispatch %r" % raw)
         if 'routing-engine' in raw:
                 raw = re.sub(r'<ok/>', '</routing-engine>\n<ok/>', raw)
                 return raw
