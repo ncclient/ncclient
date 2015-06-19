@@ -136,7 +136,9 @@ class SSHSession(Session):
     def close(self):
         if self._transport.is_active():
             self._transport.close()
+        self._channel = None
         self._connected = False
+        
 
     # REMEMBER to update transport.rst if sig. changes, since it is hardcoded there
     def connect(self, host, port=830, timeout=None, unknown_host_cb=default_unknown_host_cb,
