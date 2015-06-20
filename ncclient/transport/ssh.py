@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+import sys
 import socket
 import getpass
 from binascii import hexlify
@@ -169,10 +170,12 @@ class SSHSession(Session):
 
         *look_for_keys* enables looking in the usual locations for ssh keys (e.g. :file:`~/.ssh/id_*`)
 
-        *ssh_config* enables parsing of an OpenSSH configuration file, if set to its path, e.g. ~/.ssh/config
+        *ssh_config* enables parsing of an OpenSSH configuration file, if set to its path, e.g. :file:`~/.ssh/config` or to True (in this case, use :file:`~/.ssh/config`).
         """
         # Optionaly, parse .ssh/config
         config = {}
+        if ssh_config is True:
+            ssh_config = "~/.ssh/config" if sys.platform != "win32" else "~/ssh/config"
         if ssh_config is not None:
             config = paramiko.SSHConfig()
             config.parse(open(os.path.expanduser(ssh_config)))
