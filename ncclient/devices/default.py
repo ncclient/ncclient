@@ -160,7 +160,10 @@ class DefaultDeviceHandler(object):
         Return True/False depending on found match.
 
         """
-        error_text = error_text.lower().strip()
+        if error_text is not None:
+            error_text = error_text.lower().strip()
+        else:
+            error_text = 'no error given'
 
         # Compare the error text against all the exempt errors.
         for ex in self._exempt_errors_exact_match:
