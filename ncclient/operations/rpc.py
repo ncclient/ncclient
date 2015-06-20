@@ -306,7 +306,7 @@ class RPC(object):
                     # <rpc-error>'s [ RPCError ]
                     if self._raise_mode == RaiseMode.ALL:
                         raise self._reply.error
-                    elif (self._raise_mode == RaiseMode.ERRORS and self._reply.error.type == "error"):
+                    elif self._raise_mode == RaiseMode.ERRORS and self._reply.error.severity == "error":
                         raise self._reply.error
                 if self._device_handler.transform_reply():
                     return NCElement(self._reply, self._device_handler.transform_reply())
