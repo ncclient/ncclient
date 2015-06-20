@@ -160,7 +160,7 @@ class DefaultDeviceHandler(object):
         Return True/False depending on found match.
 
         """
-        if error_text != None:
+        if error_text is not None:
             error_text = error_text.lower().strip()
         else:
             error_text = 'no error given'
