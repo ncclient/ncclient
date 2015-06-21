@@ -53,7 +53,11 @@ class RPCError(OperationError):
                 OperationError.__init__(self, self.to_dict())
         else:
             # We are interested in the severity and the message
+            self._severity = 'warning'
             self._message = "\n".join(["%s:%s" %(err['severity'].strip(), err['message'].strip()) for err in raw])
+            has_error = filter(lambda higherr: higherr['severity'] == 'error', raw)
+            if has_error:
+                self._severity = 'error'
             OperationError.__init__(self, self.message)
 
     def to_dict(self):
