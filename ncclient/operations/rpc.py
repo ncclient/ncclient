@@ -22,7 +22,6 @@ from errors import OperationError, TimeoutExpiredError, MissingCapabilityError
 
 import logging
 logger = logging.getLogger("ncclient.operations.rpc")
-logger.setLevel(logging.WARNING)
 
 
 class RPCError(OperationError):
@@ -38,18 +37,24 @@ class RPCError(OperationError):
         qualify("error-message"): "_message"
     }
 
-    def __init__(self, raw):
-        self._raw = raw
-        for attr in RPCError.tag_to_attr.values():
-            setattr(self, attr, None)
-        for subele in raw:
-            attr = RPCError.tag_to_attr.get(subele.tag, None)
-            if attr is not None:
-                setattr(self, attr, subele.text if attr != "_info" else to_xml(subele) )
-        if self.message is not None:
-            OperationError.__init__(self, self.message)
+    def __init__(self, raw, multiple=False):
+        self._multiple = multiple
+        if not multiple:
+            self._raw = raw
+            for attr in RPCError.tag_to_attr.values():
+                setattr(self, attr, None)
+            for subele in raw:
+                attr = RPCError.tag_to_attr.get(subele.tag, None)
+                if attr is not None:
+                    setattr(self, attr, subele.text if attr != "_info" else to_xml(subele) )
+            if self.message is not None:
+                OperationError.__init__(self, self.message)
+            else:
+                OperationError.__init__(self, self.to_dict())
         else:
-            OperationError.__init__(self, self.to_dict())
+            # We are interested in the severity and the message
+            self._message = "\n".join(["%s:%s" %(err['severity'].strip(), err['message'].strip()) for err in raw])
+            OperationError.__init__(self, self.message)
 
     def to_dict(self):
         return dict([ (attr[1:], getattr(self, attr)) for attr in RPCError.tag_to_attr.values() ])
@@ -304,10 +309,44 @@ class RPC(object):
                                  not self._device_handler.is_rpc_error_exempt( \
                                                             self._reply.error.message):
                     # <rpc-error>'s [ RPCError ]
+
                     if self._raise_mode == RaiseMode.ALL:
-                        raise self._reply.error
+                        errlist = []
+                        errors = self._reply.errors
+                        if len(errors) > 1:
+                            for err in errors:
+                                if err.severity:
+                                    errsev = err.severity
+                                else:
+                                    errsev = 'undefined'
+                                if err.message:
+                                    errmsg = err.message
+                                else:
+                                    errmsg = 'not an error message in the reply. Enable debug'
+                                errordict = {"severity": errsev, "message":errmsg}
+                                errlist.append(errordict)
+                            # raise self._reply.error
+                            raise RPCError(errlist, multiple=True)
+                        else:
+                            raise self._reply.error
                     elif self._raise_mode == RaiseMode.ERRORS and self._reply.error.severity == "error":
-                        raise self._reply.error
+                        errlist = []
+                        errors = self._reply.errors
+                        if len(errors) > 1:
+                            for err in errors:
+                                if err.severity:
+                                    errsev = err.severity
+                                else:
+                                    errsev = 'undefined'
+                                if err.message:
+                                    errmsg = err.message
+                                else:
+                                    errmsg = 'not an error message in the reply. Enable debug'
+                                errordict = {"severity": errsev, "message":errmsg}
+                                errlist.append(errordict)
+                            raise RPCError(errlist, multiple=True)
+                        else:
+                            raise self._reply.error
                 if self._device_handler.transform_reply():
                     return NCElement(self._reply, self._device_handler.transform_reply())
                 else:
