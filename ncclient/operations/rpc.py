@@ -314,7 +314,7 @@ class RPC(object):
                                                             self._reply.error.message):
                     # <rpc-error>'s [ RPCError ]
 
-                    if self._raise_mode == RaiseMode.ALL:
+                    if self._raise_mode == RaiseMode.ALL or (self._raise_mode == RaiseMode.ERRORS and self._reply.error.severity == "error"):
                         errlist = []
                         errors = self._reply.errors
                         if len(errors) > 1:
@@ -330,24 +330,6 @@ class RPC(object):
                                 errordict = {"severity": errsev, "message":errmsg}
                                 errlist.append(errordict)
                             # raise self._reply.error
-                            raise RPCError(errlist, multiple=True)
-                        else:
-                            raise self._reply.error
-                    elif self._raise_mode == RaiseMode.ERRORS and self._reply.error.severity == "error":
-                        errlist = []
-                        errors = self._reply.errors
-                        if len(errors) > 1:
-                            for err in errors:
-                                if err.severity:
-                                    errsev = err.severity
-                                else:
-                                    errsev = 'undefined'
-                                if err.message:
-                                    errmsg = err.message
-                                else:
-                                    errmsg = 'not an error message in the reply. Enable debug'
-                                errordict = {"severity": errsev, "message":errmsg}
-                                errlist.append(errordict)
                             raise RPCError(errlist, multiple=True)
                         else:
                             raise self._reply.error
