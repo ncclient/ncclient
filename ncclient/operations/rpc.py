@@ -39,8 +39,8 @@ class RPCError(OperationError):
 
     def __init__(self, raw, multiple=False):
         self._multiple = multiple
+        self._raw = raw
         if not multiple:
-            self._raw = raw
             for attr in RPCError.tag_to_attr.values():
                 setattr(self, attr, None)
             for subele in raw:
