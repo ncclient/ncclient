@@ -41,6 +41,7 @@ class RPCError(OperationError):
         self._multiple = multiple
         self._raw = raw
         if not multiple:
+            # Single RPCError
             for attr in RPCError.tag_to_attr.values():
                 setattr(self, attr, None)
             for subele in raw:
@@ -52,10 +53,24 @@ class RPCError(OperationError):
             else:
                 OperationError.__init__(self, self.to_dict())
         else:
+            # Multiple errors returned. Errors is a list of RPCError objs
+            errlist = []
+            for err in raw:
+                if err.severity:
+                    errsev = err.severity
+                else:
+                    errsev = 'undefined'
+                if err.message:
+                    errmsg = err.message
+                else:
+                    errmsg = 'not an error message in the reply. Enable debug'
+                errordict = {"severity": errsev, "message":errmsg}
+                errlist.append(errordict)
+                            # raise self._reply.error
             # We are interested in the severity and the message
             self._severity = 'warning'
-            self._message = "\n".join(["%s:%s" %(err['severity'].strip(), err['message'].strip()) for err in raw])
-            has_error = filter(lambda higherr: higherr['severity'] == 'error', raw)
+            self._message = "\n".join(["%s: %s" %(err['severity'].strip(), err['message'].strip()) for err in errlist])
+            has_error = filter(lambda higherr: higherr['severity'] == 'error', errlist)
             if has_error:
                 self._severity = 'error'
             OperationError.__init__(self, self.message)
@@ -65,7 +80,8 @@ class RPCError(OperationError):
 
     @property
     def xml(self):
-        "The `rpc-error` element as returned in XML."
+        "The `rpc-error` element as returned in XML. \
+        Multiple errors are returned as list of RPC errors"
         return self._raw
 
     @property
@@ -318,19 +334,7 @@ class RPC(object):
                         errlist = []
                         errors = self._reply.errors
                         if len(errors) > 1:
-                            for err in errors:
-                                if err.severity:
-                                    errsev = err.severity
-                                else:
-                                    errsev = 'undefined'
-                                if err.message:
-                                    errmsg = err.message
-                                else:
-                                    errmsg = 'not an error message in the reply. Enable debug'
-                                errordict = {"severity": errsev, "message":errmsg}
-                                errlist.append(errordict)
-                            # raise self._reply.error
-                            raise RPCError(errlist, multiple=True)
+                            raise RPCError(errors, multiple=True)
                         else:
                             raise self._reply.error
                 if self._device_handler.transform_reply():
