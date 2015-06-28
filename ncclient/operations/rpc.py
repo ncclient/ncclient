@@ -66,7 +66,6 @@ class RPCError(OperationError):
                     errmsg = 'not an error message in the reply. Enable debug'
                 errordict = {"severity": errsev, "message":errmsg}
                 errlist.append(errordict)
-                            # raise self._reply.error
             # We are interested in the severity and the message
             self._severity = 'warning'
             self._message = "\n".join(["%s: %s" %(err['severity'].strip(), err['message'].strip()) for err in errlist])
