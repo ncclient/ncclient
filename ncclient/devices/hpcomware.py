@@ -2,6 +2,7 @@ from ncclient.xml_ import BASE_NS_1_0
 from .default import DefaultDeviceHandler
 from ncclient.operations.third_party.hpcomware.rpc import CLICommand
 
+
 class HpcomwareDeviceHandler(DefaultDeviceHandler):
 
     def __init__(self, device_params):
@@ -28,7 +29,6 @@ class HpcomwareDeviceHandler(DefaultDeviceHandler):
         d = {
                 "data": "http://www.hp.com/netconf/data:1.0",
                 "config": "http://www.hp.com/netconf/config:1.0",
-                "test": "http://www.wtf.com/netconf/data:1.0"
             }
         d.update(self.get_xml_base_namespace_dict())
         return {"nsmap": d}
