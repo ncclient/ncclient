@@ -1,6 +1,7 @@
 from ncclient.xml_ import BASE_NS_1_0
 from .default import DefaultDeviceHandler
-from ncclient.operations.third_party.hpcomware.rpc import CLICommand
+from ncclient.operations.third_party.hpcomware.rpc import DisplayCommand
+from ncclient.operations.third_party.hpcomware.rpc import ConfigCommand
 
 
 class HpcomwareDeviceHandler(DefaultDeviceHandler):
@@ -35,5 +36,6 @@ class HpcomwareDeviceHandler(DefaultDeviceHandler):
 
     def add_additional_operations(self):
         addtl = {}
-        addtl['cli_command'] = CLICommand
+        addtl['cli_display'] = DisplayCommand
+        addtl['cli_config'] = ConfigCommand
         return addtl

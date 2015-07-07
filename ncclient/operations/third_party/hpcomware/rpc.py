@@ -3,15 +3,13 @@ from ncclient.xml_ import *
 from ncclient.operations.rpc import RPC
 
 
-class CLICommand(RPC):
-    def request(self, cmds, cmd_type=None):
+class DisplayCommand(RPC):
+    def request(self, cmds):
         """
-        Single Execution/Configuration element is permitted.
-        Execution is used for display commands while
-        Configuration is used for config (system-view) commands
+        Single Execution element is permitted.
         cmds can be a list or single command
+        commands are pushed to the switch in this method
         """
-        NETCONFBASE_C = "{urn:ietf:params:xml:ns:netconf:base:1.0}"
 
         if isinstance(cmds, list):
             cmd = '\n'.join(cmds)
@@ -20,23 +18,31 @@ class CLICommand(RPC):
 
         node = etree.Element(qualify('CLI', BASE_NS_1_0))
 
-        if cmd_type == 'display':
-            etree.SubElement(node, qualify('Execution',
-                                           BASE_NS_1_0)).text = cmd
-            response = self._request(node)
-            xml_resp = etree.fromstring(response.xml)
-            text = xml_resp.find('.//{0}Execution'.format(NETCONFBASE_C)).text
+        etree.SubElement(node, qualify('Execution',
+                                       BASE_NS_1_0)).text = cmd
+        return self._request(node)
 
-        elif cmd_type == 'config':
-            etree.SubElement(node, qualify('Configuration',
-                                           BASE_NS_1_0)).text = cmd
 
-            response = self._request(node)
-            xml_resp = etree.fromstring(response.xml)
-            text = xml_resp.find('.//{0}Configuration'.format(NETCONFBASE_C)).text
+class ConfigCommand(RPC):
+    def request(self, cmds, push=True):
+        """
+        Single Configuration element is permitted.
+        cmds can be a list or single command
+        commands are pushed to the switch in this method
+        when push is set to True, otherwise, the element object
+        is returned
+        """
 
-        if text:
-            text = text.replace('\n\n\n', '\n')
-            text = text.replace('\n\n', '\n')
+        if isinstance(cmds, list):
+            cmd = '\n'.join(cmds)
+        elif isinstance(cmds, str) or isinstance(cmds, unicode):
+            cmd = cmds
 
-        return text
+        node = etree.Element(qualify('CLI', BASE_NS_1_0))
+
+        etree.SubElement(node, qualify('Configuration',
+                                       BASE_NS_1_0)).text = cmd
+        if push:
+            return self._request(node)
+        else:
+            return node
