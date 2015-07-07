@@ -4,11 +4,12 @@ from ncclient.operations.rpc import RPC
 
 
 class DisplayCommand(RPC):
-    def request(self, cmds):
+    def request(self, cmds, push=True):
         """
         Single Execution element is permitted.
         cmds can be a list or single command
-        commands are pushed to the switch in this method
+        when push is set to True, otherwise, the element object
+        is returned
         """
 
         if isinstance(cmds, list):
@@ -20,7 +21,10 @@ class DisplayCommand(RPC):
 
         etree.SubElement(node, qualify('Execution',
                                        BASE_NS_1_0)).text = cmd
-        return self._request(node)
+        if push:
+            return self._request(node)
+        else:
+            return node
 
 
 class ConfigCommand(RPC):
