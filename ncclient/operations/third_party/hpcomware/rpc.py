@@ -50,3 +50,9 @@ class ConfigCommand(RPC):
             return self._request(node)
         else:
             return node
+
+class Action(RPC):
+    def request(self, action=None):
+        node = new_ele("action")
+        node.append(validated_element(action))
+        return self._request(node)
