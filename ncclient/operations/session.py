@@ -15,6 +15,7 @@
 "Session-related NETCONF operations"
 
 from ncclient.operations.rpc import RPC
+from ncclient.transport.errors import SessionCloseError
 from ncclient.xml_ import *
 
 class CloseSession(RPC):
@@ -28,6 +29,13 @@ class CloseSession(RPC):
         finally:
             self.session.close()
 
+    def deliver_error(self, err):
+        # Since we've explicitly closed the session, the SessionCloseError is expected
+        # and should not actually be re-raised in the client context.
+        if not isinstance(err, SessionCloseError):
+            self._error = err
+
+        self._event.set()
 
 class KillSession(RPC):
 
