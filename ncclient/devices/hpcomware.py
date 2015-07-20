@@ -1,6 +1,6 @@
 from ncclient.xml_ import BASE_NS_1_0
 from .default import DefaultDeviceHandler
-from ncclient.operations.third_party.hpcomware.rpc import DisplayCommand, ConfigCommand, Action
+from ncclient.operations.third_party.hpcomware.rpc import DisplayCommand, ConfigCommand, Action, Rollback, Save
 
 class HpcomwareDeviceHandler(DefaultDeviceHandler):
 
@@ -37,4 +37,6 @@ class HpcomwareDeviceHandler(DefaultDeviceHandler):
         addtl['cli_display'] = DisplayCommand
         addtl['cli_config'] = ConfigCommand
         addtl['action'] = Action
+        addtl['rollback'] = Rollback
+        addtl['save'] = Save
         return addtl

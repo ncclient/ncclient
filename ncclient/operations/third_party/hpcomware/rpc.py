@@ -9,7 +9,6 @@ class DisplayCommand(RPC):
         Single Execution element is permitted.
         cmds can be a list or single command
         """
-
         if isinstance(cmds, list):
             cmd = '\n'.join(cmds)
         elif isinstance(cmds, str) or isinstance(cmds, unicode):
@@ -48,4 +47,18 @@ class Action(RPC):
     def request(self, action=None):
         node = new_ele("action")
         node.append(validated_element(action))
+        return self._request(node)
+
+
+class Save(RPC):
+    def request(self, filename=None):
+        node = new_ele('save')
+        sub_ele(node, 'file').text = filename
+        return self._request(node)
+
+
+class Rollback(RPC):
+    def request(self, filename=None):
+        node = new_ele('rollback')
+        sub_ele(node, 'file').text = filename
         return self._request(node)
