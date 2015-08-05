@@ -14,11 +14,12 @@
 
 from threading import Event, Lock
 from uuid import uuid1
+import six
 
 from ncclient.xml_ import *
 from ncclient.transport import SessionListener
 
-from errors import OperationError, TimeoutExpiredError, MissingCapabilityError
+from ncclient.operations.errors import OperationError, TimeoutExpiredError, MissingCapabilityError
 
 import logging
 logger = logging.getLogger("ncclient.operations.rpc")
@@ -42,7 +43,7 @@ class RPCError(OperationError):
         self._raw = raw
         if not multiple:
             # Single RPCError
-            for attr in RPCError.tag_to_attr.values():
+            for attr in six.itervalues(RPCError.tag_to_attr):
                 setattr(self, attr, None)
             for subele in raw:
                 attr = RPCError.tag_to_attr.get(subele.tag, None)
@@ -76,7 +77,7 @@ class RPCError(OperationError):
             OperationError.__init__(self, self.message)
 
     def to_dict(self):
-        return dict([ (attr[1:], getattr(self, attr)) for attr in RPCError.tag_to_attr.values() ])
+        return dict([ (attr[1:], getattr(self, attr)) for attr in six.itervalues(RPCError.tag_to_attr) ])
 
     @property
     def xml(self):
@@ -228,7 +229,7 @@ class RPCReplyListener(SessionListener): # internal use
 
     def errback(self, err):
         try:
-            for rpc in self._id2rpc.values():
+            for rpc in six.itervalues(self._id2rpc):
                 rpc.deliver_error(err)
         finally:
             self._id2rpc.clear()
