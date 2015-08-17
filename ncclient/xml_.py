@@ -17,8 +17,10 @@
 
 
 import io
-
-from StringIO import StringIO
+import sys
+import six
+from six import StringIO
+from io import BytesIO
 from lxml import etree
 
 # In case issues come up with XML generation/parsing
@@ -69,7 +71,7 @@ except AttributeError:
         # cElementTree uses ElementTree's _namespace_map, so that's ok
         ElementTree._namespace_map[uri] = prefix
 
-for (ns, pre) in {
+for (ns, pre) in six.iteritems({
     BASE_NS_1_0: 'nc',
     NXOS_1_0: 'nxos',
     NXOS_IF: 'if',
@@ -78,7 +80,7 @@ for (ns, pre) in {
     CISCO_CPI_1_0: 'cpi',
     FLOWMON_1_0: 'fm',
     JUNIPER_1_1: 'junos',
-}.items():
+}):
     register_namespace(pre, ns)
 
 qualify = lambda tag, ns=BASE_NS_1_0: tag if ns is None else "{%s}%s" % (ns, tag)
@@ -88,7 +90,11 @@ qualify = lambda tag, ns=BASE_NS_1_0: tag if ns is None else "{%s}%s" % (ns, tag
 def to_xml(ele, encoding="UTF-8", pretty_print=False):
     "Convert and return the XML for an *ele* (:class:`~xml.etree.ElementTree.Element`) with specified *encoding*."
     xml = etree.tostring(ele, encoding=encoding, pretty_print=pretty_print)
-    return xml if xml.startswith('<?xml') else '<?xml version="1.0" encoding="%s"?>%s' % (encoding, xml)
+    if sys.version < '3':
+        return xml if xml.startswith('<?xml') else '<?xml version="1.0" encoding="%s"?>%s' % (encoding, xml)
+    else:
+        return xml.decode('UTF-8') if xml.startswith(b'<?xml') \
+            else '<?xml version="1.0" encoding="%s"?>%s' % (encoding, xml.decode('UTF-8'))
 
 def to_ele(x):
     "Convert and return the :class:`~xml.etree.ElementTree.Element` for the XML document *x*. If *x* is already an :class:`~xml.etree.ElementTree.Element` simply returns that."
@@ -96,7 +102,10 @@ def to_ele(x):
 
 def parse_root(raw):
     "Efficiently parses the root element of a *raw* XML document, returning a tuple of its qualified name and attribute dictionary."
-    fp = StringIO(raw)
+    if sys.version < '3':
+        fp = StringIO(raw)
+    else:
+        fp = BytesIO(raw.encode('UTF-8'))
     for event, element in etree.iterparse(fp, events=('start',)):
         return (element.tag, element.attrib)
 
@@ -111,13 +120,13 @@ def validated_element(x, tags=None, attrs=None):
     """
     ele = to_ele(x)
     if tags:
-        if isinstance(tags, basestring):
+        if isinstance(tags, (str, bytes)):
             tags = [tags]
         if ele.tag not in tags:
             raise XMLError("Element [%s] does not meet requirement" % ele.tag)
     if attrs:
         for req in attrs:
-            if isinstance(req, basestring): req = [req]
+            if isinstance(req, (str, bytes)): req = [req]
             for alt in req:
                 if alt in ele.attrib:
                     break
@@ -158,7 +167,10 @@ class NCElement(object):
 
     def __str__(self):
         """syntactic sugar for str() - alias to tostring"""
-        return self.tostring
+        if sys.version<'3':
+            return self.tostring
+        else:
+            return self.tostring.decode('UTF-8')
 
     @property
     def tostring(self):
@@ -178,7 +190,7 @@ class NCElement(object):
         self.__parser = etree.XMLParser(remove_blank_text=True)
         self.__xslt_doc = etree.parse(io.BytesIO(self.__xslt), self.__parser)
         self.__transform = etree.XSLT(self.__xslt_doc)
-        self.__root = etree.fromstring(str(self.__transform(etree.parse(StringIO(rpc_reply)))))
+        self.__root = etree.fromstring(str(self.__transform(etree.parse(StringIO(str(rpc_reply))))))
         return self.__root
 
 

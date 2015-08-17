@@ -12,16 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from errors import OperationError, TimeoutExpiredError, MissingCapabilityError
-from rpc import RPC, RPCReply, RPCError, RaiseMode
+from ncclient.operations.errors import OperationError, TimeoutExpiredError, MissingCapabilityError
+from ncclient.operations.rpc import RPC, RPCReply, RPCError, RaiseMode
 
 # rfc4741 ops
-from retrieve import Get, GetConfig, GetReply, Dispatch
-from edit import EditConfig, CopyConfig, DeleteConfig, Validate, Commit, DiscardChanges
-from session import CloseSession, KillSession
-from lock import Lock, Unlock, LockContext
+from ncclient.operations.retrieve import Get, GetConfig, GetReply, Dispatch
+from ncclient.operations.edit import EditConfig, CopyConfig, DeleteConfig, Validate, Commit, DiscardChanges
+from ncclient.operations.session import CloseSession, KillSession
+from ncclient.operations.lock import Lock, Unlock, LockContext
 # others...
-from flowmon import PoweroffMachine, RebootMachine
+from ncclient.operations.flowmon import PoweroffMachine, RebootMachine
 
 __all__ = [
     'RPC',

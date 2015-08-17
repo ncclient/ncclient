@@ -1,4 +1,4 @@
-<rpc-reply xmlns:junos="http://xml.juniper.net/junos/12.1X46/junos">
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/12.1X46/junos" attrib1 = "test">
     <software-information>
         <host-name>R1</host-name>
         <product-model>firefly-perimeter</product-model>
