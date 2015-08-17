@@ -20,12 +20,8 @@ from distutils.command.install import install as _install
 import sys
 import platform
 
-if not sys.version_info[0] == 2:
-    print "Sorry, Python 3 is not supported (yet)"
-    exit()
-
 if sys.version_info[0] == 2 and sys.version_info[1] < 6:
-    print "Sorry, Python < 2.6 is not supported"
+    print ("Sorry, Python < 2.6 is not supported")
     exit()
 
 #parse requirements
@@ -37,7 +33,7 @@ with open('README.rst') as file:
 
 
 setup(name='ncclient',
-      version='0.4.3',
+      version='0.4.4',
       description="Python library for NETCONF clients",
       long_description = long_description,
       author="Shikhar Bhushan, Leonidas Poulopoulos, Ebben Aries",
@@ -52,6 +48,7 @@ setup(name='ncclient',
           'Development Status :: 5 - Production/Stable',
           'Programming Language :: Python :: 2.6',
           'Programming Language :: Python :: 2.7',
+          'Programming Language :: Python :: 3.4',
           'Topic :: System :: Networking',
           'Intended Audience :: Developers',
           'Operating System :: OS Independent',

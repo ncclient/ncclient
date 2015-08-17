@@ -17,15 +17,18 @@ import sys
 import socket
 import getpass
 from binascii import hexlify
-from cStringIO import StringIO
+import sys
+from six import StringIO
+from io import BytesIO
+from lxml import etree
 from select import select
 
 from ncclient.capabilities import Capabilities
 
 import paramiko
 
-from errors import AuthenticationError, SessionCloseError, SSHError, SSHUnknownHostError
-from session import Session
+from ncclient.transport.errors import AuthenticationError, SessionCloseError, SSHError, SSHUnknownHostError
+from ncclient.transport.session import Session
 
 import logging
 logger = logging.getLogger("ncclient.transport.ssh")
@@ -48,6 +51,7 @@ def default_unknown_host_cb(host, fingerprint):
     return False
 
 def _colonify(fp):
+    fp = fp.decode('UTF-8')
     finga = fp[:2]
     for idx  in range(2, len(fp), 2):
         finga += ":" + fp[idx:idx+2]
@@ -66,7 +70,10 @@ class SSHSession(Session):
         self._channel = None
         self._channel_id = None
         self._channel_name = None
-        self._buffer = StringIO() # for incoming data
+        if sys.version<'3':
+            self._buffer = StringIO() # for incoming data
+        else:
+            self._buffer = BytesIO() # for incoming data
         # parsing-related, see _parse()
         self._parsing_state = 0
         self._parsing_pos = 0
@@ -81,6 +88,8 @@ class SSHSession(Session):
         buf.seek(self._parsing_pos)
         while True:
             x = buf.read(1)
+            if isinstance(x, bytes):
+                x = x.decode('UTF-8')
             if not x: # done reading
                 break
             elif x == delim[expect]: # what we expected
@@ -91,6 +100,8 @@ class SSHSession(Session):
             # loop till last delim char expected, break if other char encountered
             for i in range(expect, n):
                 x = buf.read(1)
+                if isinstance(x, bytes):
+                    x = x.decode('UTF-8')
                 if not x: # done reading
                     break
                 if x == delim[expect]: # what we expected
@@ -102,10 +113,16 @@ class SSHSession(Session):
                 msg_till = buf.tell() - n
                 buf.seek(0)
                 logger.debug('parsed new message')
-                self._dispatch_message(buf.read(msg_till).strip())
-                buf.seek(n+1, os.SEEK_CUR)
-                rest = buf.read()
-                buf = StringIO()
+                if sys.version < '3':
+                    self._dispatch_message(buf.read(msg_till).strip())
+                    buf.seek(n+1, os.SEEK_CUR)
+                    rest = buf.read()
+                    buf = StringIO()
+                else:
+                    self._dispatch_message(buf.read(msg_till).strip().decode('UTF-8'))
+                    buf.seek(n+1, os.SEEK_CUR)
+                    rest = buf.read()
+                    buf = BytesIO()
                 buf.write(rest)
                 buf.seek(0)
                 expect = 0
@@ -227,7 +244,7 @@ class SSHSession(Session):
 
         if key_filename is None:
             key_filenames = []
-        elif isinstance(key_filename, basestring):
+        elif isinstance(key_filename, (str, bytes)):
             key_filenames = [ key_filename ]
         else:
             key_filenames = key_filename
