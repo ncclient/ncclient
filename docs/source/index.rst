@@ -23,7 +23,7 @@ The best way to introduce is through a simple code example::
 As of version 0.4 there has been an integration of Juniper's and Cisco's forks. Thus, lots of new concepts
 have been introduced that ease management of Juniper and Cisco devices respectively.
 The biggest change is the introduction of device handlers in connection params.
-For example to invoke Juniper's functions annd params one has to re-write the above with **device_params={'name':'junos'}**::
+For example to invoke Juniper's functions and params one has to re-write the above with **device_params={'name':'junos'}**::
 
     from ncclient import manager
 
