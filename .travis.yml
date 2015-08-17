@@ -4,5 +4,6 @@ python:
 install:
 - pip install .
 - pip install -r requirements.txt
-- pip install rednose coverage
+- pip install rednose coverage coveralls
 script: nosetests test --rednose --verbosity=3 --with-coverage --cover-package ncclient
+after_success: coveralls
