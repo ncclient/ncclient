@@ -13,8 +13,7 @@ generic information needed for interaction with a Netconf server.
 """
 
 from ncclient.xml_ import BASE_NS_1_0
-
-from .default import DefaultDeviceHandler
+from ncclient.devices.default import DefaultDeviceHandler
 from ncclient.operations.third_party.h3c.rpc import *
 
 

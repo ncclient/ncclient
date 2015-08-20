@@ -1,8 +1,6 @@
 from ncclient.xml_ import *
 
 from ncclient.operations.rpc import RPC
-from ncclient.operations.rpc import RPCReply
-from ncclient.operations.rpc import RPCError
 from ncclient import NCClientError
 
 class GetConfiguration(RPC):

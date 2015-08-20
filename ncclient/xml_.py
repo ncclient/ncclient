@@ -15,10 +15,7 @@
 
 "Methods for creating, parsing, and dealing with XML and ElementTree objects."
 
-
-import io
-
-from StringIO import StringIO
+from ncclient import compat
 from lxml import etree
 
 # In case issues come up with XML generation/parsing
@@ -88,7 +85,11 @@ qualify = lambda tag, ns=BASE_NS_1_0: tag if ns is None else "{%s}%s" % (ns, tag
 def to_xml(ele, encoding="UTF-8", pretty_print=False):
     "Convert and return the XML for an *ele* (:class:`~xml.etree.ElementTree.Element`) with specified *encoding*."
     xml = etree.tostring(ele, encoding=encoding, pretty_print=pretty_print)
-    return xml if xml.startswith('<?xml') else '<?xml version="1.0" encoding="%s"?>%s' % (encoding, xml)
+
+    if xml.startswith(compat.force_bytes('<?xml')):
+        return xml
+    else:
+        return compat.force_bytes('<?xml version="1.0" encoding="%s"?>%s' % (encoding, compat.force_text(xml)))
 
 def to_ele(x):
     "Convert and return the :class:`~xml.etree.ElementTree.Element` for the XML document *x*. If *x* is already an :class:`~xml.etree.ElementTree.Element` simply returns that."
@@ -96,7 +97,7 @@ def to_ele(x):
 
 def parse_root(raw):
     "Efficiently parses the root element of a *raw* XML document, returning a tuple of its qualified name and attribute dictionary."
-    fp = StringIO(raw)
+    fp = compat.BytesIO(raw)
     for event, element in etree.iterparse(fp, events=('start',)):
         return (element.tag, element.attrib)
 
@@ -111,13 +112,13 @@ def validated_element(x, tags=None, attrs=None):
     """
     ele = to_ele(x)
     if tags:
-        if isinstance(tags, basestring):
+        if isinstance(tags, compat.string_types):
             tags = [tags]
         if ele.tag not in tags:
             raise XMLError("Element [%s] does not meet requirement" % ele.tag)
     if attrs:
         for req in attrs:
-            if isinstance(req, basestring): req = [req]
+            if isinstance(req, compat.string_types): req = [req]
             for alt in req:
                 if alt in ele.attrib:
                     break
@@ -165,7 +166,7 @@ class NCElement(object):
         """return a pretty-printed string output for rpc reply"""
         parser = etree.XMLParser(remove_blank_text=True)
         outputtree = etree.XML(etree.tostring(self.__doc), parser)
-        return etree.tostring(outputtree, pretty_print=True)
+        return etree.tostring(outputtree, encoding='unicode', pretty_print=True)
 
     @property
     def data_xml(self):
@@ -176,9 +177,9 @@ class NCElement(object):
         """remove xmlns attributes from rpc reply"""
         self.__xslt=self.__transform_reply
         self.__parser = etree.XMLParser(remove_blank_text=True)
-        self.__xslt_doc = etree.parse(io.BytesIO(self.__xslt), self.__parser)
+        self.__xslt_doc = etree.parse(compat.StringIO(self.__xslt), self.__parser)
         self.__transform = etree.XSLT(self.__xslt_doc)
-        self.__root = etree.fromstring(str(self.__transform(etree.parse(StringIO(rpc_reply)))))
+        self.__root = etree.fromstring(str(self.__transform(etree.parse(compat.StringIO(str(rpc_reply))))))
         return self.__root
 
 

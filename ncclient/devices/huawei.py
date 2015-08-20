@@ -14,8 +14,8 @@ generic information needed for interaction with a Netconf server.
 from ncclient.operations.third_party.huawei.rpc import *
 
 from ncclient.xml_ import BASE_NS_1_0
+from ncclient.devices.default import DefaultDeviceHandler
 
-from .default import DefaultDeviceHandler
 
 class HuaweiDeviceHandler(DefaultDeviceHandler):
     """

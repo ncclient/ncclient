@@ -1,8 +1,8 @@
 import os
-from cStringIO import StringIO
 from select import select
 from subprocess import Popen, PIPE, STDOUT
 
+from ncclient import compat
 from ncclient.transport.errors import SessionCloseError, TransportError
 from ncclient.transport.ssh import SSHSession
 
@@ -21,7 +21,7 @@ class IOProc(SSHSession):
         self._channel = None
         self._channel_id = None
         self._channel_name = None
-        self._buffer = StringIO()  # for incoming data
+        self._buffer = compat.StringIO()  # for incoming data
         # parsing-related, see _parse()
         self._parsing_state = 0
         self._parsing_pos = 0

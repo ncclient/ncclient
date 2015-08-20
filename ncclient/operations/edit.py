@@ -12,11 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from ncclient.operations import util
+from ncclient.operations.rpc import RPC
 from ncclient.xml_ import *
-
-from rpc import RPC
-
-import util
 
 import logging
 

@@ -17,8 +17,7 @@ from uuid import uuid1
 
 from ncclient.xml_ import *
 from ncclient.transport import SessionListener
-
-from errors import OperationError, TimeoutExpiredError, MissingCapabilityError
+from ncclient.operations.errors import OperationError, TimeoutExpiredError, MissingCapabilityError
 
 import logging
 logger = logging.getLogger("ncclient.operations.rpc")

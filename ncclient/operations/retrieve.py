@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from rpc import RPC, RPCReply
-
+from ncclient.operations import util
+from ncclient.operations.rpc import RPC, RPCReply
 from ncclient.xml_ import *
 
-import util
 
 class GetReply(RPCReply):
 

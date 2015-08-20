@@ -14,9 +14,8 @@
 
 "Session-related NETCONF operations"
 
+from ncclient.operations.rpc import RPC
 from ncclient.xml_ import *
-
-from rpc import RPC
 
 class CloseSession(RPC):
 
