@@ -5,6 +5,14 @@
 ncclient: Python library for NETCONF clients
 --------------------------------------------
 
+##Important - Python3 support!
+
+**ncclient 0.5.0 with Python 3 support is now in pypitest. To install and test:**
+
+```pip install -i https://testpypi.python.org/pypi ncclient```
+
+Latest stable Python2 version is *0.4.4* (Sep 2015)
+
 ncclient is a Python library that facilitates client-side scripting
 and application development around the NETCONF protocol. `ncclient` was
 developed by [Shikar Bhushan](http://schmizz.net). It is now maintained
