@@ -1,5 +1,5 @@
 # Copyright 2009 Shikhar Bhushan
-# Copyright 201[2-4] Leonidas Poulopoulos (@leopoul)
+# Copyright 201[2-5] Leonidas Poulopoulos (@leopoul)
 # Copyright 2013 Ebben Aries
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,7 @@ with open('README.rst') as file:
 
 
 setup(name='ncclient',
-      version='0.4.4',
+      version='0.5.0',
       description="Python library for NETCONF clients",
       long_description = long_description,
       author="Shikhar Bhushan, Leonidas Poulopoulos, Ebben Aries",

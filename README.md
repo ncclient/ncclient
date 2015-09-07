@@ -15,7 +15,7 @@ by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org)
 **PyPI**: [https://pypi.python.org/pypi/ncclient](https://pypi.python.org/pypi/ncclient)
 
 #### Requirements:
-* Python 2.6 <= version < 3.0
+* version >= Python 2.6
 * setuptools 0.6+
 * Paramiko 1.7+
 * lxml 3.0+
@@ -77,6 +77,7 @@ Device handlers are easy to implement and prove to be futureproof.
 
 ### Changes | brief
 
+* Python 3 support
 * Add Huawei device support
 * Add cli command support for hpcomware v7 devices
 * Add H3C support, Support H3C CLI,Action,Get_bulk,Save,Rollback,etc.
@@ -94,7 +95,8 @@ Device handlers are easy to implement and prove to be futureproof.
 * Check the correct field on rpc-error element
 
 ### Acknowledgements
-* v0.4.4: Thanks to all contribs and bug hunters; [Sebastian Wiesinger] (https://github.com/sebastianw), [Vincent Bernat] (https://github.com/vincentbernat), [Matthew Stone] (https://github.com/bigmstone), [Nitin Kumar] (https://github.com/vnitinv)
+
+* v0.4.4, v0.5.0 : Thanks to all contribs and bug hunters; [Sebastian Wiesinger] (https://github.com/sebastianw), [Vincent Bernat] (https://github.com/vincentbernat), [Matthew Stone] (https://github.com/bigmstone), [Nitin Kumar] (https://github.com/vnitinv)
 * v0.4.3: Thanks to all contributors and bug hunters; [Jeremy Schulman](https://github.com/jeremyschulman), [Ray Solomon](https://github.com/rsolomo), [Rick Sherman](https://github.com/shermdog), [subhak186](https://github.com/subhak186)
 * v0.4.2: Thanks to all contributors; [katharh](https://github.com/katharh), [Francis Luong (Franco)](https://github.com/francisluong), [Vincent Bernat](https://github.com/vincentbernat), [Juergen Brendel](https://github.com/juergenbrendel), [Quentin Loos](https://github.com/Kent1), [Ray Solomon](https://github.com/rsolomo), [Sebastian Wiesinger](https://github.com/sebastianw), [Ebben Aries](https://github.com/earies) 
 * v0.4.1: Many thanks, primarily to [Jeremy Schulman](https://github.com/jeremyschulman) (Juniper) for providing his precious feedback, to [Ebben Aries](https://github.com/earies) (Juniper) for his contribution, to Juergen Brendel (Cisco) for the Cisco fork and to all contributors from Cisco and Juniper.
