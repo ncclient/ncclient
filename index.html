@@ -1,56 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="en-us">
   <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <meta charset="UTF-8">
+    <title>ncclient by ncclient</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <title>ncclient by leopoul</title>
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
   </head>
-
   <body>
-    <div id="container">
-      <div class="inner">
+    <section class="page-header">
+      <h1 class="project-name">ncclient</h1>
+      <h2 class="project-tagline">Python library for NETCONF clients</h2>
+      <a href="https://github.com/ncclient/ncclient" class="btn">View on GitHub</a>
+      <a href="https://github.com/ncclient/ncclient/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/ncclient/ncclient/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
 
-        <header>
-          <h1>ncclient</h1>
-          <h2>Python library for NETCONF clients</h2>
-        </header>
-
-        <section id="downloads" class="clearfix">
-          <a href="https://github.com/leopoul/ncclient/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
-          <a href="https://github.com/leopoul/ncclient/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
-          <a href="https://github.com/leopoul/ncclient" id="view-on-github" class="button"><span>View on GitHub</span></a>
-        </section>
-
-        <hr>
-
-        <section id="main_content">
-          <p><a href="https://travis-ci.org/leopoul/ncclient"><img src="https://travis-ci.org/leopoul/ncclient.svg?branch=master" alt="Build Status"></a></p>
+    <section class="main-content">
+      <p><a href="https://travis-ci.org/ncclient/ncclient"><img src="https://travis-ci.org/ncclient/ncclient.svg?branch=master" alt="Build Status"></a>
+<a href="https://coveralls.io/r/leopoul/ncclient"><img src="https://coveralls.io/repos/leopoul/ncclient/badge.svg" alt="Coverage Status"></a>
+<a href="https://readthedocs.org/projects/ncclient/?badge=latest"><img src="https://readthedocs.org/projects/ncclient/badge/?version=latest" alt="Documentation Status"></a></p>
 
 <h2>
-<a name="ncclient-python-library-for-netconf-clients" class="anchor" href="#ncclient-python-library-for-netconf-clients"><span class="octicon octicon-link"></span></a>ncclient: Python library for NETCONF clients</h2>
+<a id="ncclient-python-library-for-netconf-clients" class="anchor" href="#ncclient-python-library-for-netconf-clients" aria-hidden="true"><span class="octicon octicon-link"></span></a>ncclient: Python library for NETCONF clients</h2>
+
+<h2>
+<a id="important---python3-support" class="anchor" href="#important---python3-support" aria-hidden="true"><span class="octicon octicon-link"></span></a>Important - Python3 support!</h2>
+
+<p><strong>ncclient 0.5.0 with Python 3 support is now in pypitest. To install and test:</strong></p>
+
+<p><code>pip install -i https://testpypi.python.org/pypi ncclient</code></p>
+
+<p>Latest stable Python2 version is <em>0.4.4</em> (Sep 2015)</p>
 
 <p>ncclient is a Python library that facilitates client-side scripting
 and application development around the NETCONF protocol. <code>ncclient</code> was
 developed by <a href="http://schmizz.net">Shikar Bhushan</a>. It is now maintained
-by <a href="http://ncclient.leopoul.com">Leonidas Poulopoulos (@leopoul)</a></p>
-
-<p>This version includes a merge of <a href="http://www.juniper.net">Juniper Networks</a>
-and <a href="http://www.cisco.com">Cisco Systems</a> respective ncclient forks based
-on <a href="https://github.com/leopoul/ncclient">leopoul/ncclient v0.3.2</a></p>
+by <a href="http://ncclient.org">Leonidas Poulopoulos (@leopoul)</a></p>
 
 <p><strong>Docs</strong>: <a href="http://ncclient.readthedocs.org">http://ncclient.readthedocs.org</a></p>
 
 <p><strong>PyPI</strong>: <a href="https://pypi.python.org/pypi/ncclient">https://pypi.python.org/pypi/ncclient</a></p>
 
 <h4>
-<a name="requirements" class="anchor" href="#requirements"><span class="octicon octicon-link"></span></a>Requirements:</h4>
+<a id="requirements" class="anchor" href="#requirements" aria-hidden="true"><span class="octicon octicon-link"></span></a>Requirements:</h4>
 
 <ul>
 <li>Python 2.6 &lt;= version &lt; 3.0</li>
@@ -59,13 +54,17 @@ on <a href="https://github.com/leopoul/ncclient">leopoul/ncclient v0.3.2</a></p>
 <li>lxml 3.0+</li>
 <li>libxml2</li>
 <li>libxslt</li>
-</ul><p>If you are on Debian/Ubuntu install the following libs (via aptitude or apt-get):</p>
+</ul>
+
+<p>If you are on Debian/Ubuntu install the following libs (via aptitude or apt-get):</p>
 
 <ul>
 <li>libxml2-dev</li>
 <li>libxslt1-dev</li>
-</ul><h4>
-<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation:</h4>
+</ul>
+
+<h4>
+<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installation:</h4>
 
 <pre><code>[ncclient] $ sudo python setup.py install
 </code></pre>
@@ -76,16 +75,16 @@ on <a href="https://github.com/leopoul/ncclient">leopoul/ncclient v0.3.2</a></p>
 </code></pre>
 
 <h4>
-<a name="examples" class="anchor" href="#examples"><span class="octicon octicon-link"></span></a>Examples:</h4>
+<a id="examples" class="anchor" href="#examples" aria-hidden="true"><span class="octicon octicon-link"></span></a>Examples:</h4>
 
 <pre><code>[ncclient] $ python examples/juniper/*.py
 </code></pre>
 
 <h3>
-<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h3>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h3>
 
-<h5>
-<a name="get-device-running-config" class="anchor" href="#get-device-running-config"><span class="octicon octicon-link"></span></a>Get device running config</h5>
+<h4>
+<a id="get-device-running-config" class="anchor" href="#get-device-running-config" aria-hidden="true"><span class="octicon octicon-link"></span></a>Get device running config</h4>
 
 <p>Use either an interactive Python console (ipython)
 or integrate the following in your code:</p>
@@ -98,7 +97,7 @@ with manager.connect(host=host, port=830, username=user, hostkey_verify=False) a
         f.write(c)
 </code></pre>
 
-<p>As this version integrates Juniper's and Cisco's forks, lots of new concepts
+<p>As of 0.4.1 ncclient integrates Juniper's and Cisco's forks, lots of new concepts
 have been introduced that ease management of Juniper and Cisco devices respectively.
 The biggest change is the introduction of device handlers in connection paramms.
 For example to invoke Juniper's functions annd params one has to re-write the above with <strong><em>device_params={'name':'junos'}</em></strong>:</p>
@@ -111,31 +110,62 @@ with manager.connect(host=host, port=830, username=user, hostkey_verify=False, d
         f.write(c)
 </code></pre>
 
-<p>Respectively, for Cisco Nexus, the name is <strong>nexus</strong>.
-Device handlers are easy to implement and prove to be futureproof.</p>
+<p>Device handlers are easy to implement and prove to be futureproof.</p>
 
-<h3>
-<a name="changes--brief" class="anchor" href="#changes--brief"><span class="octicon octicon-link"></span></a>Changes | brief</h3>
+<h4>
+<a id="supported-device-handlers" class="anchor" href="#supported-device-handlers" aria-hidden="true"><span class="octicon octicon-link"></span></a>Supported device handlers</h4>
 
 <ul>
-<li>Switch between replies if custom handler is found</li>
-<li>Add Juniper, Cisco and default device handlers</li>
-<li>Allow preferred SSH subsystem name in device params</li>
-<li>Allow iteration over multiple SSH subsystem names.</li>
-</ul><h3>
-<a name="acknowledgements" class="anchor" href="#acknowledgements"><span class="octicon octicon-link"></span></a>Acknowledgements</h3>
+<li>Juniper: device_params={'name':'junos'}</li>
+<li>Cisco CSR: device_params={'name':'csr'}</li>
+<li>Cisco Nexus: device_params={'name':'nexus'}</li>
+<li>Huawei: device_params={'name':'huawei'}</li>
+<li>Alcatel Lucent: device_params={'name':'alu'}</li>
+<li>H3C: device_params={'name':'h3c'}</li>
+<li>HP Comware: device_params={'name':'hpcomware'}</li>
+</ul>
 
-<p>Many thanks, primarily to <a href="https://github.com/jeremyschulman">Jeremy Schulman</a> (Juniper) for providing his precious feedback,
-to <a href="https://github.com/earies">Ebben Aries</a> (Juniper) for his contribution, to Juergen Brendel (Cisco) for the Cisco fork and
-to all contributors from Cisco and Juniper.</p>
-        </section>
+<h3>
+<a id="changes--brief" class="anchor" href="#changes--brief" aria-hidden="true"><span class="octicon octicon-link"></span></a>Changes | brief</h3>
 
-        <footer>
-          ncclient is maintained by <a href="https://github.com/leopoul">leopoul</a><br>
-          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
-        </footer>
+<ul>
+<li>Add Huawei device support</li>
+<li>Add cli command support for hpcomware v7 devices</li>
+<li>Add H3C support, Support H3C CLI,Action,Get_bulk,Save,Rollback,etc.</li>
+<li><p>Add alcatel lucent support</p></li>
+<li><p>Rewrite multiple error handling</p></li>
+<li>Add coveralls support, with shield in README.md</li>
+<li>Set severity level to higher when multiple</li>
+<li>Simplify logging and multi-error reporting</li>
+<li>Keep stacktrace of errors</li>
+<li>Check for known hosts on hostkey_verify only</li>
+<li>Add check for device sending back null error_text</li>
+<li>Fix RPC.raise_mode</li>
+<li>Specifying hostkey_verify=False should not load_known_hosts</li>
+<li>Check the correct field on rpc-error element</li>
+</ul>
 
-                  <script type="text/javascript">
+<h3>
+<a id="acknowledgements" class="anchor" href="#acknowledgements" aria-hidden="true"><span class="octicon octicon-link"></span></a>Acknowledgements</h3>
+
+<ul>
+<li>v0.4.4: Thanks to all contribs and bug hunters; <a href="https://github.com/sebastianw">Sebastian Wiesinger</a>, <a href="https://github.com/vincentbernat">Vincent Bernat</a>, <a href="https://github.com/bigmstone">Matthew Stone</a>, <a href="https://github.com/vnitinv">Nitin Kumar</a>
+</li>
+<li>v0.4.3: Thanks to all contributors and bug hunters; <a href="https://github.com/jeremyschulman">Jeremy Schulman</a>, <a href="https://github.com/rsolomo">Ray Solomon</a>, <a href="https://github.com/shermdog">Rick Sherman</a>, <a href="https://github.com/subhak186">subhak186</a>
+</li>
+<li>v0.4.2: Thanks to all contributors; <a href="https://github.com/katharh">katharh</a>, <a href="https://github.com/francisluong">Francis Luong (Franco)</a>, <a href="https://github.com/vincentbernat">Vincent Bernat</a>, <a href="https://github.com/juergenbrendel">Juergen Brendel</a>, <a href="https://github.com/Kent1">Quentin Loos</a>, <a href="https://github.com/rsolomo">Ray Solomon</a>, <a href="https://github.com/sebastianw">Sebastian Wiesinger</a>, <a href="https://github.com/earies">Ebben Aries</a> </li>
+<li>v0.4.1: Many thanks, primarily to <a href="https://github.com/jeremyschulman">Jeremy Schulman</a> (Juniper) for providing his precious feedback, to <a href="https://github.com/earies">Ebben Aries</a> (Juniper) for his contribution, to Juergen Brendel (Cisco) for the Cisco fork and to all contributors from Cisco and Juniper.</li>
+</ul>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/ncclient/ncclient">ncclient</a> is maintained by <a href="https://github.com/ncclient">ncclient</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+            <script type="text/javascript">
             var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
             document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
           </script>
@@ -146,7 +176,5 @@ to all contributors from Cisco and Juniper.</p>
             } catch(err) {}
           </script>
 
-      </div>
-    </div>
   </body>
 </html>
