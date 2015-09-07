@@ -70,17 +70,31 @@ Device handlers are easy to implement and prove to be futureproof.
 * Cisco CSR: device_params={'name':'csr'}
 * Cisco Nexus: device_params={'name':'nexus'}
 * Huawei: device_params={'name':'huawei'}
+* Alcatel Lucent: device_params={'name':'alu'}
+* H3C: device_params={'name':'h3c'}
+* HP Comware: device_params={'name':'hpcomware'}
 
 
 ### Changes | brief
 
-* Nexus exec_command operation
-* Allow specifying multiple cmd elements in Cisco Nexus
-* Update rpc for nested rpc-errors
-* Prevent race condition in threading
-* Prevent hanging in session close
+* Add Huawei device support
+* Add cli command support for hpcomware v7 devices
+* Add H3C support, Support H3C CLI,Action,Get_bulk,Save,Rollback,etc.
+* Add alcatel lucent support
+
+* Rewrite multiple error handling
+* Add coveralls support, with shield in README.md
+* Set severity level to higher when multiple
+* Simplify logging and multi-error reporting
+* Keep stacktrace of errors
+* Check for known hosts on hostkey_verify only
+* Add check for device sending back null error_text
+* Fix RPC.raise_mode
+* Specifying hostkey_verify=False should not load_known_hosts
+* Check the correct field on rpc-error element
 
 ### Acknowledgements
+* v0.4.4: Thanks to all contribs and bug hunters; [Sebastian Wiesinger] (https://github.com/sebastianw), [Vincent Bernat] (https://github.com/vincentbernat), [Matthew Stone] (https://github.com/bigmstone), [Nitin Kumar] (https://github.com/vnitinv)
 * v0.4.3: Thanks to all contributors and bug hunters; [Jeremy Schulman](https://github.com/jeremyschulman), [Ray Solomon](https://github.com/rsolomo), [Rick Sherman](https://github.com/shermdog), [subhak186](https://github.com/subhak186)
 * v0.4.2: Thanks to all contributors; [katharh](https://github.com/katharh), [Francis Luong (Franco)](https://github.com/francisluong), [Vincent Bernat](https://github.com/vincentbernat), [Juergen Brendel](https://github.com/juergenbrendel), [Quentin Loos](https://github.com/Kent1), [Ray Solomon](https://github.com/rsolomo), [Sebastian Wiesinger](https://github.com/sebastianw), [Ebben Aries](https://github.com/earies) 
 * v0.4.1: Many thanks, primarily to [Jeremy Schulman](https://github.com/jeremyschulman) (Juniper) for providing his precious feedback, to [Ebben Aries](https://github.com/earies) (Juniper) for his contribution, to Juergen Brendel (Cisco) for the Cisco fork and to all contributors from Cisco and Juniper.
