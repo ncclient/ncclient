@@ -1,5 +1,5 @@
-[![Build Status](https://travis-ci.org/leopoul/ncclient.svg?branch=master)](https://travis-ci.org/leopoul/ncclient)
-[![Coverage Status](https://coveralls.io/repos/leopoul/ncclient/badge.svg)](https://coveralls.io/r/leopoul/ncclient)
+[![Build Status](https://travis-ci.org/ncclient/ncclient.svg?branch=master)](https://travis-ci.org/ncclient/ncclient)
+[![Coverage Status](https://coveralls.io/repos/ncclient/ncclient/badge.svg)](https://coveralls.io/r/ncclient/ncclient)
 [![Documentation Status](https://readthedocs.org/projects/ncclient/badge/?version=latest)](https://readthedocs.org/projects/ncclient/?badge=latest)
 
 ncclient: Python library for NETCONF clients
@@ -8,7 +8,7 @@ ncclient: Python library for NETCONF clients
 ncclient is a Python library that facilitates client-side scripting
 and application development around the NETCONF protocol. `ncclient` was
 developed by [Shikar Bhushan](http://schmizz.net). It is now maintained
-by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org/ncclient/)
+by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org)
 
 **Docs**: [http://ncclient.readthedocs.org](http://ncclient.readthedocs.org)
 
