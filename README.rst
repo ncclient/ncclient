@@ -143,7 +143,7 @@ Changes \| brief
 Acknowledgements
 ~~~~~~~~~~~~~~~~
 
-- v0.4.4: Thanks to all contribs and bug hunters; `Sebastian Wiesinger <https://github.com/sebastianw`_, `Vincent Bernat <https://github.com/vincentbernat`_, `Matthew Stone <https://github.com/bigmstone`_, `Nitin Kumar <https://github.com/vnitinv`_.
+- v0.4.4: Thanks to all contribs and bug hunters; `Sebastian Wiesinger <https://github.com/sebastianw>`_, `Vincent Bernat <https://github.com/vincentbernat>`_, `Matthew Stone <https://github.com/bigmstone>`_, `Nitin Kumar <https://github.com/vnitinv>`_.
 - v0.4.3: Thanks to all contributors and bug hunters; `Jeremy Schulman <https://github.com/jeremyschulman>`_, `Ray Solomon <https://github.com/rsolomo>`_, `Rick Sherman <https://github.com/shermdog>`_, `subhak186 <https://github.com/subhak186>`_.
 - v0.4.2: Thanks to all contributors; `katharh <https://github.com/katharh>`_, `Francis Luong (Franco) <https://github.com/francisluong>`_, `Vincent Bernat <https://github.com/vincentbernat>`_, `Juergen Brendel <https://github.com/juergenbrendel>`_, `Quentin Loos <https://github.com/Kent1>`_, `Ray Solomon <https://github.com/rsolomo>`_, `Sebastian Wiesinger <https://github.com/sebastianw>`_, `Ebben Aries <https://github.com/earies>`_ .
 - v0.4.1: Many thanks, primarily to `Jeremy Schulman <https://github.com/jeremyschulman>`_ (Juniper) for providing his precious feedback, to `Eben Aries <https://github.com/earies>`_ (Juniper) for his contribution, to Juergen Brendel (Cisco) for the Cisco fork and to all contributors from Cisco and Juniper.
