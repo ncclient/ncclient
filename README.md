@@ -13,7 +13,7 @@ ncclient: Python library for NETCONF clients
 
 or get it via the [v3 branch](https://github.com/ncclient/ncclient/tree/v3) 
 
-Latest stable Python2 version is *0.4.4* (Sep 2015) and is now on PyPi:
+Latest stable Python2 version is *0.4.5* (Sep 2015) and is now on PyPi:
 
 ```pip install ncclient```
 
@@ -107,7 +107,7 @@ Device handlers are easy to implement and prove to be futureproof.
 * Check the correct field on rpc-error element
 
 ### Acknowledgements
-* v0.4.4: Thanks to all contribs and bug hunters; [Sebastian Wiesinger] (https://github.com/sebastianw), [Vincent Bernat] (https://github.com/vincentbernat), [Matthew Stone] (https://github.com/bigmstone), [Nitin Kumar] (https://github.com/vnitinv)
+* v0.4.5: Thanks to all contribs and bug hunters; [Sebastian Wiesinger] (https://github.com/sebastianw), [Vincent Bernat] (https://github.com/vincentbernat), [Matthew Stone] (https://github.com/bigmstone), [Nitin Kumar] (https://github.com/vnitinv)
 * v0.4.3: Thanks to all contributors and bug hunters; [Jeremy Schulman](https://github.com/jeremyschulman), [Ray Solomon](https://github.com/rsolomo), [Rick Sherman](https://github.com/shermdog), [subhak186](https://github.com/subhak186)
 * v0.4.2: Thanks to all contributors; [katharh](https://github.com/katharh), [Francis Luong (Franco)](https://github.com/francisluong), [Vincent Bernat](https://github.com/vincentbernat), [Juergen Brendel](https://github.com/juergenbrendel), [Quentin Loos](https://github.com/Kent1), [Ray Solomon](https://github.com/rsolomo), [Sebastian Wiesinger](https://github.com/sebastianw), [Ebben Aries](https://github.com/earies) 
 * v0.4.1: Many thanks, primarily to [Jeremy Schulman](https://github.com/jeremyschulman) (Juniper) for providing his precious feedback, to [Ebben Aries](https://github.com/earies) (Juniper) for his contribution, to Juergen Brendel (Cisco) for the Cisco fork and to all contributors from Cisco and Juniper.
