@@ -16,7 +16,7 @@ from errors import OperationError, TimeoutExpiredError, MissingCapabilityError
 from rpc import RPC, RPCReply, RPCError, RaiseMode
 
 # rfc4741 ops
-from retrieve import Get, GetConfig, GetReply, Dispatch
+from retrieve import Get, GetConfig, GetSchema, GetReply, Dispatch
 from edit import EditConfig, CopyConfig, DeleteConfig, Validate, Commit, DiscardChanges
 from session import CloseSession, KillSession
 from lock import Lock, Unlock, LockContext
