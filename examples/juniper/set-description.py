@@ -23,5 +23,5 @@ if __name__ == '__main__':
     host = 'router.example.com'
     username = raw_input('Give the username for %s: ' % host)
     password = getpass.getpass('Give the password: ')
-    interface = 'ge-1/1/5'
-    connect(host, 830, username, password, 'set interfaces ge-1/1/5 description example')
+    interface = 'em0'
+    connect(host, 830, username, password, 'set interfaces %s description example' % interface)
