@@ -1,14 +1,11 @@
 #!/usr/bin/env python
+
 from ncclient import manager
 from ncclient.xml_ import *
 from getpass import getpass
 
 
 def connect(host, user, password):
-    '''
-    Creates a dict with all the vpn connections inside
-    a network devices.
-    '''
     with manager.connect(
         host=host,
         port=22,
@@ -45,10 +42,11 @@ def connect(host, user, password):
                         connection_dict.get(cid).append(connection_details_dict)
                     else:
                         connection_dict.update({cid: [connection_details_dict]})
+
     return connection_dict
 
 if __name__ == '__main__':
     host = 'router.example.com'
     username = raw_input('Give the username for %s: ' % host)
-    p = getpass('Password: ')
+    password = getpass.getpass('Give the password: ')
     response = connect(host, username, p)
