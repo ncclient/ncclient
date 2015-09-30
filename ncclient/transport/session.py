@@ -22,7 +22,7 @@ from threading import Thread, Lock, Event
 from ncclient.xml_ import *
 from ncclient.capabilities import Capabilities
 
-from errors import TransportError, SessionError
+from errors import TransportError, SessionError, SessionCloseError
 
 import logging
 logger = logging.getLogger('ncclient.transport.session')
@@ -43,6 +43,7 @@ class Session(Thread):
         self._client_capabilities = capabilities
         self._server_capabilities = None # yet
         self._id = None # session-id
+        self._timeout = None
         self._connected = False # to be set/cleared by subclass implementation
         logger.debug('%r created: client_capabilities=%r' %
                      (self, self._client_capabilities))
@@ -92,7 +93,8 @@ class Session(Thread):
         logger.debug('starting main loop')
         self.start()
         # we expect server's hello message
-        init_event.wait()
+        if not init_event.wait(self._timeout):  
+          raise SessionCloseError("Session hello timeout")
         # received hello message or an error happened
         self.remove_listener(listener)
         if error[0]:

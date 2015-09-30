@@ -171,6 +171,7 @@ class SSHSession(Session):
         """
         # Optionaly, parse .ssh/config
         config = {}
+        self._timeout = timeout
         if ssh_config is not None:
             config = paramiko.SSHConfig()
             config.parse(open(os.path.expanduser(ssh_config)))
