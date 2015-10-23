@@ -161,6 +161,10 @@ class DefaultDeviceHandler(object):
         Return True/False depending on found match.
 
         """
+        if not error_text:
+            # no error text to compare, so cannot be exempt
+            return False
+
         error_text = error_text.lower().strip()
 
         # Compare the error text against all the exempt errors.
