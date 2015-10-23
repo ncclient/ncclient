@@ -83,6 +83,7 @@ class SSHSession(Session):
         self._expchunksize = 0
         self._curchunksize = 0
         self._inendpos = 0
+        self._size_num_list = []
         self._message_list = []
 
     def _parse(self):
@@ -143,6 +144,7 @@ class SSHSession(Session):
         idle, instart, inmsg, inbetween, inend = range(5)
         state = self._parsing_state11
         inendpos = self._inendpos
+        num_list = self._size_num_list
         MAX_STARTCHUNK_SIZE = 10 # 4294967295
         pre = 'invalid base:1:1 frame'
         buf = self._buffer
@@ -268,6 +270,7 @@ class SSHSession(Session):
         self._curchunksize = curchunksize
         self._parsing_state11 = state
         self._inendpos = inendpos
+        self._size_num_list = num_list
         self._buffer = buf
         self._parsing_pos11 = self._buffer.tell()
         logger.debug('parse11 ending ...')
