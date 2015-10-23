@@ -151,7 +151,6 @@ class SSHSession(Session):
         buf.seek(self._parsing_pos11)
         message_list = self._message_list # a message is a list of chunks
         chunk_list = []   # a chunk is a list of characters
-        num_list = []     # a num is a list of digits
 
         while True:
             x = buf.read(1)
