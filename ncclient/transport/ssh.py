@@ -151,7 +151,6 @@ class SSHSession(Session):
         buf.seek(self._parsing_pos11)
         message_list = self._message_list # a message is a list of chunks
         chunk_list = []   # a chunk is a list of characters
-        num_list = []     # a num is a list of digits
 
         while True:
             x = buf.read(1)
@@ -504,10 +503,15 @@ class SSHSession(Session):
                     if data:
                         self._buffer.write(data)
                         if self._server_capabilities:
-                            if 'urn:ietf:params:netconf:base:1.1' in self._server_capabilities and 'urn:ietf:params:netconf:base:1.1' in self._client_capabilities: self._parse11()
-                            elif 'urn:ietf:params:netconf:base:1.0' in self._server_capabilities or 'urn:ietf:params:netconf:base:1.0' in self._client_capabilities: self._parse10()
+                            if 'urn:ietf:params:netconf:base:1.1' in self._server_capabilities and 'urn:ietf:params:netconf:base:1.1' in self._client_capabilities:
+                                logger.debug("Selecting netconf:base:1.1 for encoding")
+                                self._parse11()
+                            elif 'urn:ietf:params:netconf:base:1.0' in self._server_capabilities or 'urn:ietf:params:netconf:base:1.0' in self._client_capabilities:
+                                logger.debug("Selecting netconf:base:1.0 for encoding")
+                                self._parse10()
                             else: raise Exception
-                        else: self._parse10() # HELLO msg uses EOM markers.
+                        else:
+                            self._parse10() # HELLO msg uses EOM markers.
                     else:
                         raise SessionCloseError(self._buffer.getvalue())
                 if not q.empty() and chan.send_ready():

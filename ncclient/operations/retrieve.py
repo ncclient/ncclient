@@ -15,6 +15,7 @@
 from rpc import RPC, RPCReply
 
 from ncclient.xml_ import *
+from lxml import etree
 
 import util
 
@@ -84,6 +85,38 @@ class GetConfig(RPC):
         node.append(util.datastore_or_url("source", source, self._assert))
         if filter is not None:
             node.append(util.build_filter(filter))
+        return self._request(node)
+
+class GetSchema(RPC):
+
+    """The *get-schema* RPC."""
+
+    REPLY_CLS = GetReply
+    """See :class:`GetReply`."""
+
+    def request(self, identifier, version=None, format=None):
+        """Retrieve a named schema, with optional revision and type.
+
+        *identifier* name of the schema to be retrieved
+
+        *version* version of schema to get
+
+        *format* format of the schema to be retrieved, yang is the default
+
+        :seealso: :ref:`filter_params`"""
+        node = etree.Element(qualify("get-schema",NETCONF_MONITORING_NS))
+        if identifier is not None:
+            elem = etree.Element(qualify("identifier",NETCONF_MONITORING_NS))
+            elem.text = identifier
+            node.append(elem)
+        if version is not None:
+            elem = etree.Element(qualify("version",NETCONF_MONITORING_NS))
+            elem.text = version
+            node.append(elem)
+        if format is not None:
+            elem = etree.Element(qualify("format",NETCONF_MONITORING_NS))
+            elem.text = format
+            node.append(elem)
         return self._request(node)
 
 class Dispatch(RPC):
