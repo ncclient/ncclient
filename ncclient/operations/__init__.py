@@ -30,6 +30,7 @@ __all__ = [
     'RaiseMode',
     'Get',
     'GetConfig',
+    'GetSchema',
     'Dispatch',
     'GetReply',
     'EditConfig',

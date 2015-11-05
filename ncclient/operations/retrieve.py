@@ -106,7 +106,7 @@ class GetSchema(RPC):
         :seealso: :ref:`filter_params`"""
         node = etree.Element(qualify("get-schema",NETCONF_MONITORING_NS))
         if identifier is not None:
-            elem = etree.Element("identifier")
+            elem = etree.Element(qualify("identifier",NETCONF_MONITORING_NS))
             elem.text = identifier
             node.append(elem)
         if version is not None:
