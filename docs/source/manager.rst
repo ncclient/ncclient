@@ -60,7 +60,9 @@ Presence of capabilities is verified to the extent possible, and you can expect 
 
     .. automethod:: kill_session(session_id)
 
-    .. automethod:: commit(confirmed=False, timeout=None)
+    .. automethod:: commit(confirmed=False, timeout=None, persist=None)
+
+    .. automethod:: cancel_commit(persist_id=None)
 
     .. automethod:: discard_changes()
 
