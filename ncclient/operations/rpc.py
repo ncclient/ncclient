@@ -341,7 +341,7 @@ class RPC(object):
                 else:
                     return self._reply
             else:
-                raise TimeoutExpiredError('Ncclient timed out while waiting for the rpc reply.')
+                raise TimeoutExpiredError('ncclient timed out while waiting for an rpc reply.')
 
     def request(self):
         """Subclasses must implement this method. Typically only the request needs to be built as an
