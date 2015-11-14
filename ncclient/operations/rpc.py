@@ -37,10 +37,9 @@ class RPCError(OperationError):
         qualify("error-message"): "_message"
     }
 
-    def __init__(self, raw, multiple=False):
-        self._multiple = multiple
+    def __init__(self, raw, errs=None):
         self._raw = raw
-        if not multiple:
+        if errs is None:
             # Single RPCError
             for attr in RPCError.tag_to_attr.values():
                 setattr(self, attr, None)
@@ -55,7 +54,7 @@ class RPCError(OperationError):
         else:
             # Multiple errors returned. Errors is a list of RPCError objs
             errlist = []
-            for err in raw:
+            for err in errs:
                 if err.severity:
                     errsev = err.severity
                 else:
@@ -69,6 +68,7 @@ class RPCError(OperationError):
             # We are interested in the severity and the message
             self._severity = 'warning'
             self._message = "\n".join(["%s: %s" %(err['severity'].strip(), err['message'].strip()) for err in errlist])
+            self.errors = errs
             has_error = filter(lambda higherr: higherr['severity'] == 'error', errlist)
             if has_error:
                 self._severity = 'error'
@@ -333,7 +333,7 @@ class RPC(object):
                         errlist = []
                         errors = self._reply.errors
                         if len(errors) > 1:
-                            raise RPCError(errors, multiple=True)
+                            raise RPCError(to_ele(self._reply._raw), errs=errors)
                         else:
                             raise self._reply.error
                 if self._device_handler.transform_reply():
