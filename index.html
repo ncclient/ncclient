@@ -21,7 +21,8 @@
     <section class="main-content">
       <p><a href="https://travis-ci.org/ncclient/ncclient"><img src="https://travis-ci.org/ncclient/ncclient.svg?branch=master" alt="Build Status"></a>
 <a href="https://coveralls.io/r/leopoul/ncclient"><img src="https://coveralls.io/repos/leopoul/ncclient/badge.svg" alt="Coverage Status"></a>
-<a href="https://readthedocs.org/projects/ncclient/?badge=latest"><img src="https://readthedocs.org/projects/ncclient/badge/?version=latest" alt="Documentation Status"></a></p>
+<a href="https://readthedocs.org/projects/ncclient/?badge=latest"><img src="https://readthedocs.org/projects/ncclient/badge/?version=latest" alt="Documentation Status"></a>
+<a href="https://bitdeli.com/free" title="Bitdeli Badge"><img src="https://d2weczhvl823v0.cloudfront.net/ncclient/ncclient/trend.png" alt="Bitdeli Badge"></a></p>
 
 <h2>
 <a id="ncclient-python-library-for-netconf-clients" class="anchor" href="#ncclient-python-library-for-netconf-clients" aria-hidden="true"><span class="octicon octicon-link"></span></a>ncclient: Python library for NETCONF clients</h2>
@@ -35,7 +36,7 @@
 
 <p>or get it via the <a href="https://github.com/ncclient/ncclient/tree/v3">v3 branch</a> </p>
 
-<p>Latest stable Python2 version is <em>0.4.4</em> (Sep 2015) and is now on PyPi:</p>
+<p>Latest stable Python2 version is <em>0.4.6</em> (Nov 2015) and is now on PyPi:</p>
 
 <p><code>pip install ncclient</code></p>
 
@@ -133,27 +134,17 @@ with manager.connect(host=host, port=830, username=user, hostkey_verify=False, d
 <a id="changes--brief" class="anchor" href="#changes--brief" aria-hidden="true"><span class="octicon octicon-link"></span></a>Changes | brief</h3>
 
 <ul>
-<li>Add Huawei device support</li>
-<li>Add cli command support for hpcomware v7 devices</li>
-<li>Add H3C support, Support H3C CLI,Action,Get_bulk,Save,Rollback,etc.</li>
-<li><p>Add alcatel lucent support</p></li>
-<li><p>Rewrite multiple error handling</p></li>
-<li>Add coveralls support, with shield in README.md</li>
-<li>Set severity level to higher when multiple</li>
-<li>Simplify logging and multi-error reporting</li>
-<li>Keep stacktrace of errors</li>
-<li>Check for known hosts on hostkey_verify only</li>
-<li>Add check for device sending back null error_text</li>
-<li>Fix RPC.raise_mode</li>
-<li>Specifying hostkey_verify=False should not load_known_hosts</li>
-<li>Check the correct field on rpc-error element</li>
+<li>Fix multiple RPC error handling</li>
+<li>Add support for cancel-commit and persist param</li>
+<li>Add more examples</li>
 </ul>
 
 <h3>
 <a id="acknowledgements" class="anchor" href="#acknowledgements" aria-hidden="true"><span class="octicon octicon-link"></span></a>Acknowledgements</h3>
 
 <ul>
-<li>v0.4.4: Thanks to all contribs and bug hunters; <a href="https://github.com/sebastianw">Sebastian Wiesinger</a>, <a href="https://github.com/vincentbernat">Vincent Bernat</a>, <a href="https://github.com/bigmstone">Matthew Stone</a>, <a href="https://github.com/vnitinv">Nitin Kumar</a>
+<li>v0.4.6: Thanks to all contribs and bug hunters; <a href="https://github.com/vnitinv">Nitin Kumar</a>, <a href="https://github.com/cmoberg">Carl Moberg</a>, <a href="https://github.com/kroustou">Stavros Kroustouris</a> .</li>
+<li>v0.4.5: Thanks to all contribs and bug hunters; <a href="https://github.com/sebastianw">Sebastian Wiesinger</a>, <a href="https://github.com/vincentbernat">Vincent Bernat</a>, <a href="https://github.com/bigmstone">Matthew Stone</a>, <a href="https://github.com/vnitinv">Nitin Kumar</a>
 </li>
 <li>v0.4.3: Thanks to all contributors and bug hunters; <a href="https://github.com/jeremyschulman">Jeremy Schulman</a>, <a href="https://github.com/rsolomo">Ray Solomon</a>, <a href="https://github.com/shermdog">Rick Sherman</a>, <a href="https://github.com/subhak186">subhak186</a>
 </li>
