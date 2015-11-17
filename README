@@ -75,23 +75,13 @@ Device handlers are easy to implement and prove to be futureproof.
 
 ### Changes | brief
 
-* Add Huawei device support
-* Add cli command support for hpcomware v7 devices
-* Add H3C support, Support H3C CLI,Action,Get_bulk,Save,Rollback,etc.
-* Add alcatel lucent support
-
-* Rewrite multiple error handling
-* Add coveralls support, with shield in README.md
-* Set severity level to higher when multiple
-* Simplify logging and multi-error reporting
-* Keep stacktrace of errors
-* Check for known hosts on hostkey_verify only
-* Add check for device sending back null error_text
-* Fix RPC.raise_mode
-* Specifying hostkey_verify=False should not load_known_hosts
-* Check the correct field on rpc-error element
+* Fix multiple RPC error handling
+* Add support for cancel-commit and persist param
+* Add more examples
 
 ### Acknowledgements
+
+* v0.4.6: Thanks to all contribs and bug hunters; [Nitin Kumar] (https://github.com/vnitinv), [Carl Moberg] (https://github.com/cmoberg), [Stavros Kroustouris] (https://github.com/kroustou)
 * v0.4.5: Thanks to all contribs and bug hunters; [Sebastian Wiesinger] (https://github.com/sebastianw), [Vincent Bernat] (https://github.com/vincentbernat), [Matthew Stone] (https://github.com/bigmstone), [Nitin Kumar] (https://github.com/vnitinv)
 * v0.4.3: Thanks to all contributors and bug hunters; [Jeremy Schulman](https://github.com/jeremyschulman), [Ray Solomon](https://github.com/rsolomo), [Rick Sherman](https://github.com/shermdog), [subhak186](https://github.com/subhak186)
 * v0.4.2: Thanks to all contributors; [katharh](https://github.com/katharh), [Francis Luong (Franco)](https://github.com/francisluong), [Vincent Bernat](https://github.com/vincentbernat), [Juergen Brendel](https://github.com/juergenbrendel), [Quentin Loos](https://github.com/Kent1), [Ray Solomon](https://github.com/rsolomo), [Sebastian Wiesinger](https://github.com/sebastianw), [Ebben Aries](https://github.com/earies) 

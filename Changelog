@@ -1,3 +1,13 @@
+version 0.4.6
+-------------
+
+Fixes/Enhancements
+==================
+
+* Fix multiple RPC error handling
+* Add support for cancel-commit and persist param
+* Add more examples
+
 version 0.4.5
 -------------
 

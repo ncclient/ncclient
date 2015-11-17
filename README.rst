@@ -94,6 +94,12 @@ Supported device handlers
 Changes \| brief
 ~~~~~~~~~~~~~~~~
 
+**v0.4.6**
+
+- Fix multiple RPC error generation
+- Add support for cancel-commit and persist param
+- Add more examples
+
 **v0.4.5**
 
 - Add Huawei device support
@@ -143,6 +149,7 @@ Changes \| brief
 Acknowledgements
 ~~~~~~~~~~~~~~~~
 
+- v0.4.6: Thanks to all contribs and bug hunters; `Nitin Kumar <https://github.com/vnitinv>`_, `Carl Moberg <https://github.com/cmoberg>`_, `Stavros Kroustouris <https://github.com/kroustou>`_ .
 - v0.4.5: Thanks to all contribs and bug hunters; `Sebastian Wiesinger <https://github.com/sebastianw>`_, `Vincent Bernat <https://github.com/vincentbernat>`_, `Matthew Stone <https://github.com/bigmstone>`_, `Nitin Kumar <https://github.com/vnitinv>`_.
 - v0.4.3: Thanks to all contributors and bug hunters; `Jeremy Schulman <https://github.com/jeremyschulman>`_, `Ray Solomon <https://github.com/rsolomo>`_, `Rick Sherman <https://github.com/shermdog>`_, `subhak186 <https://github.com/subhak186>`_.
 - v0.4.2: Thanks to all contributors; `katharh <https://github.com/katharh>`_, `Francis Luong (Franco) <https://github.com/francisluong>`_, `Vincent Bernat <https://github.com/vincentbernat>`_, `Juergen Brendel <https://github.com/juergenbrendel>`_, `Quentin Loos <https://github.com/Kent1>`_, `Ray Solomon <https://github.com/rsolomo>`_, `Sebastian Wiesinger <https://github.com/sebastianw>`_, `Ebben Aries <https://github.com/earies>`_ .
