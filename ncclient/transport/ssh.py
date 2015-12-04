@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import os
+import sys
 import socket
 import getpass
 from binascii import hexlify
@@ -30,8 +31,6 @@ from ncclient.xml_ import *
 
 import logging
 logger = logging.getLogger("ncclient.transport.ssh")
-logger.setLevel(logging.WARNING)
-logging.getLogger("paramiko").setLevel(logging.DEBUG)
 
 BUF_SIZE = 4096
 # v1.0: RFC 4742
@@ -300,7 +299,9 @@ class SSHSession(Session):
     def close(self):
         if self._transport.is_active():
             self._transport.close()
+        self._channel = None
         self._connected = False
+        
 
     # REMEMBER to update transport.rst if sig. changes, since it is hardcoded there
     def connect(self, host, port=830, timeout=None, unknown_host_cb=default_unknown_host_cb,
@@ -331,10 +332,12 @@ class SSHSession(Session):
 
         *look_for_keys* enables looking in the usual locations for ssh keys (e.g. :file:`~/.ssh/id_*`)
 
-        *ssh_config* enables parsing of an OpenSSH configuration file, if set to its path, e.g. ~/.ssh/config
+        *ssh_config* enables parsing of an OpenSSH configuration file, if set to its path, e.g. :file:`~/.ssh/config` or to True (in this case, use :file:`~/.ssh/config`).
         """
         # Optionaly, parse .ssh/config
         config = {}
+        if ssh_config is True:
+            ssh_config = "~/.ssh/config" if sys.platform != "win32" else "~/ssh/config"
         if ssh_config is not None:
             config = paramiko.SSHConfig()
             config.parse(open(os.path.expanduser(ssh_config)))
@@ -378,11 +381,11 @@ class SSHSession(Session):
 
         # host key verification
         server_key = t.get_remote_server_key()
-        known_host = self._host_keys.check(host, server_key)
 
         fingerprint = _colonify(hexlify(server_key.get_fingerprint()))
 
         if hostkey_verify:
+            known_host = self._host_keys.check(host, server_key)
             if not known_host and not unknown_host_cb(host, fingerprint):
                 raise SSHUnknownHostError(host, fingerprint)
 

@@ -111,14 +111,15 @@ def connect_ssh(*args, **kwds):
     global VENDOR_OPERATIONS
     VENDOR_OPERATIONS.update(device_handler.add_additional_operations())
     session = transport.SSHSession(device_handler)
-    session.load_known_hosts()
+    if "hostkey_verify" not in kwds or kwds["hostkey_verify"]:
+        session.load_known_hosts()
 
     try:
        session.connect(*args, **kwds)
     except Exception as ex:
         if session.transport:
             session.close()
-        raise ex
+        raise
     return Manager(session, device_handler, **kwds)
 
 def connect_ioproc(*args, **kwds):

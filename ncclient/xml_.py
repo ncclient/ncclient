@@ -52,11 +52,13 @@ FLOWMON_1_0 = "http://www.liberouter.org/ns/netopeer/flowmon/1.0"
 JUNIPER_1_1 = "http://xml.juniper.net/xnm/1.1/xnm"
 #: Namespace for Huawei data model
 HUAWEI_NS = "http://www.huawei.com/netconf/vrp"
+#: Namespace for Huawei private
+HW_PRIVATE_NS = "http://www.huawei.com/netconf/capability/base/1.0"
 #: Namespace for H3C data model
 H3C_DATA_1_0 = "http://www.h3c.com/netconf/data:1.0"
 #: Namespace for H3C config model
 H3C_CONFIG_1_0 = "http://www.h3c.com/netconf/config:1.0"
-#: Namespace for H3C data model
+#: Namespace for H3C action model
 H3C_ACTION_1_0 = "http://www.h3c.com/netconf/action:1.0"
 #: Namespace for netconf monitoring
 NETCONF_MONITORING_NS = "urn:ietf:params:xml:ns:yang:ietf-netconf-monitoring"

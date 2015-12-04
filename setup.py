@@ -37,12 +37,12 @@ with open('README.rst') as file:
 
 
 setup(name='ncclient',
-      version='0.4.3',
+      version='0.4.6',
       description="Python library for NETCONF clients",
       long_description = long_description,
       author="Shikhar Bhushan, Leonidas Poulopoulos, Ebben Aries",
-      author_email="shikhar@schmizz.net, leopoul@noc.grnet.gr, earies@juniper.net",
-      url="http://ncclient.leopoul.com",
+      author_email="shikhar@schmizz.net, lpoulopoulos@verisign.com, earies@juniper.net",
+      url="http://ncclient.org",
       packages=find_packages('.'),
       install_requires=install_reqs,
       license="Apache License 2.0",

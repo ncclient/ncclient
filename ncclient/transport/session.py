@@ -26,7 +26,6 @@ from errors import TransportError, SessionError
 
 import logging
 logger = logging.getLogger('ncclient.transport.session')
-logger.setLevel(logging.WARNING)
 
 
 class Session(Thread):
@@ -91,8 +90,10 @@ class Session(Thread):
         self.send(HelloHandler.build(self._client_capabilities, self._device_handler))
         logger.debug('starting main loop')
         self.start()
-        # we expect server's hello message
-        init_event.wait()
+        # we expect server's hello message, if server doesn't responds in 60 seconds raise exception
+        init_event.wait(60)
+        if not init_event.is_set():
+            raise SessionError("Capability exchange timed out")
         # received hello message or an error happened
         self.remove_listener(listener)
         if error[0]:

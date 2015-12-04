@@ -1,3 +1,36 @@
+version 0.4.6
+-------------
+
+Fixes/Enhancements
+==================
+
+* Fix multiple RPC error handling
+* Add support for cancel-commit and persist param
+* Add more examples
+
+version 0.4.5
+-------------
+
+Device Support
+==============
+* Add Huawei device support
+* Add cli command support for hpcomware v7 devices
+* Add H3C support, Support H3C CLI,Action,Get_bulk,Save,Rollback,etc.
+* Add alcatel lucent support
+
+Fixes
+=====
+* Rewrite multiple error handling
+* Add coveralls support, with shield in README.md
+* Set severity level to higher when multiple
+* Simplify logging and multi-error reporting
+* Keep stacktrace of errors
+* Check for known hosts on hostkey_verify only
+* Add check for device sending back null error_text
+* Fix RPC.raise_mode
+* Specifying hostkey_verify=False should not load_known_hosts
+* Check the correct field on rpc-error element
+
 version 0.4.3
 -------------
 
