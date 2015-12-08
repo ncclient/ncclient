@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/leopoul/ncclient.svg?branch=master)](https://travis-ci.org/leopoul/ncclient)
+[![Build Status](https://travis-ci.org/einarnn/ncclient.svg?branch=master)](https://travis-ci.org/einarnn/ncclient)
 
 ncclient: Python library for NETCONF clients
 --------------------------------------------
