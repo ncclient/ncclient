@@ -48,14 +48,15 @@ cmd_vlan_int_snippet = """
             <ethernet>
               <interface>%s</interface>
               <__XML__MODE_if-ethernet-switch>
-                <switchport></switchport>
                 <switchport>
                   <trunk>
                     <allowed>
                       <vlan>
-                        <__XML__BLK_Cmd_switchport_trunk_allowed_allow-vlans>
-                          <allow-vlans>%s</allow-vlans>
-                        </__XML__BLK_Cmd_switchport_trunk_allowed_allow-vlans>
+                        <add>
+                          <__XML__BLK_Cmd_switchport_trunk_allowed_allow-vlans>
+                            <add-vlans>%s</add-vlans>
+                          </__XML__BLK_Cmd_switchport_trunk_allowed_allow-vlans>
+                        </add>
                       </vlan>
                     </allowed>
                   </trunk>
@@ -73,18 +74,19 @@ cmd_no_vlan_int_snippet = """
             <ethernet>
               <interface>%s</interface>
               <__XML__MODE_if-ethernet-switch>
-                <switchport></switchport>
                 <switchport>
                   <trunk>
-                    <notallowed>
+                    <allowed>
                       <vlan>
-                        <__XML__BLK_Cmd_switchport_trunk_allowed_allow-vlans>
-                          <allow-vlans>%s</allow-vlans>
-                        </__XML__BLK_Cmd_switchport_trunk_allowed_allow-vlans>
+                        <remove>
+                          <__XML__BLK_Cmd_switchport_trunk_allowed_allow-vlans>
+                            <remove-vlans>%s</remove-vlans>
+                          </__XML__BLK_Cmd_switchport_trunk_allowed_allow-vlans>
+                        </remove>
                       </vlan>
-                    </notallowed>
+                    </allowed>
                   </trunk>
-                <switchport>
+                </switchport>
               </__XML__MODE_if-ethernet-switch>
             </ethernet>
           </interface>
@@ -102,7 +104,7 @@ filter_show_vlan_brief_snippet =  """
 
 def nxos_connect(host, port, user, password):
     return manager.connect(host=host, port=port, username=user, 
-                         password=password)
+                         password=password, device_params={'name': 'nexus'})
 
 
 def enable_vlan(mgr, vlanid, vlanname):
