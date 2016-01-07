@@ -60,6 +60,8 @@ H3C_DATA_1_0 = "http://www.h3c.com/netconf/data:1.0"
 H3C_CONFIG_1_0 = "http://www.h3c.com/netconf/config:1.0"
 #: Namespace for H3C action model
 H3C_ACTION_1_0 = "http://www.h3c.com/netconf/action:1.0"
+#: Namespace for netconf monitoring
+NETCONF_MONITORING_NS = "urn:ietf:params:xml:ns:yang:ietf-netconf-monitoring"
 #
 try:
     register_namespace = etree.register_namespace
@@ -71,6 +73,7 @@ except AttributeError:
 
 for (ns, pre) in {
     BASE_NS_1_0: 'nc',
+    NETCONF_MONITORING_NS: 'ncm',
     NXOS_1_0: 'nxos',
     NXOS_IF: 'if',
     TAILF_AAA_1_1: 'aaa',

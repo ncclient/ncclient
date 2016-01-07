@@ -324,9 +324,7 @@ class RPC(object):
                     # Error that prevented reply delivery
                     raise self._error
                 self._reply.parse()
-                if self._reply.error is not None  and  \
-                                 not self._device_handler.is_rpc_error_exempt( \
-                                                            self._reply.error.message):
+                if self._reply.error is not None and not self._device_handler.is_rpc_error_exempt(self._reply.error.message):
                     # <rpc-error>'s [ RPCError ]
 
                     if self._raise_mode == RaiseMode.ALL or (self._raise_mode == RaiseMode.ERRORS and self._reply.error.severity == "error"):
