@@ -14,7 +14,7 @@
 
 from ncclient.xml_ import *
 
-from rpc import RPC
+from rpc import RPC, RaiseMode
 
 import util
 
@@ -120,6 +120,8 @@ class Validate(RPC):
             raise XMLError("Invalid source type: [%s], must be one of %s" % (source, tags))
         src_ele = sub_ele(node, "source")
         sub_ele(src_ele, source)
+        # We do not want to raise an error when we're validating config
+        self.raise_mode = RaiseMode.NONE
         return self._request(node)
 
 
