@@ -509,7 +509,7 @@ class SSHSession(Session):
                             if 'urn:ietf:params:netconf:base:1.1' in self._server_capabilities and 'urn:ietf:params:netconf:base:1.1' in self._client_capabilities:
                                 logger.debug("Selecting netconf:base:1.1 for encoding")
                                 self._parse11()
-                            elif 'urn:ietf:params:netconf:base:1.0' in self._server_capabilities or 'urn:ietf:params:netconf:base:1.0' in self._client_capabilities:
+                            elif 'urn:ietf:params:netconf:base:1.0' in self._server_capabilities or 'urn:ietf:params:xml:ns:netconf:base:1.0' in self._server_capabilities or 'urn:ietf:params:netconf:base:1.0' in self._client_capabilities:
                                 logger.debug("Selecting netconf:base:1.0 for encoding")
                                 self._parse10()
                             else: raise Exception
@@ -532,7 +532,7 @@ class SSHSession(Session):
                                 if 'urn:ietf:params:netconf:base:1.1' in self._server_capabilities:
                                     # send using v1.1 chunked framing
                                     data = "%s%s%s"%(start_delim(len(data)), data, END_DELIM)
-                                elif 'urn:ietf:params:netconf:base:1.0' in self._server_capabilities:
+                                elif 'urn:ietf:params:netconf:base:1.0' in self._server_capabilities or 'urn:ietf:params:xml:ns:netconf:base:1.0' in self._server_capabilities:
                                     # send using v1.0 EOM markers
                                     data = "%s%s"%(data, MSG_DELIM)
                                 else: raise Exception
