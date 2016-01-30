@@ -12,8 +12,6 @@ ncclient: Python library for NETCONF clients
 
 ```pip install -i https://testpypi.python.org/pypi ncclient```
 
-or get it via the [v3 branch](https://github.com/ncclient/ncclient/tree/v3) 
-
 Latest stable Python2 version is *0.4.7* (Jan 2016) and is now on PyPi:
 
 ```pip install ncclient```
