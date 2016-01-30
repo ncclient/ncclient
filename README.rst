@@ -94,6 +94,11 @@ Supported device handlers
 Changes \| brief
 ~~~~~~~~~~~~~~~~
 
+**v0.5.0**
+
+- Add support for Python 3
+
+
 **v0.4.7**
 
 - Add support for netconf 1.1
@@ -153,6 +158,7 @@ Changes \| brief
 Acknowledgements
 ~~~~~~~~~~~~~~~~
 
+- v0.5.0: Thanks to all contribs and bug hunters; `Nitin Kumar <https://github.com/vnitinv>`_
 - v0.4.7: Thanks to all contribs and bug hunters; `Einar Nilsen-Nygaard <https://github.com/einarnn>`_, `Vaibhav Bajpai <https://github.com/vbajpai>`_, Norio Nakamoto .
 - v0.4.6: Thanks to all contribs and bug hunters; `Nitin Kumar <https://github.com/vnitinv>`_, `Carl Moberg <https://github.com/cmoberg>`_, `Stavros Kroustouris <https://github.com/kroustou>`_ .
 - v0.4.5: Thanks to all contribs and bug hunters; `Sebastian Wiesinger <https://github.com/sebastianw>`_, `Vincent Bernat <https://github.com/vincentbernat>`_, `Matthew Stone <https://github.com/bigmstone>`_, `Nitin Kumar <https://github.com/vnitinv>`_.
