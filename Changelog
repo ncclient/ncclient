@@ -1,3 +1,12 @@
+version 0.4.7
+-------------
+
+Fixes/Enhancements
+==================
+
+* Add support for netconf 1.1
+
+
 version 0.4.6
 -------------
 

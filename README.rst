@@ -15,7 +15,7 @@ Requirements:
 -  Python 2.6 <= version < 3.0
 -  setuptools 0.6+
 -  Paramiko 1.7+
--  lxml 3.0+
+-  lxml 3.3.0+
 -  libxml2
 -  libxslt
 
@@ -94,6 +94,10 @@ Supported device handlers
 Changes \| brief
 ~~~~~~~~~~~~~~~~
 
+**v0.4.7**
+
+- Add support for netconf 1.1
+
 **v0.4.6**
 
 - Fix multiple RPC error generation
@@ -149,6 +153,7 @@ Changes \| brief
 Acknowledgements
 ~~~~~~~~~~~~~~~~
 
+- v0.4.7: Thanks to all contribs and bug hunters; `Einar Nilsen-Nygaard <https://github.com/einarnn>`_, `Vaibhav Bajpai <https://github.com/vbajpai>`_, Norio Nakamoto .
 - v0.4.6: Thanks to all contribs and bug hunters; `Nitin Kumar <https://github.com/vnitinv>`_, `Carl Moberg <https://github.com/cmoberg>`_, `Stavros Kroustouris <https://github.com/kroustou>`_ .
 - v0.4.5: Thanks to all contribs and bug hunters; `Sebastian Wiesinger <https://github.com/sebastianw>`_, `Vincent Bernat <https://github.com/vincentbernat>`_, `Matthew Stone <https://github.com/bigmstone>`_, `Nitin Kumar <https://github.com/vnitinv>`_.
 - v0.4.3: Thanks to all contributors and bug hunters; `Jeremy Schulman <https://github.com/jeremyschulman>`_, `Ray Solomon <https://github.com/rsolomo>`_, `Rick Sherman <https://github.com/shermdog>`_, `subhak186 <https://github.com/subhak186>`_.

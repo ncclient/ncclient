@@ -14,7 +14,7 @@ ncclient: Python library for NETCONF clients
 
 or get it via the [v3 branch](https://github.com/ncclient/ncclient/tree/v3) 
 
-Latest stable Python2 version is *0.4.6* (Nov 2015) and is now on PyPi:
+Latest stable Python2 version is *0.4.7* (Jan 2016) and is now on PyPi:
 
 ```pip install ncclient```
 
@@ -32,7 +32,7 @@ by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org)
 * Python 2.6 <= version < 3.0
 * setuptools 0.6+
 * Paramiko 1.7+
-* lxml 3.0+
+* lxml 3.3.0+
 * libxml2
 * libxslt
 
@@ -98,7 +98,8 @@ Device handlers are easy to implement and prove to be futureproof.
 
 ### Acknowledgements
 
-* v0.4.6: Thanks to all contribs and bug hunters; [Nitin Kumar] (https://github.com/vnitinv), [Carl Moberg] (https://github.com/cmoberg), [Stavros Kroustouris] (https://github.com/kroustou) .
+* v0.4.7: Thanks to all contribs and bug hunters; [Einar Nilsen-Nygaard] (https://github.com/einarnn), [Vaibhav Bajpai] (https://github.com/vbajpai), Norio Nakamoto 
+* v0.4.6: Thanks to all contribs and bug hunters; [Nitin Kumar] (https://github.com/vnitinv), [Carl Moberg] (https://github.com/cmoberg), [Stavros Kroustouris] (https://github.com/kroustou) 
 * v0.4.5: Thanks to all contribs and bug hunters; [Sebastian Wiesinger] (https://github.com/sebastianw), [Vincent Bernat] (https://github.com/vincentbernat), [Matthew Stone] (https://github.com/bigmstone), [Nitin Kumar] (https://github.com/vnitinv)
 * v0.4.3: Thanks to all contributors and bug hunters; [Jeremy Schulman](https://github.com/jeremyschulman), [Ray Solomon](https://github.com/rsolomo), [Rick Sherman](https://github.com/shermdog), [subhak186](https://github.com/subhak186)
 * v0.4.2: Thanks to all contributors; [katharh](https://github.com/katharh), [Francis Luong (Franco)](https://github.com/francisluong), [Vincent Bernat](https://github.com/vincentbernat), [Juergen Brendel](https://github.com/juergenbrendel), [Quentin Loos](https://github.com/Kent1), [Ray Solomon](https://github.com/rsolomo), [Sebastian Wiesinger](https://github.com/sebastianw), [Ebben Aries](https://github.com/earies) 
