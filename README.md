@@ -29,7 +29,7 @@ by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org)
 **PyPI**: [https://pypi.python.org/pypi/ncclient](https://pypi.python.org/pypi/ncclient)
 
 #### Requirements:
-* Python 2.6 <= version < 3.0
+* version >= Python 2.6
 * setuptools 0.6+
 * Paramiko 1.7+
 * lxml 3.3.0+
@@ -91,13 +91,12 @@ Device handlers are easy to implement and prove to be futureproof.
 
 ### Changes | brief
 
-* Fix multiple RPC error handling
-* Add support for cancel-commit and persist param
-* Add more examples
+* Python 3 support
 
 
 ### Acknowledgements
 
+* v0.5.0: Thanks to all contribs and bug hunters; [Nitin Kumar] (https://github.com/vnitinv)
 * v0.4.7: Thanks to all contribs and bug hunters; [Einar Nilsen-Nygaard] (https://github.com/einarnn), [Vaibhav Bajpai] (https://github.com/vbajpai), Norio Nakamoto 
 * v0.4.6: Thanks to all contribs and bug hunters; [Nitin Kumar] (https://github.com/vnitinv), [Carl Moberg] (https://github.com/cmoberg), [Stavros Kroustouris] (https://github.com/kroustou) 
 * v0.4.5: Thanks to all contribs and bug hunters; [Sebastian Wiesinger] (https://github.com/sebastianw), [Vincent Bernat] (https://github.com/vincentbernat), [Matthew Stone] (https://github.com/bigmstone), [Nitin Kumar] (https://github.com/vnitinv)

@@ -14,9 +14,9 @@
 
 from ncclient.xml_ import *
 
-from rpc import RPC
+from ncclient.operations.rpc import RPC
 
-import util
+from ncclient.operations import util
 
 import logging
 

@@ -22,6 +22,10 @@ All device-specific handlers derive from the DefaultDeviceHandler, which impleme
 generic information needed for interaction with a Netconf server.
 
 """
+import sys
+if sys.version >= '3':
+    xrange = range
+
 class DefaultDeviceHandler(object):
     """
     Default handler for device specific information.

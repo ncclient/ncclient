@@ -1,3 +1,4 @@
 setuptools>0.6
 paramiko>=1.7.7.1
 lxml>=3.3.0
+six
