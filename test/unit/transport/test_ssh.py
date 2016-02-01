@@ -38,7 +38,6 @@ class TestSSH(unittest.TestCase):
             call = mock_dispatch.call_args_list[0][0][0]
             self.assertEqual(call, dispatched_str)
             self.assertEqual(obj._buffer.getvalue(), b[515:])
-            self.assertEqual(obj._parsing_state, 0)
         else:
             obj._buffer.write(rpc_reply)
             obj._parse()
@@ -46,7 +45,6 @@ class TestSSH(unittest.TestCase):
             call = mock_dispatch.call_args_list[0][0][0]
             self.assertEqual(call, dispatched_str)
             self.assertEqual(obj._buffer.getvalue(), rpc_reply[515:])
-            self.assertEqual(obj._parsing_state, 0)
 
     @patch('paramiko.transport.Transport.auth_publickey')
     @patch('paramiko.agent.AgentSSH.get_keys')
@@ -149,7 +147,7 @@ class TestSSH(unittest.TestCase):
         obj._channel = paramiko.Channel("c100")
         obj._q.put("rpc")
         obj.run()
-        self.assertEqual(mock_send.call_args_list[0][0][0], "rpc" + "]]>]]>")
+        self.assertEqual(mock_send.call_args_list[0][0][0], "rpc")
         self.assertTrue(
             isinstance(
                 mock_error.call_args_list[0][0][0],
