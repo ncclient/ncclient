@@ -124,7 +124,7 @@ def validated_element(x, tags=None, attrs=None):
 
     Raises :exc:`XMLError` if the requirements are not met.
     """
-    ele = to_ele(x)
+    ele = to_ele(x) if sys.version < '3' else to_ele(x.encode('UTF-8'))
     if tags:
         if isinstance(tags, (str, bytes)):
             tags = [tags]
