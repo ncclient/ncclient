@@ -129,10 +129,7 @@ class TestXML(unittest.TestCase):
         device_handler = manager.make_device_handler(device_params)
         transform_reply = device_handler.transform_reply()
         result = NCElement(self.reply, transform_reply)
-        if sys.version >= '3':
-            result_xml = bytes(result.data_xml, "utf-8")
-        else:
-            result_xml = result.data_xml
+        result_xml = result.data_xml
         ele = validated_element(
             result_xml, tags=["rpc-reply", "rpc"], attrs=[["attrib1", "attrib2"]])
         self.assertEqual(ele.tag, "rpc-reply")
@@ -148,10 +145,7 @@ class TestXML(unittest.TestCase):
         transform_reply = device_handler.transform_reply()
         result = NCElement(self.reply, transform_reply)
         XMLError.message = "Element does not meet requirement"
-        if sys.version >= '3':
-            result_xml = bytes(result.data_xml, "utf-8")
-        else:
-            result_xml = result.data_xml
+        result_xml = result.data_xml
         with self.assertRaises(XMLError):
             validated_element(
                 result_xml, tags=["rpc"], attrs=[["attrib1", "attrib2"]])
@@ -162,10 +156,7 @@ class TestXML(unittest.TestCase):
         transform_reply = device_handler.transform_reply()
         result = NCElement(self.reply, transform_reply)
         XMLError.message = "Element does not meet requirement"
-        if sys.version >= '3':
-            result_xml = bytes(result.data_xml, "utf-8")
-        else:
-            result_xml = result.data_xml
+        result_xml = result.data_xml
         with self.assertRaises(XMLError):
             validated_element(
                 result_xml,
@@ -182,9 +173,6 @@ class TestXML(unittest.TestCase):
         transform_reply = device_handler.transform_reply()
         result = NCElement(self.reply, transform_reply)
         XMLError.message = "Element does not meet requirement"
-        if sys.version >= '3':
-            result_xml = bytes(result.data_xml, "utf-8")
-        else:
-            result_xml = result.data_xml
+        result_xml = result.data_xml
         with self.assertRaises(XMLError):
             validated_element(result_xml, tags=["rpc"])
