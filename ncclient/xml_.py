@@ -101,7 +101,10 @@ def to_xml(ele, encoding="UTF-8", pretty_print=False):
 
 def to_ele(x):
     "Convert and return the :class:`~xml.etree.ElementTree.Element` for the XML document *x*. If *x* is already an :class:`~xml.etree.ElementTree.Element` simply returns that."
-    return x if etree.iselement(x) else etree.fromstring(x, parser=parser)
+    if sys.version < '3':
+        return x if etree.iselement(x) else etree.fromstring(x, parser=parser)
+    else:
+        return x if etree.iselement(x) else etree.fromstring(x.encode('UTF-8'), parser=parser)
 
 def parse_root(raw):
     "Efficiently parses the root element of a *raw* XML document, returning a tuple of its qualified name and attribute dictionary."
