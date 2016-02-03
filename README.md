@@ -1,7 +1,6 @@
 [![Build Status](https://travis-ci.org/ncclient/ncclient.svg?branch=master)](https://travis-ci.org/ncclient/ncclient)
 [![Coverage Status](https://coveralls.io/repos/github/ncclient/ncclient/badge.svg?branch=master)](https://coveralls.io/github/ncclient/ncclient?branch=master)
 [![Documentation Status](https://readthedocs.org/projects/ncclient/badge/?version=latest)](https://readthedocs.org/projects/ncclient/?badge=latest)
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/ncclient/ncclient/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 
 ncclient: Python library for NETCONF clients
 --------------------------------------------
