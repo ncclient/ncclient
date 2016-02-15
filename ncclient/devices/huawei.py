@@ -40,6 +40,9 @@ class HuaweiDeviceHandler(DefaultDeviceHandler):
         dict["action"] = Action
         return dict
 
+    def handle_raw_dispatch(self, raw):
+        return raw.strip('\0')
+
     def get_capabilities(self):
         # Just need to replace a single value in the default capabilities
         c = super(HuaweiDeviceHandler, self).get_capabilities()
