@@ -20,23 +20,20 @@
 
     <section class="main-content">
       <p><a href="https://travis-ci.org/ncclient/ncclient"><img src="https://travis-ci.org/ncclient/ncclient.svg?branch=master" alt="Build Status"></a>
-<a href="https://coveralls.io/r/leopoul/ncclient"><img src="https://coveralls.io/repos/leopoul/ncclient/badge.svg" alt="Coverage Status"></a>
-<a href="https://readthedocs.org/projects/ncclient/?badge=latest"><img src="https://readthedocs.org/projects/ncclient/badge/?version=latest" alt="Documentation Status"></a>
-<a href="https://bitdeli.com/free" title="Bitdeli Badge"><img src="https://d2weczhvl823v0.cloudfront.net/ncclient/ncclient/trend.png" alt="Bitdeli Badge"></a></p>
+<a href="https://coveralls.io/github/ncclient/ncclient?branch=master"><img src="https://coveralls.io/repos/github/ncclient/ncclient/badge.svg?branch=master" alt="Coverage Status"></a>
+<a href="https://readthedocs.org/projects/ncclient/?badge=latest"><img src="https://readthedocs.org/projects/ncclient/badge/?version=latest" alt="Documentation Status"></a></p>
 
 <h2>
-<a id="ncclient-python-library-for-netconf-clients" class="anchor" href="#ncclient-python-library-for-netconf-clients" aria-hidden="true"><span class="octicon octicon-link"></span></a>ncclient: Python library for NETCONF clients</h2>
+<a id="ncclient-python-library-for-netconf-clients" class="anchor" href="#ncclient-python-library-for-netconf-clients" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>ncclient: Python library for NETCONF clients</h2>
 
 <h2>
-<a id="important---python3-support" class="anchor" href="#important---python3-support" aria-hidden="true"><span class="octicon octicon-link"></span></a>Important - Python3 support!</h2>
+<a id="important---python3-support" class="anchor" href="#important---python3-support" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Important - Python3 support!</h2>
 
 <p><strong>ncclient 0.5.0 with Python 3 support is now in pypitest. To install and test:</strong></p>
 
 <p><code>pip install -i https://testpypi.python.org/pypi ncclient</code></p>
 
-<p>or get it via the <a href="https://github.com/ncclient/ncclient/tree/v3">v3 branch</a> </p>
-
-<p>Latest stable Python2 version is <em>0.4.6</em> (Nov 2015) and is now on PyPi:</p>
+<p>Latest stable Python2 version is <em>0.4.7</em> (Jan 2016) and is now on PyPi:</p>
 
 <p><code>pip install ncclient</code></p>
 
@@ -50,13 +47,13 @@ by <a href="http://ncclient.org">Leonidas Poulopoulos (@leopoul)</a></p>
 <p><strong>PyPI</strong>: <a href="https://pypi.python.org/pypi/ncclient">https://pypi.python.org/pypi/ncclient</a></p>
 
 <h4>
-<a id="requirements" class="anchor" href="#requirements" aria-hidden="true"><span class="octicon octicon-link"></span></a>Requirements:</h4>
+<a id="requirements" class="anchor" href="#requirements" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Requirements:</h4>
 
 <ul>
-<li>Python 2.6 &lt;= version &lt; 3.0</li>
+<li>version &gt;= Python 2.6</li>
 <li>setuptools 0.6+</li>
 <li>Paramiko 1.7+</li>
-<li>lxml 3.0+</li>
+<li>lxml 3.3.0+</li>
 <li>libxml2</li>
 <li>libxslt</li>
 </ul>
@@ -69,7 +66,7 @@ by <a href="http://ncclient.org">Leonidas Poulopoulos (@leopoul)</a></p>
 </ul>
 
 <h4>
-<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installation:</h4>
+<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Installation:</h4>
 
 <pre><code>[ncclient] $ sudo python setup.py install
 </code></pre>
@@ -80,16 +77,16 @@ by <a href="http://ncclient.org">Leonidas Poulopoulos (@leopoul)</a></p>
 </code></pre>
 
 <h4>
-<a id="examples" class="anchor" href="#examples" aria-hidden="true"><span class="octicon octicon-link"></span></a>Examples:</h4>
+<a id="examples" class="anchor" href="#examples" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Examples:</h4>
 
 <pre><code>[ncclient] $ python examples/juniper/*.py
 </code></pre>
 
 <h3>
-<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h3>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Usage</h3>
 
 <h4>
-<a id="get-device-running-config" class="anchor" href="#get-device-running-config" aria-hidden="true"><span class="octicon octicon-link"></span></a>Get device running config</h4>
+<a id="get-device-running-config" class="anchor" href="#get-device-running-config" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Get device running config</h4>
 
 <p>Use either an interactive Python console (ipython)
 or integrate the following in your code:</p>
@@ -118,7 +115,7 @@ with manager.connect(host=host, port=830, username=user, hostkey_verify=False, d
 <p>Device handlers are easy to implement and prove to be futureproof.</p>
 
 <h4>
-<a id="supported-device-handlers" class="anchor" href="#supported-device-handlers" aria-hidden="true"><span class="octicon octicon-link"></span></a>Supported device handlers</h4>
+<a id="supported-device-handlers" class="anchor" href="#supported-device-handlers" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Supported device handlers</h4>
 
 <ul>
 <li>Juniper: device_params={'name':'junos'}</li>
@@ -131,19 +128,20 @@ with manager.connect(host=host, port=830, username=user, hostkey_verify=False, d
 </ul>
 
 <h3>
-<a id="changes--brief" class="anchor" href="#changes--brief" aria-hidden="true"><span class="octicon octicon-link"></span></a>Changes | brief</h3>
+<a id="changes--brief" class="anchor" href="#changes--brief" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Changes | brief</h3>
 
 <ul>
-<li>Fix multiple RPC error handling</li>
-<li>Add support for cancel-commit and persist param</li>
-<li>Add more examples</li>
+<li>Python 3 support</li>
 </ul>
 
 <h3>
-<a id="acknowledgements" class="anchor" href="#acknowledgements" aria-hidden="true"><span class="octicon octicon-link"></span></a>Acknowledgements</h3>
+<a id="acknowledgements" class="anchor" href="#acknowledgements" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Acknowledgements</h3>
 
 <ul>
-<li>v0.4.6: Thanks to all contribs and bug hunters; <a href="https://github.com/vnitinv">Nitin Kumar</a>, <a href="https://github.com/cmoberg">Carl Moberg</a>, <a href="https://github.com/kroustou">Stavros Kroustouris</a> .</li>
+<li>v0.5.0: Thanks to all contribs and bug hunters; <a href="https://github.com/vnitinv">Nitin Kumar</a>
+</li>
+<li>v0.4.7: Thanks to all contribs and bug hunters; <a href="https://github.com/einarnn">Einar Nilsen-Nygaard</a>, <a href="https://github.com/vbajpai">Vaibhav Bajpai</a>, Norio Nakamoto </li>
+<li>v0.4.6: Thanks to all contribs and bug hunters; <a href="https://github.com/vnitinv">Nitin Kumar</a>, <a href="https://github.com/cmoberg">Carl Moberg</a>, <a href="https://github.com/kroustou">Stavros Kroustouris</a> </li>
 <li>v0.4.5: Thanks to all contribs and bug hunters; <a href="https://github.com/sebastianw">Sebastian Wiesinger</a>, <a href="https://github.com/vincentbernat">Vincent Bernat</a>, <a href="https://github.com/bigmstone">Matthew Stone</a>, <a href="https://github.com/vnitinv">Nitin Kumar</a>
 </li>
 <li>v0.4.3: Thanks to all contributors and bug hunters; <a href="https://github.com/jeremyschulman">Jeremy Schulman</a>, <a href="https://github.com/rsolomo">Ray Solomon</a>, <a href="https://github.com/shermdog">Rick Sherman</a>, <a href="https://github.com/subhak186">subhak186</a>
