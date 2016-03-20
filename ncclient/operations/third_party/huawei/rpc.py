@@ -14,13 +14,14 @@ class CLI(RPC):
               Configuration system view exec
         """
         # node = new_ele("execute-cli")
-        node = new_ele('execute-cli', attrs={"xmlns":HW_PRIVATE_NS})
+        node = new_ele("execute-cli", attrs={"xmlns":HW_PRIVATE_NS})
         node.append(validated_element(command))
         return self._request(node)
 
 
 class Action(RPC):
+    "`execute-action` RPC"
     def request(self, action=None):
-        node = new_ele("action")
+        node = new_ele("execute-action", attrs={"xmlns":HW_PRIVATE_NS})
         node.append(validated_element(action))
         return self._request(node)
