@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from threading import Event, Lock
-from uuid import uuid1
+from uuid import uuid4
 import six
 
 from ncclient.xml_ import *
@@ -285,7 +285,7 @@ class RPC(object):
         self._async = async
         self._timeout = timeout
         self._raise_mode = raise_mode
-        self._id = uuid1().urn # Keeps things simple instead of having a class attr with running ID that has to be locked
+        self._id = uuid4().urn # Keeps things simple instead of having a class attr with running ID that has to be locked
         self._listener = RPCReplyListener(session, device_handler)
         self._listener.register(self._id, self)
         self._reply = None
