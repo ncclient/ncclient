@@ -24,6 +24,9 @@ class SessionError(NCClientError):
 class AuthenticationError(TransportError):
     pass
 
+class PermissionError(TransportError):
+    pass
+
 class SessionCloseError(TransportError):
 
     def __init__(self, in_buf, out_buf=None):

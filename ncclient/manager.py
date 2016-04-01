@@ -145,10 +145,13 @@ def connect_ioproc(*args, **kwds):
 def connect(*args, **kwds):
     if "host" in kwds:
         host = kwds["host"]
-        if host != 'localhost':
-            return connect_ssh(*args, **kwds)
-        else:
+        device_params = kwds.get('device_params', {})
+        if host == 'localhost' and device_params.get('name') == 'junos' \
+                and device_params.get('local'):
             return connect_ioproc(*args, **kwds)
+        else:
+            return connect_ssh(*args, **kwds)
+
 
 class OpExecutor(type):
 
