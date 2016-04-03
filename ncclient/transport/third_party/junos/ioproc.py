@@ -1,14 +1,15 @@
 import os
 import sys
+import re
 
 if sys.version < '3':
     from cStringIO import StringIO
 else:
     from io import StringIO
 from select import select
-from subprocess import Popen, PIPE, STDOUT
+from subprocess import Popen, check_output, PIPE, STDOUT
 
-from ncclient.transport.errors import SessionCloseError, TransportError
+from ncclient.transport.errors import SessionCloseError, TransportError, PermissionError
 from ncclient.transport.ssh import SSHSession
 
 MSG_DELIM = "]]>]]>"
@@ -37,7 +38,16 @@ class IOProc(SSHSession):
         self._connected = False
 
     def connect(self):
-
+        stdoutdata = check_output(NETCONF_SHELL, shell=True, stdin=PIPE,
+                                  stderr=STDOUT)
+        if 'error: Restricted user session' in stdoutdata:
+            obj = re.search(r'<error-message>\n?(.*)\n?</error-message>', stdoutdata, re.M)
+            if obj:
+                raise PermissionError(obj.group(1))
+            else:
+                raise PermissionError('Restricted user session')
+        elif 'xml-mode: command not found' in stdoutdata:
+            raise PermissionError('xml-mode: command not found')
         self._channel = Popen(NETCONF_SHELL, shell=True,
                               stdin=PIPE, stdout=PIPE, stderr=STDOUT)
         self._connected = True

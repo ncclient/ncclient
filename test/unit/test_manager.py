@@ -20,8 +20,10 @@ class TestManager(unittest.TestCase):
 
     @patch('ncclient.manager.connect_ioproc')
     def test_connect_ioproc(self, mock_ssh):
-        manager.connect(host='localhost')
-        mock_ssh.assert_called_once_with(host='localhost')
+        manager.connect(host='localhost', device_params={'name': 'junos', 
+                                                        'local': True})
+        mock_ssh.assert_called_once_with(host='localhost', 
+                            device_params={'local': True, 'name': 'junos'})
 
     @patch('socket.socket')
     @patch('paramiko.Transport')
@@ -37,17 +39,18 @@ class TestManager(unittest.TestCase):
             "JunosDeviceHandler")
 
     @patch('ncclient.transport.ssh.Session._post_connect')
-    def test_ioproc(self, mock_ioproc):
+    @patch('ncclient.transport.third_party.junos.ioproc.IOProc.connect')
+    def test_ioproc(self, mock_connect, mock_ioproc):
         conn = manager.connect(host='localhost',
                                     port=22,
                                     username='user',
                                     password='password',
                                     timeout=10,
-                                    device_params={'name': 'junos'},
+                                    device_params={'local': True, 'name': 'junos'},
                                     hostkey_verify=False)
-        self.assertEqual(mock_ioproc.called, 1)
+        self.assertEqual(mock_connect.called, 1)
         self.assertEqual(conn._timeout, 10)
-        self.assertEqual(conn._device_handler.device_params, {'name': 'junos'})
+        self.assertEqual(conn._device_handler.device_params, {'local': True, 'name': 'junos'}) 
         self.assertEqual(
             conn._device_handler.__class__.__name__,
             "JunosDeviceHandler")
