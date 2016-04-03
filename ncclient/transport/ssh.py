@@ -390,6 +390,8 @@ class SSHSession(Session):
 
         t = self._transport = paramiko.Transport(sock)
         t.set_log_channel(logger.name)
+        if config.get("compression") == 'yes':
+            t.use_compression()
 
         try:
             t.start_client()
