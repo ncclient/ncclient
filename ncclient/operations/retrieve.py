@@ -46,6 +46,15 @@ class GetReply(RPCReply):
     "Same as :attr:`data_ele`"
 
 
+class GetSchemaReply(GetReply):
+    """Reply for GetSchema called with specific parsing hook."""
+
+    def _parsing_hook(self, root):
+        self._data = None
+        if not self._errors:
+            self._data = root.find(qualify("data", NETCONF_MONITORING_NS)).text
+
+
 class Get(RPC):
 
     "The *get* RPC."
@@ -91,7 +100,7 @@ class GetSchema(RPC):
 
     """The *get-schema* RPC."""
 
-    REPLY_CLS = GetReply
+    REPLY_CLS = GetSchemaReply
     """See :class:`GetReply`."""
 
     def request(self, identifier, version=None, format=None):
