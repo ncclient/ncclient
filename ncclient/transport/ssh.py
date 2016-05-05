@@ -161,7 +161,7 @@ class SSHSession(Session):
         state = self._parsing_state11
         inendpos = self._inendpos
         num_list = self._size_num_list
-        MAX_STARTCHUNK_SIZE = 10 # 4294967295
+        MAX_STARTCHUNK_SIZE = 12 # \#+4294967295+\n
         pre = 'invalid base:1:1 frame'
         buf = self._buffer
         buf.seek(self._parsing_pos11)
