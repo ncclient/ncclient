@@ -28,6 +28,7 @@ from ncclient.transport.errors import TransportError, SessionError
 
 logger = logging.getLogger('ncclient.transport.session')
 
+
 class Session(Thread):
 
     "Base class for use by transport protocol implementations."
@@ -51,32 +52,11 @@ class Session(Thread):
         try:
             root = parse_root(raw)
         except Exception as e:
-            if self._device_handler.handle_raw_dispatch(raw):
-                raw = self._device_handler.handle_raw_dispatch(raw)
-                root = parse_root(raw)
-            # check if error is during cpapbilites exchange
-            elif re.search('\<rpc-reply\>.*?\</rpc-reply\>.*\</hello\>?', raw, re.M|re.S):
-                errs = re.findall('\<rpc-error\>.*?\</rpc-error\>', raw, re.M|re.S)
-                err_list = []
-                if errs:
-                    from ncclient.operations.rpc import RPCError
-                    for err in errs:
-                        doc = etree.ElementTree(etree.XML(err))
-                        # Adding namespace using xslt
-                        xslt = etree.XSLT(etree.XML("""
-                        <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-                          <xsl:output indent="yes"/>
-                            <xsl:template match="*">
-                            <xsl:element name="{local-name()}" namespace="urn:ietf:params:xml:ns:netconf:base:1.0">
-                            <xsl:apply-templates select="@*|node()"/>
-                            </xsl:element>
-                          </xsl:template>
-                        </xsl:stylesheet>"""))
-                        transformed_xml = etree.XML(etree.tostring(xslt(doc)))
-                        err_list.append(RPCError(transformed_xml))
-                    e = RPCError(to_ele(''.join(errs)), err_list)
-                    logger.error('error parsing dispatch message: %s' % e)
-                    self._dispatch_error(e)
+            device_handled_raw=self._device_handler.handle_raw_dispatch(raw)
+            if isinstance(device_handled_raw, str):
+                root = parse_root(device_handled_raw)
+            elif isinstance(device_handled_raw, Exception):
+                self._dispatch_error(device_handled_raw)
                 return
             else:
                 logger.error('error parsing dispatch message: %s' % e)
