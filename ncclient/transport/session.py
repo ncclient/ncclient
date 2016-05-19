@@ -26,7 +26,6 @@ from ncclient.xml_ import *
 from ncclient.capabilities import Capabilities
 from ncclient.transport.errors import TransportError, SessionError
 
-
 logger = logging.getLogger('ncclient.transport.session')
 
 
@@ -53,9 +52,12 @@ class Session(Thread):
         try:
             root = parse_root(raw)
         except Exception as e:
-            if self._device_handler.handle_raw_dispatch(raw):
-                raw = self._device_handler.handle_raw_dispatch(raw)
-                root = parse_root(raw)
+            device_handled_raw=self._device_handler.handle_raw_dispatch(raw)
+            if isinstance(device_handled_raw, str):
+                root = parse_root(device_handled_raw)
+            elif isinstance(device_handled_raw, Exception):
+                self._dispatch_error(device_handled_raw)
+                return
             else:
                 logger.error('error parsing dispatch message: %s' % e)
                 return
