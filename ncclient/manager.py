@@ -18,10 +18,10 @@ This module is a thin layer of abstraction around the library.
 It exposes all core functionality.
 """
 
-import capabilities
-import operations
-import transport
-
+from ncclient import capabilities
+from ncclient import operations
+from ncclient import transport
+import six
 import logging
 
 from ncclient.xml_ import *
@@ -31,6 +31,7 @@ logger = logging.getLogger('ncclient.manager')
 OPERATIONS = {
     "get": operations.Get,
     "get_config": operations.GetConfig,
+    "get_schema": operations.GetSchema,
     "dispatch": operations.Dispatch,
     "edit_config": operations.EditConfig,
     "copy_config": operations.CopyConfig,
@@ -110,14 +111,15 @@ def connect_ssh(*args, **kwds):
     global VENDOR_OPERATIONS
     VENDOR_OPERATIONS.update(device_handler.add_additional_operations())
     session = transport.SSHSession(device_handler)
-    session.load_known_hosts()
+    if "hostkey_verify" not in kwds or kwds["hostkey_verify"]:
+        session.load_known_hosts()
 
     try:
        session.connect(*args, **kwds)
     except Exception as ex:
         if session.transport:
             session.close()
-        raise ex
+        raise
     return Manager(session, device_handler, **kwds)
 
 def connect_ioproc(*args, **kwds):
@@ -143,10 +145,13 @@ def connect_ioproc(*args, **kwds):
 def connect(*args, **kwds):
     if "host" in kwds:
         host = kwds["host"]
-        if host != 'localhost':
-            return connect_ssh(*args, **kwds)
-        else:
+        device_params = kwds.get('device_params', {})
+        if host == 'localhost' and device_params.get('name') == 'junos' \
+                and device_params.get('local'):
             return connect_ioproc(*args, **kwds)
+        else:
+            return connect_ssh(*args, **kwds)
+
 
 class OpExecutor(type):
 
@@ -154,9 +159,9 @@ class OpExecutor(type):
         def make_wrapper(op_cls):
             def wrapper(self, *args, **kwds):
                 return self.execute(op_cls, *args, **kwds)
-            wrapper.func_doc = op_cls.request.func_doc
+            wrapper.__doc__ = op_cls.request.__doc__
             return wrapper
-        for op_name, op_cls in OPERATIONS.iteritems():
+        for op_name, op_cls in six.iteritems(OPERATIONS):
             attrs[op_name] = make_wrapper(op_cls)
         return super(OpExecutor, cls).__new__(cls, name, bases, attrs)
 
@@ -164,15 +169,15 @@ class OpExecutor(type):
         def make_wrapper(op_cls):
             def wrapper(self, *args, **kwds):
                 return self.execute(op_cls, *args, **kwds)
-            wrapper.func_doc = op_cls.request.func_doc
+            wrapper.__doc__ = op_cls.request.__doc__
             return wrapper
         if VENDOR_OPERATIONS:
-            for op_name, op_cls in VENDOR_OPERATIONS.iteritems():
+            for op_name, op_cls in six.iteritems(VENDOR_OPERATIONS):
                 setattr(cls, op_name, make_wrapper(op_cls))
         return super(OpExecutor, cls).__call__(*args, **kwargs)
 
 
-class Manager(object):
+class Manager(six.with_metaclass(OpExecutor, object)):
 
     """
     For details on the expected behavior of the operations and their
@@ -192,7 +197,7 @@ class Manager(object):
             m.close_session()
     """
 
-    __metaclass__ = OpExecutor
+   # __metaclass__ = OpExecutor
 
     def __init__(self, session, device_handler, timeout=30, *args, **kwargs):
         self._session = session

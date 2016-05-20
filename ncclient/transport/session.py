@@ -15,18 +15,18 @@
 
 
 import re
-
-from Queue import Queue
+import sys
+import logging
 from threading import Thread, Lock, Event
-
+try:
+    from Queue import Queue
+except ImportError:
+    from queue import Queue
 from ncclient.xml_ import *
 from ncclient.capabilities import Capabilities
+from ncclient.transport.errors import TransportError, SessionError
 
-from errors import TransportError, SessionError
-
-import logging
 logger = logging.getLogger('ncclient.transport.session')
-logger.setLevel(logging.WARNING)
 
 
 class Session(Thread):
@@ -52,9 +52,12 @@ class Session(Thread):
         try:
             root = parse_root(raw)
         except Exception as e:
-            if self._device_handler.handle_raw_dispatch(raw):
-                raw = self._device_handler.handle_raw_dispatch(raw)
-                root = parse_root(raw)
+            device_handled_raw=self._device_handler.handle_raw_dispatch(raw)
+            if isinstance(device_handled_raw, str):
+                root = parse_root(device_handled_raw)
+            elif isinstance(device_handled_raw, Exception):
+                self._dispatch_error(device_handled_raw)
+                return
             else:
                 logger.error('error parsing dispatch message: %s' % e)
                 return
@@ -91,8 +94,10 @@ class Session(Thread):
         self.send(HelloHandler.build(self._client_capabilities, self._device_handler))
         logger.debug('starting main loop')
         self.start()
-        # we expect server's hello message
-        init_event.wait()
+        # we expect server's hello message, if server doesn't responds in 60 seconds raise exception
+        init_event.wait(60)
+        if not init_event.is_set():
+            raise SessionError("Capability exchange timed out")
         # received hello message or an error happened
         self.remove_listener(listener)
         if error[0]:
@@ -230,7 +235,11 @@ class HelloHandler(SessionListener):
         hello = new_ele("hello", **xml_namespace_kwargs)
         caps = sub_ele(hello, "capabilities")
         def fun(uri): sub_ele(caps, "capability").text = uri
-        map(fun, capabilities)
+        #python3 changes
+        if sys.version < '3':
+            map(fun, capabilities)
+        else:
+            list(map(fun, capabilities))
         return to_xml(hello)
 
     @staticmethod

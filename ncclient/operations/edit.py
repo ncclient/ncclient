@@ -14,9 +14,9 @@
 
 from ncclient.xml_ import *
 
-from rpc import RPC
+from ncclient.operations.rpc import RPC
 
-import util
+from ncclient.operations import util
 
 import logging
 
@@ -128,20 +128,43 @@ class Commit(RPC):
 
     DEPENDS = [':candidate']
 
-    def request(self, confirmed=False, timeout=None):
+    def request(self, confirmed=False, timeout=None, persist=None):
         """Commit the candidate configuration as the device's new current configuration. Depends on the `:candidate` capability.
 
         A confirmed commit (i.e. if *confirmed* is `True`) is reverted if there is no followup commit within the *timeout* interval. If no timeout is specified the confirm timeout defaults to 600 seconds (10 minutes). A confirming commit may have the *confirmed* parameter but this is not required. Depends on the `:confirmed-commit` capability.
 
         *confirmed* whether this is a confirmed commit
 
-        *timeout* specifies the confirm timeout in seconds"""
+        *timeout* specifies the confirm timeout in seconds
+
+        *persist* make the confirmed commit survive a session termination, and set a token on the ongoing confirmed commit
+        """
         node = new_ele("commit")
         if confirmed:
             self._assert(":confirmed-commit")
             sub_ele(node, "confirmed")
             if timeout is not None:
                 sub_ele(node, "confirm-timeout").text = timeout
+            if persist is not None:
+                sub_ele(node, "persist").text = persist
+
+        return self._request(node)
+
+
+class CancelCommit(RPC):
+    "`cancel-commit` RPC. Depends on the `:candidate` and `:confirmed-commit` capabilities."
+
+    DEPENDS = [':candidate', ':confirmed-commit']
+
+    def request(self, persist_id=None):
+        """Cancel an ongoing confirmed commit. Depends on the `:candidate` and `:confirmed-commit` capabilities.
+
+        *persist-id* value must be equal to the value given in the <persist> parameter to the previous <commit> operation.
+        """
+        node = new_ele("cancel-commit")
+        if persist_id is not None:
+            sub_ele(node, "persist-id").text = persist_id
+
         return self._request(node)
 
 

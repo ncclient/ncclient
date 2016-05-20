@@ -15,7 +15,7 @@ Requirements:
 -  Python 2.6 <= version < 3.0
 -  setuptools 0.6+
 -  Paramiko 1.7+
--  lxml 3.0+
+-  lxml 3.3.0+
 -  libxml2
 -  libxslt
 
@@ -87,9 +87,45 @@ Supported device handlers
 * Cisco CSR: device_params={'name':'csr'}
 * Cisco Nexus: device_params={'name':'nexus'}
 * Huawei: device_params={'name':'huawei'}
+* Alcatel Lucent: device_params={'name':'alu'}
+* H3C: device_params={'name':'h3c'}
+* HP Comware: device_params={'name':'hpcomware'}
 
 Changes \| brief
 ~~~~~~~~~~~~~~~~
+
+**v0.5.0**
+
+- Add support for Python 3
+
+
+**v0.4.7**
+
+- Add support for netconf 1.1
+
+**v0.4.6**
+
+- Fix multiple RPC error generation
+- Add support for cancel-commit and persist param
+- Add more examples
+
+**v0.4.5**
+
+- Add Huawei device support
+- Add cli command support for hpcomware v7 devices
+- Add H3C support, Support H3C CLI,Action,Get_bulk,Save,Rollback,etc.
+- Add alcatel lucent support
+
+- Rewrite multiple error handling
+- Add coveralls support, with shield in README.md
+- Set severity level to higher when multiple
+- Simplify logging and multi-error reporting
+- Keep stacktrace of errors
+- Check for known hosts on hostkey_verify only
+- Add check for device sending back null error_text
+- Fix RPC.raise_mode
+- Specifying hostkey_verify=False should not load_known_hosts
+- Check the correct field on rpc-error element
 
 **v0.4.3**
 
@@ -122,6 +158,10 @@ Changes \| brief
 Acknowledgements
 ~~~~~~~~~~~~~~~~
 
+- v0.5.0: Thanks to all contribs and bug hunters; `Nitin Kumar <https://github.com/vnitinv>`_
+- v0.4.7: Thanks to all contribs and bug hunters; `Einar Nilsen-Nygaard <https://github.com/einarnn>`_, `Vaibhav Bajpai <https://github.com/vbajpai>`_, Norio Nakamoto .
+- v0.4.6: Thanks to all contribs and bug hunters; `Nitin Kumar <https://github.com/vnitinv>`_, `Carl Moberg <https://github.com/cmoberg>`_, `Stavros Kroustouris <https://github.com/kroustou>`_ .
+- v0.4.5: Thanks to all contribs and bug hunters; `Sebastian Wiesinger <https://github.com/sebastianw>`_, `Vincent Bernat <https://github.com/vincentbernat>`_, `Matthew Stone <https://github.com/bigmstone>`_, `Nitin Kumar <https://github.com/vnitinv>`_.
 - v0.4.3: Thanks to all contributors and bug hunters; `Jeremy Schulman <https://github.com/jeremyschulman>`_, `Ray Solomon <https://github.com/rsolomo>`_, `Rick Sherman <https://github.com/shermdog>`_, `subhak186 <https://github.com/subhak186>`_.
 - v0.4.2: Thanks to all contributors; `katharh <https://github.com/katharh>`_, `Francis Luong (Franco) <https://github.com/francisluong>`_, `Vincent Bernat <https://github.com/vincentbernat>`_, `Juergen Brendel <https://github.com/juergenbrendel>`_, `Quentin Loos <https://github.com/Kent1>`_, `Ray Solomon <https://github.com/rsolomo>`_, `Sebastian Wiesinger <https://github.com/sebastianw>`_, `Ebben Aries <https://github.com/earies>`_ .
 - v0.4.1: Many thanks, primarily to `Jeremy Schulman <https://github.com/jeremyschulman>`_ (Juniper) for providing his precious feedback, to `Eben Aries <https://github.com/earies>`_ (Juniper) for his contribution, to Juergen Brendel (Cisco) for the Cisco fork and to all contributors from Cisco and Juniper.

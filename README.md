@@ -1,25 +1,35 @@
-[![Build Status](https://travis-ci.org/leopoul/ncclient.svg?branch=master)](https://travis-ci.org/leopoul/ncclient)
-[![PyPi version](https://pypip.in/v/ncclient/badge.png)](https://crate.io/packages/ncclient/)
-[![PyPi downloads](https://pypip.in/d/ncclient/badge.png)](https://crate.io/packages/ncclient/)
+[![Build Status](https://travis-ci.org/ncclient/ncclient.svg?branch=master)](https://travis-ci.org/ncclient/ncclient)
+[![Coverage Status](https://coveralls.io/repos/github/ncclient/ncclient/badge.svg?branch=master)](https://coveralls.io/github/ncclient/ncclient?branch=master)
 [![Documentation Status](https://readthedocs.org/projects/ncclient/badge/?version=latest)](https://readthedocs.org/projects/ncclient/?badge=latest)
 
 ncclient: Python library for NETCONF clients
 --------------------------------------------
 
+##Important - Python3 support!
+
+**ncclient 0.5.0 with Python 3 support is now in pypitest. To install and test:**
+
+```pip install -i https://testpypi.python.org/pypi ncclient```
+
+Latest stable Python2 version is *0.4.7* (Jan 2016) and is now on PyPi:
+
+```pip install ncclient```
+
+
 ncclient is a Python library that facilitates client-side scripting
 and application development around the NETCONF protocol. `ncclient` was
 developed by [Shikar Bhushan](http://schmizz.net). It is now maintained
-by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org/ncclient/)
+by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org)
 
 **Docs**: [http://ncclient.readthedocs.org](http://ncclient.readthedocs.org)
 
 **PyPI**: [https://pypi.python.org/pypi/ncclient](https://pypi.python.org/pypi/ncclient)
 
 #### Requirements:
-* Python 2.6 <= version < 3.0
+* version >= Python 2.6
 * setuptools 0.6+
 * Paramiko 1.7+
-* lxml 3.0+
+* lxml 3.3.0+
 * libxml2
 * libxslt
 
@@ -71,17 +81,22 @@ Device handlers are easy to implement and prove to be futureproof.
 * Cisco CSR: device_params={'name':'csr'}
 * Cisco Nexus: device_params={'name':'nexus'}
 * Huawei: device_params={'name':'huawei'}
+* Alcatel Lucent: device_params={'name':'alu'}
+* H3C: device_params={'name':'h3c'}
+* HP Comware: device_params={'name':'hpcomware'}
 
 
 ### Changes | brief
 
-* Nexus exec_command operation
-* Allow specifying multiple cmd elements in Cisco Nexus
-* Update rpc for nested rpc-errors
-* Prevent race condition in threading
-* Prevent hanging in session close
+* Python 3 support
+
 
 ### Acknowledgements
+
+* v0.5.0: Thanks to all contribs and bug hunters; [Nitin Kumar] (https://github.com/vnitinv)
+* v0.4.7: Thanks to all contribs and bug hunters; [Einar Nilsen-Nygaard] (https://github.com/einarnn), [Vaibhav Bajpai] (https://github.com/vbajpai), Norio Nakamoto 
+* v0.4.6: Thanks to all contribs and bug hunters; [Nitin Kumar] (https://github.com/vnitinv), [Carl Moberg] (https://github.com/cmoberg), [Stavros Kroustouris] (https://github.com/kroustou) 
+* v0.4.5: Thanks to all contribs and bug hunters; [Sebastian Wiesinger] (https://github.com/sebastianw), [Vincent Bernat] (https://github.com/vincentbernat), [Matthew Stone] (https://github.com/bigmstone), [Nitin Kumar] (https://github.com/vnitinv)
 * v0.4.3: Thanks to all contributors and bug hunters; [Jeremy Schulman](https://github.com/jeremyschulman), [Ray Solomon](https://github.com/rsolomo), [Rick Sherman](https://github.com/shermdog), [subhak186](https://github.com/subhak186)
 * v0.4.2: Thanks to all contributors; [katharh](https://github.com/katharh), [Francis Luong (Franco)](https://github.com/francisluong), [Vincent Bernat](https://github.com/vincentbernat), [Juergen Brendel](https://github.com/juergenbrendel), [Quentin Loos](https://github.com/Kent1), [Ray Solomon](https://github.com/rsolomo), [Sebastian Wiesinger](https://github.com/sebastianw), [Ebben Aries](https://github.com/earies) 
 * v0.4.1: Many thanks, primarily to [Jeremy Schulman](https://github.com/jeremyschulman) (Juniper) for providing his precious feedback, to [Ebben Aries](https://github.com/earies) (Juniper) for his contribution, to Juergen Brendel (Cisco) for the Cisco fork and to all contributors from Cisco and Juniper.
