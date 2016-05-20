@@ -12,15 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import os
 import sys
 import socket
 import getpass
 from binascii import hexlify
-import sys
-from six import StringIO
-from io import BytesIO
+
 from lxml import etree
 from select import select
 
@@ -31,6 +28,11 @@ import paramiko
 from ncclient.transport.errors import AuthenticationError, SessionCloseError, SSHError, SSHUnknownHostError
 from ncclient.transport.session import Session
 from ncclient.xml_ import *
+
+if sys.version < '3':
+    from six import StringIO
+else:
+    from io import BytesIO as StringIO
 
 import logging
 logger = logging.getLogger("ncclient.transport.ssh")
@@ -63,8 +65,8 @@ def _colonify(fp):
         finga += ":" + fp[idx:idx+2]
     return finga
 
-class SSHSession(Session):
 
+class SSHSession(Session):
     "Implements a :rfc:`4742` NETCONF session over SSH."
 
     def __init__(self, device_handler):
@@ -76,10 +78,7 @@ class SSHSession(Session):
         self._channel = None
         self._channel_id = None
         self._channel_name = None
-        if sys.version<'3':
-            self._buffer = StringIO() # for incoming data
-        else:
-            self._buffer = BytesIO() # for incoming data
+        self._buffer = StringIO()   # for incoming data
         # parsing-related, see _parse()
         self._device_handler = device_handler
         self._parsing_state10 = 0
@@ -107,14 +106,16 @@ class SSHSession(Session):
         logger.debug("parsing netconf v1.0")
         buf = self._buffer
         buf.seek(self._parsing_pos10)
-        msg = buf.read().decode('UTF-8')
-        _msg, _delim, _remaining = msg.partition(MSG_DELIM)
-        if _delim:
-            # full message found
-            self._dispatch_message(_msg.strip())
-            buf = StringIO()
-            buf.write(_remaining)
+        if MSG_DELIM in buf.read().decode('UTF-8'):
             buf.seek(0)
+            msg, _, remaining = buf.read().decode('UTF-8').partition(MSG_DELIM)
+            msg = msg.strip()
+            if sys.version < '3':
+                self._dispatch_message(msg.encode())
+            else:
+                self._dispatch_message(msg)
+            buf = StringIO()
+            buf.write(remaining.encode())
         self._buffer = buf
         self._parsing_pos10 = self._buffer.tell()
 
@@ -126,11 +127,11 @@ class SSHSession(Session):
         state = self._parsing_state11
         inendpos = self._inendpos
         num_list = self._size_num_list
-        MAX_STARTCHUNK_SIZE = 12 # \#+4294967295+\n
+        MAX_STARTCHUNK_SIZE = 12    # \#+4294967295+\n
         pre = 'invalid base:1:1 frame'
         buf = self._buffer
         buf.seek(self._parsing_pos11)
-        message_list = self._message_list # a message is a list of chunks
+        message_list = self._message_list   # a message is a list of chunks
         chunk_list = []   # a chunk is a list of characters
 
         while True:
@@ -257,7 +258,6 @@ class SSHSession(Session):
 
 
     def load_known_hosts(self, filename=None):
-
         """Load host keys from an openssh :file:`known_hosts`-style file. Can
         be called multiple times.
 
