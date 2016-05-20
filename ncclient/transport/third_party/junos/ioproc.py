@@ -62,14 +62,14 @@ class IOProc(SSHSession):
         try:
             while True:
                 r, w, e = select([chan.stdout], [], [], TICK)
-                data = ''
+                data = []
                 if r:
                     while True:
-                        data += chan.stdout.readline()
-                        if MSG_DELIM in data:
+                        data.append(chan.stdout.readline())
+                        if MSG_DELIM in data[-1]:
                             break
                     if data:
-                        self._buffer.write(data)
+                        self._buffer.write(b''.join(data))
                         self._parse()
                     else:
                         raise SessionCloseError(self._buffer.getvalue())
