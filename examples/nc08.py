@@ -25,9 +25,9 @@ def demo(host, user, password):
     with manager.connect(host=host, port=830, username=user, password=password,
                      hostkey_verify=False, device_params={'name':'default'},
                      look_for_keys=False, allow_agent=False) as m:
-        m.edit_config(config_e)
-        m.commit()
-        m.close_session()
+        with m.locked(target="candidate"):
+            m.edit_config(config=config_e, default_operation="merge", target="candidate")
+            m.commit()
 
 if __name__ == '__main__':
     demo(sys.argv[1], sys.argv[2], sys.argv[3])
