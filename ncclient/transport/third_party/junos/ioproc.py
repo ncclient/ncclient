@@ -65,8 +65,9 @@ class IOProc(SSHSession):
                 data = []
                 if r:
                     while True:
-                        data.append(chan.stdout.readline())
-                        if MSG_DELIM in data[-1]:
+                        line = chan.stdout.readline()
+                        data.append(line)
+                        if MSG_DELIM in line:
                             break
                     if data:
                         self._buffer.write(b''.join(data))
