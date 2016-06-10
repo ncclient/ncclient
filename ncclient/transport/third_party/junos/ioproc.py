@@ -13,7 +13,6 @@ from ncclient.transport.errors import SessionCloseError, TransportError, Permiss
 from ncclient.transport.ssh import SSHSession
 
 MSG_DELIM = "]]>]]>"
-TICK = 0.1
 NETCONF_SHELL = 'xml-mode netconf need-trailer'
 
 
@@ -61,24 +60,19 @@ class IOProc(SSHSession):
         q = self._q
         try:
             while True:
-                r, w, e = select([chan.stdout], [], [], TICK)
+                # write
+                data = q.get() + MSG_DELIM
+                chan.stdin.write(data)
+                chan.stdin.flush()
+                # read
                 data = []
-                if r:
-                    while True:
-                        data.append(chan.stdout.readline())
-                        if MSG_DELIM in data[-1]:
-                            break
-                    if data:
-                        self._buffer.write(b''.join(data))
-                        self._parse()
-                    else:
-                        raise SessionCloseError(self._buffer.getvalue())
-                if not q.empty():
-                    data = q.get() + MSG_DELIM
-                    while data:
-                        chan.stdin.write(data)
-                        chan.stdin.flush()
-                        data = False
+                while True:
+                    line = chan.stdout.readline()
+                    data.append(line)
+                    if MSG_DELIM in line:
+                        break
+                self._buffer.write(b''.join(data))
+                self._parse()
         except Exception as e:
             self.close()
             self._dispatch_error(e)
