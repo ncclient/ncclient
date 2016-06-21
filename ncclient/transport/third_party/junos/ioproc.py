@@ -34,7 +34,8 @@ class IOProc(SSHSession):
         self._device_handler = device_handler
 
     def close(self):
-        self._channel.kill()
+        self._channel.wait()
+        self._channel = None
         self._connected = False
 
     def connect(self):
@@ -81,8 +82,8 @@ class IOProc(SSHSession):
                         chan.stdin.flush()
                         data = False
         except Exception as e:
-            self.close()
             self._dispatch_error(e)
+            self.close()
 
     @property
     def transport(self):
