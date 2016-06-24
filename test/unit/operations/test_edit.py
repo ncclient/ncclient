@@ -102,22 +102,31 @@ class TestEdit(unittest.TestCase):
         session = ncclient.transport.SSHSession(self.device_handler)
         session._server_capabilities = [':validate']
         obj = Validate(session, self.device_handler, raise_mode=RaiseMode.ALL)
-        obj.request("config")
+        cfg_data = new_ele("config")
+        sub_ele(cfg_data, "data")
+        obj.request(cfg_data)
         node = new_ele("validate")
-        node = sub_ele(node, "source")
-        sub_ele(node, "config")
+        src = sub_ele(node, "source")
+        cfg = sub_ele(src, "config")
+        sub_ele(cfg, "data")
         xml = ElementTree.tostring(node, method='xml')
         call = mock_request.call_args_list[0][0][0]
         call = ElementTree.tostring(call, method='xml')
-        #self.assertEqual(call, xml)
+        self.assertEqual(call, xml)
 
     @patch('ncclient.operations.RPC._request')
     def test_validate_exception(self, mock_request):
         session = ncclient.transport.SSHSession(self.device_handler)
         session._server_capabilities = [':validate']
         obj = Validate(session, self.device_handler, raise_mode=RaiseMode.ALL)
-        with self.assertRaises(XMLError):
-            obj.request("running")
+        obj.request("candidate")
+        node = new_ele("validate")
+        src = sub_ele(node, "source")
+        sub_ele(src, "candidate")
+        xml = ElementTree.tostring(node, method='xml')
+        call = mock_request.call_args_list[0][0][0]
+        call = ElementTree.tostring(call, method='xml')
+        self.assertEqual(call, xml)
 
     @patch('ncclient.operations.RPC._request')
     def test_commit(self, mock_request):
