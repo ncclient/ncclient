@@ -98,7 +98,7 @@ class TestEdit(unittest.TestCase):
         self.assertEqual(call, xml)
 
     @patch('ncclient.operations.RPC._request')
-    def test_validate(self, mock_request):
+    def test_validate_config(self, mock_request):
         session = ncclient.transport.SSHSession(self.device_handler)
         session._server_capabilities = [':validate']
         obj = Validate(session, self.device_handler, raise_mode=RaiseMode.ALL)
@@ -115,7 +115,7 @@ class TestEdit(unittest.TestCase):
         self.assertEqual(call, xml)
 
     @patch('ncclient.operations.RPC._request')
-    def test_validate_exception(self, mock_request):
+    def test_validate_datastore(self, mock_request):
         session = ncclient.transport.SSHSession(self.device_handler)
         session._server_capabilities = [':validate']
         obj = Validate(session, self.device_handler, raise_mode=RaiseMode.ALL)
