@@ -12,15 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import os
 import sys
 import socket
 import getpass
 from binascii import hexlify
-import sys
-from six import StringIO
-from io import BytesIO
+
 from lxml import etree
 from select import select
 
@@ -31,6 +28,11 @@ import paramiko
 from ncclient.transport.errors import AuthenticationError, SessionCloseError, SSHError, SSHUnknownHostError
 from ncclient.transport.session import Session
 from ncclient.xml_ import *
+
+if sys.version < '3':
+    from six import StringIO
+else:
+    from io import BytesIO as StringIO
 
 import logging
 logger = logging.getLogger("ncclient.transport.ssh")
@@ -63,8 +65,8 @@ def _colonify(fp):
         finga += ":" + fp[idx:idx+2]
     return finga
 
-class SSHSession(Session):
 
+class SSHSession(Session):
     "Implements a :rfc:`4742` NETCONF session over SSH."
 
     def __init__(self, device_handler):
@@ -76,10 +78,7 @@ class SSHSession(Session):
         self._channel = None
         self._channel_id = None
         self._channel_name = None
-        if sys.version<'3':
-            self._buffer = StringIO() # for incoming data
-        else:
-            self._buffer = BytesIO() # for incoming data
+        self._buffer = StringIO()   # for incoming data
         # parsing-related, see _parse()
         self._device_handler = device_handler
         self._parsing_state10 = 0
@@ -93,64 +92,31 @@ class SSHSession(Session):
         self._message_list = []
 
     def _parse(self):
-        "Messages ae delimited by MSG_DELIM. The buffer could have grown by a maximum of BUF_SIZE bytes everytime this method is called. Retains state across method calls and if a byte has been read it will not be considered again."
-        return self._parse10()
-
-    def _parse10(self):
-
         """Messages are delimited by MSG_DELIM. The buffer could have grown by
         a maximum of BUF_SIZE bytes everytime this method is called. Retains
         state across method calls and if a byte has been read it will not be
         considered again."""
+        return self._parse10()
 
+    def _parse10(self):
+        """Messages are delimited by MSG_DELIM. The buffer could have grown by
+        a maximum of BUF_SIZE bytes everytime this method is called. Retains
+        state across method calls and if a byte has been read it will not be
+        considered again."""
         logger.debug("parsing netconf v1.0")
-        delim = MSG_DELIM
-        n = len(delim) - 1
-        expect = self._parsing_state10
         buf = self._buffer
         buf.seek(self._parsing_pos10)
-        while True:
-            x = buf.read(1)
-            if isinstance(x, bytes):
-                x = x.decode('UTF-8')
-            if not x: # done reading
-                break
-            elif x == delim[expect]: # what we expected
-                expect += 1 # expect the next delim char
+        if MSG_DELIM in buf.read().decode('UTF-8'):
+            buf.seek(0)
+            msg, _, remaining = buf.read().decode('UTF-8').partition(MSG_DELIM)
+            msg = msg.strip()
+            if sys.version < '3':
+                self._dispatch_message(msg.encode())
             else:
-                expect = 0
-                continue
-            # loop till last delim char expected, break if other char encountered
-            for i in range(expect, n):
-                x = buf.read(1)
-                if isinstance(x, bytes):
-                    x = x.decode('UTF-8')
-                if not x: # done reading
-                    break
-                if x == delim[expect]: # what we expected
-                    expect += 1 # expect the next delim char
-                else:
-                    expect = 0 # reset
-                    break
-            else: # if we didn't break out of the loop, full delim was parsed
-                msg_till = buf.tell() - n
-                buf.seek(0)
-                logger.debug('parsed new message')
-                if sys.version < '3':
-                    self._dispatch_message(buf.read(msg_till).strip())
-                    buf.seek(n+1, os.SEEK_CUR)
-                    rest = buf.read()
-                    buf = StringIO()
-                else:
-                    self._dispatch_message(buf.read(msg_till).strip().decode('UTF-8'))
-                    buf.seek(n+1, os.SEEK_CUR)
-                    rest = buf.read()
-                    buf = BytesIO()
-                buf.write(rest)
-                buf.seek(0)
-                expect = 0
+                self._dispatch_message(msg)
+            buf = StringIO()
+            buf.write(remaining.encode())
         self._buffer = buf
-        self._parsing_state10 = expect
         self._parsing_pos10 = self._buffer.tell()
 
     def _parse11(self):
@@ -161,11 +127,11 @@ class SSHSession(Session):
         state = self._parsing_state11
         inendpos = self._inendpos
         num_list = self._size_num_list
-        MAX_STARTCHUNK_SIZE = 12 # \#+4294967295+\n
+        MAX_STARTCHUNK_SIZE = 12    # \#+4294967295+\n
         pre = 'invalid base:1:1 frame'
         buf = self._buffer
         buf.seek(self._parsing_pos11)
-        message_list = self._message_list # a message is a list of chunks
+        message_list = self._message_list   # a message is a list of chunks
         chunk_list = []   # a chunk is a list of characters
 
         while True:
@@ -230,7 +196,7 @@ class SSHSession(Session):
                     state = inbetween
                     chunk = ''.join(chunk_list)
                     message_list.append(chunk)
-                    chunk_list = [] # Reset chunk_list    
+                    chunk_list = [] # Reset chunk_list
                     logger.debug('parsed new chunk: %s'%(chunk))
             elif state == inbetween:
                 if inendpos == 0:
@@ -292,7 +258,6 @@ class SSHSession(Session):
 
 
     def load_known_hosts(self, filename=None):
-
         """Load host keys from an openssh :file:`known_hosts`-style file. Can
         be called multiple times.
 
@@ -318,7 +283,7 @@ class SSHSession(Session):
             self._transport.close()
         self._channel = None
         self._connected = False
-        
+
 
     # REMEMBER to update transport.rst if sig. changes, since it is hardcoded there
     def connect(self, host, port=830, timeout=None, unknown_host_cb=default_unknown_host_cb,
