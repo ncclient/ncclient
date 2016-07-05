@@ -226,7 +226,7 @@ class SSHSession(Session):
                         inendpos += 1 # > 3 now #
                         num_list.append(x)
                     else:
-                        log.debug('%s (%s: expect digit)'%(pre, state))
+                        logger.debug('%s (%s: expect digit)'%(pre, state))
                         raise Exception
             elif state == inmsg:
                 chunk_list.append(x)
