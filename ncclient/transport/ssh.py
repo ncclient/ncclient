@@ -63,6 +63,13 @@ def _colonify(fp):
         finga += ":" + fp[idx:idx+2]
     return finga
 
+if sys.version_info.major < 3:
+    def textify(buf):
+        return buf
+else:
+    def textify(buf):
+        return buf.decode('UTF-8')
+
 class SSHSession(Session):
 
     "Implements a :rfc:`4742` NETCONF session over SSH."
@@ -173,12 +180,12 @@ class SSHSession(Session):
             if not x:
                 logger.debug('No more data to read')
                 # Store the current chunk to the message list
-                chunk = ''.join(chunk_list)
-                message_list.append(chunk)
+                chunk = b''.join(chunk_list)
+                message_list.append(textify(chunk))
                 break # done reading
             logger.debug('x: %s', x)
             if state == idle:
-                if x == '\n':
+                if x == b'\n':
                     state = instart
                     inendpos = 1
                 else:
@@ -186,7 +193,7 @@ class SSHSession(Session):
                     raise Exception
             elif state == instart:
                 if inendpos == 1:
-                    if x == '#':
+                    if x == b'#':
                         inendpos += 1
                     else:
                         logger.debug('%s (%s: expect "#")'%(pre, state))
@@ -202,10 +209,10 @@ class SSHSession(Session):
                     if inendpos == MAX_STARTCHUNK_SIZE:
                         logger.debug('%s (%s: no. too long)'%(pre, state))
                         raise Exception
-                    elif x == '\n':
-                        num = ''.join(num_list)
+                    elif x == b'\n':
+                        num = b''.join(num_list)
                         num_list = [] # Reset num_list
-                        try: num = long(num)
+                        try: num = int(num)
                         except:
                             logger.debug('%s (%s: invalid no.)'%(pre, state))
                             raise Exception
@@ -219,7 +226,7 @@ class SSHSession(Session):
                         inendpos += 1 # > 3 now #
                         num_list.append(x)
                     else:
-                        log.debug('%s (%s: expect digit)'%(pre, state))
+                        logger.debug('%s (%s: expect digit)'%(pre, state))
                         raise Exception
             elif state == inmsg:
                 chunk_list.append(x)
@@ -228,24 +235,24 @@ class SSHSession(Session):
                 if chunkleft == 0:
                     inendpos = 0
                     state = inbetween
-                    chunk = ''.join(chunk_list)
-                    message_list.append(chunk)
+                    chunk = b''.join(chunk_list)
+                    message_list.append(textify(chunk))
                     chunk_list = [] # Reset chunk_list    
                     logger.debug('parsed new chunk: %s'%(chunk))
             elif state == inbetween:
                 if inendpos == 0:
-                    if x == '\n': inendpos += 1
+                    if x == b'\n': inendpos += 1
                     else:
                         logger.debug('%s (%s: expect newline)'%(pre, state))
                         raise Exception
                 elif inendpos == 1:
-                    if x == '#': inendpos += 1
+                    if x == b'#': inendpos += 1
                     else:
                         logger.debug('%s (%s: expect "#")'%(pre, state))
                         raise Exception
                 else:
                     inendpos += 1 # == 3 now #
-                    if x == '#':
+                    if x == b'#':
                         state = inend
                     elif x.isdigit():
                         # More trunks
@@ -257,14 +264,14 @@ class SSHSession(Session):
                         raise Exception
             elif state == inend:
                 if inendpos == 3:
-                    if x == '\n':
+                    if x == b'\n':
                         inendpos = 0
                         state = idle
                         logger.debug('dispatching message')
                         self._dispatch_message(''.join(message_list))
                         # reset
                         rest = buf.read()
-                        buf = StringIO()
+                        buf = BytesIO()
                         buf.write(rest)
                         buf.seek(0)
                         message_list = []
