@@ -40,6 +40,7 @@ logger = logging.getLogger("ncclient.transport.ssh")
 BUF_SIZE = 4096
 # v1.0: RFC 4742
 MSG_DELIM = "]]>]]>"
+MSG_DELIM_LEN = len(MSG_DELIM)
 # v1.1: RFC 6242
 END_DELIM = '\n##\n'
 
@@ -101,7 +102,7 @@ class SSHSession(Session):
     def _parse10(self):
         """Messages are delimited by MSG_DELIM. The buffer could have grown by
         a maximum of BUF_SIZE bytes everytime this method is called. Retains
-        state across method calls and if a byte has been read it will not be
+        state across method calls and if a chunk has been read it will not be
         considered again."""
         logger.debug("parsing netconf v1.0")
         buf = self._buffer
@@ -114,10 +115,15 @@ class SSHSession(Session):
                 self._dispatch_message(msg.encode())
             else:
                 self._dispatch_message(msg)
-            buf = StringIO()
-            buf.write(remaining.encode())
-        self._buffer = buf
-        self._parsing_pos10 = self._buffer.tell()
+            # create new buffer which contains remaining of old buffer
+            self._buffer = StringIO()
+            self._buffer.write(remaining.encode())
+            self._parsing_pos10 = 0
+        else:
+            # handle case that MSG_DELIM is split over two chunks
+            self._parsing_pos10 = buf.tell() - MSG_DELIM_LEN
+            if self._parsing_pos10 < 0:
+                self._parsing_pos10 = 0
 
     def _parse11(self):
         logger.debug("parsing netconf v1.1")
