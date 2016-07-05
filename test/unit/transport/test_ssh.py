@@ -34,6 +34,28 @@ rpc_reply11 = "\n#%d\n%s\n#%d\n%s\n##\n%s" % (
     reply_ok_chunk)
 
 
+rpc_reply_part_1 = """<rpc-reply xmlns:junos="http://xml.juniper.net/junos/12.1X46/junos" attrib1 = "test">
+    <software-information>
+        <host-name>R1</host-name>
+        <product-model>firefly-perimeter</product-model>
+        <product-name>firefly-perimeter</product-name>
+        <package-information>
+            <name>junos</name>
+            <comment>JUNOS Software Release [12.1X46-D10.2]</comment>
+        </package-information>
+    </software-information>
+    <cli>
+        <banner></banner>
+    </cli>
+</rpc-reply>
+]]>]]"""
+
+rpc_reply_part_2 = """>
+<rpc-reply>
+    <ok/>
+<rpc-reply/>"""
+
+
 class TestSSH(unittest.TestCase):
 
     def _test_parsemethod(self, mock_dispatch, parsemethod, reply, ok_chunk):
@@ -57,6 +79,27 @@ class TestSSH(unittest.TestCase):
     @patch('ncclient.transport.ssh.Session._dispatch_message')
     def test_parse11(self, mock_dispatch):
         self._test_parsemethod(mock_dispatch, SSHSession._parse11, rpc_reply11, reply_ok_chunk)
+
+    @patch('ncclient.transport.ssh.Session._dispatch_message')
+    def test_parse_incomplete_delimiter(self, mock_dispatch):
+        device_handler = JunosDeviceHandler({'name': 'junos'})
+        obj = SSHSession(device_handler)
+        if sys.version >= "3.0":
+            b = bytes(rpc_reply_part_1, "utf-8")
+            obj._buffer.write(b)
+            obj._parse()
+            self.assertFalse(mock_dispatch.called)
+            b = bytes(rpc_reply_part_2, "utf-8")
+            obj._buffer.write(b)
+            obj._parse()
+            self.assertTrue(mock_dispatch.called)
+        else:
+            obj._buffer.write(rpc_reply_part_1)
+            obj._parse()
+            self.assertFalse(mock_dispatch.called)
+            obj._buffer.write(rpc_reply_part_2)
+            obj._parse()
+            self.assertTrue(mock_dispatch.called)
 
     @patch('paramiko.transport.Transport.auth_publickey')
     @patch('paramiko.agent.AgentSSH.get_keys')

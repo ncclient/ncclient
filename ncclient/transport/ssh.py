@@ -112,7 +112,7 @@ class SSHSession(Session):
 
         logger.debug("parsing netconf v1.0")
         delim = MSG_DELIM
-        n = len(delim) - 1
+        n = len(delim)
         expect = self._parsing_state10
         buf = self._buffer
         buf.seek(self._parsing_pos10)
@@ -145,12 +145,12 @@ class SSHSession(Session):
                 logger.debug('parsed new message')
                 if sys.version < '3':
                     self._dispatch_message(buf.read(msg_till).strip())
-                    buf.seek(n+1, os.SEEK_CUR)
+                    buf.seek(n, os.SEEK_CUR)
                     rest = buf.read()
                     buf = StringIO()
                 else:
                     self._dispatch_message(buf.read(msg_till).strip().decode('UTF-8'))
-                    buf.seek(n+1, os.SEEK_CUR)
+                    buf.seek(n, os.SEEK_CUR)
                     rest = buf.read()
                     buf = BytesIO()
                 buf.write(rest)
