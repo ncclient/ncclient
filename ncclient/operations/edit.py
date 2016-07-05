@@ -109,17 +109,15 @@ class Validate(RPC):
 
         *source* is the name of the configuration datastore being validated or `config` element containing the configuration subtree to be validated
 
-
-        ** modified to only accept valid string as source argument.  Elements no longer accepted - earies - 04/22/2013
-
         :seealso: :ref:`srctarget_params`"""
         node = new_ele("validate")
-        # rfc6241 sec 8.6.4 states valid source can be <candidate> or <config> elements
-        tags = ("config", "candidate")
-        if source not in tags:
-            raise XMLError("Invalid source type: [%s], must be one of %s" % (source, tags))
-        src_ele = sub_ele(node, "source")
-        sub_ele(src_ele, source)
+        if type(source) is str:
+            src = util.datastore_or_url("source", source, self._assert)
+        else:
+            validated_element(source, ("config", qualify("config")))
+            src = new_ele("source")
+            src.append(source)
+        node.append(src)
         return self._request(node)
 
 
