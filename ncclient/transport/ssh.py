@@ -18,8 +18,6 @@ import sys
 import socket
 import getpass
 from binascii import hexlify
-from six import StringIO
-from io import BytesIO
 from lxml import etree
 from select import select
 
@@ -37,6 +35,7 @@ logger = logging.getLogger("ncclient.transport.ssh")
 BUF_SIZE = 4096
 # v1.0: RFC 4742
 MSG_DELIM = "]]>]]>"
+MSG_DELIM_LEN = len(MSG_DELIM)
 # v1.1: RFC 6242
 END_DELIM = '\n##\n'
 
@@ -69,6 +68,13 @@ else:
     def textify(buf):
         return buf.decode('UTF-8')
 
+if sys.version < '3':
+    from six import StringIO
+else:
+    from io import BytesIO as StringIO
+
+
+
 class SSHSession(Session):
 
     "Implements a :rfc:`4742` NETCONF session over SSH."
@@ -82,10 +88,7 @@ class SSHSession(Session):
         self._channel = None
         self._channel_id = None
         self._channel_name = None
-        if sys.version<'3':
-            self._buffer = StringIO() # for incoming data
-        else:
-            self._buffer = BytesIO() # for incoming data
+        self._buffer = StringIO()
         # parsing-related, see _parse()
         self._device_handler = device_handler
         self._parsing_state10 = 0
@@ -106,58 +109,29 @@ class SSHSession(Session):
 
         """Messages are delimited by MSG_DELIM. The buffer could have grown by
         a maximum of BUF_SIZE bytes everytime this method is called. Retains
-        state across method calls and if a byte has been read it will not be
+        state across method calls and if a chunk has been read it will not be
         considered again."""
 
         logger.debug("parsing netconf v1.0")
-        delim = MSG_DELIM
-        n = len(delim)
-        expect = self._parsing_state10
         buf = self._buffer
         buf.seek(self._parsing_pos10)
-        while True:
-            x = buf.read(1)
-            if isinstance(x, bytes):
-                x = x.decode('UTF-8')
-            if not x: # done reading
-                break
-            elif x == delim[expect]: # what we expected
-                expect += 1 # expect the next delim char
+        if MSG_DELIM in buf.read().decode('UTF-8'):
+            buf.seek(0)
+            msg, _, remaining = buf.read().decode('UTF-8').partition(MSG_DELIM)
+            msg = msg.strip()
+            if sys.version < '3':
+                self._dispatch_message(msg.encode())
             else:
-                expect = 0
-                continue
-            # loop till last delim char expected, break if other char encountered
-            for i in range(expect, n):
-                x = buf.read(1)
-                if isinstance(x, bytes):
-                    x = x.decode('UTF-8')
-                if not x: # done reading
-                    break
-                if x == delim[expect]: # what we expected
-                    expect += 1 # expect the next delim char
-                else:
-                    expect = 0 # reset
-                    break
-            else: # if we didn't break out of the loop, full delim was parsed
-                msg_till = buf.tell() - n
-                buf.seek(0)
-                logger.debug('parsed new message')
-                if sys.version < '3':
-                    self._dispatch_message(buf.read(msg_till).strip())
-                    buf.seek(n, os.SEEK_CUR)
-                    rest = buf.read()
-                    buf = StringIO()
-                else:
-                    self._dispatch_message(buf.read(msg_till).strip().decode('UTF-8'))
-                    buf.seek(n, os.SEEK_CUR)
-                    rest = buf.read()
-                    buf = BytesIO()
-                buf.write(rest)
-                buf.seek(0)
-                expect = 0
-        self._buffer = buf
-        self._parsing_state10 = expect
-        self._parsing_pos10 = self._buffer.tell()
+                self._dispatch_message(msg)
+            # create new buffer which contains remaining of old buffer
+            self._buffer = StringIO()
+            self._buffer.write(remaining.encode())
+            self._parsing_pos10 = 0
+        else:
+            # handle case that MSG_DELIM is split over two chunks
+            self._parsing_pos10 = buf.tell() - MSG_DELIM_LEN
+            if self._parsing_pos10 < 0:
+                self._parsing_pos10 = 0
 
     def _parse11(self):
         logger.debug("parsing netconf v1.1")
@@ -236,7 +210,7 @@ class SSHSession(Session):
                     state = inbetween
                     chunk = b''.join(chunk_list)
                     message_list.append(textify(chunk))
-                    chunk_list = [] # Reset chunk_list    
+                    chunk_list = [] # Reset chunk_list
                     logger.debug('parsed new chunk: %s'%(chunk))
             elif state == inbetween:
                 if inendpos == 0:
@@ -324,7 +298,7 @@ class SSHSession(Session):
             self._transport.close()
         self._channel = None
         self._connected = False
-        
+
 
     # REMEMBER to update transport.rst if sig. changes, since it is hardcoded there
     def connect(self, host, port=830, timeout=None, unknown_host_cb=default_unknown_host_cb,

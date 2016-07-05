@@ -97,7 +97,7 @@ Supported device handlers
 Changes \| brief
 ~~~~~~~~~~~~~~~~
 
-**v0.5.1**
+**v0.5.2**
 
 - Add support for Python 3
 - Improve Junos ioproc performance
@@ -165,7 +165,7 @@ Changes \| brief
 Acknowledgements
 ~~~~~~~~~~~~~~~~
 
--  v0.5.1: `Nitin Kumar`_, `Kristian Larsson`_, `palashgupta`_,
+-  v0.5.2: `Nitin Kumar`_, `Kristian Larsson`_, `palashgupta`_,
    `Jonathan Provost`_, `Jainpriyal`_, `sharang`_, `pseguel`_,
    `nnakamot`_, `Алексей Пастухов`_, `Christian Giese`_, `Peipei Guo`_,
    `Time Warner Cable Openstack Team`_
