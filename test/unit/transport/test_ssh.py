@@ -1,10 +1,12 @@
 import unittest
 from mock import patch
-from ncclient.transport.ssh import *
+from ncclient.transport.ssh import SSHSession
+from ncclient.transport import AuthenticationError, SessionCloseError
+import paramiko
 from ncclient.devices.junos import JunosDeviceHandler
 import sys
 
-rpc_reply = """<rpc-reply xmlns:junos="http://xml.juniper.net/junos/12.1X46/junos" attrib1 = "test">
+reply_data = """<rpc-reply xmlns:junos="http://xml.juniper.net/junos/12.1X46/junos" attrib1 = "test">
     <software-information>
         <host-name>R1</host-name>
         <product-model>firefly-perimeter</product-model>
@@ -17,34 +19,44 @@ rpc_reply = """<rpc-reply xmlns:junos="http://xml.juniper.net/junos/12.1X46/juno
     <cli>
         <banner></banner>
     </cli>
-</rpc-reply>
-]]>]]>
-<rpc-reply>
+</rpc-reply>"""
+
+reply_ok = """<rpc-reply>
     <ok/>
 <rpc-reply/>"""
+
+rpc_reply = reply_data + "\n]]>]]>\n" + reply_ok
+
+reply_ok_chunk = "\n#%d\n%s\n##\n" % (len(reply_ok), reply_ok)
+
+rpc_reply11 = "\n#%d\n%s\n#%d\n%s\n##\n%s" % (
+    30, reply_data[:30], len(reply_data[30:]), reply_data[30:],
+    reply_ok_chunk)
 
 
 class TestSSH(unittest.TestCase):
 
-    @patch('ncclient.transport.ssh.Session._dispatch_message')
-    def test_parse(self, mock_dispatch):
+    def _test_parsemethod(self, mock_dispatch, parsemethod, reply, ok_chunk):
         device_handler = JunosDeviceHandler({'name': 'junos'})
         obj = SSHSession(device_handler)
         if sys.version >= "3.0":
-            b = bytes(rpc_reply, "utf-8")
-            obj._buffer.write(b)
-            obj._parse()
-            dispatched_str = (b[0:509]).strip().decode("utf-8")
-            call = mock_dispatch.call_args_list[0][0][0]
-            self.assertEqual(call, dispatched_str)
-            self.assertEqual(obj._buffer.getvalue(), b[515:])
+            obj._buffer.write(bytes(reply, "utf-8"))
+            remainder = bytes(ok_chunk, "utf-8")
         else:
-            obj._buffer.write(rpc_reply)
-            obj._parse()
-            dispatched_str = (rpc_reply[0:509]).strip()
-            call = mock_dispatch.call_args_list[0][0][0]
-            self.assertEqual(call, dispatched_str)
-            self.assertEqual(obj._buffer.getvalue(), rpc_reply[515:])
+            obj._buffer.write(reply)
+            remainder = ok_chunk
+        parsemethod(obj)
+        call = mock_dispatch.call_args_list[0][0][0]
+        self.assertEqual(call, reply_data)
+        self.assertEqual(obj._buffer.getvalue(), remainder)
+
+    @patch('ncclient.transport.ssh.Session._dispatch_message')
+    def test_parse(self, mock_dispatch):
+        self._test_parsemethod(mock_dispatch, SSHSession._parse, rpc_reply, "\n" + reply_ok)
+
+    @patch('ncclient.transport.ssh.Session._dispatch_message')
+    def test_parse11(self, mock_dispatch):
+        self._test_parsemethod(mock_dispatch, SSHSession._parse11, rpc_reply11, reply_ok_chunk)
 
     @patch('paramiko.transport.Transport.auth_publickey')
     @patch('paramiko.agent.AgentSSH.get_keys')
