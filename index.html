@@ -26,17 +26,6 @@
 <h2>
 <a id="ncclient-python-library-for-netconf-clients" class="anchor" href="#ncclient-python-library-for-netconf-clients" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>ncclient: Python library for NETCONF clients</h2>
 
-<h2>
-<a id="important---python3-support" class="anchor" href="#important---python3-support" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Important - Python3 support!</h2>
-
-<p><strong>ncclient 0.5.0 with Python 3 support is now in pypitest. To install and test:</strong></p>
-
-<p><code>pip install -i https://testpypi.python.org/pypi ncclient</code></p>
-
-<p>Latest stable Python2 version is <em>0.4.7</em> (Jan 2016) and is now on PyPi:</p>
-
-<p><code>pip install ncclient</code></p>
-
 <p>ncclient is a Python library that facilitates client-side scripting
 and application development around the NETCONF protocol. <code>ncclient</code> was
 developed by <a href="http://schmizz.net">Shikar Bhushan</a>. It is now maintained
@@ -50,7 +39,7 @@ by <a href="http://ncclient.org">Leonidas Poulopoulos (@leopoul)</a></p>
 <a id="requirements" class="anchor" href="#requirements" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Requirements:</h4>
 
 <ul>
-<li>version &gt;= Python 2.6</li>
+<li>version &gt;= Python 2.6 or Python3</li>
 <li>setuptools 0.6+</li>
 <li>Paramiko 1.7+</li>
 <li>lxml 3.3.0+</li>
@@ -132,22 +121,23 @@ with manager.connect(host=host, port=830, username=user, hostkey_verify=False, d
 
 <ul>
 <li>Python 3 support</li>
+<li>Bug fixes</li>
 </ul>
 
 <h3>
-<a id="acknowledgements" class="anchor" href="#acknowledgements" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Acknowledgements</h3>
+<a id="contributors" class="anchor" href="#contributors" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Contributors</h3>
 
 <ul>
-<li>v0.5.0: Thanks to all contribs and bug hunters; <a href="https://github.com/vnitinv">Nitin Kumar</a>
+<li>v0.5.1: <a href="https://github.com/vnitinv">Nitin Kumar</a>, <a href="https://github.com/plajjan">Kristian Larsson</a>, <a href="https://github.com/palashgupta">palashgupta</a>, <a href="https://github.com/JoProvost">Jonathan Provost</a>, <a href="https://github.com/Jainpriyal">Jainpriyal</a>, <a href="https://github.com/sharang">sharang</a>, <a href="https://github.com/pseguel">pseguel</a>, <a href="https://github.com/nnakamot">nnakamot</a>, <a href="https://github.com/p-alik">Алексей Пастухов</a>, <a href="https://github.com/GIC-de">Christian Giese</a>, <a href="https://github.com/peipeiguo">Peipei Guo</a>, <a href="https://github.com/twc-openstack">Time Warner Cable Openstack Team</a>
 </li>
-<li>v0.4.7: Thanks to all contribs and bug hunters; <a href="https://github.com/einarnn">Einar Nilsen-Nygaard</a>, <a href="https://github.com/vbajpai">Vaibhav Bajpai</a>, Norio Nakamoto </li>
-<li>v0.4.6: Thanks to all contribs and bug hunters; <a href="https://github.com/vnitinv">Nitin Kumar</a>, <a href="https://github.com/cmoberg">Carl Moberg</a>, <a href="https://github.com/kroustou">Stavros Kroustouris</a> </li>
-<li>v0.4.5: Thanks to all contribs and bug hunters; <a href="https://github.com/sebastianw">Sebastian Wiesinger</a>, <a href="https://github.com/vincentbernat">Vincent Bernat</a>, <a href="https://github.com/bigmstone">Matthew Stone</a>, <a href="https://github.com/vnitinv">Nitin Kumar</a>
+<li>v0.4.7: <a href="https://github.com/einarnn">Einar Nilsen-Nygaard</a>, <a href="https://github.com/vbajpai">Vaibhav Bajpai</a>, Norio Nakamoto </li>
+<li>v0.4.6: <a href="https://github.com/vnitinv">Nitin Kumar</a>, <a href="https://github.com/cmoberg">Carl Moberg</a>, <a href="https://github.com/kroustou">Stavros Kroustouris</a> </li>
+<li>v0.4.5: <a href="https://github.com/sebastianw">Sebastian Wiesinger</a>, <a href="https://github.com/vincentbernat">Vincent Bernat</a>, <a href="https://github.com/bigmstone">Matthew Stone</a>, <a href="https://github.com/vnitinv">Nitin Kumar</a>
 </li>
-<li>v0.4.3: Thanks to all contributors and bug hunters; <a href="https://github.com/jeremyschulman">Jeremy Schulman</a>, <a href="https://github.com/rsolomo">Ray Solomon</a>, <a href="https://github.com/shermdog">Rick Sherman</a>, <a href="https://github.com/subhak186">subhak186</a>
+<li>v0.4.3: <a href="https://github.com/jeremyschulman">Jeremy Schulman</a>, <a href="https://github.com/rsolomo">Ray Solomon</a>, <a href="https://github.com/shermdog">Rick Sherman</a>, <a href="https://github.com/subhak186">subhak186</a>
 </li>
-<li>v0.4.2: Thanks to all contributors; <a href="https://github.com/katharh">katharh</a>, <a href="https://github.com/francisluong">Francis Luong (Franco)</a>, <a href="https://github.com/vincentbernat">Vincent Bernat</a>, <a href="https://github.com/juergenbrendel">Juergen Brendel</a>, <a href="https://github.com/Kent1">Quentin Loos</a>, <a href="https://github.com/rsolomo">Ray Solomon</a>, <a href="https://github.com/sebastianw">Sebastian Wiesinger</a>, <a href="https://github.com/earies">Ebben Aries</a> </li>
-<li>v0.4.1: Many thanks, primarily to <a href="https://github.com/jeremyschulman">Jeremy Schulman</a> (Juniper) for providing his precious feedback, to <a href="https://github.com/earies">Ebben Aries</a> (Juniper) for his contribution, to Juergen Brendel (Cisco) for the Cisco fork and to all contributors from Cisco and Juniper.</li>
+<li>v0.4.2: <a href="https://github.com/katharh">katharh</a>, <a href="https://github.com/francisluong">Francis Luong (Franco)</a>, <a href="https://github.com/vincentbernat">Vincent Bernat</a>, <a href="https://github.com/juergenbrendel">Juergen Brendel</a>, <a href="https://github.com/Kent1">Quentin Loos</a>, <a href="https://github.com/rsolomo">Ray Solomon</a>, <a href="https://github.com/sebastianw">Sebastian Wiesinger</a>, <a href="https://github.com/earies">Ebben Aries</a> </li>
+<li>v0.4.1: <a href="https://github.com/jeremyschulman">Jeremy Schulman</a>, <a href="https://github.com/earies">Ebben Aries</a>, Juergen Brendel</li>
 </ul>
 
       <footer class="site-footer">
