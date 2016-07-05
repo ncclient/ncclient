@@ -147,8 +147,7 @@ class TestRPC(unittest.TestCase):
         node = new_ele("commit")
         sub_ele(node, "confirmed")
         mock_thread.return_value = False
-        with self.assertRaises(TimeoutExpiredError):
-            obj._request(node)
+        self.assertRaises(TimeoutExpiredError, obj._request, node)
 
     @patch('ncclient.transport.Session.send')
     @patch(patch_str)
@@ -161,10 +160,10 @@ class TestRPC(unittest.TestCase):
         obj._reply = reply
         node = new_ele("commit")
         sub_ele(node, "confirmed")
-        with self.assertRaises(RPCError):
-            err = RPCError(to_ele(xml2))
-            obj.deliver_error(err)
-            obj._request(node)
+
+        err = RPCError(to_ele(xml2))
+        obj.deliver_error(err)
+        self.assertRaises(RPCError, obj._request, node)
 
     @patch('ncclient.transport.Session.send')
     @patch(patch_str)
@@ -175,5 +174,5 @@ class TestRPC(unittest.TestCase):
         session._server_capabilities = [':running']
         obj = RPC(session, device_handler, raise_mode=RaiseMode.ALL, timeout=0)
         obj._assert(':running')
-        with self.assertRaises(MissingCapabilityError):
-            obj._assert(':candidate')
+        self.assertRaises(MissingCapabilityError,
+            obj._assert, ':candidate')

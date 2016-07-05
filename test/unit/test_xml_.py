@@ -146,8 +146,8 @@ class TestXML(unittest.TestCase):
         result = NCElement(self.reply, transform_reply)
         XMLError.message = "Element does not meet requirement"
         result_xml = result.data_xml
-        with self.assertRaises(XMLError):
-            validated_element(
+        self.assertRaises(XMLError,
+            validated_element,
                 result_xml, tags=["rpc"], attrs=[["attrib1", "attrib2"]])
 
     def test_validated_element_fail_2(self):
@@ -157,8 +157,8 @@ class TestXML(unittest.TestCase):
         result = NCElement(self.reply, transform_reply)
         XMLError.message = "Element does not meet requirement"
         result_xml = result.data_xml
-        with self.assertRaises(XMLError):
-            validated_element(
+        self.assertRaises(XMLError,
+            validated_element,
                 result_xml,
                 tags=[
                     "rpc-reply",
@@ -174,5 +174,5 @@ class TestXML(unittest.TestCase):
         result = NCElement(self.reply, transform_reply)
         XMLError.message = "Element does not meet requirement"
         result_xml = result.data_xml
-        with self.assertRaises(XMLError):
-            validated_element(result_xml, tags=["rpc"])
+        self.assertRaises(XMLError,
+            validated_element, result_xml, tags=["rpc"])

@@ -7,7 +7,10 @@ if sys.version < '3':
 else:
     from io import StringIO
 from select import select
-from subprocess import Popen, check_output, PIPE, STDOUT
+if sys.version>='2.7':
+    from subprocess import Popen, check_output, PIPE, STDOUT
+else:
+    from subprocess import Popen, PIPE, STDOUT
 
 from ncclient.transport.errors import SessionCloseError, TransportError, PermissionError
 from ncclient.transport.ssh import SSHSession

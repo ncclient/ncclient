@@ -22,9 +22,9 @@ class TestLock(unittest.TestCase):
         obj.request()
         node = new_ele("lock")
         sub_ele(sub_ele(node, "target"), "candidate")
-        xml = ElementTree.tostring(node, method='xml')
+        xml = ElementTree.tostring(node)
         call = mock_request.call_args_list[0][0][0]
-        call = ElementTree.tostring(call, method='xml')
+        call = ElementTree.tostring(call)
         self.assertEqual(call, xml)
 
     @patch('ncclient.transport.SSHSession')
@@ -35,9 +35,9 @@ class TestLock(unittest.TestCase):
         obj.request(target="running")
         node = new_ele("lock")
         sub_ele(sub_ele(node, "target"), "running")
-        xml = ElementTree.tostring(node, method='xml')
+        xml = ElementTree.tostring(node)
         call = mock_request.call_args_list[0][0][0]
-        call = ElementTree.tostring(call, method='xml')
+        call = ElementTree.tostring(call)
         self.assertEqual(call, xml)
 
     @patch('ncclient.transport.SSHSession')
@@ -48,9 +48,9 @@ class TestLock(unittest.TestCase):
         obj.request()
         node = new_ele("unlock")
         sub_ele(sub_ele(node, "target"), "candidate")
-        xml = ElementTree.tostring(node, method='xml')
+        xml = ElementTree.tostring(node)
         call = mock_request.call_args_list[0][0][0]
-        call = ElementTree.tostring(call, method='xml')
+        call = ElementTree.tostring(call)
         self.assertEqual(call, xml)
 
     @patch('ncclient.transport.SSHSession')
@@ -61,9 +61,9 @@ class TestLock(unittest.TestCase):
         obj.request(target="running")
         node = new_ele("unlock")
         sub_ele(sub_ele(node, "target"), "running")
-        xml = ElementTree.tostring(node, method='xml')
+        xml = ElementTree.tostring(node)
         call = mock_request.call_args_list[0][0][0]
-        call = ElementTree.tostring(call, method='xml')
+        call = ElementTree.tostring(call)
         self.assertEqual(call, xml)
 
     @patch('ncclient.transport.SSHSession')
@@ -74,9 +74,9 @@ class TestLock(unittest.TestCase):
         self.assertEqual(obj.__enter__(), obj)
         node = new_ele("lock")
         sub_ele(sub_ele(node, "target"), "candidate")
-        xml = ElementTree.tostring(node, method='xml')
+        xml = ElementTree.tostring(node)
         call = mock_request.call_args_list[0][0][0]
-        call = ElementTree.tostring(call, method='xml')
+        call = ElementTree.tostring(call)
         self.assertEqual(call, xml)
 
     @patch('ncclient.transport.SSHSession')
@@ -87,7 +87,7 @@ class TestLock(unittest.TestCase):
         self.assertFalse(obj.__exit__())
         node = new_ele("unlock")
         sub_ele(sub_ele(node, "target"), "running")
-        xml = ElementTree.tostring(node, method='xml')
+        xml = ElementTree.tostring(node)
         call = mock_request.call_args_list[0][0][0]
-        call = ElementTree.tostring(call, method='xml')
+        call = ElementTree.tostring(call)
         self.assertEqual(call, xml)

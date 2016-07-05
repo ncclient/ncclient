@@ -145,14 +145,14 @@ class TestSession(unittest.TestCase):
         obj = Session(cap)
         listener = HelloHandler(None, None)
         obj.add_listener(listener)
-        self.assertEqual(obj._listeners, {listener})
+        self.assertTrue(listener in obj._listeners)
 
     def test_add_listener_exception(self):
         cap = [':candidate']
         obj = Session(cap)
         listener = Session(None)
-        with self.assertRaises(SessionError):
-            obj.add_listener(listener)
+        self.assertRaises(SessionError,
+            obj.add_listener, listener)
 
     def test_remove_listener(self):
         cap = [':candidate']
@@ -181,8 +181,8 @@ class TestSession(unittest.TestCase):
         cap = [':candidate']
         obj = Session(cap)
         obj._connected = False
-        with self.assertRaises(TransportError):
-            obj.send("Hello World")
+        self.assertRaises(TransportError,
+            obj.send, "Hello World")
 
     def test_connected(self):
         cap = [':candidate']

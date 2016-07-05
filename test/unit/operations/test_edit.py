@@ -34,9 +34,9 @@ class TestEdit(unittest.TestCase):
         node = new_ele("edit-config")
         node.append(util.datastore_or_url("target", "candidate"))
         node.append(validated_element(root, ("config", qualify("config"))))
-        xml = ElementTree.tostring(node, method='xml')
+        xml = ElementTree.tostring(node)
         call = mock_request.call_args_list[0][0][0]
-        call = ElementTree.tostring(call, method='xml')
+        call = ElementTree.tostring(call)
         self.assertEqual(call, xml)
 
     @patch('ncclient.operations.edit.RPC._request')
@@ -61,9 +61,9 @@ class TestEdit(unittest.TestCase):
         sub_ele(node, "default-operation").text = "default"
         config_text = sub_ele(node, "config-text")
         sub_ele(config_text, "configuration-text").text = root
-        xml = ElementTree.tostring(node, method='xml')
+        xml = ElementTree.tostring(node)
         call = mock_request.call_args_list[0][0][0]
-        call = ElementTree.tostring(call, method='xml')
+        call = ElementTree.tostring(call)
         self.assertEqual(call, xml)
 
     @patch('ncclient.operations.RPC._request')
@@ -76,9 +76,9 @@ class TestEdit(unittest.TestCase):
         obj.request("candidate")
         node = new_ele("delete-config")
         node.append(util.datastore_or_url("target", "candidate"))
-        xml = ElementTree.tostring(node, method='xml')
+        xml = ElementTree.tostring(node)
         call = mock_request.call_args_list[0][0][0]
-        call = ElementTree.tostring(call, method='xml')
+        call = ElementTree.tostring(call)
         self.assertEqual(call, xml)
 
     @patch('ncclient.operations.RPC._request')
@@ -92,9 +92,9 @@ class TestEdit(unittest.TestCase):
         node = new_ele("copy-config")
         node.append(util.datastore_or_url("target", "running"))
         node.append(util.datastore_or_url("source", "candidate"))
-        xml = ElementTree.tostring(node, method='xml')
+        xml = ElementTree.tostring(node)
         call = mock_request.call_args_list[0][0][0]
-        call = ElementTree.tostring(call, method='xml')
+        call = ElementTree.tostring(call)
         self.assertEqual(call, xml)
 
     @patch('ncclient.operations.RPC._request')
@@ -109,9 +109,9 @@ class TestEdit(unittest.TestCase):
         src = sub_ele(node, "source")
         cfg = sub_ele(src, "config")
         sub_ele(cfg, "data")
-        xml = ElementTree.tostring(node, method='xml')
+        xml = ElementTree.tostring(node)
         call = mock_request.call_args_list[0][0][0]
-        call = ElementTree.tostring(call, method='xml')
+        call = ElementTree.tostring(call)
         self.assertEqual(call, xml)
 
     @patch('ncclient.operations.RPC._request')
@@ -123,9 +123,9 @@ class TestEdit(unittest.TestCase):
         node = new_ele("validate")
         src = sub_ele(node, "source")
         sub_ele(src, "candidate")
-        xml = ElementTree.tostring(node, method='xml')
+        xml = ElementTree.tostring(node)
         call = mock_request.call_args_list[0][0][0]
-        call = ElementTree.tostring(call, method='xml')
+        call = ElementTree.tostring(call)
         self.assertEqual(call, xml)
 
     @patch('ncclient.operations.RPC._request')
@@ -137,9 +137,9 @@ class TestEdit(unittest.TestCase):
         node = new_ele("commit")
         sub_ele(node, "confirmed")
         sub_ele(node, "confirm-timeout").text = "0"
-        xml = ElementTree.tostring(node, method='xml')
+        xml = ElementTree.tostring(node)
         call = mock_request.call_args_list[0][0][0]
-        call = ElementTree.tostring(call, method='xml')
+        call = ElementTree.tostring(call)
         self.assertEqual(call, xml)
 
     @patch('ncclient.operations.RPC._request')
@@ -147,8 +147,8 @@ class TestEdit(unittest.TestCase):
         session = ncclient.transport.SSHSession(self.device_handler)
         session._server_capabilities = [':candidate']
         obj = Commit(session, self.device_handler, raise_mode=RaiseMode.ALL)
-        with self.assertRaises(MissingCapabilityError):
-            obj.request(confirmed=True, timeout="0")
+        self.assertRaises(MissingCapabilityError,
+            obj.request, confirmed=True, timeout="0")
 
     @patch('ncclient.operations.RPC._request')
     def test_discard_changes(self, mock_request):
@@ -160,7 +160,7 @@ class TestEdit(unittest.TestCase):
             raise_mode=RaiseMode.ALL)
         obj.request()
         node = new_ele("discard-changes")
-        xml = ElementTree.tostring(node, method='xml')
+        xml = ElementTree.tostring(node)
         call = mock_request.call_args_list[0][0][0]
-        call = ElementTree.tostring(call, method='xml')
+        call = ElementTree.tostring(call)
         self.assertEqual(call, xml)

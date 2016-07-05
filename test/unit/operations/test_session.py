@@ -24,9 +24,9 @@ class TestSession(unittest.TestCase):
             raise_mode=RaiseMode.ALL)
         obj.request()
         node = new_ele("close-session")
-        xml = ElementTree.tostring(node, method='xml')
+        xml = ElementTree.tostring(node)
         call = mock_request.call_args_list[0][0][0]
-        call = ElementTree.tostring(call, method='xml')
+        call = ElementTree.tostring(call)
         self.assertEqual(call, xml)
 
     @patch('ncclient.transport.SSHSession')
@@ -40,7 +40,7 @@ class TestSession(unittest.TestCase):
         obj.request("100")
         node = new_ele("kill-session")
         sub_ele(node, "session-id").text = "100"
-        xml = ElementTree.tostring(node, method='xml')
+        xml = ElementTree.tostring(node)
         call = mock_request.call_args_list[0][0][0]
-        call = ElementTree.tostring(call, method='xml')
+        call = ElementTree.tostring(call)
         self.assertEqual(call, xml)

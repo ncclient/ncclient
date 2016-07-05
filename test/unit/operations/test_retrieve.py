@@ -25,9 +25,9 @@ class TestRetrieve(unittest.TestCase):
         obj.request(copy.deepcopy(root_filter))
         node = new_ele("get")
         node.append(util.build_filter(root_filter))
-        xml = ElementTree.tostring(node, method='xml')
+        xml = ElementTree.tostring(node)
         call = mock_request.call_args_list[0][0][0]
-        call = ElementTree.tostring(call, method='xml')
+        call = ElementTree.tostring(call)
         self.assertEqual(call, xml)
 
     @patch('ncclient.operations.retrieve.RPC._request')
@@ -38,9 +38,9 @@ class TestRetrieve(unittest.TestCase):
         obj.request(source)
         node = new_ele("get-config")
         node.append(util.datastore_or_url("source", source))
-        xml = ElementTree.tostring(node, method='xml')
+        xml = ElementTree.tostring(node)
         call = mock_request.call_args_list[0][0][0]
-        call = ElementTree.tostring(call, method='xml')
+        call = ElementTree.tostring(call)
         self.assertEqual(call, xml)
 
     @patch('ncclient.operations.retrieve.RPC._request')
@@ -60,9 +60,9 @@ class TestRetrieve(unittest.TestCase):
         formt = etree.SubElement(node,
                                  qualify("format", NETCONF_MONITORING_NS))
         formt.text = reqformat
-        xml = ElementTree.tostring(node, method='xml')
+        xml = ElementTree.tostring(node)
         call = mock_request.call_args_list[0][0][0]
-        call = ElementTree.tostring(call, method='xml')
+        call = ElementTree.tostring(call)
         self.assertEqual(call, xml)
 
     @patch('ncclient.operations.retrieve.RPC._request')
@@ -80,9 +80,9 @@ class TestRetrieve(unittest.TestCase):
         node = new_ele(rpc)
         node.append(util.datastore_or_url("source", source))
         node.append(util.build_filter(root_filter))
-        xml = ElementTree.tostring(node, method='xml')
+        xml = ElementTree.tostring(node)
         call = mock_request.call_args_list[0][0][0]
-        call = ElementTree.tostring(call, method='xml')
+        call = ElementTree.tostring(call)
         self.assertEqual(call, xml)
 
     @patch('ncclient.operations.retrieve.RPC._request')
@@ -99,7 +99,7 @@ class TestRetrieve(unittest.TestCase):
         obj.request(node, source=source, filter=a)
         node.append(util.datastore_or_url("source", source))
         node.append(util.build_filter(root_filter))
-        xml = ElementTree.tostring(node, method='xml')
+        xml = ElementTree.tostring(node)
         call = mock_request.call_args_list[0][0][0]
-        call = ElementTree.tostring(call, method='xml')
+        call = ElementTree.tostring(call)
         self.assertEqual(call, xml)

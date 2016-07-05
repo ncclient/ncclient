@@ -18,12 +18,12 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(one_of(None, 10, None), None)
 
     def test_one_of_2(self):
-        with self.assertRaises(OperationError):
-            one_of(None, 10, 10)
+        self.assertRaises(OperationError,
+            one_of, None, 10, 10)
 
     def test_one_of_3(self):
-        with self.assertRaises(OperationError):
-            one_of(None, None)
+        self.assertRaises(OperationError,
+            one_of, None, None)
 
     def test_datastore_url(self):
         node = new_ele("target")
@@ -31,9 +31,8 @@ class TestUtils(unittest.TestCase):
         result = ElementTree.tostring(
             datastore_or_url(
                 "target",
-                "candidate"),
-            method='xml')
-        self.assertEqual(result, ElementTree.tostring(node, method='xml'))
+                "candidate"))
+        self.assertEqual(result, ElementTree.tostring(node))
 
     def test_datastore_url_2(self):
         node = new_ele("web")
@@ -42,32 +41,30 @@ class TestUtils(unittest.TestCase):
             datastore_or_url(
                 "web",
                 "http://juniper.net",
-                capcheck=MagicMock()),
-            method='xml')
-        self.assertEqual(result, ElementTree.tostring(node, method='xml'))
+                capcheck=MagicMock()))
+        self.assertEqual(result, ElementTree.tostring(node))
 
     def test_datastore_url_3(self):
         node = new_ele("web")
         result = ElementTree.tostring(
             datastore_or_url(
                 "web",
-                "http://juniper.net"),
-            method='xml')
-        self.assertEqual(result, ElementTree.tostring(node, method='xml'))
+                "http://juniper.net"))
+        self.assertEqual(result, ElementTree.tostring(node))
 
     def test_build_filter(self):
         reply = build_filter(xml)
-        call = ElementTree.tostring(reply, method='xml')
-        self.assertEqual(call, ElementTree.tostring(to_ele(xml), method='xml'))
+        call = ElementTree.tostring(reply)
+        self.assertEqual(call, ElementTree.tostring(to_ele(xml)))
 
     def test_build_filter_2(self):
         criteria = "configuration/system"
         filter = ("xpath", criteria)
         reply = build_filter(filter)
-        call = ElementTree.tostring(reply, method='xml')
+        call = ElementTree.tostring(reply)
         node = new_ele("filter", type="xpath")
         node.attrib["select"] = criteria
-        self.assertEqual(call, ElementTree.tostring(node, method='xml'))
+        self.assertEqual(call, ElementTree.tostring(node))
 
     def test_build_filter_3(self):
         criteria =  """<configuration>
@@ -77,10 +74,10 @@ class TestUtils(unittest.TestCase):
         </configuration>"""
         filter = ("subtree", criteria)
         reply = build_filter(filter, capcheck="cap")
-        call = ElementTree.tostring(reply, method='xml')
+        call = ElementTree.tostring(reply)
         node = new_ele("filter", type="subtree")
         node.append(to_ele(criteria))
-        self.assertEqual(call, ElementTree.tostring(node, method='xml'))
+        self.assertEqual(call, ElementTree.tostring(node))
 
     def test_build_filter_4(self):
         criteria =  """<configuration>
@@ -89,5 +86,5 @@ class TestUtils(unittest.TestCase):
             <system>
         </configuration>"""
         filter = ("text", criteria)
-        with self.assertRaises(OperationError):
-            build_filter(filter, capcheck="cap")
+        self.assertRaises(OperationError,
+            build_filter, filter, capcheck="cap")
