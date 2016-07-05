@@ -12,7 +12,7 @@ Docs:
 Requirements:
 ^^^^^^^^^^^^^
 
--  Python 2.6 <= version < 3.0
+-  Python >= 2.6 or Python 3
 -  setuptools 0.6+
 -  Paramiko 1.7+
 -  lxml 3.3.0+
@@ -97,6 +97,10 @@ Changes \| brief
 **v0.5.0**
 
 - Add support for Python 3
+- Improve Junos ioproc performance
+- Performance improvements
+- Updated test cases
+- Many bug and performance fixes
 
 
 **v0.4.7**

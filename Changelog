@@ -5,6 +5,10 @@ Fixes/Enhancements
 ==================
 
 * Add support for Python 3
+* Improve Junos ioproc performance
+* Performance improvements
+* Updated test cases
+* Many bug and performance fixes
 
 version 0.4.7
 -------------
