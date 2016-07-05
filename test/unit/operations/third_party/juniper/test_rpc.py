@@ -106,9 +106,9 @@ class TestRPC(unittest.TestCase):
         sub_ele(node, "confirmed")
         sub_ele(node, "confirm-timeout").text = "50"
         sub_ele(node, "log").text = "message"
-        xml = ElementTree.tostring(node, method='xml')
+        xml = ElementTree.tostring(node)
         call = mock_request.call_args_list[0][0][0]
-        call = ElementTree.tostring(call, method='xml')
+        call = ElementTree.tostring(call)
         self.assertEqual(call, xml)
 
     @patch('ncclient.transport.SSHSession')
@@ -121,9 +121,9 @@ class TestRPC(unittest.TestCase):
         obj = Commit(session, device_handler, raise_mode=RaiseMode.ALL)
         obj.request()
         node = new_ele("commit")
-        xml = ElementTree.tostring(node, method='xml')
+        xml = ElementTree.tostring(node)
         call = mock_request.call_args_list[0][0][0]
-        call = ElementTree.tostring(call, method='xml')
+        call = ElementTree.tostring(call)
         self.assertEqual(call, xml)
 
     @patch('ncclient.transport.SSHSession')
@@ -138,9 +138,9 @@ class TestRPC(unittest.TestCase):
         node = new_ele("commit")
         sub_ele(node, "at-time").text = "1111-11-11 00:00:00"
         sub_ele(node, "synchronize")
-        xml = ElementTree.tostring(node, method='xml')
+        xml = ElementTree.tostring(node)
         call = mock_request.call_args_list[0][0][0]
-        call = ElementTree.tostring(call, method='xml')
+        call = ElementTree.tostring(call)
         self.assertEqual(call, xml)
 
     @patch('ncclient.transport.SSHSession')
@@ -152,8 +152,6 @@ class TestRPC(unittest.TestCase):
         device_handler = manager.make_device_handler({'name': 'junos'})
         session = ncclient.transport.SSHSession(device_handler)
         obj = Commit(session, device_handler, raise_mode=RaiseMode.ALL)
-        with self.assertRaises(NCClientError):
-            obj.request(
-                at_time="1111-11-11 00:00:00",
-                synchronize=True,
-                confirmed=True)
+        self.assertRaises(NCClientError,
+            obj.request, at_time="1111-11-11 00:00:00", synchronize=True,
+                          confirmed=True)

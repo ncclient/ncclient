@@ -144,8 +144,8 @@ class TestSSH(unittest.TestCase):
         device_handler = JunosDeviceHandler({'name': 'junos'})
         obj = SSHSession(device_handler)
         obj._transport = paramiko.Transport(None)
-        with self.assertRaises(AuthenticationError):
-            obj._auth('user', 'password', [], False, True)
+        self.assertRaises(AuthenticationError,
+            obj._auth, 'user', 'password', [], False, True)
 
     @patch('paramiko.transport.Transport.close')
     def test_close(self, mock_close):

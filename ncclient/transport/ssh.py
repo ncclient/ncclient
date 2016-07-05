@@ -18,7 +18,6 @@ import sys
 import socket
 import getpass
 from binascii import hexlify
-import sys
 from six import StringIO
 from io import BytesIO
 from lxml import etree
@@ -63,7 +62,7 @@ def _colonify(fp):
         finga += ":" + fp[idx:idx+2]
     return finga
 
-if sys.version_info.major < 3:
+if sys.version < '3':
     def textify(buf):
         return buf
 else:
