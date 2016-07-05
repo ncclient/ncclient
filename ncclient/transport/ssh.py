@@ -62,7 +62,7 @@ def _colonify(fp):
         finga += ":" + fp[idx:idx+2]
     return finga
 
-if sys.version < 3:
+if sys.version < '3':
     def textify(buf):
         return buf
 else:
