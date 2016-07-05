@@ -82,49 +82,12 @@ Device handlers are easy to implement and prove to be futureproof.
 * Bug fixes
 
 
-Contributors
-~~~~~~~~~~~~
+### Contributors
+* v0.5.0: [Nitin Kumar](https://github.com/vnitinv), [Kristian Larsson](https://github.com/plajjan), [palashgupta](https://github.com/palashgupta), [Jonathan Provost](https://github.com/JoProvost), [Jainpriyal](https://github.com/Jainpriyal), [sharang](https://github.com/sharang), [pseguel](https://github.com/pseguel), [nnakamot](https://github.com/nnakamot), [Алексей Пастухов](https://github.com/p-alik), [Christian Giese](https://github.com/GIC-de), [Peipei Guo](https://github.com/peipeiguo), [Time Warner Cable Openstack Team](https://github.com/twc-openstack)
+* v0.4.7: [Einar Nilsen-Nygaard](https://github.com/einarnn), [Vaibhav Bajpai](https://github.com/vbajpai), Norio Nakamoto 
+* v0.4.6: [Nitin Kumar](https://github.com/vnitinv), [Carl Moberg](https://github.com/cmoberg), [Stavros Kroustouris](https://github.com/kroustou) 
+* v0.4.5: [Sebastian Wiesinger](https://github.com/sebastianw), [Vincent Bernat](https://github.com/vincentbernat), [Matthew Stone](https://github.com/bigmstone), [Nitin Kumar](https://github.com/vnitinv)
+* v0.4.3: [Jeremy Schulman](https://github.com/jeremyschulman), [Ray Solomon](https://github.com/rsolomo), [Rick Sherman](https://github.com/shermdog), [subhak186](https://github.com/subhak186)
+* v0.4.2: [katharh](https://github.com/katharh), [Francis Luong (Franco)](https://github.com/francisluong), [Vincent Bernat](https://github.com/vincentbernat), [Juergen Brendel](https://github.com/juergenbrendel), [Quentin Loos](https://github.com/Kent1), [Ray Solomon](https://github.com/rsolomo), [Sebastian Wiesinger](https://github.com/sebastianw), [Ebben Aries](https://github.com/earies) 
+* v0.4.1: [Jeremy Schulman](https://github.com/jeremyschulman), [Ebben Aries](https://github.com/earies), Juergen Brendel
 
--  v0.5.0: `Nitin Kumar`_, `Kristian Larsson`_, `palashgupta`_,
-   `Jonathan Provost`_, `Jainpriyal`_, `sharang`_, `pseguel`_,
-   `nnakamot`_, `Алексей Пастухов`_, `Christian Giese`_, `Peipei Guo`_,
-   `Time Warner Cable Openstack Team`_
--  v0.4.7: `Einar Nilsen-Nygaard`_, `Vaibhav Bajpai`_, Norio Nakamoto
--  v0.4.6: `Nitin Kumar`_, `Carl Moberg`_, `Stavros Kroustouris`_
--  v0.4.5: `Sebastian Wiesinger`_, `Vincent Bernat`_, `Matthew Stone`_,
-   `Nitin Kumar`_
--  v0.4.3: `Jeremy Schulman`_, `Ray Solomon`_, `Rick Sherman`_,
-   `subhak186`_
--  v0.4.2: `katharh`_, `Francis Luong (Franco)`_, `Vincent Bernat`_,
-   `Juergen Brendel`_, `Quentin Loos`_, `Ray Solomon`_, `Sebastian
-   Wiesinger`_, `Ebben Aries`_
--  v0.4.1: `Jeremy Schulman`_, `Ebben Aries`_, Juergen Brendel
-
-.. _Nitin Kumar: https://github.com/vnitinv
-.. _Kristian Larsson: https://github.com/plajjan
-.. _palashgupta: https://github.com/palashgupta
-.. _Jonathan Provost: https://github.com/JoProvost
-.. _Jainpriyal: https://github.com/Jainpriyal
-.. _sharang: https://github.com/sharang
-.. _pseguel: https://github.com/pseguel
-.. _nnakamot: https://github.com/nnakamot
-.. _Алексей Пастухов: https://github.com/p-alik
-.. _Christian Giese: https://github.com/GIC-de
-.. _Peipei Guo: https://github.com/peipeiguo
-.. _Time Warner Cable Openstack Team: https://github.com/twc-openstack
-.. _Einar Nilsen-Nygaard: https://github.com/einarnn
-.. _Vaibhav Bajpai: https://github.com/vbajpai
-.. _Carl Moberg: https://github.com/cmoberg
-.. _Stavros Kroustouris: https://github.com/kroustou
-.. _Sebastian Wiesinger: https://github.com/sebastianw
-.. _Vincent Bernat: https://github.com/vincentbernat
-.. _Matthew Stone: https://github.com/bigmstone
-.. _Jeremy Schulman: https://github.com/jeremyschulman
-.. _Ray Solomon: https://github.com/rsolomo
-.. _Rick Sherman: https://github.com/shermdog
-.. _subhak186: https://github.com/subhak186
-.. _katharh: https://github.com/katharh
-.. _Francis Luong (Franco): https://github.com/francisluong
-.. _Juergen Brendel: https://github.com/juergenbrendel
-.. _Quentin Loos: https://github.com/Kent1
-.. _Ebben Aries: https://github.com/earies

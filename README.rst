@@ -162,11 +162,46 @@ Changes \| brief
 Acknowledgements
 ~~~~~~~~~~~~~~~~
 
-- v0.5.0: Thanks to all contribs and bug hunters; `Nitin Kumar <https://github.com/vnitinv>`_
-- v0.4.7: Thanks to all contribs and bug hunters; `Einar Nilsen-Nygaard <https://github.com/einarnn>`_, `Vaibhav Bajpai <https://github.com/vbajpai>`_, Norio Nakamoto .
-- v0.4.6: Thanks to all contribs and bug hunters; `Nitin Kumar <https://github.com/vnitinv>`_, `Carl Moberg <https://github.com/cmoberg>`_, `Stavros Kroustouris <https://github.com/kroustou>`_ .
-- v0.4.5: Thanks to all contribs and bug hunters; `Sebastian Wiesinger <https://github.com/sebastianw>`_, `Vincent Bernat <https://github.com/vincentbernat>`_, `Matthew Stone <https://github.com/bigmstone>`_, `Nitin Kumar <https://github.com/vnitinv>`_.
-- v0.4.3: Thanks to all contributors and bug hunters; `Jeremy Schulman <https://github.com/jeremyschulman>`_, `Ray Solomon <https://github.com/rsolomo>`_, `Rick Sherman <https://github.com/shermdog>`_, `subhak186 <https://github.com/subhak186>`_.
-- v0.4.2: Thanks to all contributors; `katharh <https://github.com/katharh>`_, `Francis Luong (Franco) <https://github.com/francisluong>`_, `Vincent Bernat <https://github.com/vincentbernat>`_, `Juergen Brendel <https://github.com/juergenbrendel>`_, `Quentin Loos <https://github.com/Kent1>`_, `Ray Solomon <https://github.com/rsolomo>`_, `Sebastian Wiesinger <https://github.com/sebastianw>`_, `Ebben Aries <https://github.com/earies>`_ .
-- v0.4.1: Many thanks, primarily to `Jeremy Schulman <https://github.com/jeremyschulman>`_ (Juniper) for providing his precious feedback, to `Eben Aries <https://github.com/earies>`_ (Juniper) for his contribution, to Juergen Brendel (Cisco) for the Cisco fork and to all contributors from Cisco and Juniper.
+-  v0.5.0: `Nitin Kumar`_, `Kristian Larsson`_, `palashgupta`_,
+   `Jonathan Provost`_, `Jainpriyal`_, `sharang`_, `pseguel`_,
+   `nnakamot`_, `Алексей Пастухов`_, `Christian Giese`_, `Peipei Guo`_,
+   `Time Warner Cable Openstack Team`_
+-  v0.4.7: `Einar Nilsen-Nygaard`_, `Vaibhav Bajpai`_, Norio Nakamoto
+-  v0.4.6: `Nitin Kumar`_, `Carl Moberg`_, `Stavros Kroustouris`_
+-  v0.4.5: `Sebastian Wiesinger`_, `Vincent Bernat`_, `Matthew Stone`_,
+   `Nitin Kumar`_
+-  v0.4.3: `Jeremy Schulman`_, `Ray Solomon`_, `Rick Sherman`_,
+   `subhak186`_
+-  v0.4.2: `katharh`_, `Francis Luong (Franco)`_, `Vincent Bernat`_,
+   `Juergen Brendel`_, `Quentin Loos`_, `Ray Solomon`_, `Sebastian
+   Wiesinger`_, `Ebben Aries`_
+-  v0.4.1: `Jeremy Schulman`_, `Ebben Aries`_, Juergen Brendel
 
+.. _Nitin Kumar: https://github.com/vnitinv
+.. _Kristian Larsson: https://github.com/plajjan
+.. _palashgupta: https://github.com/palashgupta
+.. _Jonathan Provost: https://github.com/JoProvost
+.. _Jainpriyal: https://github.com/Jainpriyal
+.. _sharang: https://github.com/sharang
+.. _pseguel: https://github.com/pseguel
+.. _nnakamot: https://github.com/nnakamot
+.. _Алексей Пастухов: https://github.com/p-alik
+.. _Christian Giese: https://github.com/GIC-de
+.. _Peipei Guo: https://github.com/peipeiguo
+.. _Time Warner Cable Openstack Team: https://github.com/twc-openstack
+.. _Einar Nilsen-Nygaard: https://github.com/einarnn
+.. _Vaibhav Bajpai: https://github.com/vbajpai
+.. _Carl Moberg: https://github.com/cmoberg
+.. _Stavros Kroustouris: https://github.com/kroustou
+.. _Sebastian Wiesinger: https://github.com/sebastianw
+.. _Vincent Bernat: https://github.com/vincentbernat
+.. _Matthew Stone: https://github.com/bigmstone
+.. _Jeremy Schulman: https://github.com/jeremyschulman
+.. _Ray Solomon: https://github.com/rsolomo
+.. _Rick Sherman: https://github.com/shermdog
+.. _subhak186: https://github.com/subhak186
+.. _katharh: https://github.com/katharh
+.. _Francis Luong (Franco): https://github.com/francisluong
+.. _Juergen Brendel: https://github.com/juergenbrendel
+.. _Quentin Loos: https://github.com/Kent1
+.. _Ebben Aries: https://github.com/earies
