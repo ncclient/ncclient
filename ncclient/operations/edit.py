@@ -104,7 +104,7 @@ class Validate(RPC):
 
     DEPENDS = [':validate']
 
-    def request(self, source):
+    def request(self, source="candidate"):
         """Validate the contents of the specified configuration.
 
         *source* is the name of the configuration datastore being validated or `config` element containing the configuration subtree to be validated
