@@ -33,7 +33,7 @@ with open('README.rst') as file:
 
 
 setup(name='ncclient',
-      version='0.5.0',
+      version='0.5.1',
       description="Python library for NETCONF clients",
       long_description = long_description,
       author="Shikhar Bhushan, Leonidas Poulopoulos, Ebben Aries",

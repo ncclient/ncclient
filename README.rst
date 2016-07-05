@@ -4,10 +4,13 @@ ncclient: Python library for NETCONF clients
 ncclient is a Python library that facilitates client-side scripting and
 application development around the NETCONF protocol. ``ncclient`` was
 developed by `Shikar Bhushan <http://schmizz.net>`_. It is now
-maintained by `Leonidas Poulopoulos (@leopoul) <http://ncclient.org/ncclient>`_
+maintained by `Leonidas Poulopoulos (@leopoul) <http://ncclient.org>`_
 
 Docs:
 `http://ncclient.readthedocs.org <http://ncclient.readthedocs.org>`_
+
+Github:
+`https://github.com/ncclient/ncclient <https://github.com/ncclient/ncclient>`_
 
 Requirements:
 ^^^^^^^^^^^^^
@@ -94,7 +97,7 @@ Supported device handlers
 Changes \| brief
 ~~~~~~~~~~~~~~~~
 
-**v0.5.0**
+**v0.5.1**
 
 - Add support for Python 3
 - Improve Junos ioproc performance
@@ -162,7 +165,7 @@ Changes \| brief
 Acknowledgements
 ~~~~~~~~~~~~~~~~
 
--  v0.5.0: `Nitin Kumar`_, `Kristian Larsson`_, `palashgupta`_,
+-  v0.5.1: `Nitin Kumar`_, `Kristian Larsson`_, `palashgupta`_,
    `Jonathan Provost`_, `Jainpriyal`_, `sharang`_, `pseguel`_,
    `nnakamot`_, `Алексей Пастухов`_, `Christian Giese`_, `Peipei Guo`_,
    `Time Warner Cable Openstack Team`_
