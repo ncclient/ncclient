@@ -15,6 +15,8 @@ generic information needed for interaction with a Netconf server.
 
 from .default import DefaultDeviceHandler
 
+from ncclient.operations.third_party.iosxe.rpc import SaveConfig
+
 def iosxe_unknown_host_cb(host, fingerprint):
         #This will ignore the unknown host check when connecting to CSR devices
         return True
@@ -35,7 +37,7 @@ class IosxeDeviceHandler(DefaultDeviceHandler):
     def add_additional_ssh_connect_params(self, kwargs):
         kwargs['allow_agent']   = False
         kwargs['look_for_keys'] = False
-        kwargs['unknown_host_cb'] = csr_unknown_host_cb
+        kwargs['unknown_host_cb'] = iosxe_unknown_host_cb
 
     def perform_qualify_check(self):
         return False
