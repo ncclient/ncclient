@@ -12,7 +12,6 @@ generic information needed for interaction with a Netconf server.
 
 """
 
-from ncclient.xml_ import BASE_NS_1_0
 from ncclient.devices.default import DefaultDeviceHandler
 from ncclient.operations.third_party.iosxr.rpc import ExecuteRpc, Get, GetConfiguration
 
@@ -27,13 +26,6 @@ class IosxrDeviceHandler(DefaultDeviceHandler):
     """
     Cisco IOS-XR handler for device specific information.
     """
-
-    _EXEMPT_ERRORS = [
-        '*There is no message to reply.*'  # becasue the device replies with the following error
-        # when sending hello message:
-        # ERROR: 0xa367aa00 'XML Service Library' detected the 'fatal' condition 'There is no message to reply.'
-        # simply clever.
-    ]
 
     def __init__(self, device_params):
         super(IosxrDeviceHandler, self).__init__(device_params)
@@ -60,19 +52,6 @@ class IosxrDeviceHandler(DefaultDeviceHandler):
 
     def perform_qualify_check(self):
         return False
-
-    def get_xml_base_namespace_dict(self):
-
-        # default namespace
-        return {None: BASE_NS_1_0}
-
-    def get_xml_extra_prefix_kwargs(self):
-
-        return {
-            "nsmap": {
-                None: BASE_NS_1_0
-            }
-        }
 
     def transform_reply(self):
 
