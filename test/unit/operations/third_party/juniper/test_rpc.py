@@ -1,4 +1,5 @@
 from ncclient.operations.third_party.juniper.rpc import *
+import json
 import unittest
 from mock import patch
 from ncclient import manager
@@ -47,6 +48,96 @@ class TestRPC(unittest.TestCase):
 
     @patch('ncclient.transport.SSHSession')
     @patch('ncclient.operations.third_party.juniper.rpc.RPC._request')
+    def test_loadconf_xml(self, mock_request, mock_session):
+        device_handler = manager.make_device_handler({'name': 'junos'})
+        session = ncclient.transport.SSHSession(device_handler)
+        obj = LoadConfiguration(
+            session,
+            device_handler,
+            raise_mode=RaiseMode.ALL)
+        root_config = new_ele('configuration')
+        system_config = sub_ele(root_config, 'system')
+        location_config = sub_ele(system_config, 'location')
+        floor_config = sub_ele(location_config, 'floor').text = "7"
+        obj.request(format='xml', config=root_config)
+        node = new_ele('load-configuration', {'format': 'xml', 'action': 'merge'})
+        node.append(root_config)
+        call = mock_request.call_args_list[0][0][0]
+        self.assertEqual(call.tag, node.tag)
+        self.assertEqual(call.attrib, node.attrib)
+
+    @patch('ncclient.transport.SSHSession')
+    @patch('ncclient.operations.third_party.juniper.rpc.RPC._request')
+    def test_loadconf_json(self, mock_request, mock_session):
+        device_handler = manager.make_device_handler({'name': 'junos'})
+        session = ncclient.transport.SSHSession(device_handler)
+        obj = LoadConfiguration(
+            session,
+            device_handler,
+            raise_mode=RaiseMode.ALL)
+        location = '{ "configuration": { "system": { "location": { "floor": "7" }}}}'
+        config_json = json.loads(location)
+        config = json.dumps(config_json)
+        obj.request(format='json', action='merge', config=config)
+        node = new_ele('load-configuration', {'format': 'json', 'action': 'merge'})
+        sub_ele(node, 'configuration-json').text = config
+        call = mock_request.call_args_list[0][0][0]
+        self.assertEqual(call.tag, node.tag)
+        self.assertEqual(call.attrib, node.attrib)
+
+    @patch('ncclient.transport.SSHSession')
+    @patch('ncclient.operations.third_party.juniper.rpc.RPC._request')
+    def test_loadconf_set(self, mock_request, mock_session):
+        device_handler = manager.make_device_handler({'name': 'junos'})
+        session = ncclient.transport.SSHSession(device_handler)
+        obj = LoadConfiguration(
+            session,
+            device_handler,
+            raise_mode=RaiseMode.ALL)
+        config = 'set system location floor 7'
+        obj.request(format='text', action='set', config=config)
+        node = new_ele('load-configuration', {'format': 'text', 'action': 'set'})
+        sub_ele(node, 'configuration-set').text = config
+        call = mock_request.call_args_list[0][0][0]
+        self.assertEqual(call.tag, node.tag)
+        self.assertEqual(call.attrib, node.attrib)
+
+    @patch('ncclient.transport.SSHSession')
+    @patch('ncclient.operations.third_party.juniper.rpc.RPC._request')
+    def test_loadconf_text(self, mock_request, mock_session):
+        device_handler = manager.make_device_handler({'name': 'junos'})
+        session = ncclient.transport.SSHSession(device_handler)
+        obj = LoadConfiguration(
+            session,
+            device_handler,
+            raise_mode=RaiseMode.ALL)
+        config = 'system { location floor 7; }'
+        obj.request(format='text', action='merge', config=config)
+        node = new_ele('load-configuration', {'format': 'text', 'action': 'merge'})
+        sub_ele(node, 'configuration-text').text = config
+        call = mock_request.call_args_list[0][0][0]
+        self.assertEqual(call.tag, node.tag)
+        self.assertEqual(call.attrib, node.attrib)
+
+    @patch('ncclient.transport.SSHSession')
+    @patch('ncclient.operations.third_party.juniper.rpc.RPC._request')
+    def test_loadconf_list(self, mock_request, mock_session):
+        device_handler = manager.make_device_handler({'name': 'junos'})
+        session = ncclient.transport.SSHSession(device_handler)
+        obj = LoadConfiguration(
+            session,
+            device_handler,
+            raise_mode=RaiseMode.ALL)
+        config = ['set system location floor 7', 'set system location rack 3']
+        obj.request(format='text', action='set', config=config)
+        node = new_ele('load-configuration', {'format': 'text', 'action': 'set'})
+        sub_ele(node, 'configuration-set').text = '\n'.join(config)
+        call = mock_request.call_args_list[0][0][0]
+        self.assertEqual(call.tag, node.tag)
+        self.assertEqual(call.attrib, node.attrib)
+
+    @patch('ncclient.transport.SSHSession')
+    @patch('ncclient.operations.third_party.juniper.rpc.RPC._request')
     def test_compare_conf(self, mock_request, mock_session):
         device_handler = manager.make_device_handler({'name': 'junos'})
         session = ncclient.transport.SSHSession(device_handler)
@@ -70,6 +161,16 @@ class TestRPC(unittest.TestCase):
         rpc = new_ele('get-software-information')
         obj.request(rpc)
         mock_request.assert_called_once_with(rpc)
+
+    @patch('ncclient.transport.SSHSession')
+    @patch('ncclient.operations.third_party.juniper.rpc.RPC._request')
+    def test_execute_rpc_str(self, mock_request, mock_session):
+        device_handler = manager.make_device_handler({'name': 'junos'})
+        session = ncclient.transport.SSHSession(device_handler)
+        obj = ExecuteRpc(session, device_handler, raise_mode=RaiseMode.ALL)
+        rpc = 'get-software-information'
+        obj.request(rpc)
+        self.assertEqual(True, isinstance(rpc, str))
 
     @patch('ncclient.transport.SSHSession')
     @patch('ncclient.operations.third_party.juniper.rpc.RPC._request')
