@@ -24,6 +24,8 @@ class LoadConfiguration(RPC):
             if format == 'xml':
                 config_node = sub_ele(node, 'configuration')
                 config_node.append(config)
+            if format == 'json':
+                config_node = sub_ele(node, 'configuration-json').text = config
             if format == 'text' and not action == 'set':
                 config_node = sub_ele(node, 'configuration-text').text = config
             if action == 'set' and format == 'text':
