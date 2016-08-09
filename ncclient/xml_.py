@@ -36,8 +36,10 @@ class XMLError(NCClientError):
 
 ### Namespace-related
 
-#: Base NETCONF namespace
+#: Base NETCONF 1.0 namespace
 BASE_NS_1_0 = "urn:ietf:params:xml:ns:netconf:base:1.0"
+# Base NETCONF 1.1 namespace
+BASE_NS_1_1 = "urn:ietf:params:xml:ns:netconf:base:1.1"
 # NXOS_1_0
 NXOS_1_0 = "http://www.cisco.com/nxos:1.0"
 # NXOS_IF
@@ -64,7 +66,9 @@ H3C_CONFIG_1_0 = "http://www.h3c.com/netconf/config:1.0"
 H3C_ACTION_1_0 = "http://www.h3c.com/netconf/action:1.0"
 #: Namespace for netconf monitoring
 NETCONF_MONITORING_NS = "urn:ietf:params:xml:ns:yang:ietf-netconf-monitoring"
-#
+# IOSXR netconf 1.1
+IOSXR_1_1 = "urn:ietf:params:xml:ns:netconf:base:1.1"  # the base ns BASE_NS_1_1
+
 try:
     register_namespace = etree.register_namespace
 except AttributeError:
