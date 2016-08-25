@@ -28,7 +28,7 @@ if sys.version_info[0] == 2 and sys.version_info[1] < 6:
 req_lines = [line.strip() for line in open("requirements.txt").readlines()]
 install_reqs = list(filter(None, req_lines))
 
-with open('README.rst') as file:
+with open('README.rst', encoding='utf-8') as file:
     long_description = file.read()
 
 
