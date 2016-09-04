@@ -217,7 +217,7 @@ class RPCReplyListener(SessionListener): # internal use
                         logger.debug("Delivering to %r" % rpc)
                         rpc.deliver_reply(raw)
                     except KeyError:
-                        raise OperationError("Unknown 'message-id': %s", id)
+                        raise OperationError("Unknown 'message-id': %s" % id)
                     # no catching other exceptions, fail loudly if must
                     else:
                         # if no error delivering, can del the reference to the RPC
