@@ -516,7 +516,7 @@ class SSHSession(Session):
                             self._parse10() # HELLO msg uses EOM markers.
                     else:
                         raise SessionCloseError(self._buffer.getvalue())
-                if not q.empty() and chan.send_ready():
+                if not q.empty() and chan.send_ready() and self._server_capabilities:
                     logger.debug("Sending message")
                     data = q.get()
                     try:
