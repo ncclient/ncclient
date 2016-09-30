@@ -2,7 +2,13 @@ import unittest
 from mock import patch
 from ncclient.transport.session import *
 from ncclient.devices.junos import JunosDeviceHandler
+try:
+    from Queue import Queue, Empty
+except ImportError:
+    from queue import Queue, Empty
 import logging
+
+
 
 rpc_reply = """<rpc-reply xmlns:junos="http://xml.juniper.net/junos/12.1X46/junos" attrib1 = "test">
     <software-information>
@@ -69,6 +75,20 @@ Restricted user session.
   </capabilities>
   <session-id>59894</session-id>
 </hello>"""
+
+notification="""
+   <notification
+      xmlns="urn:ietf:params:xml:ns:netconf:notification:1.0">
+      <eventTime>2007-07-08T00:01:00Z</eventTime>
+      <event xmlns="http://example.com/event/1.0">
+         <eventClass>fault</eventClass>
+         <reportingEntity>
+             <card>Ethernet0</card>
+         </reportingEntity>
+         <severity>major</severity>
+       </event>
+   </notification>
+"""
 
 class TestSession(unittest.TestCase):
 
@@ -259,3 +279,29 @@ class TestSession(unittest.TestCase):
         self.assertEqual(id, "s001")
         caps = ["candidate", "validate"]
         self.assertEqual(capabilities._dict, Capabilities(caps)._dict)
+
+    def test_notification_handler_valid_notification(self):
+        q = Queue()
+        listener = NotificationHandler(q)
+        listener.callback(parse_root(notification), notification)
+        notif = q.get_nowait()
+        self.assertEquals(notif.notification_xml, notification)
+        with self.assertRaises(Empty):
+            q.get_nowait()
+
+    def test_notification_handler_non_notification(self):
+        q = Queue()
+        listener = NotificationHandler(q)
+        # This handler should ignore things that aren't notifications
+        listener.callback(parse_root(rpc_reply), rpc_reply)
+        with self.assertRaises(Empty):
+            q.get_nowait()
+
+    def test_take_notification(self):
+        cap = [':candidate']
+        obj = Session(cap)
+        obj._notification_q.put('Test object')
+        self.assertEqual(obj.take_notification(block=False, timeout=None),
+                         'Test object')
+        self.assertEqual(obj.take_notification(block=False, timeout=None),
+                         None)
