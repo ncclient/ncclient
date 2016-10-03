@@ -19,6 +19,7 @@ from distutils.command.install import install as _install
 
 import sys
 import platform
+import codecs
 
 if sys.version_info[0] == 2 and sys.version_info[1] < 6:
     print ("Sorry, Python < 2.6 is not supported")
@@ -28,7 +29,7 @@ if sys.version_info[0] == 2 and sys.version_info[1] < 6:
 req_lines = [line.strip() for line in open("requirements.txt").readlines()]
 install_reqs = list(filter(None, req_lines))
 
-with open('README.rst') as file:
+with codecs.open('README.rst', 'r', encoding='utf8') as file:
     long_description = file.read()
 
 
