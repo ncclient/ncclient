@@ -286,16 +286,14 @@ class TestSession(unittest.TestCase):
         listener.callback(parse_root(notification), notification)
         notif = q.get_nowait()
         self.assertEquals(notif.notification_xml, notification)
-        with self.assertRaises(Empty):
-            q.get_nowait()
+        self.assertRaises(Empty, q.get_nowait)
 
     def test_notification_handler_non_notification(self):
         q = Queue()
         listener = NotificationHandler(q)
         # This handler should ignore things that aren't notifications
         listener.callback(parse_root(rpc_reply), rpc_reply)
-        with self.assertRaises(Empty):
-            q.get_nowait()
+        self.assertRaises(Empty, q.get_nowait)
 
     def test_take_notification(self):
         cap = [':candidate']
