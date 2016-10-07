@@ -115,6 +115,18 @@ class TestSSH(unittest.TestCase):
             key.__repr__())
 
     @patch('paramiko.transport.Transport.auth_publickey')
+    @patch('paramiko.agent.AgentSSH.get_keys')
+    def test_auth_agent_exception(self, mock_get_key, mock_auth_public_key):
+        key = paramiko.PKey()
+        mock_get_key.return_value = [key]
+        mock_auth_public_key.side_effect = paramiko.ssh_exception.AuthenticationException
+        device_handler = JunosDeviceHandler({'name': 'junos'})
+        obj = SSHSession(device_handler)
+        obj._transport = paramiko.Transport(None)
+        self.assertRaises(AuthenticationError,
+            obj._auth,'user', None, [], True, False)
+
+    @patch('paramiko.transport.Transport.auth_publickey')
     @patch('paramiko.pkey.PKey.from_private_key_file')
     def test_auth_keyfiles(self, mock_get_key, mock_auth_public_key):
         key = paramiko.PKey()
@@ -126,6 +138,47 @@ class TestSSH(unittest.TestCase):
         self.assertEqual(
             (mock_auth_public_key.call_args_list[0][0][1]).__repr__(),
             key.__repr__())
+
+    @patch('paramiko.transport.Transport.auth_publickey')
+    @patch('paramiko.pkey.PKey.from_private_key_file')
+    def test_auth_keyfiles_exception(self, mock_get_key, mock_auth_public_key):
+        key = paramiko.PKey()
+        mock_get_key.side_effect = paramiko.ssh_exception.PasswordRequiredException
+        device_handler = JunosDeviceHandler({'name': 'junos'})
+        obj = SSHSession(device_handler)
+        obj._transport = paramiko.Transport(None)
+        self.assertRaises(AuthenticationError,
+            obj._auth,'user', None, ["key_file_name"], False, True)
+
+    @patch('os.path.isfile')
+    @patch('paramiko.transport.Transport.auth_publickey')
+    @patch('paramiko.pkey.PKey.from_private_key_file')
+    def test_auth_default_keyfiles(self, mock_get_key, mock_auth_public_key,
+                                   mock_is_file):
+        key = paramiko.PKey()
+        mock_get_key.return_value = key
+        mock_is_file.return_value = True
+        device_handler = JunosDeviceHandler({'name': 'junos'})
+        obj = SSHSession(device_handler)
+        obj._transport = paramiko.Transport(None)
+        obj._auth('user', 'password', [], False, True)
+        self.assertEqual(
+            (mock_auth_public_key.call_args_list[0][0][1]).__repr__(),
+            key.__repr__())
+
+    @patch('os.path.isfile')
+    @patch('paramiko.transport.Transport.auth_publickey')
+    @patch('paramiko.pkey.PKey.from_private_key_file')
+    def test_auth_default_keyfiles_exception(self, mock_get_key,
+                                             mock_auth_public_key, mock_is_file):
+        key = paramiko.PKey()
+        mock_is_file.return_value = True
+        mock_get_key.side_effect = paramiko.ssh_exception.PasswordRequiredException
+        device_handler = JunosDeviceHandler({'name': 'junos'})
+        obj = SSHSession(device_handler)
+        obj._transport = paramiko.Transport(None)
+        self.assertRaises(AuthenticationError,
+			              obj._auth,'user', None, [], False, True)
 
     @patch('paramiko.transport.Transport.auth_password')
     def test_auth_password(self, mock_auth_password):
@@ -146,6 +199,13 @@ class TestSSH(unittest.TestCase):
         obj._transport = paramiko.Transport(None)
         self.assertRaises(AuthenticationError,
             obj._auth, 'user', 'password', [], False, True)
+
+    def test_auth_no_methods_exception(self):
+        device_handler = JunosDeviceHandler({'name': 'junos'})
+        obj = SSHSession(device_handler)
+        obj._transport = paramiko.Transport(None)
+        self.assertRaises(AuthenticationError,
+            obj._auth,'user', None, [], False, False)
 
     @patch('paramiko.transport.Transport.close')
     def test_close(self, mock_close):
