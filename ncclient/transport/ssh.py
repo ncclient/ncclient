@@ -377,7 +377,7 @@ class SSHSession(Session):
         saved_exception = None
 
         for key_filename in key_filenames:
-            for cls in (paramiko.RSAKey, paramiko.DSSKey):
+            for cls in (paramiko.RSAKey, paramiko.DSSKey, paramiko.ECDSAKey):
                 try:
                     key = cls.from_private_key_file(key_filename, password)
                     logger.debug("Trying key %s from %s" %
@@ -403,17 +403,23 @@ class SSHSession(Session):
         if look_for_keys:
             rsa_key = os.path.expanduser("~/.ssh/id_rsa")
             dsa_key = os.path.expanduser("~/.ssh/id_dsa")
+            ecdsa_key = os.path.expanduser("~/.ssh/id_ecdsa")
             if os.path.isfile(rsa_key):
                 keyfiles.append((paramiko.RSAKey, rsa_key))
             if os.path.isfile(dsa_key):
                 keyfiles.append((paramiko.DSSKey, dsa_key))
+            if os.path.isfile(ecdsa_key):
+                keyfiles.append((paramiko.ECDSAKey, ecdsa_key))
             # look in ~/ssh/ for windows users:
             rsa_key = os.path.expanduser("~/ssh/id_rsa")
             dsa_key = os.path.expanduser("~/ssh/id_dsa")
+            ecdsa_key = os.path.expanduser("~/ssh/id_ecdsa")
             if os.path.isfile(rsa_key):
                 keyfiles.append((paramiko.RSAKey, rsa_key))
             if os.path.isfile(dsa_key):
                 keyfiles.append((paramiko.DSSKey, dsa_key))
+            if os.path.isfile(ecdsa_key):
+                keyfiles.append((paramiko.ECDSAKey, ecdsa_key))
 
         for cls, filename in keyfiles:
             try:
