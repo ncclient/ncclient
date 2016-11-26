@@ -16,8 +16,8 @@ generic information needed for interaction with a Netconf server.
 from .default import DefaultDeviceHandler
 
 def netopeer_unknown_host_cb(host, fingerprint):
-        # This will ignore the unknown host check when connecting to Netopeer devices
-        return True
+    # This will ignore the unknown host check when connecting to Netopeer devices
+    return True
 
 class NetopeerDeviceHandler(DefaultDeviceHandler):
     """
