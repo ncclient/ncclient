@@ -25,13 +25,17 @@ reply_ok = """<rpc-reply>
     <ok/>
 <rpc-reply/>"""
 
-rpc_reply = reply_data + "\n]]>]]>\n" + reply_ok
+# A buffer of data with two complete messages and an incomplete message
+rpc_reply = reply_data + "\n]]>]]>\n" + reply_ok + "\n]]>]]>\n" + reply_ok
 
 reply_ok_chunk = "\n#%d\n%s\n##\n" % (len(reply_ok), reply_ok)
 
-rpc_reply11 = "\n#%d\n%s\n#%d\n%s\n##\n%s" % (
+reply_ok_partial_chunk = "\n#%d\n%s\n" % (len(reply_ok), reply_ok)
+
+# A buffer of data with two complete messages and an incomplete message
+rpc_reply11 = "\n#%d\n%s\n#%d\n%s\n##\n%s%s" % (
     30, reply_data[:30], len(reply_data[30:]), reply_data[30:],
-    reply_ok_chunk)
+    reply_ok_chunk, reply_ok_partial_chunk)
 
 
 rpc_reply_part_1 = """<rpc-reply xmlns:junos="http://xml.juniper.net/junos/12.1X46/junos" attrib1 = "test">
@@ -58,7 +62,8 @@ rpc_reply_part_2 = """>
 
 class TestSSH(unittest.TestCase):
 
-    def _test_parsemethod(self, mock_dispatch, parsemethod, reply, ok_chunk):
+    def _test_parsemethod(self, mock_dispatch, parsemethod, reply, ok_chunk,
+                          expected_messages):
         device_handler = JunosDeviceHandler({'name': 'junos'})
         obj = SSHSession(device_handler)
         if sys.version >= "3.0":
@@ -68,17 +73,22 @@ class TestSSH(unittest.TestCase):
             obj._buffer.write(reply)
             remainder = ok_chunk
         parsemethod(obj)
-        call = mock_dispatch.call_args_list[0][0][0]
-        self.assertEqual(call, reply_data)
+
+        for i in range(0, len(expected_messages)):
+            call = mock_dispatch.call_args_list[i][0][0]
+            self.assertEqual(call, expected_messages[i])
+
         self.assertEqual(obj._buffer.getvalue(), remainder)
 
     @patch('ncclient.transport.ssh.Session._dispatch_message')
     def test_parse(self, mock_dispatch):
-        self._test_parsemethod(mock_dispatch, SSHSession._parse, rpc_reply, "\n" + reply_ok)
+        self._test_parsemethod(mock_dispatch, SSHSession._parse, rpc_reply,
+                               "\n" + reply_ok, [reply_data])
 
     @patch('ncclient.transport.ssh.Session._dispatch_message')
     def test_parse11(self, mock_dispatch):
-        self._test_parsemethod(mock_dispatch, SSHSession._parse11, rpc_reply11, reply_ok_chunk)
+        self._test_parsemethod(mock_dispatch, SSHSession._parse11, rpc_reply11,
+                               reply_ok_partial_chunk, [reply_data, reply_ok])
 
     @patch('ncclient.transport.ssh.Session._dispatch_message')
     def test_parse_incomplete_delimiter(self, mock_dispatch):
