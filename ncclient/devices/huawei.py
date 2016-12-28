@@ -50,7 +50,8 @@ class HuaweiDeviceHandler(DefaultDeviceHandler):
         c.append('http://www.huawei.com/netconf/capability/action/1.0')
         c.append('http://www.huawei.com/netconf/capability/active/1.0')
         c.append('http://www.huawei.com/netconf/capability/discard-commit/1.0')
-        c.append('urn:ietf:params:netconf:capability:notification:1.0')
+        c.append('http://www.huawei.com/netconf/capability/exchange/1.0')
+        
         return c
 
     def get_xml_base_namespace_dict(self):

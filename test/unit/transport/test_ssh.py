@@ -25,13 +25,17 @@ reply_ok = """<rpc-reply>
     <ok/>
 <rpc-reply/>"""
 
-rpc_reply = reply_data + "\n]]>]]>\n" + reply_ok
+# A buffer of data with two complete messages and an incomplete message
+rpc_reply = reply_data + "\n]]>]]>\n" + reply_ok + "\n]]>]]>\n" + reply_ok
 
 reply_ok_chunk = "\n#%d\n%s\n##\n" % (len(reply_ok), reply_ok)
 
-rpc_reply11 = "\n#%d\n%s\n#%d\n%s\n##\n%s" % (
+reply_ok_partial_chunk = "\n#%d\n%s\n" % (len(reply_ok), reply_ok)
+
+# A buffer of data with two complete messages and an incomplete message
+rpc_reply11 = "\n#%d\n%s\n#%d\n%s\n##\n%s%s" % (
     30, reply_data[:30], len(reply_data[30:]), reply_data[30:],
-    reply_ok_chunk)
+    reply_ok_chunk, reply_ok_partial_chunk)
 
 
 rpc_reply_part_1 = """<rpc-reply xmlns:junos="http://xml.juniper.net/junos/12.1X46/junos" attrib1 = "test">
@@ -58,7 +62,8 @@ rpc_reply_part_2 = """>
 
 class TestSSH(unittest.TestCase):
 
-    def _test_parsemethod(self, mock_dispatch, parsemethod, reply, ok_chunk):
+    def _test_parsemethod(self, mock_dispatch, parsemethod, reply, ok_chunk,
+                          expected_messages):
         device_handler = JunosDeviceHandler({'name': 'junos'})
         obj = SSHSession(device_handler)
         if sys.version >= "3.0":
@@ -68,17 +73,22 @@ class TestSSH(unittest.TestCase):
             obj._buffer.write(reply)
             remainder = ok_chunk
         parsemethod(obj)
-        call = mock_dispatch.call_args_list[0][0][0]
-        self.assertEqual(call, reply_data)
+
+        for i in range(0, len(expected_messages)):
+            call = mock_dispatch.call_args_list[i][0][0]
+            self.assertEqual(call, expected_messages[i])
+
         self.assertEqual(obj._buffer.getvalue(), remainder)
 
     @patch('ncclient.transport.ssh.Session._dispatch_message')
     def test_parse(self, mock_dispatch):
-        self._test_parsemethod(mock_dispatch, SSHSession._parse, rpc_reply, "\n" + reply_ok)
+        self._test_parsemethod(mock_dispatch, SSHSession._parse, rpc_reply,
+                               "\n" + reply_ok, [reply_data])
 
     @patch('ncclient.transport.ssh.Session._dispatch_message')
     def test_parse11(self, mock_dispatch):
-        self._test_parsemethod(mock_dispatch, SSHSession._parse11, rpc_reply11, reply_ok_chunk)
+        self._test_parsemethod(mock_dispatch, SSHSession._parse11, rpc_reply11,
+                               reply_ok_partial_chunk, [reply_data, reply_ok])
 
     @patch('ncclient.transport.ssh.Session._dispatch_message')
     def test_parse_incomplete_delimiter(self, mock_dispatch):
@@ -115,6 +125,18 @@ class TestSSH(unittest.TestCase):
             key.__repr__())
 
     @patch('paramiko.transport.Transport.auth_publickey')
+    @patch('paramiko.agent.AgentSSH.get_keys')
+    def test_auth_agent_exception(self, mock_get_key, mock_auth_public_key):
+        key = paramiko.PKey()
+        mock_get_key.return_value = [key]
+        mock_auth_public_key.side_effect = paramiko.ssh_exception.AuthenticationException
+        device_handler = JunosDeviceHandler({'name': 'junos'})
+        obj = SSHSession(device_handler)
+        obj._transport = paramiko.Transport(None)
+        self.assertRaises(AuthenticationError,
+            obj._auth,'user', None, [], True, False)
+
+    @patch('paramiko.transport.Transport.auth_publickey')
     @patch('paramiko.pkey.PKey.from_private_key_file')
     def test_auth_keyfiles(self, mock_get_key, mock_auth_public_key):
         key = paramiko.PKey()
@@ -126,6 +148,47 @@ class TestSSH(unittest.TestCase):
         self.assertEqual(
             (mock_auth_public_key.call_args_list[0][0][1]).__repr__(),
             key.__repr__())
+
+    @patch('paramiko.transport.Transport.auth_publickey')
+    @patch('paramiko.pkey.PKey.from_private_key_file')
+    def test_auth_keyfiles_exception(self, mock_get_key, mock_auth_public_key):
+        key = paramiko.PKey()
+        mock_get_key.side_effect = paramiko.ssh_exception.PasswordRequiredException
+        device_handler = JunosDeviceHandler({'name': 'junos'})
+        obj = SSHSession(device_handler)
+        obj._transport = paramiko.Transport(None)
+        self.assertRaises(AuthenticationError,
+            obj._auth,'user', None, ["key_file_name"], False, True)
+
+    @patch('os.path.isfile')
+    @patch('paramiko.transport.Transport.auth_publickey')
+    @patch('paramiko.pkey.PKey.from_private_key_file')
+    def test_auth_default_keyfiles(self, mock_get_key, mock_auth_public_key,
+                                   mock_is_file):
+        key = paramiko.PKey()
+        mock_get_key.return_value = key
+        mock_is_file.return_value = True
+        device_handler = JunosDeviceHandler({'name': 'junos'})
+        obj = SSHSession(device_handler)
+        obj._transport = paramiko.Transport(None)
+        obj._auth('user', 'password', [], False, True)
+        self.assertEqual(
+            (mock_auth_public_key.call_args_list[0][0][1]).__repr__(),
+            key.__repr__())
+
+    @patch('os.path.isfile')
+    @patch('paramiko.transport.Transport.auth_publickey')
+    @patch('paramiko.pkey.PKey.from_private_key_file')
+    def test_auth_default_keyfiles_exception(self, mock_get_key,
+                                             mock_auth_public_key, mock_is_file):
+        key = paramiko.PKey()
+        mock_is_file.return_value = True
+        mock_get_key.side_effect = paramiko.ssh_exception.PasswordRequiredException
+        device_handler = JunosDeviceHandler({'name': 'junos'})
+        obj = SSHSession(device_handler)
+        obj._transport = paramiko.Transport(None)
+        self.assertRaises(AuthenticationError,
+			              obj._auth,'user', None, [], False, True)
 
     @patch('paramiko.transport.Transport.auth_password')
     def test_auth_password(self, mock_auth_password):
@@ -146,6 +209,13 @@ class TestSSH(unittest.TestCase):
         obj._transport = paramiko.Transport(None)
         self.assertRaises(AuthenticationError,
             obj._auth, 'user', 'password', [], False, True)
+
+    def test_auth_no_methods_exception(self):
+        device_handler = JunosDeviceHandler({'name': 'junos'})
+        obj = SSHSession(device_handler)
+        obj._transport = paramiko.Transport(None)
+        self.assertRaises(AuthenticationError,
+            obj._auth,'user', None, [], False, False)
 
     @patch('paramiko.transport.Transport.close')
     def test_close(self, mock_close):

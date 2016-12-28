@@ -127,6 +127,11 @@ class SSHSession(Session):
             self._buffer = StringIO()
             self._buffer.write(remaining.encode())
             self._parsing_pos10 = 0
+            if len(remaining) > 0:
+                # There could be another entire message in the
+                # buffer, so we should try to parse again.
+                logger.debug('Trying another round of parsing since there is still data')
+                self._parse10()
         else:
             # handle case that MSG_DELIM is split over two chunks
             self._parsing_pos10 = buf.tell() - MSG_DELIM_LEN
@@ -147,6 +152,8 @@ class SSHSession(Session):
         buf.seek(self._parsing_pos11)
         message_list = self._message_list # a message is a list of chunks
         chunk_list = []   # a chunk is a list of characters
+
+        should_recurse = False
 
         while True:
             x = buf.read(1)
@@ -253,6 +260,9 @@ class SSHSession(Session):
                         expchunksize = chunksize = 0
                         parsing_state11 = idle
                         inendpos = parsing_pos11 = 0
+                        # There could be another entire message in the
+                        # buffer, so we should try to parse again.
+                        should_recurse = True
                         break
                     else:
                         logger.debug('%s (%s: expect newline)'%(pre, state))
@@ -269,6 +279,10 @@ class SSHSession(Session):
         self._buffer = buf
         self._parsing_pos11 = self._buffer.tell()
         logger.debug('parse11 ending ...')
+
+        if should_recurse:
+            logger.debug('Trying another round of parsing since there is still data')
+            self._parse11()
 
 
     def load_known_hosts(self, filename=None):
@@ -426,7 +440,7 @@ class SSHSession(Session):
         saved_exception = None
 
         for key_filename in key_filenames:
-            for cls in (paramiko.RSAKey, paramiko.DSSKey):
+            for cls in (paramiko.RSAKey, paramiko.DSSKey, paramiko.ECDSAKey):
                 try:
                     key = cls.from_private_key_file(key_filename, password)
                     logger.debug("Trying key %s from %s" %
@@ -452,17 +466,23 @@ class SSHSession(Session):
         if look_for_keys:
             rsa_key = os.path.expanduser("~/.ssh/id_rsa")
             dsa_key = os.path.expanduser("~/.ssh/id_dsa")
+            ecdsa_key = os.path.expanduser("~/.ssh/id_ecdsa")
             if os.path.isfile(rsa_key):
                 keyfiles.append((paramiko.RSAKey, rsa_key))
             if os.path.isfile(dsa_key):
                 keyfiles.append((paramiko.DSSKey, dsa_key))
+            if os.path.isfile(ecdsa_key):
+                keyfiles.append((paramiko.ECDSAKey, ecdsa_key))
             # look in ~/ssh/ for windows users:
             rsa_key = os.path.expanduser("~/ssh/id_rsa")
             dsa_key = os.path.expanduser("~/ssh/id_dsa")
+            ecdsa_key = os.path.expanduser("~/ssh/id_ecdsa")
             if os.path.isfile(rsa_key):
                 keyfiles.append((paramiko.RSAKey, rsa_key))
             if os.path.isfile(dsa_key):
                 keyfiles.append((paramiko.DSSKey, dsa_key))
+            if os.path.isfile(ecdsa_key):
+                keyfiles.append((paramiko.ECDSAKey, ecdsa_key))
 
         for cls, filename in keyfiles:
             try:
