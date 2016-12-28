@@ -64,6 +64,8 @@ H3C_CONFIG_1_0 = "http://www.h3c.com/netconf/config:1.0"
 H3C_ACTION_1_0 = "http://www.h3c.com/netconf/action:1.0"
 #: Namespace for netconf monitoring
 NETCONF_MONITORING_NS = "urn:ietf:params:xml:ns:yang:ietf-netconf-monitoring"
+#: Namespace for netconf notifications
+NETCONF_NOTIFICATION_NS = "urn:ietf:params:xml:ns:netconf:notification:1.0"
 #
 try:
     register_namespace = etree.register_namespace
@@ -201,5 +203,7 @@ class NCElement(object):
 
 
 new_ele = lambda tag, attrs={}, **extra: etree.Element(qualify(tag), attrs, **extra)
+
+new_ele_ns = lambda tag, ns, attrs={}, **extra: etree.Element(qualify(tag,ns), attrs, **extra)
 
 sub_ele = lambda parent, tag, attrs={}, **extra: etree.SubElement(parent, qualify(tag), attrs, **extra)
