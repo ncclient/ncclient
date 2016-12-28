@@ -97,6 +97,12 @@ Supported device handlers
 Changes \| brief
 ~~~~~~~~~~~~~~~~
 
+**v0.5.3**
+
+- Add notifications support
+- Add support for ecdsa keys
+- Various bug fixes
+
 **v0.5.2**
 
 - Add support for Python 3
@@ -165,6 +171,8 @@ Changes \| brief
 Acknowledgements
 ~~~~~~~~~~~~~~~~
 
+-  v0.5.3: `Justin Wilcox`_, `Stacy W. Smith`_, `Mircea Ulinic`_,
+   `Ebben Aries`_, `Einar Nilsen-Nygaard`_, `QijunPan`_
 -  v0.5.2: `Nitin Kumar`_, `Kristian Larsson`_, `palashgupta`_,
    `Jonathan Provost`_, `Jainpriyal`_, `sharang`_, `pseguel`_,
    `nnakamot`_, `Алексей Пастухов`_, `Christian Giese`_, `Peipei Guo`_,

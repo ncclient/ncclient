@@ -76,14 +76,14 @@ Device handlers are easy to implement and prove to be futureproof.
 * HP Comware: device_params={'name':'hpcomware'}
 
 
-### Changes | brief
+### Changes | brief - v0.5.3
 
-* Python 3 support
-* Bug fixes
-* Performance improvements
-
+* Add notifications support
+* Add support for ecdsa keys
+* Various bug fixes
 
 ### Contributors
+* v0.5.3: [Justin Wilcox](https://github.com/jwwilcox), [Stacy W. Smith](https://github.com/stacywsmith), [Mircea Ulinic](https://github.com/mirceaulinic), [Ebben Aries](https://github.com/earies), [Einar Nilsen-Nygaard](https://github.com/einarnn), [QijunPan](https://github.com/QijunPan)
 * v0.5.2: [Nitin Kumar](https://github.com/vnitinv), [Kristian Larsson](https://github.com/plajjan), [palashgupta](https://github.com/palashgupta), [Jonathan Provost](https://github.com/JoProvost), [Jainpriyal](https://github.com/Jainpriyal), [sharang](https://github.com/sharang), [pseguel](https://github.com/pseguel), [nnakamot](https://github.com/nnakamot), [Алексей Пастухов](https://github.com/p-alik), [Christian Giese](https://github.com/GIC-de), [Peipei Guo](https://github.com/peipeiguo), [Time Warner Cable Openstack Team](https://github.com/twc-openstack)
 * v0.4.7: [Einar Nilsen-Nygaard](https://github.com/einarnn), [Vaibhav Bajpai](https://github.com/vbajpai), Norio Nakamoto 
 * v0.4.6: [Nitin Kumar](https://github.com/vnitinv), [Carl Moberg](https://github.com/cmoberg), [Stavros Kroustouris](https://github.com/kroustou) 

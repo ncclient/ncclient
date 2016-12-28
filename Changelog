@@ -1,4 +1,15 @@
-version 0.5.1
+version 0.5.3
+-------------
+
+Fixes/Enhancements
+==================
+
+* Add notifications support
+* Add support for ecdsa keys
+* Various bug fixes
+
+
+version 0.5.2
 -------------
 
 Fixes/Enhancements
