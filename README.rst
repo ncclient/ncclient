@@ -216,3 +216,7 @@ Acknowledgements
 .. _Juergen Brendel: https://github.com/juergenbrendel
 .. _Quentin Loos: https://github.com/Kent1
 .. _Ebben Aries: https://github.com/earies
+.. _Justin Wilcox: https://github.com/jwwilcox
+.. _Stacy W. Smith: https://github.com/stacywsmith
+.. _Mircea Ulinic: https://github.com/mirceaulinic
+.. _QijunPan: https://github.com/QijunPan
