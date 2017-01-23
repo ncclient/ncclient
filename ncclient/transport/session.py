@@ -25,7 +25,7 @@ except ImportError:
 from ncclient.xml_ import *
 from ncclient.capabilities import Capabilities
 from ncclient.transport.errors import TransportError, SessionError
-from ncclient.operations.notify import Notification
+from ncclient.transport.notify import Notification
 
 logger = logging.getLogger('ncclient.transport.session')
 
