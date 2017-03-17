@@ -17,11 +17,10 @@ def connect(host, port, user, password):
     response = conn.rpc(rpc)
     interface_name = response.xpath('//physical-interface/name')
     interface_status = response.xpath('//physical-interface/oper-status')
-    interface_dict = dict()
     for name, status in zip(interface_name, interface_status):
         name = name.text.split('\n')[1]
         status = status.text.split('\n')[1]
-        print "{}-{}".format(name, status)
+        print ("{}-{}".format(name, status))
 
 if __name__ == '__main__':
     connect('router', 830, 'netconf', 'juniper!')
