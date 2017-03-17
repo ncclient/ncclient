@@ -68,6 +68,10 @@ Presence of capabilities is verified to the extent possible, and you can expect 
 
     .. automethod:: validate(source)
 
+    .. automethod:: create_subscription()
+
+    .. automethod:: take_notification(block=True, timeout=None)
+
     .. autoattribute:: async_mode
 
     .. autoattribute:: timeout
