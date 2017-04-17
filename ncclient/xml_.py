@@ -30,6 +30,7 @@ from lxml import etree
 from ncclient import NCClientError
 
 parser = etree.XMLParser(recover=True)
+huge_parser = etree.XMLParser(recover=True,huge_tree=True)
 
 class XMLError(NCClientError):
     pass
@@ -103,10 +104,23 @@ def to_xml(ele, encoding="UTF-8", pretty_print=False):
 
 def to_ele(x):
     "Convert and return the :class:`~xml.etree.ElementTree.Element` for the XML document *x*. If *x* is already an :class:`~xml.etree.ElementTree.Element` simply returns that."
-    if sys.version < '3':
-        return x if etree.iselement(x) else etree.fromstring(x, parser=parser)
+    if etree.iselement(x):
+        return x
     else:
-        return x if etree.iselement(x) else etree.fromstring(x.encode('UTF-8'), parser=parser)
+        try:
+            if sys.version < '3':
+                ele = etree.fromstring(x, parser=parser)
+            else:
+                ele = etree.fromstring(x.encode('UTF-8'), parser=parser)
+        except etree.XMLSyntaxError as err:
+            if 'huge text node' in err.message:
+                if sys.version < '3':
+                    ele = etree.fromstring(x, parser=huge_parser)
+                else:
+                    ele = etree.fromstring(x.encode('UTF-8'), parser=huge_parser)
+            else:
+                raise err
+        return ele
 
 def parse_root(raw):
     "Efficiently parses the root element of a *raw* XML document, returning a tuple of its qualified name and attribute dictionary."
@@ -184,7 +198,14 @@ class NCElement(object):
     def tostring(self):
         """return a pretty-printed string output for rpc reply"""
         parser = etree.XMLParser(remove_blank_text=True)
-        outputtree = etree.XML(etree.tostring(self.__doc), parser)
+        try:
+            outputtree = etree.XML(etree.tostring(self.__doc), parser=parser)
+        except etree.XMLSyntaxError as err:
+            if 'huge text node' in err.message:
+                huge_parser = etree.XMLParser(remove_blank_text=True, huge_tree=True)
+                outputtree = etree.XML(etree.tostring(self.__doc), parser=huge_parser)
+            else:
+                raise err
         return etree.tostring(outputtree, pretty_print=True)
 
     @property
@@ -198,7 +219,19 @@ class NCElement(object):
         self.__parser = etree.XMLParser(remove_blank_text=True)
         self.__xslt_doc = etree.parse(io.BytesIO(self.__xslt), self.__parser)
         self.__transform = etree.XSLT(self.__xslt_doc)
-        self.__root = etree.fromstring(str(self.__transform(etree.parse(StringIO(str(rpc_reply))))))
+        try:
+            self.__root = etree.fromstring(str(self.__transform(etree.parse(StringIO(str(rpc_reply)),
+                                                                            self.__parser))),
+                                           self.__parser)
+        except etree.XMLSyntaxError as err:
+            if 'huge text node' in err.message:
+                if not hasattr(self, '__huge_parser'):
+                    self.__huge_parser = etree.XMLParser(remove_blank_text=True, huge_tree=True)
+                self.__root = etree.fromstring(str(self.__transform(etree.parse(StringIO(str(rpc_reply)),
+                                                                                parser=self.__huge_parser))),
+                                               parser=self.__huge_parser)
+            else:
+                raise err
         return self.__root
 
 
