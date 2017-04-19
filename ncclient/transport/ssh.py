@@ -439,6 +439,14 @@ class SSHSession(Session):
               look_for_keys):
         saved_exception = None
 
+        if password is not None:
+            try:
+                self._transport.auth_password(username, password)
+                return
+            except Exception as e:
+                saved_exception = e 
+                logger.debug(e)
+
         for key_filename in key_filenames:
             for cls in (paramiko.RSAKey, paramiko.DSSKey, paramiko.ECDSAKey):
                 try:
@@ -490,14 +498,6 @@ class SSHSession(Session):
                 logger.debug("Trying discovered key %s in %s" %
                           (hexlify(key.get_fingerprint()), filename))
                 self._transport.auth_publickey(username, key)
-                return
-            except Exception as e:
-                saved_exception = e
-                logger.debug(e)
-
-        if password is not None:
-            try:
-                self._transport.auth_password(username, password)
                 return
             except Exception as e:
                 saved_exception = e
