@@ -317,7 +317,7 @@ class SSHSession(Session):
     # REMEMBER to update transport.rst if sig. changes, since it is hardcoded there
     def connect(self, host, port=830, timeout=None, unknown_host_cb=default_unknown_host_cb,
                 username=None, password=None, key_filename=None, allow_agent=True,
-                hostkey_verify=True, look_for_keys=True, ssh_config=None, sock=None):
+                hostkey_verify=True, look_for_keys=True, ssh_config=None, sock_fd=None):
 
         """Connect via SSH and initialize the NETCONF session. First attempts the publickey authentication method and then password authentication.
 
@@ -345,10 +345,10 @@ class SSHSession(Session):
 
         *ssh_config* enables parsing of an OpenSSH configuration file, if set to its path, e.g. :file:`~/.ssh/config` or to True (in this case, use :file:`~/.ssh/config`).
 
-        *sock* is an already open socket which shall be used for this connection. Useful for NETCONF Call Home.
+        *sock_fd* is an already open socket which shall be used for this connection. Useful for NETCONF Call Home.
         """
-        if not (host or socket):
-            raise SSHError("Missing host or socket")
+        if not (host or sock_fd):
+            raise SSHError("Missing host or socket fd")
 
         # Optionaly, parse .ssh/config
         config = {}
@@ -367,7 +367,7 @@ class SSHSession(Session):
         if username is None:
             username = getpass.getuser()
 
-        if sock is None:
+        if sock_fd is None:
             if config.get("proxycommand"):
                 sock = paramiko.proxy.ProxyCommand(config.get("proxycommand"))
             else:
@@ -387,6 +387,8 @@ class SSHSession(Session):
                 else:
                     raise SSHError("Could not open socket to %s:%s" % (host, port))
         else:
+            s = socket.fromfd(int(sock_fd), socket.AF_INET, socket.SOCK_STREAM)
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, _sock=s)
             sock.settimeout(timeout)
 
         t = self._transport = paramiko.Transport(sock)
