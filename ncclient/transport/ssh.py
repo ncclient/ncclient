@@ -345,7 +345,7 @@ class SSHSession(Session):
 
         *ssh_config* enables parsing of an OpenSSH configuration file, if set to its path, e.g. :file:`~/.ssh/config` or to True (in this case, use :file:`~/.ssh/config`).
 
-        *sock_fd* is an already open socket which shall be used for this connection. Useful for NETCONF Call Home.
+        *sock_fd* is an already open socket which shall be used for this connection. Useful for NETCONF outbound ssh. Use host=None together with a valid sock_fd number
         """
         if not (host or sock_fd):
             raise SSHError("Missing host or socket fd")
