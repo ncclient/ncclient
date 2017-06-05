@@ -56,6 +56,7 @@ def launch_junos_proxy(client, addr, user, password):
     count = 3
     while len(msg) < 100 and count > 0:
         c = client.recv(1)
+        c = c.decode()
         if c == '\r':
             continue
 
@@ -84,8 +85,8 @@ def launch_junos_proxy(client, addr, user, password):
 
     print('requesting info...')
     result = conn.rpc(rpc)
-    print '   Hostname:', result.xpath('//software-information/host-name')[0].text
-    print '    Version:', result.xpath('//software-information/junos-version')[0].text
+    print('   Hostname: ' +  result.xpath('//software-information/host-name')[0].text)
+    print('    Version: ' + result.xpath('//software-information/junos-version')[0].text)
     sys.exit(0)
 
 

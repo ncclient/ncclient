@@ -387,8 +387,11 @@ class SSHSession(Session):
                 else:
                     raise SSHError("Could not open socket to %s:%s" % (host, port))
         else:
-            s = socket.fromfd(int(sock_fd), socket.AF_INET, socket.SOCK_STREAM)
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, _sock=s)
+            if sys.version_info[0] < 3:
+                s = socket.fromfd(int(sock_fd), socket.AF_INET, socket.SOCK_STREAM)
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, _sock=s)
+            else:
+                sock = socket.fromfd(int(sock_fd), socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(timeout)
 
         t = self._transport = paramiko.Transport(sock)
