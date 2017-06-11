@@ -554,7 +554,7 @@ class SSHSession(Session):
                     try:
                         # send a HELLO msg using v1.0 EOM markers.
                         validated_element(data, tags='{urn:ietf:params:xml:ns:netconf:base:1.0}hello')
-                        data = "%s%s"%(data, MSG_DELIM)
+                        #data = "%s%s"%(data, MSG_DELIM)
                     except XMLError:
                         # this is not a HELLO msg
                         # we publish v1.1 support
@@ -565,7 +565,8 @@ class SSHSession(Session):
                                     data = "%s%s%s"%(start_delim(len(data)), data, END_DELIM)
                                 elif 'urn:ietf:params:netconf:base:1.0' in self._server_capabilities or 'urn:ietf:params:xml:ns:netconf:base:1.0' in self._server_capabilities:
                                     # send using v1.0 EOM markers
-                                    data = "%s%s"%(data, MSG_DELIM)
+                                    #data = "%s%s"%(data, MSG_DELIM)
+                                    pass
                                 else: raise Exception
                             else:
                                 logger.debug('HELLO msg was sent, but server capabilities are still not known')
@@ -573,8 +574,20 @@ class SSHSession(Session):
                         # we publish only v1.0 support
                         else:
                             # send using v1.0 EOM markers
-                            data = "%s%s"%(data, MSG_DELIM)
+                            #data = "%s%s"%(data, MSG_DELIM)
+                            pass
                     finally:
+                        """When MSG_DELIM does not fit in a chunk of 4096 bytes 
+                         and part of it must be transmitted in another chunk
+                         a syntax error is returned from the server. Padding 
+                         message body with a number of spaces forces the 
+                         MSG_DELIM to be solely transmitted in an new chunk.
+                         """
+
+                        if len(data)%BUF_SIZE > BUF_SIZE - MSG_DELIM_LEN:
+                            data = data.ljust(len(data)+MSG_DELIM_LEN,' ')
+
+                        data = "%s%s"%(data, MSG_DELIM)
                         logger.debug("Sending: %s", data)
                         while data:
                             n = chan.send(data)
