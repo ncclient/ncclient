@@ -22,7 +22,7 @@ SSH session implementation
     :show-inheritance:
     :members: load_known_hosts, close, transport
 
-    .. automethod:: connect(host[, port=830, timeout=None, unknown_host_cb=default_unknown_host_cb, username=None, password=None, key_filename=None, allow_agent=True, look_for_keys=True, ssh_config=None])
+    .. automethod:: connect(host[, port=830, timeout=None, unknown_host_cb=default_unknown_host_cb, username=None, password=None, key_filename=None, allow_agent=True, hostkey_verify=True, look_for_keys=True, ssh_config=None])
 
 Errors
 ------
