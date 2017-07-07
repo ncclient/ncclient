@@ -66,7 +66,12 @@ H3C_ACTION_1_0 = "http://www.h3c.com/netconf/action:1.0"
 NETCONF_MONITORING_NS = "urn:ietf:params:xml:ns:yang:ietf-netconf-monitoring"
 #: Namespace for netconf notifications
 NETCONF_NOTIFICATION_NS = "urn:ietf:params:xml:ns:netconf:notification:1.0"
-#
+#: Namespace for ietf-netconf-notifications
+IETF_NETCONF_NOTIFICATIONS_NS = "urn:ietf:params:xml:ns:yang:ietf-netconf-notifications"
+#: Namespace for ietf-event-notifications
+IETF_EVENT_NOTIFICATIONS_NS = "urn:ietf:params:xml:ns:yang:ietf-event-notifications"
+#: Namespace for ietf-yang-push
+IETF_YANG_PUSH_NS = "urn:ietf:params:xml:ns:yang:ietf-yang-push"
 try:
     register_namespace = etree.register_namespace
 except AttributeError:
@@ -76,15 +81,18 @@ except AttributeError:
         ElementTree._namespace_map[uri] = prefix
 
 for (ns, pre) in six.iteritems({
-    BASE_NS_1_0: 'nc',
-    NETCONF_MONITORING_NS: 'ncm',
-    NXOS_1_0: 'nxos',
-    NXOS_IF: 'if',
-    TAILF_AAA_1_1: 'aaa',
-    TAILF_EXECD_1_1: 'execd',
-    CISCO_CPI_1_0: 'cpi',
-    FLOWMON_1_0: 'fm',
-    JUNIPER_1_1: 'junos',
+        BASE_NS_1_0: 'nc',
+        NETCONF_MONITORING_NS: 'ncm',
+        IETF_NETCONF_NOTIFICATIONS_NS: 'ncn',
+        IETF_EVENT_NOTIFICATIONS_NS: 'evn',
+        IETF_YANG_PUSH_NS: 'yp',
+        NXOS_1_0: 'nxos',
+        NXOS_IF: 'if',
+        TAILF_AAA_1_1: 'aaa',
+        TAILF_EXECD_1_1: 'execd',
+        CISCO_CPI_1_0: 'cpi',
+        FLOWMON_1_0: 'fm',
+        JUNIPER_1_1: 'junos',
 }):
     register_namespace(pre, ns)
 
@@ -207,3 +215,5 @@ new_ele = lambda tag, attrs={}, **extra: etree.Element(qualify(tag), attrs, **ex
 new_ele_ns = lambda tag, ns, attrs={}, **extra: etree.Element(qualify(tag,ns), attrs, **extra)
 
 sub_ele = lambda parent, tag, attrs={}, **extra: etree.SubElement(parent, qualify(tag), attrs, **extra)
+
+sub_ele_ns = lambda parent, tag, ns, attrs={}, **extra: etree.SubElement(parent, qualify(tag,ns), attrs, **extra)

@@ -22,3 +22,9 @@ class TimeoutExpiredError(NCClientError):
 
 class MissingCapabilityError(NCClientError):
     pass
+
+class InvalidYangPushParams(NCClientError):
+    pass
+
+class YangPushError(NCClientError):
+    pass

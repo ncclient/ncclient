@@ -42,6 +42,7 @@ OPERATIONS = {
     "lock": operations.Lock,
     "unlock": operations.Unlock,
     "create_subscription": operations.CreateSubscription,
+    "establish_subscription": operations.EstablishSubscription,
     "close_session": operations.CloseSession,
     "kill_session": operations.KillSession,
     "poweroff_machine": operations.PoweroffMachine,

@@ -22,6 +22,8 @@ from ncclient.operations.edit import EditConfig, CopyConfig, DeleteConfig, Valid
 from ncclient.operations.session import CloseSession, KillSession
 from ncclient.operations.lock import Lock, Unlock, LockContext
 from ncclient.operations.subscribe import CreateSubscription
+from ncclient.operations.subscribe import EstablishSubscriptionReply
+from ncclient.operations.subscribe import EstablishSubscription
 
 # others...
 from ncclient.operations.flowmon import PoweroffMachine, RebootMachine
@@ -45,6 +47,7 @@ __all__ = [
     'Lock',
     'Unlock',
     'CreateSubscription',
+    'EstablishSubscription',
     'PoweroffMachine',
     'RebootMachine',
 ]

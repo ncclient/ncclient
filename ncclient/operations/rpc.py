@@ -302,7 +302,7 @@ class RPC(object):
         #print to_xml(ele)
         return to_xml(ele)
 
-    def _request(self, op):
+    def _request(self, op, raw_xml=None):
         """Implementations of :meth:`request` call this method to send the request and process the reply.
 
         In synchronous mode, blocks until the reply is received and returns :class:`RPCReply`. Depending on the :attr:`raise_mode` a `rpc-error` element in the reply may lead to an :exc:`RPCError` exception.
@@ -312,7 +312,10 @@ class RPC(object):
         *op* is the operation to be requested as an :class:`~xml.etree.ElementTree.Element`
         """
         logger.info('Requesting %r' % self.__class__.__name__)
-        req = self._wrap(op)
+        if op is not None:
+            req = self._wrap(op)
+        else:
+            req = raw_xml
         self._session.send(req)
         if self._async:
             logger.debug('Async request, returning %r', self)
