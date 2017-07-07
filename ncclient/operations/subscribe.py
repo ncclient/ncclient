@@ -161,12 +161,12 @@ class EstablishSubscription(RPC):
         #
         # validate parameters
         #
-        if not xpath:
-            raise InvalidYangPushParams("Must have xpath")
+        if xpath is None:
+            raise YangPushError("Must have xpath")
         if period and dampening_period:
-            raise InvalidYangPushParams("Can only have one of period and dampening_period")
-        if (not period) and (not dampening_period):
-            raise InvalidYangPushParams("Must have at least one of period or dampening_period")
+            raise YangPushError("Can only have one of period and dampening_period")
+        if (period is None) and (dampening_period is None):
+            raise YangPushError("Must have at least one of period or dampening_period")
 
         #
         # start constructing request
@@ -223,6 +223,7 @@ class YangPushNotification(object):
         self._raw = raw
         self._parsed = False
         self._root = None
+        self._datastore = None
         self._event_time = None
         self._subscription_id = None
         self._type = None
@@ -244,10 +245,14 @@ class YangPushNotification(object):
             type = root.find(qualify("push-update", IETF_YANG_PUSH_NS))
             if type is not None:
                 self._type = YangPushNotificationType.PUSH_UPDATE
+                self._datastore = root.find(
+                    './/%s' % qualify('datastore-contents-xml', IETF_YANG_PUSH_NS))
             else:
                 type = root.find(qualify("push-change-update", IETF_YANG_PUSH_NS))
                 if type is not None:
                     self._type = YangPushNotificationType.PUSH_CHANGE_UPDATE
+                    self._datastore = root.find(
+                        './/%s' % qualify('datastore-changes-xml', IETF_YANG_PUSH_NS))
                 else:
                     self.type = YangPushNotificationType.UNKNOWN
 
@@ -286,13 +291,25 @@ class YangPushNotification(object):
         return self._type
 
     @property
-    def data_ele(self):
+    def datastore_ele(self):
+        if not self._parsed:
+            self.parse()
+        return self._datastore
+
+    @property
+    def datastore_xml(self):
+        if not self._parsed:
+            self.parse()
+        return etree.tostring(self._datastore)
+
+    @property
+    def root_ele(self):
         if not self._parsed:
             self.parse()
         return self._root
 
     @property
-    def data_xml(self):
+    def root_xml(self):
         if not self._parsed:
             self.parse()
         return etree.tostring(self._root)
@@ -324,7 +341,7 @@ class YangPushListener(SessionListener):
         """
         tag, attrs = root
         if tag != qualify("notification", NETCONF_NOTIFICATION_NS):
-            self.user_errback(YangPushError("Received a message not of type notification: "+tag))
+            # we just ignore any message not a notification
             return
         self.user_callback(YangPushNotification(raw))
 
