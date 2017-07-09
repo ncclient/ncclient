@@ -102,38 +102,54 @@ class EstablishSubscriptionReply(RPCReply):
     
     def _parsing_hook(self, root):
         self._result = None
-        self._id = None
+        self._subscription_id = None
         if not self._errors:
-            self._result = root.find(qualify("subscription-result", IETF_EVENT_NOTIFICATIONS_NS))
-            self._id = root.find(qualify("subscription-id", IETF_EVENT_NOTIFICATIONS_NS))
+            self._subscription_result = root.find(
+                qualify("subscription-result", IETF_EVENT_NOTIFICATIONS_NS))
+            self._subscription_id = root.find(
+                qualify("subscription-id", IETF_EVENT_NOTIFICATIONS_NS))
 
     @property
-    def result_ele(self):
+    def subscription_result(self):
         "*subscription-result* element as an :class:`~xml.etree.ElementTree.Element`"
         if not self._parsed:
             self.parse()
-        return self._result
+        return self._subscription_result.text
 
     @property
-    def result_xml(self):
+    def subscription_result_ele(self):
+        "*subscription-result* element as an :class:`~xml.etree.ElementTree.Element`"
+        if not self._parsed:
+            self.parse()
+        return self._subscription_result
+
+    @property
+    def subscription_result_xml(self):
         "*subscription-result* element as an XML string"
         if not self._parsed:
             self.parse()
-        return to_xml(self._result)
+        return to_xml(self._subscription_result)
 
     @property
-    def id_ele(self):
+    def subscription_id(self):
         "*subscription-id* element as an :class:`~xml.etree.ElementTree.Element`"
         if not self._parsed:
             self.parse()
-        return self._id
+        return int(self._subscription_id.text)
 
     @property
-    def id_xml(self):
+    def subscription_id_ele(self):
+        "*subscription-id* element as an :class:`~xml.etree.ElementTree.Element`"
+        if not self._parsed:
+            self.parse()
+        return self._subscription_id
+
+    @property
+    def subscription_id_xml(self):
         "*subscription-id* element as an XML string"
         if not self._parsed:
             self.parse()
-        return to_xml(self._id)
+        return to_xml(self._subscription_id)
 
 
 class EstablishSubscription(RPC):
