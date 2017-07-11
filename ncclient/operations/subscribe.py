@@ -156,7 +156,7 @@ class EstablishSubscription(RPC):
     
     "`establish-subscription` RPC"
 
-    # DEPENDS = [':notification']
+    # DEPENDS = [':ietf-yang-push']
     REPLY_CLS = EstablishSubscriptionReply
     
     def request(self, callback, errback, xpath=None, period=None, dampening_period=None):
@@ -209,6 +209,69 @@ class EstablishSubscription(RPC):
 
         # Now process the request
         return self._request(None, raw_xml=rpc)
+
+
+class DeleteSubscriptionReply(RPCReply):
+
+    """Delete Subscription Result RPCReply Class."""
+    
+    def _parsing_hook(self, root):
+        self._result = None
+        self._subscription_id = None
+        if not self._errors:
+            self._subscription_result = root.find(
+                qualify("subscription-result", IETF_EVENT_NOTIFICATIONS_NS))
+
+    @property
+    def subscription_result(self):
+        "*subscription-result* element as an :class:`~xml.etree.ElementTree.Element`"
+        if not self._parsed:
+            self.parse()
+        return self._subscription_result.text
+
+    @property
+    def subscription_result_ele(self):
+        "*subscription-result* element as an :class:`~xml.etree.ElementTree.Element`"
+        if not self._parsed:
+            self.parse()
+        return self._subscription_result
+
+    @property
+    def subscription_result_xml(self):
+        "*subscription-result* element as an XML string"
+        if not self._parsed:
+            self.parse()
+        return to_xml(self._subscription_result)
+
+
+class DeleteSubscription(RPC):
+    
+    "`establish-subscription` RPC"
+
+    # DEPENDS = [':ietf-yang-push']
+    REPLY_CLS = DeleteSubscriptionReply
+    
+    def request(self, subscription_id=None):
+        """Create a simple subscription for ietf-yang-push subscriptions.
+
+        *subscription_id* the id of the subscription to delete
+
+        """
+        #
+        # validate parameters
+        #
+        if subscription_id is None:
+            raise YangPushError("Must provide subscription_id")
+
+        #
+        # Construct request
+        #
+        node = new_ele_ns("delete-subscription", IETF_EVENT_NOTIFICATIONS_NS)
+        to_delete = sub_ele_ns(node, "subscription-id", IETF_EVENT_NOTIFICATIONS_NS)
+        to_delete.text = str(subscription_id)
+
+        # Now process the request
+        return self._request(node)
 
 
 class YangPushNotificationType(object):
