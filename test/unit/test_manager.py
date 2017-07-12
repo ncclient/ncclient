@@ -18,6 +18,11 @@ class TestManager(unittest.TestCase):
         manager.connect(host='host')
         mock_ssh.assert_called_once_with(host='host')
 
+    @patch('ncclient.manager.connect_ssh')
+    def test_connect_outbound_ssh(self, mock_ssh):
+        manager.connect(host=None, sock_fd=6)
+        mock_ssh.assert_called_once_with(host=None, sock_fd=6)
+
     @patch('ncclient.manager.connect_ioproc')
     def test_connect_ioproc(self, mock_ssh):
         manager.connect(host='localhost', device_params={'name': 'junos', 
@@ -128,6 +133,25 @@ class TestManager(unittest.TestCase):
     def _mock_manager(self):
         conn = manager.connect(host='10.10.10.10',
                                     port=22,
+                                    username='user',
+                                    password='password',
+                                    timeout=10,
+                                    device_params={'name': 'junos'},
+                                    hostkey_verify=False, allow_agent=False)
+        return conn
+
+    @patch('socket.fromfd')
+    @patch('paramiko.Transport')
+    @patch('ncclient.transport.ssh.hexlify')
+    @patch('ncclient.transport.ssh.Session._post_connect')
+    def test_outbound_manager_connected(
+            self, mock_session, mock_hex, mock_trans, mock_fromfd):
+        conn = self._mock_outbound_manager()
+        self.assertEqual(conn.connected, True)
+
+    def _mock_outbound_manager(self):
+        conn = manager.connect(host=None,
+                                    sock_fd=6,
                                     username='user',
                                     password='password',
                                     timeout=10,

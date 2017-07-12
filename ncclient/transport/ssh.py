@@ -226,7 +226,7 @@ class SSHSession(Session):
             logger.debug('_parse11: saving back rest of message after {} bytes, original size {}'.format(start, data_len))
             self._buffer = StringIO(data[start:])
         logger.debug('_parse11: ending')
-  
+
     def load_known_hosts(self, filename=None):
 
         """Load host keys from an openssh :file:`known_hosts`-style file. Can
@@ -259,7 +259,7 @@ class SSHSession(Session):
     # REMEMBER to update transport.rst if sig. changes, since it is hardcoded there
     def connect(self, host, port=830, timeout=None, unknown_host_cb=default_unknown_host_cb,
                 username=None, password=None, key_filename=None, allow_agent=True,
-                hostkey_verify=True, look_for_keys=True, ssh_config=None):
+                hostkey_verify=True, look_for_keys=True, ssh_config=None, sock_fd=None):
 
         """Connect via SSH and initialize the NETCONF session. First attempts the publickey authentication method and then password authentication.
 
@@ -286,7 +286,12 @@ class SSHSession(Session):
         *look_for_keys* enables looking in the usual locations for ssh keys (e.g. :file:`~/.ssh/id_*`)
 
         *ssh_config* enables parsing of an OpenSSH configuration file, if set to its path, e.g. :file:`~/.ssh/config` or to True (in this case, use :file:`~/.ssh/config`).
+
+        *sock_fd* is an already open socket which shall be used for this connection. Useful for NETCONF outbound ssh. Use host=None together with a valid sock_fd number
         """
+        if not (host or sock_fd):
+            raise SSHError("Missing host or socket fd")
+
         # Optionaly, parse .ssh/config
         config = {}
         if ssh_config is True:
@@ -304,25 +309,32 @@ class SSHSession(Session):
         if username is None:
             username = getpass.getuser()
 
-        sock = None
-        if config.get("proxycommand"):
-            sock = paramiko.proxy.ProxyCommand(config.get("proxycommand"))
-        else:
-            for res in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket.SOCK_STREAM):
-                af, socktype, proto, canonname, sa = res
-                try:
-                    sock = socket.socket(af, socktype, proto)
-                    sock.settimeout(timeout)
-                except socket.error:
-                    continue
-                try:
-                    sock.connect(sa)
-                except socket.error:
-                    sock.close()
-                    continue
-                break
+        if sock_fd is None:
+            if config.get("proxycommand"):
+                sock = paramiko.proxy.ProxyCommand(config.get("proxycommand"))
             else:
-                raise SSHError("Could not open socket to %s:%s" % (host, port))
+                for res in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket.SOCK_STREAM):
+                    af, socktype, proto, canonname, sa = res
+                    try:
+                        sock = socket.socket(af, socktype, proto)
+                        sock.settimeout(timeout)
+                    except socket.error:
+                        continue
+                    try:
+                        sock.connect(sa)
+                    except socket.error:
+                        sock.close()
+                        continue
+                    break
+                else:
+                    raise SSHError("Could not open socket to %s:%s" % (host, port))
+        else:
+            if sys.version_info[0] < 3:
+                s = socket.fromfd(int(sock_fd), socket.AF_INET, socket.SOCK_STREAM)
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, _sock=s)
+            else:
+                sock = socket.fromfd(int(sock_fd), socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(timeout)
 
         t = self._transport = paramiko.Transport(sock)
         t.set_log_channel(logger.name)
