@@ -41,6 +41,7 @@ OPERATIONS = {
     "delete_config": operations.DeleteConfig,
     "lock": operations.Lock,
     "unlock": operations.Unlock,
+    "create_subscription": operations.CreateSubscription,
     "close_session": operations.CloseSession,
     "kill_session": operations.KillSession,
     "poweroff_machine": operations.PoweroffMachine,
@@ -264,6 +265,24 @@ class Manager(six.with_metaclass(OpExecutor, object)):
             r = self.rpc(root)
             return r
         return _missing
+
+    def take_notification(self, block=True, timeout=None):
+        """Attempt to retrieve one notification from the queue of received
+        notifications.
+
+        If block is True, the call will wait until a notification is
+        received.
+
+        If timeout is a number greater than 0, the call will wait that
+        many seconds to receive a notification before timing out.
+
+        If there is no notification available when block is False or
+        when the timeout has elapse, None will be returned.
+
+        Otherwise a :class:`~ncclient.operations.notify.Notification`
+        object will be returned.
+        """
+        return self._session.take_notification(block, timeout)
 
     @property
     def client_capabilities(self):

@@ -139,6 +139,11 @@ class SSHSession(Session):
             self._buffer = StringIO()
             self._buffer.write(remaining.encode())
             self._parsing_pos10 = 0
+            if len(remaining) > 0:
+                # There could be another entire message in the
+                # buffer, so we should try to parse again.
+                logger.debug('Trying another round of parsing since there is still data')
+                self._parse10()
         else:
             # handle case that MSG_DELIM is split over two chunks
             self._parsing_pos10 = buf.tell() - MSG_DELIM_LEN
