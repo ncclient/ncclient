@@ -71,10 +71,12 @@ Device handlers are easy to implement and prove to be futureproof.
 * Cisco CSR: device_params={'name':'csr'}
 * Cisco Nexus: device_params={'name':'nexus'}
 * Cisco IOS XR: device_params={'name':'iosxr'}
+* Cisco IOS XE: device_params={'name':'iosxe'}
 * Huawei: device_params={'name':'huawei'}
 * Alcatel Lucent: device_params={'name':'alu'}
 * H3C: device_params={'name':'h3c'}
 * HP Comware: device_params={'name':'hpcomware'}
+* Server or anything not in above: device_params={'name':'default'}
 
 
 ### Changes | brief - v0.5.3
