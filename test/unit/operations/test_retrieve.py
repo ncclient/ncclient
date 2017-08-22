@@ -56,8 +56,11 @@ class TestRetrieve(unittest.TestCase):
         session = ncclient.transport.SSHSession(self.device_handler)
         session._server_capabilities = []
         obj = Get(session, self.device_handler, raise_mode=RaiseMode.ALL)
-        with self.assertRaises(MissingCapabilityError):
-            obj.request(with_defaults='report-all')
+        self.assertRaises(
+            MissingCapabilityError,
+            obj.request,
+            with_defaults='report-all'
+        )
 
     @patch('ncclient.operations.retrieve.RPC._request')
     def test_with_defaults_valid_options(self, mock_request):
@@ -69,9 +72,11 @@ class TestRetrieve(unittest.TestCase):
         obj.request(with_defaults='report-all')
         obj.request(with_defaults='report-all-tagged')
         obj.request(with_defaults='trim')
-
-        with self.assertRaises(WithDefaultsError):
-            obj.request(with_defaults='invalid-option')
+        self.assertRaises(
+            WithDefaultsError,
+            obj.request,
+            with_defaults='invalid-option'
+        )
 
     @patch('ncclient.operations.retrieve.RPC._request')
     def test_get_config(self, mock_request):
@@ -113,8 +118,12 @@ class TestRetrieve(unittest.TestCase):
         session._server_capabilities = []
         obj = GetConfig(session, self.device_handler, raise_mode=RaiseMode.ALL)
         source = 'candidate'
-        with self.assertRaises(MissingCapabilityError):
-            obj.request(source, with_defaults='explicit')
+        self.assertRaises(
+            MissingCapabilityError,
+            obj.request,
+            source,
+            with_defaults='explicit'
+        )
 
     @patch('ncclient.operations.retrieve.RPC._request')
     def test_get_schema(self, mock_request):
