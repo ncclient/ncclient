@@ -29,7 +29,7 @@ from lxml import etree
 
 from ncclient import NCClientError
 
-parser = etree.XMLParser(recover=True)
+parser = etree.XMLParser(recover=False)
 
 class XMLError(NCClientError):
     pass

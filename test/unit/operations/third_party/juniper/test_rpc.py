@@ -168,7 +168,7 @@ class TestRPC(unittest.TestCase):
         device_handler = manager.make_device_handler({'name': 'junos'})
         session = ncclient.transport.SSHSession(device_handler)
         obj = ExecuteRpc(session, device_handler, raise_mode=RaiseMode.ALL)
-        rpc = 'get-software-information'
+        rpc = '<get-software-information/>'
         obj.request(rpc)
         self.assertEqual(True, isinstance(rpc, str))
 
