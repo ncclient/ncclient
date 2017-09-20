@@ -208,26 +208,24 @@ class RPCReplyListener(SessionListener): # internal use
         if self._device_handler.perform_qualify_check():
             if tag != qualify("rpc-reply"):
                 return
+        if "message-id" not in attrs:
+            # required attribute so raise OperationError
+            raise OperationError("Could not find 'message-id' attribute in <rpc-reply>")
         for key in attrs:  # in the <rpc-reply> attributes
-            message_id = attrs.get("message-id")
-            if message_id is None:
-                # required attribute so raise OperationError
-                raise OperationError("Could not find 'message-id' attribute in <rpc-reply>")
-            else:
-                if key == "message-id":  # if we found msgid attr
-                    id = attrs[key]  # get the msgid
-                    with self._lock:
-                        try:
-                            rpc = self._id2rpc[id]  # the corresponding rpc
-                            logger.debug("Delivering to %r" % rpc)
-                            rpc.deliver_reply(raw)
-                        except KeyError:
-                            raise OperationError("Unknown 'message-id': %s" % id)
-                        # no catching other exceptions, fail loudly if must
-                        else:
-                            # if no error delivering, can del the reference to the RPC
-                            del self._id2rpc[id]
-                            break
+            if key == "message-id":  # if we found msgid attr
+                id = attrs[key]  # get the msgid
+                with self._lock:
+                    try:
+                        rpc = self._id2rpc[id]  # the corresponding rpc
+                        logger.debug("Delivering to %r" % rpc)
+                        rpc.deliver_reply(raw)
+                    except KeyError:
+                        raise OperationError("Unknown 'message-id': %s" % id)
+                    # no catching other exceptions, fail loudly if must
+                    else:
+                        # if no error delivering, can del the reference to the RPC
+                        del self._id2rpc[id]
+                        break
 
     def errback(self, err):
         try:
