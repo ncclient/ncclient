@@ -211,8 +211,8 @@ class RPCReplyListener(SessionListener): # internal use
         if "message-id" not in attrs:
             # required attribute so raise OperationError
             raise OperationError("Could not find 'message-id' attribute in <rpc-reply>")
-        if key == "message-id":  # if we found msgid attr
-            id = attrs[key]  # get the msgid
+        else:
+            id = attrs["message-id"]  # get the msgid
             with self._lock:
                 try:
                     rpc = self._id2rpc[id]  # the corresponding rpc
@@ -224,7 +224,6 @@ class RPCReplyListener(SessionListener): # internal use
                 else:
                     # if no error delivering, can del the reference to the RPC
                     del self._id2rpc[id]
-                    break
 
     def errback(self, err):
         try:
