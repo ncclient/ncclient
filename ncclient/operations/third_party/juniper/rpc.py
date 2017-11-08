@@ -95,3 +95,8 @@ class Commit(RPC):
         if synchronize:
             sub_ele(node, "synchronize")
         return self._request(node)
+
+class Rollback(RPC):
+    def request(self, rollback=0):
+        node = new_ele('load-configuration', {'rollback':str(rollback)})
+        return self._request(node)
