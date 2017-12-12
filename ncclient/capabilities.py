@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
+import six
+
 def _abbreviate(uri):
     if uri.startswith("urn:ietf:params") and ":netconf:" in uri:
         splitted = uri.split(":")
@@ -44,7 +47,7 @@ class Capabilities(object):
     def __contains__(self, key):
         if key in self._dict:
             return True
-        for abbrs in self._dict.values():
+        for abbrs in six.itervalues(self._dict):
             if key in abbrs:
                 return True
         return False
@@ -52,11 +55,12 @@ class Capabilities(object):
     def __len__(self):
         return len(self._dict)
 
+    # python 2 and 3 compatible
     def __iter__(self):
-        return self._dict.iterkeys()
+        return six.iterkeys(self._dict)
 
     def __repr__(self):
-        return repr(self._dict.keys())
+        return repr(six.iterkeys(self._dict))
 
     def add(self, uri):
         "Add a capability."

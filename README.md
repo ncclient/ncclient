@@ -1,25 +1,25 @@
-[![Build Status](https://travis-ci.org/leopoul/ncclient.svg?branch=master)](https://travis-ci.org/leopoul/ncclient)
-[![PyPi version](https://pypip.in/v/ncclient/badge.png)](https://crate.io/packages/ncclient/)
-[![PyPi downloads](https://pypip.in/d/ncclient/badge.png)](https://crate.io/packages/ncclient/)
+[![Build Status](https://travis-ci.org/ncclient/ncclient.svg?branch=master)](https://travis-ci.org/ncclient/ncclient)
+[![Coverage Status](https://coveralls.io/repos/github/ncclient/ncclient/badge.svg?branch=master)](https://coveralls.io/github/ncclient/ncclient?branch=master)
 [![Documentation Status](https://readthedocs.org/projects/ncclient/badge/?version=latest)](https://readthedocs.org/projects/ncclient/?badge=latest)
 
 ncclient: Python library for NETCONF clients
 --------------------------------------------
 
+
 ncclient is a Python library that facilitates client-side scripting
 and application development around the NETCONF protocol. `ncclient` was
 developed by [Shikar Bhushan](http://schmizz.net). It is now maintained
-by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org/ncclient/)
+by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org)
 
 **Docs**: [http://ncclient.readthedocs.org](http://ncclient.readthedocs.org)
 
 **PyPI**: [https://pypi.python.org/pypi/ncclient](https://pypi.python.org/pypi/ncclient)
 
 #### Requirements:
-* Python 2.6 <= version < 3.0
+* version >= Python 2.6 or Python3
 * setuptools 0.6+
 * Paramiko 1.7+
-* lxml 3.0+
+* lxml 3.3.0+
 * libxml2
 * libxslt
 
@@ -70,19 +70,28 @@ Device handlers are easy to implement and prove to be futureproof.
 * Juniper: device_params={'name':'junos'}
 * Cisco CSR: device_params={'name':'csr'}
 * Cisco Nexus: device_params={'name':'nexus'}
+* Cisco IOS XR: device_params={'name':'iosxr'}
+* Cisco IOS XE: device_params={'name':'iosxe'}
 * Huawei: device_params={'name':'huawei'}
+* Alcatel Lucent: device_params={'name':'alu'}
+* H3C: device_params={'name':'h3c'}
+* HP Comware: device_params={'name':'hpcomware'}
+* Server or anything not in above: device_params={'name':'default'}
 
 
-### Changes | brief
+### Changes | brief - v0.5.3
 
-* Nexus exec_command operation
-* Allow specifying multiple cmd elements in Cisco Nexus
-* Update rpc for nested rpc-errors
-* Prevent race condition in threading
-* Prevent hanging in session close
+* Add notifications support
+* Add support for ecdsa keys
+* Various bug fixes
 
-### Acknowledgements
-* v0.4.3: Thanks to all contributors and bug hunters; [Jeremy Schulman](https://github.com/jeremyschulman), [Ray Solomon](https://github.com/rsolomo), [Rick Sherman](https://github.com/shermdog), [subhak186](https://github.com/subhak186)
-* v0.4.2: Thanks to all contributors; [katharh](https://github.com/katharh), [Francis Luong (Franco)](https://github.com/francisluong), [Vincent Bernat](https://github.com/vincentbernat), [Juergen Brendel](https://github.com/juergenbrendel), [Quentin Loos](https://github.com/Kent1), [Ray Solomon](https://github.com/rsolomo), [Sebastian Wiesinger](https://github.com/sebastianw), [Ebben Aries](https://github.com/earies) 
-* v0.4.1: Many thanks, primarily to [Jeremy Schulman](https://github.com/jeremyschulman) (Juniper) for providing his precious feedback, to [Ebben Aries](https://github.com/earies) (Juniper) for his contribution, to Juergen Brendel (Cisco) for the Cisco fork and to all contributors from Cisco and Juniper.
+### Contributors
+* v0.5.3: [Justin Wilcox](https://github.com/jwwilcox), [Stacy W. Smith](https://github.com/stacywsmith), [Mircea Ulinic](https://github.com/mirceaulinic), [Ebben Aries](https://github.com/earies), [Einar Nilsen-Nygaard](https://github.com/einarnn), [QijunPan](https://github.com/QijunPan)
+* v0.5.2: [Nitin Kumar](https://github.com/vnitinv), [Kristian Larsson](https://github.com/plajjan), [palashgupta](https://github.com/palashgupta), [Jonathan Provost](https://github.com/JoProvost), [Jainpriyal](https://github.com/Jainpriyal), [sharang](https://github.com/sharang), [pseguel](https://github.com/pseguel), [nnakamot](https://github.com/nnakamot), [Алексей Пастухов](https://github.com/p-alik), [Christian Giese](https://github.com/GIC-de), [Peipei Guo](https://github.com/peipeiguo), [Time Warner Cable Openstack Team](https://github.com/twc-openstack)
+* v0.4.7: [Einar Nilsen-Nygaard](https://github.com/einarnn), [Vaibhav Bajpai](https://github.com/vbajpai), Norio Nakamoto 
+* v0.4.6: [Nitin Kumar](https://github.com/vnitinv), [Carl Moberg](https://github.com/cmoberg), [Stavros Kroustouris](https://github.com/kroustou) 
+* v0.4.5: [Sebastian Wiesinger](https://github.com/sebastianw), [Vincent Bernat](https://github.com/vincentbernat), [Matthew Stone](https://github.com/bigmstone), [Nitin Kumar](https://github.com/vnitinv)
+* v0.4.3: [Jeremy Schulman](https://github.com/jeremyschulman), [Ray Solomon](https://github.com/rsolomo), [Rick Sherman](https://github.com/shermdog), [subhak186](https://github.com/subhak186)
+* v0.4.2: [katharh](https://github.com/katharh), [Francis Luong (Franco)](https://github.com/francisluong), [Vincent Bernat](https://github.com/vincentbernat), [Juergen Brendel](https://github.com/juergenbrendel), [Quentin Loos](https://github.com/Kent1), [Ray Solomon](https://github.com/rsolomo), [Sebastian Wiesinger](https://github.com/sebastianw), [Ebben Aries](https://github.com/earies) 
+* v0.4.1: [Jeremy Schulman](https://github.com/jeremyschulman), [Ebben Aries](https://github.com/earies), Juergen Brendel
 

@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import json
+
 from ncclient import manager
 from ncclient.xml_ import *
 
@@ -14,6 +16,10 @@ def connect(host, port, user, password, source):
 
     result_xml = conn.get_configuration(format='xml')
     print result_xml.tostring
+
+    result_json = conn.get_configuration(format='json')
+    payload = json.loads(result_json.xpath('.')[0].text)
+    print(payload['configuration']['system']['services'])
 
     result_text = conn.get_configuration(format='text')
     print result_text.xpath('configuration-text')[0].text

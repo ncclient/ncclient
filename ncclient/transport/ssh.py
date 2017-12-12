@@ -1,3 +1,4 @@
+# Copyright 2012 Vaibhav Bajpai
 # Copyright 2009 Shikhar Bhushan
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,26 +14,31 @@
 # limitations under the License.
 
 import os
+import sys
 import socket
 import getpass
 from binascii import hexlify
-from cStringIO import StringIO
+from lxml import etree
 from select import select
 
 from ncclient.capabilities import Capabilities
 
 import paramiko
 
-from errors import AuthenticationError, SessionCloseError, SSHError, SSHUnknownHostError
-from session import Session
+from ncclient.transport.errors import AuthenticationError, SessionCloseError, SSHError, SSHUnknownHostError
+from ncclient.transport.session import Session
+from ncclient.xml_ import *
 
 import logging
 logger = logging.getLogger("ncclient.transport.ssh")
-logger.setLevel(logging.WARNING)
-logging.getLogger("paramiko").setLevel(logging.DEBUG)
 
 BUF_SIZE = 4096
+# v1.0: RFC 4742
 MSG_DELIM = "]]>]]>"
+MSG_DELIM_LEN = len(MSG_DELIM)
+# v1.1: RFC 6242
+END_DELIM = '\n##\n'
+
 TICK = 0.1
 
 def default_unknown_host_cb(host, fingerprint):
@@ -49,10 +55,25 @@ def default_unknown_host_cb(host, fingerprint):
     return False
 
 def _colonify(fp):
+    fp = fp.decode('UTF-8')
     finga = fp[:2]
     for idx  in range(2, len(fp), 2):
         finga += ":" + fp[idx:idx+2]
     return finga
+
+if sys.version < '3':
+    def textify(buf):
+        return buf
+else:
+    def textify(buf):
+        return buf.decode('UTF-8')
+
+if sys.version < '3':
+    from six import StringIO
+else:
+    from io import BytesIO as StringIO
+
+
 
 class SSHSession(Session):
 
@@ -67,58 +88,211 @@ class SSHSession(Session):
         self._channel = None
         self._channel_id = None
         self._channel_name = None
-        self._buffer = StringIO() # for incoming data
+        self._buffer = StringIO()
         # parsing-related, see _parse()
-        self._parsing_state = 0
-        self._parsing_pos = 0
         self._device_handler = device_handler
+        self._parsing_state10 = 0
+        self._parsing_pos10 = 0
+        self._parsing_pos11 = 0
+        self._parsing_state11 = 0
+        self._expchunksize = 0
+        self._curchunksize = 0
+        self._inendpos = 0
+        self._size_num_list = []
+        self._message_list = []
 
     def _parse(self):
         "Messages ae delimited by MSG_DELIM. The buffer could have grown by a maximum of BUF_SIZE bytes everytime this method is called. Retains state across method calls and if a byte has been read it will not be considered again."
-        delim = MSG_DELIM
-        n = len(delim) - 1
-        expect = self._parsing_state
+        return self._parse10()
+
+    def _parse10(self):
+
+        """Messages are delimited by MSG_DELIM. The buffer could have grown by
+        a maximum of BUF_SIZE bytes everytime this method is called. Retains
+        state across method calls and if a chunk has been read it will not be
+        considered again."""
+
+        logger.debug("parsing netconf v1.0")
         buf = self._buffer
-        buf.seek(self._parsing_pos)
+        buf.seek(self._parsing_pos10)
+        if MSG_DELIM in buf.read().decode('UTF-8'):
+            buf.seek(0)
+            msg, _, remaining = buf.read().decode('UTF-8').partition(MSG_DELIM)
+            msg = msg.strip()
+            if sys.version < '3':
+                self._dispatch_message(msg.encode())
+            else:
+                self._dispatch_message(msg)
+            # create new buffer which contains remaining of old buffer
+            self._buffer = StringIO()
+            self._buffer.write(remaining.encode())
+            self._parsing_pos10 = 0
+            if len(remaining) > 0:
+                # There could be another entire message in the
+                # buffer, so we should try to parse again.
+                logger.debug('Trying another round of parsing since there is still data')
+                self._parse10()
+        else:
+            # handle case that MSG_DELIM is split over two chunks
+            self._parsing_pos10 = buf.tell() - MSG_DELIM_LEN
+            if self._parsing_pos10 < 0:
+                self._parsing_pos10 = 0
+
+    def _parse11(self):
+        logger.debug("parsing netconf v1.1")
+        expchunksize = self._expchunksize
+        curchunksize = self._curchunksize
+        idle, instart, inmsg, inbetween, inend = range(5)
+        state = self._parsing_state11
+        inendpos = self._inendpos
+        num_list = self._size_num_list
+        MAX_STARTCHUNK_SIZE = 12 # \#+4294967295+\n
+        pre = 'invalid base:1:1 frame'
+        buf = self._buffer
+        buf.seek(self._parsing_pos11)
+        message_list = self._message_list # a message is a list of chunks
+        chunk_list = []   # a chunk is a list of characters
+
+        should_recurse = False
+
         while True:
             x = buf.read(1)
-            if not x: # done reading
-                break
-            elif x == delim[expect]: # what we expected
-                expect += 1 # expect the next delim char
-            else:
-                expect = 0
-                continue
-            # loop till last delim char expected, break if other char encountered
-            for i in range(expect, n):
-                x = buf.read(1)
-                if not x: # done reading
-                    break
-                if x == delim[expect]: # what we expected
-                    expect += 1 # expect the next delim char
+            if not x:
+                logger.debug('No more data to read')
+                # Store the current chunk to the message list
+                chunk = b''.join(chunk_list)
+                message_list.append(textify(chunk))
+                break # done reading
+            logger.debug('x: %s', x)
+            if state == idle:
+                if x == b'\n':
+                    state = instart
+                    inendpos = 1
                 else:
-                    expect = 0 # reset
-                    break
-            else: # if we didn't break out of the loop, full delim was parsed
-                msg_till = buf.tell() - n
-                buf.seek(0)
-                logger.debug('parsed new message')
-                self._dispatch_message(buf.read(msg_till).strip())
-                buf.seek(n+1, os.SEEK_CUR)
-                rest = buf.read()
-                buf = StringIO()
-                buf.write(rest)
-                buf.seek(0)
-                expect = 0
+                    logger.debug('%s (%s: expect newline)'%(pre, state))
+                    raise Exception
+            elif state == instart:
+                if inendpos == 1:
+                    if x == b'#':
+                        inendpos += 1
+                    else:
+                        logger.debug('%s (%s: expect "#")'%(pre, state))
+                        raise Exception
+                elif inendpos == 2:
+                    if x.isdigit():
+                        inendpos += 1 # == 3 now #
+                        num_list.append(x)
+                    else:
+                        logger.debug('%s (%s: expect digit)'%(pre, state))
+                        raise Exception
+                else:
+                    if inendpos == MAX_STARTCHUNK_SIZE:
+                        logger.debug('%s (%s: no. too long)'%(pre, state))
+                        raise Exception
+                    elif x == b'\n':
+                        num = b''.join(num_list)
+                        num_list = [] # Reset num_list
+                        try: num = int(num)
+                        except:
+                            logger.debug('%s (%s: invalid no.)'%(pre, state))
+                            raise Exception
+                        else:
+                            state = inmsg
+                            expchunksize = num
+                            logger.debug('response length: %d'%expchunksize)
+                            curchunksize = 0
+                            inendpos += 1
+                    elif x.isdigit():
+                        inendpos += 1 # > 3 now #
+                        num_list.append(x)
+                    else:
+                        logger.debug('%s (%s: expect digit)'%(pre, state))
+                        raise Exception
+            elif state == inmsg:
+                chunk_list.append(x)
+                curchunksize += 1
+                chunkleft = expchunksize - curchunksize
+                if chunkleft == 0:
+                    inendpos = 0
+                    state = inbetween
+                    chunk = b''.join(chunk_list)
+                    message_list.append(textify(chunk))
+                    chunk_list = [] # Reset chunk_list
+                    logger.debug('parsed new chunk: %s'%(chunk))
+            elif state == inbetween:
+                if inendpos == 0:
+                    if x == b'\n': inendpos += 1
+                    else:
+                        logger.debug('%s (%s: expect newline)'%(pre, state))
+                        raise Exception
+                elif inendpos == 1:
+                    if x == b'#': inendpos += 1
+                    else:
+                        logger.debug('%s (%s: expect "#")'%(pre, state))
+                        raise Exception
+                else:
+                    inendpos += 1 # == 3 now #
+                    if x == b'#':
+                        state = inend
+                    elif x.isdigit():
+                        # More trunks
+                        state = instart
+                        num_list = []
+                        num_list.append(x)
+                    else:
+                        logger.debug('%s (%s: expect "#")'%(pre, state))
+                        raise Exception
+            elif state == inend:
+                if inendpos == 3:
+                    if x == b'\n':
+                        inendpos = 0
+                        state = idle
+                        logger.debug('dispatching message')
+                        self._dispatch_message(''.join(message_list))
+                        # reset
+                        rest = buf.read()
+                        buf = BytesIO()
+                        buf.write(rest)
+                        buf.seek(0)
+                        message_list = []
+                        self._message_list = message_list
+                        chunk_list = []
+                        expchunksize = chunksize = 0
+                        parsing_state11 = idle
+                        inendpos = parsing_pos11 = 0
+                        # There could be another entire message in the
+                        # buffer, so we should try to parse again.
+                        should_recurse = True
+                        break
+                    else:
+                        logger.debug('%s (%s: expect newline)'%(pre, state))
+                        raise Exception
+            else:
+                logger.debug('%s (%s invalid state)'%(pre, state))
+                raise Exception
+
+        self._expchunksize = expchunksize
+        self._curchunksize = curchunksize
+        self._parsing_state11 = state
+        self._inendpos = inendpos
+        self._size_num_list = num_list
         self._buffer = buf
-        self._parsing_state = expect
-        self._parsing_pos = self._buffer.tell()
+        self._parsing_pos11 = self._buffer.tell()
+        logger.debug('parse11 ending ...')
+
+        if should_recurse:
+            logger.debug('Trying another round of parsing since there is still data')
+            self._parse11()
+
 
     def load_known_hosts(self, filename=None):
-        """Load host keys from an openssh :file:`known_hosts`-style file. Can be called multiple times.
+
+        """Load host keys from an openssh :file:`known_hosts`-style file. Can
+        be called multiple times.
 
         If *filename* is not specified, looks in the default locations i.e. :file:`~/.ssh/known_hosts` and :file:`~/ssh/known_hosts` for Windows.
         """
+
         if filename is None:
             filename = os.path.expanduser('~/.ssh/known_hosts')
             try:
@@ -136,12 +310,14 @@ class SSHSession(Session):
     def close(self):
         if self._transport.is_active():
             self._transport.close()
+        self._channel = None
         self._connected = False
+
 
     # REMEMBER to update transport.rst if sig. changes, since it is hardcoded there
     def connect(self, host, port=830, timeout=None, unknown_host_cb=default_unknown_host_cb,
                 username=None, password=None, key_filename=None, allow_agent=True,
-                hostkey_verify=True, look_for_keys=True, ssh_config=None):
+                hostkey_verify=True, look_for_keys=True, ssh_config=None, sock_fd=None):
 
         """Connect via SSH and initialize the NETCONF session. First attempts the publickey authentication method and then password authentication.
 
@@ -167,8 +343,13 @@ class SSHSession(Session):
 
         *look_for_keys* enables looking in the usual locations for ssh keys (e.g. :file:`~/.ssh/id_*`)
 
-        *ssh_config* enables parsing of an OpenSSH configuration file, if set to its path, e.g. ~/.ssh/config
+        *ssh_config* enables parsing of an OpenSSH configuration file, if set to its path, e.g. :file:`~/.ssh/config` or to True (in this case, use :file:`~/.ssh/config`).
+
+        *sock_fd* is an already open socket which shall be used for this connection. Useful for NETCONF outbound ssh. Use host=None together with a valid sock_fd number
         """
+        if not (host or sock_fd):
+            raise SSHError("Missing host or socket fd")
+
         # Optionaly, parse .ssh/config
         config = {}
         self._timeout = timeout
@@ -185,28 +366,37 @@ class SSHSession(Session):
         if username is None:
             username = getpass.getuser()
 
-        sock = None
-        if config.get("proxycommand"):
-            sock = paramiko.proxy.ProxyCommand(config.get("proxycommand"))
-        else:
-            for res in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket.SOCK_STREAM):
-                af, socktype, proto, canonname, sa = res
-                try:
-                    sock = socket.socket(af, socktype, proto)
-                    sock.settimeout(timeout)
-                except socket.error:
-                    continue
-                try:
-                    sock.connect(sa)
-                except socket.error:
-                    sock.close()
-                    continue
-                break
+        if sock_fd is None:
+            if config.get("proxycommand"):
+                sock = paramiko.proxy.ProxyCommand(config.get("proxycommand"))
             else:
-                raise SSHError("Could not open socket to %s:%s" % (host, port))
+                for res in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket.SOCK_STREAM):
+                    af, socktype, proto, canonname, sa = res
+                    try:
+                        sock = socket.socket(af, socktype, proto)
+                        sock.settimeout(timeout)
+                    except socket.error:
+                        continue
+                    try:
+                        sock.connect(sa)
+                    except socket.error:
+                        sock.close()
+                        continue
+                    break
+                else:
+                    raise SSHError("Could not open socket to %s:%s" % (host, port))
+        else:
+            if sys.version_info[0] < 3:
+                s = socket.fromfd(int(sock_fd), socket.AF_INET, socket.SOCK_STREAM)
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, _sock=s)
+            else:
+                sock = socket.fromfd(int(sock_fd), socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(timeout)
 
         t = self._transport = paramiko.Transport(sock)
         t.set_log_channel(logger.name)
+        if config.get("compression") == 'yes':
+            t.use_compression()
 
         try:
             t.start_client()
@@ -215,17 +405,17 @@ class SSHSession(Session):
 
         # host key verification
         server_key = t.get_remote_server_key()
-        known_host = self._host_keys.check(host, server_key)
 
         fingerprint = _colonify(hexlify(server_key.get_fingerprint()))
 
         if hostkey_verify:
+            known_host = self._host_keys.check(host, server_key)
             if not known_host and not unknown_host_cb(host, fingerprint):
                 raise SSHUnknownHostError(host, fingerprint)
 
         if key_filename is None:
             key_filenames = []
-        elif isinstance(key_filename, basestring):
+        elif isinstance(key_filename, (str, bytes)):
             key_filenames = [ key_filename ]
         else:
             key_filenames = key_filename
@@ -261,7 +451,7 @@ class SSHSession(Session):
         saved_exception = None
 
         for key_filename in key_filenames:
-            for cls in (paramiko.RSAKey, paramiko.DSSKey):
+            for cls in (paramiko.RSAKey, paramiko.DSSKey, paramiko.ECDSAKey):
                 try:
                     key = cls.from_private_key_file(key_filename, password)
                     logger.debug("Trying key %s from %s" %
@@ -287,17 +477,23 @@ class SSHSession(Session):
         if look_for_keys:
             rsa_key = os.path.expanduser("~/.ssh/id_rsa")
             dsa_key = os.path.expanduser("~/.ssh/id_dsa")
+            ecdsa_key = os.path.expanduser("~/.ssh/id_ecdsa")
             if os.path.isfile(rsa_key):
                 keyfiles.append((paramiko.RSAKey, rsa_key))
             if os.path.isfile(dsa_key):
                 keyfiles.append((paramiko.DSSKey, dsa_key))
+            if os.path.isfile(ecdsa_key):
+                keyfiles.append((paramiko.ECDSAKey, ecdsa_key))
             # look in ~/ssh/ for windows users:
             rsa_key = os.path.expanduser("~/ssh/id_rsa")
             dsa_key = os.path.expanduser("~/ssh/id_dsa")
+            ecdsa_key = os.path.expanduser("~/ssh/id_ecdsa")
             if os.path.isfile(rsa_key):
                 keyfiles.append((paramiko.RSAKey, rsa_key))
             if os.path.isfile(dsa_key):
                 keyfiles.append((paramiko.DSSKey, dsa_key))
+            if os.path.isfile(ecdsa_key):
+                keyfiles.append((paramiko.ECDSAKey, ecdsa_key))
 
         for cls, filename in keyfiles:
             try:
@@ -327,6 +523,9 @@ class SSHSession(Session):
     def run(self):
         chan = self._channel
         q = self._q
+
+        def start_delim(data_len): return '\n#%s\n'%(data_len)
+
         try:
             while True:
                 # select on a paramiko ssh channel object does not ever return it in the writable list, so channels don't exactly emulate the socket api
@@ -336,17 +535,51 @@ class SSHSession(Session):
                     data = chan.recv(BUF_SIZE)
                     if data:
                         self._buffer.write(data)
-                        self._parse()
+                        if self._server_capabilities:
+                            if 'urn:ietf:params:netconf:base:1.1' in self._server_capabilities and 'urn:ietf:params:netconf:base:1.1' in self._client_capabilities:
+                                logger.debug("Selecting netconf:base:1.1 for encoding")
+                                self._parse11()
+                            elif 'urn:ietf:params:netconf:base:1.0' in self._server_capabilities or 'urn:ietf:params:xml:ns:netconf:base:1.0' in self._server_capabilities or 'urn:ietf:params:netconf:base:1.0' in self._client_capabilities:
+                                logger.debug("Selecting netconf:base:1.0 for encoding")
+                                self._parse10()
+                            else: raise Exception
+                        else:
+                            self._parse10() # HELLO msg uses EOM markers.
                     else:
                         raise SessionCloseError(self._buffer.getvalue())
                 if not q.empty() and chan.send_ready():
                     logger.debug("Sending message")
-                    data = q.get() + MSG_DELIM
-                    while data:
-                        n = chan.send(data)
-                        if n <= 0:
-                            raise SessionCloseError(self._buffer.getvalue(), data)
-                        data = data[n:]
+                    data = q.get()
+                    try:
+                        # send a HELLO msg using v1.0 EOM markers.
+                        validated_element(data, tags='{urn:ietf:params:xml:ns:netconf:base:1.0}hello')
+                        data = "%s%s"%(data, MSG_DELIM)
+                    except XMLError:
+                        # this is not a HELLO msg
+                        # we publish v1.1 support
+                        if 'urn:ietf:params:netconf:base:1.1' in self._client_capabilities:
+                            if self._server_capabilities:
+                                if 'urn:ietf:params:netconf:base:1.1' in self._server_capabilities:
+                                    # send using v1.1 chunked framing
+                                    data = "%s%s%s"%(start_delim(len(data)), data, END_DELIM)
+                                elif 'urn:ietf:params:netconf:base:1.0' in self._server_capabilities or 'urn:ietf:params:xml:ns:netconf:base:1.0' in self._server_capabilities:
+                                    # send using v1.0 EOM markers
+                                    data = "%s%s"%(data, MSG_DELIM)
+                                else: raise Exception
+                            else:
+                                logger.debug('HELLO msg was sent, but server capabilities are still not known')
+                                raise Exception
+                        # we publish only v1.0 support
+                        else:
+                            # send using v1.0 EOM markers
+                            data = "%s%s"%(data, MSG_DELIM)
+                    finally:
+                        logger.debug("Sending: %s", data)
+                        while data:
+                            n = chan.send(data)
+                            if n <= 0:
+                                raise SessionCloseError(self._buffer.getvalue(), data)
+                            data = data[n:]
         except Exception as e:
             logger.debug("Broke out of main loop, error=%r", e)
             self._dispatch_error(e)

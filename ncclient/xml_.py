@@ -17,8 +17,10 @@
 
 
 import io
-
-from StringIO import StringIO
+import sys
+import six
+from six import StringIO
+from io import BytesIO
 from lxml import etree
 
 # In case issues come up with XML generation/parsing
@@ -27,7 +29,7 @@ from lxml import etree
 
 from ncclient import NCClientError
 
-parser = etree.XMLParser(recover=True)
+parser = etree.XMLParser(recover=False)
 
 class XMLError(NCClientError):
     pass
@@ -52,12 +54,18 @@ FLOWMON_1_0 = "http://www.liberouter.org/ns/netopeer/flowmon/1.0"
 JUNIPER_1_1 = "http://xml.juniper.net/xnm/1.1/xnm"
 #: Namespace for Huawei data model
 HUAWEI_NS = "http://www.huawei.com/netconf/vrp"
+#: Namespace for Huawei private
+HW_PRIVATE_NS = "http://www.huawei.com/netconf/capability/base/1.0"
 #: Namespace for H3C data model
 H3C_DATA_1_0 = "http://www.h3c.com/netconf/data:1.0"
 #: Namespace for H3C config model
 H3C_CONFIG_1_0 = "http://www.h3c.com/netconf/config:1.0"
-#: Namespace for H3C data model
+#: Namespace for H3C action model
 H3C_ACTION_1_0 = "http://www.h3c.com/netconf/action:1.0"
+#: Namespace for netconf monitoring
+NETCONF_MONITORING_NS = "urn:ietf:params:xml:ns:yang:ietf-netconf-monitoring"
+#: Namespace for netconf notifications
+NETCONF_NOTIFICATION_NS = "urn:ietf:params:xml:ns:netconf:notification:1.0"
 #
 try:
     register_namespace = etree.register_namespace
@@ -67,8 +75,9 @@ except AttributeError:
         # cElementTree uses ElementTree's _namespace_map, so that's ok
         ElementTree._namespace_map[uri] = prefix
 
-for (ns, pre) in {
+for (ns, pre) in six.iteritems({
     BASE_NS_1_0: 'nc',
+    NETCONF_MONITORING_NS: 'ncm',
     NXOS_1_0: 'nxos',
     NXOS_IF: 'if',
     TAILF_AAA_1_1: 'aaa',
@@ -76,7 +85,7 @@ for (ns, pre) in {
     CISCO_CPI_1_0: 'cpi',
     FLOWMON_1_0: 'fm',
     JUNIPER_1_1: 'junos',
-}.items():
+}):
     register_namespace(pre, ns)
 
 qualify = lambda tag, ns=BASE_NS_1_0: tag if ns is None else "{%s}%s" % (ns, tag)
@@ -86,15 +95,25 @@ qualify = lambda tag, ns=BASE_NS_1_0: tag if ns is None else "{%s}%s" % (ns, tag
 def to_xml(ele, encoding="UTF-8", pretty_print=False):
     "Convert and return the XML for an *ele* (:class:`~xml.etree.ElementTree.Element`) with specified *encoding*."
     xml = etree.tostring(ele, encoding=encoding, pretty_print=pretty_print)
-    return xml if xml.startswith('<?xml') else '<?xml version="1.0" encoding="%s"?>%s' % (encoding, xml)
+    if sys.version < '3':
+        return xml if xml.startswith('<?xml') else '<?xml version="1.0" encoding="%s"?>%s' % (encoding, xml)
+    else:
+        return xml.decode('UTF-8') if xml.startswith(b'<?xml') \
+            else '<?xml version="1.0" encoding="%s"?>%s' % (encoding, xml.decode('UTF-8'))
 
 def to_ele(x):
     "Convert and return the :class:`~xml.etree.ElementTree.Element` for the XML document *x*. If *x* is already an :class:`~xml.etree.ElementTree.Element` simply returns that."
-    return x if etree.iselement(x) else etree.fromstring(x, parser=parser)
+    if sys.version < '3':
+        return x if etree.iselement(x) else etree.fromstring(x, parser=parser)
+    else:
+        return x if etree.iselement(x) else etree.fromstring(x.encode('UTF-8'), parser=parser)
 
 def parse_root(raw):
     "Efficiently parses the root element of a *raw* XML document, returning a tuple of its qualified name and attribute dictionary."
-    fp = StringIO(raw)
+    if sys.version < '3':
+        fp = StringIO(raw)
+    else:
+        fp = BytesIO(raw.encode('UTF-8'))
     for event, element in etree.iterparse(fp, events=('start',)):
         return (element.tag, element.attrib)
 
@@ -109,13 +128,13 @@ def validated_element(x, tags=None, attrs=None):
     """
     ele = to_ele(x)
     if tags:
-        if isinstance(tags, basestring):
+        if isinstance(tags, (str, bytes)):
             tags = [tags]
         if ele.tag not in tags:
             raise XMLError("Element [%s] does not meet requirement" % ele.tag)
     if attrs:
         for req in attrs:
-            if isinstance(req, basestring): req = [req]
+            if isinstance(req, (str, bytes)): req = [req]
             for alt in req:
                 if alt in ele.attrib:
                     break
@@ -156,7 +175,10 @@ class NCElement(object):
 
     def __str__(self):
         """syntactic sugar for str() - alias to tostring"""
-        return self.tostring
+        if sys.version<'3':
+            return self.tostring
+        else:
+            return self.tostring.decode('UTF-8')
 
     @property
     def tostring(self):
@@ -176,10 +198,12 @@ class NCElement(object):
         self.__parser = etree.XMLParser(remove_blank_text=True)
         self.__xslt_doc = etree.parse(io.BytesIO(self.__xslt), self.__parser)
         self.__transform = etree.XSLT(self.__xslt_doc)
-        self.__root = etree.fromstring(str(self.__transform(etree.parse(StringIO(rpc_reply)))))
+        self.__root = etree.fromstring(str(self.__transform(etree.parse(StringIO(str(rpc_reply))))))
         return self.__root
 
 
 new_ele = lambda tag, attrs={}, **extra: etree.Element(qualify(tag), attrs, **extra)
+
+new_ele_ns = lambda tag, ns, attrs={}, **extra: etree.Element(qualify(tag,ns), attrs, **extra)
 
 sub_ele = lambda parent, tag, attrs={}, **extra: etree.SubElement(parent, qualify(tag), attrs, **extra)

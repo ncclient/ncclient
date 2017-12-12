@@ -16,7 +16,7 @@
 
 from ncclient.xml_ import *
 
-from rpc import RPC
+from ncclient.operations.rpc import RPC
 
 class CloseSession(RPC):
 

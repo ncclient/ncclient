@@ -12,13 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__version__ = (0,5,3)
+from ncclient.xml_ import to_ele
 
-import sys
+class Notification(object):
+    def __init__(self, raw):
+        self._raw = raw
+        self._root_ele = to_ele(raw)
 
-if sys.version_info < (2, 6):
-    raise RuntimeError('You need Python 2.6+ for this module.')
+    @property
+    def notification_ele(self):
+        return self._root_ele
 
-class NCClientError(Exception):
-    "Base type for all NCClient errors"
-    pass
+    @property
+    def notification_xml(self):
+        return self._raw

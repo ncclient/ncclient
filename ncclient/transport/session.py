@@ -15,18 +15,19 @@
 
 
 import re
-
-from Queue import Queue
+import sys
+import logging
 from threading import Thread, Lock, Event
-
+try:
+    from Queue import Queue, Empty
+except ImportError:
+    from queue import Queue, Empty
 from ncclient.xml_ import *
 from ncclient.capabilities import Capabilities
+from ncclient.transport.errors import TransportError, SessionError, SessionCloseError
+from ncclient.transport.notify import Notification
 
-from errors import TransportError, SessionError, SessionCloseError
-
-import logging
 logger = logging.getLogger('ncclient.transport.session')
-logger.setLevel(logging.WARNING)
 
 
 class Session(Thread):
@@ -40,6 +41,7 @@ class Session(Thread):
         self._lock = Lock()
         self.setName('session')
         self._q = Queue()
+        self._notification_q = Queue()
         self._client_capabilities = capabilities
         self._server_capabilities = None # yet
         self._id = None # session-id
@@ -53,9 +55,12 @@ class Session(Thread):
         try:
             root = parse_root(raw)
         except Exception as e:
-            if self._device_handler.handle_raw_dispatch(raw):
-                raw = self._device_handler.handle_raw_dispatch(raw)
-                root = parse_root(raw)
+            device_handled_raw=self._device_handler.handle_raw_dispatch(raw)
+            if isinstance(device_handled_raw, str):
+                root = parse_root(device_handled_raw)
+            elif isinstance(device_handled_raw, Exception):
+                self._dispatch_error(device_handled_raw)
+                return
             else:
                 logger.error('error parsing dispatch message: %s' % e)
                 return
@@ -87,6 +92,7 @@ class Session(Thread):
         def err_cb(err):
             error[0] = err
             init_event.set()
+        self.add_listener(NotificationHandler(self._notification_q))
         listener = HelloHandler(ok_cb, err_cb)
         self.add_listener(listener)
         self.send(HelloHandler.build(self._client_capabilities, self._device_handler))
@@ -153,6 +159,12 @@ class Session(Thread):
     def scp(self):
         raise NotImplementedError
     ### Properties
+
+    def take_notification(self, block, timeout):
+        try:
+            return self._notification_q.get(block, timeout)
+        except Empty:
+            return None
 
     @property
     def connected(self):
@@ -232,7 +244,11 @@ class HelloHandler(SessionListener):
         hello = new_ele("hello", **xml_namespace_kwargs)
         caps = sub_ele(hello, "capabilities")
         def fun(uri): sub_ele(caps, "capability").text = uri
-        map(fun, capabilities)
+        #python3 changes
+        if sys.version < '3':
+            map(fun, capabilities)
+        else:
+            list(map(fun, capabilities))
         return to_xml(hello)
 
     @staticmethod
@@ -248,3 +264,16 @@ class HelloHandler(SessionListener):
                     if cap.tag == qualify("capability") or cap.tag == "capability":
                         capabilities.append(cap.text)
         return sid, Capabilities(capabilities)
+
+
+class NotificationHandler(SessionListener):
+    def __init__(self, notification_q):
+        self._notification_q = notification_q
+
+    def callback(self, root, raw):
+        tag, _ = root
+        if tag == qualify('notification', NETCONF_NOTIFICATION_NS):
+            self._notification_q.put(Notification(raw))
+
+    def errback(self, _):
+        pass

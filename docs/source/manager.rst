@@ -60,11 +60,17 @@ Presence of capabilities is verified to the extent possible, and you can expect 
 
     .. automethod:: kill_session(session_id)
 
-    .. automethod:: commit(confirmed=False, timeout=None)
+    .. automethod:: commit(confirmed=False, timeout=None, persist=None)
+
+    .. automethod:: cancel_commit(persist_id=None)
 
     .. automethod:: discard_changes()
 
     .. automethod:: validate(source)
+
+    .. automethod:: create_subscription()
+
+    .. automethod:: take_notification(block=True, timeout=None)
 
     .. autoattribute:: async_mode
 
