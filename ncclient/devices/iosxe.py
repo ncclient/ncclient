@@ -38,6 +38,3 @@ class IosxeDeviceHandler(DefaultDeviceHandler):
         kwargs['allow_agent']   = False
         kwargs['look_for_keys'] = False
         kwargs['unknown_host_cb'] = iosxe_unknown_host_cb
-
-    def perform_qualify_check(self):
-        return False
