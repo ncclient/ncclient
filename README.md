@@ -2,6 +2,19 @@
 [![Coverage Status](https://coveralls.io/repos/github/ncclient/ncclient/badge.svg?branch=master)](https://coveralls.io/github/ncclient/ncclient?branch=master)
 [![Documentation Status](https://readthedocs.org/projects/ncclient/badge/?version=latest)](https://readthedocs.org/projects/ncclient/?badge=latest)
 
+> **DO NOT COMMIT THIS TEXT BLOCK UPSTREAM**
+>
+> This is a **temporary fork**, maintained by @einarnn, of the main ncclient repository that has initial support for pre-RFC IETF YANG Push functionality as implemented in IOS XE 16.6.1 onwards. This functionality will be upstreamed sometime after the the IETF YANG Push drafts achieve RFC status.
+>
+> Recommended installation process is to first install vanilla ncclient via pip, and then install this fork over the top:
+>
+> ```
+> pip install --upgrade git+https://github.com/CiscoDevNet/ncclient.git
+> ```
+>
+> Please feel free to submit PRs or get in touch with @einarnn with any problems, queries or suggestions.
+
+
 ncclient: Python library for NETCONF clients
 --------------------------------------------
 
