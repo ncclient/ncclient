@@ -114,9 +114,13 @@ class EstablishSubscriptionReply(RPCReply):
                 qualify("subscription-id", IETF_EVENT_NOTIFICATIONS_NS))
 
     def _post_process(self, original_rpc):
-        original_rpc.session.yang_push_listener.rekey_subscription_listener(
-            self._message_id, int(self._subscription_id.text))
-        
+        if self._subscription_id is not None:
+            original_rpc.session.yang_push_listener.rekey_subscription_listener(
+                self._message_id, int(self._subscription_id.text))
+        else:
+            original_rpc.session.yang_push_listener.remove_subscription_listener(
+                        self._message_id)
+
     @property
     def subscription_result(self):
         "*subscription-result* element as an :class:`~xml.etree.ElementTree.Element`"
@@ -143,7 +147,10 @@ class EstablishSubscriptionReply(RPCReply):
         "*subscription-id* element as an :class:`~xml.etree.ElementTree.Element`"
         if not self._parsed:
             self.parse()
-        return int(self._subscription_id.text)
+        if self._subscription_id is not None:
+            return int(self._subscription_id.text)
+        else:
+            return None
 
     @property
     def subscription_id_ele(self):
