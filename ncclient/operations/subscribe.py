@@ -20,6 +20,9 @@ from ncclient.transport.session import SessionListener
 from ncclient.operations import util
 from ncclient.operations.errors import YangPushError
 from dateutil.parser import parse
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class CreateSubscription(RPC):
@@ -103,12 +106,17 @@ class EstablishSubscriptionReply(RPCReply):
     def _parsing_hook(self, root):
         self._result = None
         self._subscription_id = None
+        self._message_id = root.get('message-id')
         if not self._errors:
             self._subscription_result = root.find(
                 qualify("subscription-result", IETF_EVENT_NOTIFICATIONS_NS))
             self._subscription_id = root.find(
                 qualify("subscription-id", IETF_EVENT_NOTIFICATIONS_NS))
 
+    def _post_process(self, original_rpc):
+        original_rpc.session.yang_push_listener.rekey_subscription_listener(
+            self._message_id, int(self._subscription_id.text))
+        
     @property
     def subscription_result(self):
         "*subscription-result* element as an :class:`~xml.etree.ElementTree.Element`"
@@ -185,7 +193,9 @@ class EstablishSubscription(RPC):
             raise YangPushError("Must have at least one of period or dampening_period")
 
         #
-        # start constructing request
+        # Try to construct request the "standard" way. However,
+        # doesn't work because cannot force lxml to include namespace
+        # values for identities.
         #
         # node = new_ele_ns("establish-subscription", IETF_EVENT_NOTIFICATIONS_NS)
         # stream = sub_ele_ns(node, "stream", IETF_EVENT_NOTIFICATIONS_NS)
@@ -204,9 +214,15 @@ class EstablishSubscription(RPC):
         else:
             rpc = dampening_period_template.format(self._id, xpath, dampening_period)
 
-        # install a listener
-        self.session.add_listener(YangPushListener(callback, errback))
+        # install the listener if necessary
+        if not hasattr(self.session, 'yang_push_listener'):
+            self.session.yang_push_listener = YangPushListener()
+            self.session.add_listener(self.session.yang_push_listener)
 
+        # add the callbacks against the message id for now; will patch
+        # that up in the reply
+        self.session.yang_push_listener.add_subscription_listener(self._id, callback, errback)
+            
         # Now process the request
         return self._request(None, raw_xml=rpc)
 
@@ -270,6 +286,9 @@ class DeleteSubscription(RPC):
         to_delete = sub_ele_ns(node, "subscription-id", IETF_EVENT_NOTIFICATIONS_NS)
         to_delete.text = str(subscription_id)
 
+        # remove subscription-id callbacks
+        self.session.yang_push_listener.remove_subscription_listener(int(subscription_id))
+        
         # Now process the request
         return self._request(node)
 
@@ -397,17 +416,32 @@ class YangPushNotification(object):
 class YangPushListener(SessionListener):
 
     """Class extending :class:`Session` listeners, which are notified when
-    a new RFC 5277 notification is received or an error occurs.
-    """
+    a new RFC 5277 notification is received or an error occurs. Only a
+    single instance of this class should be added to the listeners
+    list, and then individual subscription callback should be added to
+    the single listener.
 
-    def __init__(self, user_callback, user_errback):
+    """
+    def __init__(self):
         """Called by EstablishSubscription when a new NotificationListener is
         added to a session.  used to keep track of connection and
         subscription info in case connection gets dropped.
         """
-        self.user_callback = user_callback
-        self.user_errback = user_errback
+        self.subscription_listeners = {}
 
+        
+    def add_subscription_listener(self, id, user_callback, user_errback):
+        self.subscription_listeners[id] = (user_callback, user_errback)
+
+        
+    def rekey_subscription_listener(self, old_id, new_id):
+        self.subscription_listeners[new_id] = self.subscription_listeners.pop(old_id)
+
+        
+    def remove_subscription_listener(self, id):
+        self.subscription_listeners.pop(id)
+
+        
     def callback(self, root, raw):
         """Called when a new RFC 5277 notification is received.
 
@@ -422,11 +456,21 @@ class YangPushListener(SessionListener):
         if tag != qualify("notification", NETCONF_NOTIFICATION_NS):
             # we just ignore any message not a notification
             return
-        self.user_callback(YangPushNotification(raw))
+
+        notif = YangPushNotification(raw)
+        try:
+            user_callback, _ = self.subscription_listeners[notif.subscription_id]
+            user_callback(notif)
+        except:
+            logger.error("No callback for subscription_id=%d" % notif.subscription_id)
+
 
     def errback(self, ex):
-        """Called when an error occurs.
-        For now just handles a dropped connection.
+        """Called when an error occurs. For now just handles a dropped connection.
+
+        TODO: Needs fixed.
+
         :type ex: :exc:`Exception`
         """
-        self.user_errback(ex)
+        pass
+        # self.user_errback(ex)
