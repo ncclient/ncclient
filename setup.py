@@ -34,7 +34,7 @@ with codecs.open('README.rst', 'r', encoding='utf8') as file:
 
 
 setup(name='ncclient',
-      version='0.5.3',
+      version='0.6.0',
       description="Python library for NETCONF clients",
       long_description = long_description,
       author="Shikhar Bhushan, Leonidas Poulopoulos, Ebben Aries",
