@@ -150,6 +150,7 @@ class SSHSession(Session):
             if self._parsing_pos10 < 0:
                 self._parsing_pos10 = 0
 
+
     def _parse11(self):
         
         """Messages are split into chunks. Chunks and messages are delimited
@@ -169,7 +170,7 @@ class SSHSession(Session):
         while True:
             # match to see if we found at least some kind of delimiter
             logger.debug('_parse11: matching from {} bytes from start of buffer'.format(start))
-            re_result = RE_NC11_DELIM.match(data[start:])
+            re_result = RE_NC11_DELIM.match(data[start:].decode('utf-8'))
             if re_result:
                 
                 # save useful variables for reuse
