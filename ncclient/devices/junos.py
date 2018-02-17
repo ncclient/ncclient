@@ -47,7 +47,7 @@ class JunosDeviceHandler(DefaultDeviceHandler):
         if 'routing-engine' in raw:
             raw = re.sub(r'<ok/>', '</routing-engine>\n<ok/>', raw)
             return raw
-        # check if error is during cpapbilites exchange itself
+        # check if error is during capabilites exchange itself
         elif re.search('\<rpc-reply\>.*?\</rpc-reply\>.*\</hello\>?', raw, re.M|re.S):
             errs = re.findall('\<rpc-error\>.*?\</rpc-error\>', raw, re.M|re.S)
             err_list = []
