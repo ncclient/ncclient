@@ -12,12 +12,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from ncclient.operations.errors import OperationError
 from ncclient.operations.rpc import RPC, RPCReply
 
 from ncclient.xml_ import *
 from lxml import etree
 
 from ncclient.operations import util
+
+_VALID_WITH_DEFAULTS = [
+    "explicit",
+    "report-all",
+    "report-all-tagged",
+    "trim"
+]
+
+class WithDefaultsError(OperationError):
+
+    """Raised when an invalid "with-defaults" option is specified in a Get or
+       GetConfig request"""
+
+    def __init__(self, invalid_mode):
+        super(WithDefaultsError, self).__init__(
+            "Invalid 'with-defaults' mode '{provided}', must be one of the "
+            "following: {options}".format(
+                provided=invalid_mode,
+                options=', '.join(_VALID_WITH_DEFAULTS)
+            ))
 
 class GetReply(RPCReply):
 
@@ -62,18 +83,28 @@ class Get(RPC):
     REPLY_CLS = GetReply
     "See :class:`GetReply`."
 
-    def request(self, filter=None):
+    def request(self, filter=None, with_defaults=None):
         """Retrieve running configuration and device state information.
 
         *filter* specifies the portion of the configuration to retrieve (by default entire configuration is retrieved)
+
+        *with_defaults* defines an explicit method of retrieving default values from the configuration (see RFC 6243)
 
         :seealso: :ref:`filter_params`
         """
         node = new_ele("get")
         if filter is not None:
             node.append(util.build_filter(filter))
+        if with_defaults is not None:
+            self._assert(":with-defaults")
+            _append_with_defaults(node, with_defaults)
         return self._request(node)
 
+def _append_with_defaults(node, with_defaults):
+    if with_defaults.strip().lower() not in _VALID_WITH_DEFAULTS:
+        raise WithDefaultsError(with_defaults)
+    with_defaults_ele = sub_ele_ns(node, "with-defaults", NETCONF_WITH_DEFAULTS_NS)
+    with_defaults_ele.text = with_defaults
 
 class GetConfig(RPC):
 
@@ -82,18 +113,23 @@ class GetConfig(RPC):
     REPLY_CLS = GetReply
     """See :class:`GetReply`."""
 
-    def request(self, source, filter=None):
+    def request(self, source, filter=None, with_defaults=None):
         """Retrieve all or part of a specified configuration.
 
         *source* name of the configuration datastore being queried
 
         *filter* specifies the portion of the configuration to retrieve (by default entire configuration is retrieved)
 
+        *with_defaults* defines an explicit method of retrieving default values from the configuration (see RFC 6243)
+
         :seealso: :ref:`filter_params`"""
         node = new_ele("get-config")
         node.append(util.datastore_or_url("source", source, self._assert))
         if filter is not None:
             node.append(util.build_filter(filter))
+        if with_defaults is not None:
+            self._assert(":with-defaults")
+            _append_with_defaults(node, with_defaults)
         return self._request(node)
 
 class GetSchema(RPC):
@@ -166,5 +202,5 @@ class Dispatch(RPC):
             node.append(util.datastore_or_url("source", source, self._assert))
         if filter is not None:
             node.append(util.build_filter(filter))
-        return self._request(node)
 
+        return self._request(node)
