@@ -53,7 +53,7 @@ or via pip:
     [ncclient] $ python examples/juniper/*.py
 
 ### Usage
-####Get device running config
+#### Get device running config
 Use either an interactive Python console (ipython)
 or integrate the following in your code:
 
@@ -78,7 +78,7 @@ For example to invoke Juniper's functions annd params one has to re-write the ab
 
 Device handlers are easy to implement and prove to be futureproof.
 
-####Supported device handlers
+#### Supported device handlers
 
 * Juniper: device_params={'name':'junos'}
 * Cisco CSR: device_params={'name':'csr'}
