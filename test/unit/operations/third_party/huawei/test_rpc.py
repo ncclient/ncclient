@@ -55,3 +55,27 @@ class TestRPC(unittest.TestCase):
         call = mock_request.call_args_list[0][0][0]
         self.assertEqual(call.tag, node.tag)
         self.assertEqual(etree.tostring(call), etree.tostring(node))
+
+    @patch('ncclient.transport.SSHSession')
+    @patch('ncclient.operations.third_party.huawei.rpc.RPC._request')
+    def test_get_next(self, mock_request, mock_session):
+        device_handler = manager.make_device_handler({'name': 'huawei'})
+        session = ncclient.transport.SSHSession(device_handler)
+        obj = GetNext(session, device_handler, raise_mode=RaiseMode.ALL)
+        set_id = 39
+        obj.request(set_id=set_id)
+        node = new_ele("get-next",
+                       attrs={"xmlns": HW_PRIVATE_NS, "set-id": str(set_id)})
+        call = mock_request.call_args_list[0][0][0]
+        self.assertEqual(call.tag, node.tag)
+        self.assertEqual(etree.tostring(call), etree.tostring(node))
+
+        device_handler1 = manager.make_device_handler({'name': 'huawei'})
+        session1 = ncclient.transport.SSHSession(device_handler1)
+        obj1 = GetNext(session1, device_handler1, raise_mode=RaiseMode.ALL)
+        obj1.request(set_id=set_id, discard=True)
+        node1 = new_ele("get-next",
+                       attrs={"xmlns": HW_PRIVATE_NS, "set-id": str(set_id)})
+        call1 = mock_request.call_args_list[0][0][0]
+        self.assertEqual(call1.tag, node1.tag)
+        self.assertEqual(etree.tostring(call1), etree.tostring(node1))

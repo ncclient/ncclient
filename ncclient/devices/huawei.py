@@ -38,6 +38,7 @@ class HuaweiDeviceHandler(DefaultDeviceHandler):
         dict = {}
         dict["cli"] = CLI
         dict["action"] = Action
+        dict["get_next"] = GetNext
         return dict
 
     def handle_raw_dispatch(self, raw):

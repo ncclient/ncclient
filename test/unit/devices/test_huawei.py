@@ -67,6 +67,7 @@ class TestHuaweiDevice(unittest.TestCase):
         dict = {}
         dict["cli"] = CLI
         dict["action"] = Action
+        dict["get_next"] = GetNext
         self.assertEqual(dict, self.obj.add_additional_operations())
 
     def test_handle_raw_dispatch(self):
