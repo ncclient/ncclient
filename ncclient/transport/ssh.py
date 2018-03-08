@@ -323,7 +323,8 @@ class SSHSession(Session):
     # REMEMBER to update transport.rst if sig. changes, since it is hardcoded there
     def connect(self, host, port=830, timeout=None, unknown_host_cb=default_unknown_host_cb,
                 username=None, password=None, key_filename=None, allow_agent=True,
-                hostkey_verify=True, look_for_keys=True, ssh_config=None, sock_fd=None):
+                hostkey_verify=True, look_for_keys=True, ssh_config=None, sock_fd=None,
+                sock=None):
 
         """Connect via SSH and initialize the NETCONF session. First attempts the publickey authentication method and then password authentication.
 
@@ -352,8 +353,10 @@ class SSHSession(Session):
         *ssh_config* enables parsing of an OpenSSH configuration file, if set to its path, e.g. :file:`~/.ssh/config` or to True (in this case, use :file:`~/.ssh/config`).
 
         *sock_fd* is an already open socket which shall be used for this connection. Useful for NETCONF outbound ssh. Use host=None together with a valid sock_fd number
+
+        *sock* is an already open Python socket to be used for this connection
         """
-        if not (host or sock_fd):
+        if not (host or sock_fd or sock):
             raise SSHError("Missing host or socket fd")
 
         # Optionaly, parse .ssh/config
@@ -373,7 +376,7 @@ class SSHSession(Session):
         if username is None:
             username = getpass.getuser()
 
-        if sock_fd is None:
+        if sock_fd is None and sock is None:
             if config.get("proxycommand"):
                 sock = paramiko.proxy.ProxyCommand(config.get("proxycommand"))
             else:
@@ -392,7 +395,7 @@ class SSHSession(Session):
                     break
                 else:
                     raise SSHError("Could not open socket to %s:%s" % (host, port))
-        else:
+        elif sock is None:
             if sys.version_info[0] < 3:
                 s = socket.fromfd(int(sock_fd), socket.AF_INET, socket.SOCK_STREAM)
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, _sock=s)

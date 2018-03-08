@@ -23,6 +23,7 @@ from ncclient import operations
 from ncclient import transport
 import six
 import logging
+import socket
 
 from ncclient.xml_ import *
 
@@ -122,6 +123,7 @@ def connect_ssh(*args, **kwds):
             session.close()
         raise
     return Manager(session, device_handler, **kwds)
+
 
 def connect_ioproc(*args, **kwds):
     if "device_params" in kwds:
@@ -328,3 +330,43 @@ class Manager(six.with_metaclass(OpExecutor, object)):
     exceptions. Valid values are the constants defined in
     :class:`~ncclient.operations.RaiseMode`.
     The default value is :attr:`~ncclient.operations.RaiseMode.ALL`."""
+
+
+class CallhomeManager(object):
+    """Listener object for accepting callhome connections (:rfc:`8071`)
+
+    Options on the listener socket (e.g. timeout) can be set on the
+    `server_socket` member
+    """
+
+    def __init__(self, bind_to='', port=4334):
+        self.bind_to = bind_to
+        self.port = port
+
+    def __enter__(self):
+        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server_socket.bind((self.bind_to, self.port))
+        self.server_socket.listen(0)
+        return self
+
+    def accept_one(self):
+        """Accept a single TCP client and returns it"""
+        (sock, remote_host) = self.server_socket.accept()
+        logger.info('Callhome connection initiated from remote host %s',
+                    remote_host)
+        return sock
+
+    def accept_one_ssh(self, *args, **kwds):
+        """Accept a single TCP client and start an SSH session on it
+
+        This function takes the same arguments as
+        :func:`ncclient.manager.connect_ssh`
+        """
+        sock = self.accept_one()
+        kwds['host'] = ''
+        kwds['sock'] = sock
+        kwds['port'] = self.port
+        return connect_ssh(*args, **kwds)
+
+    def __exit__(self, _, __, ___):
+        self.server_socket.close()

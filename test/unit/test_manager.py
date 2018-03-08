@@ -31,6 +31,27 @@ class TestManager(unittest.TestCase):
                             device_params={'local': True, 'name': 'junos'})
 
     @patch('socket.socket')
+    @patch('ncclient.manager.connect_ssh')
+    def test_call_home_accept_one_ssh(self, mock_ssh, mock_socket_open):
+        mock_connected_socket = MagicMock()
+        mock_server_socket = MagicMock()
+        mock_socket_open.return_value = mock_server_socket
+        mock_server_socket.accept.return_value = (mock_connected_socket,
+                                                  'remote.host')
+
+        with manager.CallhomeManager(bind_to='0.0.0.0', port=1234) as chm:
+            chm.accept_one_ssh(user='test_user', password='test_password')
+
+            mock_ssh.assert_called_once_with(user='test_user',
+                                             password='test_password',
+                                             host='',
+                                             port=1234,
+                                             sock=mock_connected_socket)
+            self.assertEqual(mock_server_socket.close.called, 0)
+
+        self.assertEqual(mock_server_socket.close.called, 1)
+
+    @patch('socket.socket')
     @patch('paramiko.Transport')
     @patch('ncclient.transport.ssh.hexlify')
     @patch('ncclient.transport.ssh.Session._post_connect')
