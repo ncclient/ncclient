@@ -164,3 +164,16 @@ class TestEdit(unittest.TestCase):
         call = mock_request.call_args_list[0][0][0]
         call = ElementTree.tostring(call)
         self.assertEqual(call, xml)
+
+    @patch('ncclient.operations.RPC._request')
+    def test_cancel_commit(self, mock_request):
+        session = ncclient.transport.SSHSession(self.device_handler)
+        session._server_capabilities = [':candidate', ":confirmed-commit"]
+        obj = CancelCommit(session, self.device_handler, raise_mode=RaiseMode.ALL)
+        obj.request(persist_id="foo")
+        node = new_ele("cancel-commit")
+        sub_ele(node, "persist-id").text = "foo"
+        xml = ElementTree.tostring(node)
+        call = mock_request.call_args_list[0][0][0]
+        call = ElementTree.tostring(call)
+        self.assertEqual(call, xml)
