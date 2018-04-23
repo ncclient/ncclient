@@ -18,6 +18,7 @@ import sys
 import socket
 import getpass
 import re
+import threading
 from binascii import hexlify
 from lxml import etree
 from select import select
@@ -253,6 +254,11 @@ class SSHSession(Session):
     def close(self):
         if self._transport.is_active():
             self._transport.close()
+
+        # Wait for the transport thread to close.
+        while self.is_alive() and (self is not threading.current_thread()):
+            self.join(10)
+
         self._channel = None
         self._connected = False
 

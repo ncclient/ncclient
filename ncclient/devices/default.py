@@ -94,7 +94,8 @@ class DefaultDeviceHandler(object):
             "urn:ietf:params:netconf:capability:notification:1.0",
             "urn:ietf:params:netconf:capability:notification:1.1",
             "urn:liberouter:params:netconf:capability:power-control:1.0",
-            "urn:ietf:params:netconf:capability:interleave:1.0"
+            "urn:ietf:params:netconf:capability:interleave:1.0",
+            "urn:ietf:params:netconf:capability:with-defaults:1.0"
         ]
 
     def get_xml_base_namespace_dict(self):
@@ -221,4 +222,3 @@ class DefaultDeviceHandler(object):
 
     def transform_reply(self):
         return False
-
