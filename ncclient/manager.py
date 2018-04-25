@@ -39,6 +39,7 @@ OPERATIONS = {
     "validate": operations.Validate,
     "commit": operations.Commit,
     "discard_changes": operations.DiscardChanges,
+    "cancel_commit": operations.CancelCommit,
     "delete_config": operations.DeleteConfig,
     "lock": operations.Lock,
     "unlock": operations.Unlock,
