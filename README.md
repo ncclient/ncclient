@@ -16,7 +16,7 @@ by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org)
 **PyPI**: [https://pypi.python.org/pypi/ncclient](https://pypi.python.org/pypi/ncclient)
 
 #### Requirements:
-* version >= Python 2.6 or Python3
+* Python 2.7 or Python 3.4+
 * setuptools 0.6+
 * Paramiko 1.7+
 * lxml 3.3.0+
