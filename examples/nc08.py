@@ -1,4 +1,4 @@
-#! /usr/bin/env python2.6 
+#! /usr/bin/env python
 #
 # Configure an Interface: its description and make it active.
 # XML payload created with lxml/etree instead of a template
