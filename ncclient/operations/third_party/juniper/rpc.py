@@ -100,7 +100,7 @@ class Commit(RPC):
                 # http://ncclient.readthedocs.io/en/latest/manager.html#ncclient.manager.Manager.commit
                 # so need to convert the value in seconds to minutes.
                 timeout_int = int(timeout) if isinstance(timeout, str) else timeout
-                sub_ele(node, "confirm-timeout").text = str(math.ceil(timeout_int/60))
+                sub_ele(node, "confirm-timeout").text = str(int(math.ceil(timeout_int/60.0)))
         elif at_time is not None:
             sub_ele(node, "at-time").text = at_time
         if comment is not None:
