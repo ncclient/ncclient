@@ -203,7 +203,7 @@ class TestRPC(unittest.TestCase):
         session = ncclient.transport.SSHSession(device_handler)
         obj = Commit(session, device_handler, raise_mode=RaiseMode.ALL)
         obj.request(confirmed=True, comment="message", timeout="50")
-        node = new_ele("commit")
+        node = new_ele("commit-configuration")
         sub_ele(node, "confirmed")
         sub_ele(node, "confirm-timeout").text = "50"
         sub_ele(node, "log").text = "message"
@@ -221,7 +221,7 @@ class TestRPC(unittest.TestCase):
         session = ncclient.transport.SSHSession(device_handler)
         obj = Commit(session, device_handler, raise_mode=RaiseMode.ALL)
         obj.request()
-        node = new_ele("commit")
+        node = new_ele("commit-configuration")
         xml = ElementTree.tostring(node)
         call = mock_request.call_args_list[0][0][0]
         call = ElementTree.tostring(call)
@@ -236,7 +236,7 @@ class TestRPC(unittest.TestCase):
         session = ncclient.transport.SSHSession(device_handler)
         obj = Commit(session, device_handler, raise_mode=RaiseMode.ALL)
         obj.request(at_time="1111-11-11 00:00:00", synchronize=True)
-        node = new_ele("commit")
+        node = new_ele("commit-configuration")
         sub_ele(node, "at-time").text = "1111-11-11 00:00:00"
         sub_ele(node, "synchronize")
         xml = ElementTree.tostring(node)
