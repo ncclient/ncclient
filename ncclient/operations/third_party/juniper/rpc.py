@@ -4,6 +4,8 @@ from ncclient.operations.rpc import RPC
 from ncclient.operations.rpc import RPCReply
 from ncclient.operations.rpc import RPCError
 from ncclient import NCClientError
+import math
+
 
 class GetConfiguration(RPC):
     def request(self, format='xml', filter=None):
@@ -71,7 +73,7 @@ class Commit(RPC):
 
         *confirmed* whether this is a confirmed commit. Mutually exclusive with at_time.
 
-        *timeout* specifies the confirm timeout in minutes
+        *timeout* specifies the confirm timeout in seconds
 
         *comment* a string to comment the commit with. Review on the device using 'show system commit'
 
@@ -82,14 +84,23 @@ class Commit(RPC):
             A date and time value of the form yyyy-mm-dd hh:mm[:ss] (year, month, date, hours, minutes, and, optionally, seconds)
 
         *check* Verify the syntactic correctness of the candidate configuration"""
-        node = new_ele("commit-configuration")
+        # NOTE: non netconf standard, Junos specific commit-configuration element, see
+        # https://www.juniper.net/documentation/en_US/junos/topics/reference/tag-summary/junos-xml-protocol-commit-configuration.html
+        node = new_ele_ns("commit-configuration", "")
         if confirmed and at_time is not None:
             raise NCClientError("'Commit confirmed' and 'commit at' are mutually exclusive.")
         if confirmed:
             self._assert(":confirmed-commit")
             sub_ele(node, "confirmed")
             if timeout is not None:
-                sub_ele(node, "confirm-timeout").text = timeout
+                # NOTE: For Junos, confirm-timeout has to be given in minutes:
+                # https://www.juniper.net/documentation/en_US/junos/topics/reference/tag-summary/junos-xml-protocol-commit-configuration.html
+                # but the netconf standard and ncclient library uses seconds:
+                # https://tools.ietf.org/html/rfc6241#section-8.4.5
+                # http://ncclient.readthedocs.io/en/latest/manager.html#ncclient.manager.Manager.commit
+                # so need to convert the value in seconds to minutes.
+                timeout_int = int(timeout) if isinstance(timeout, str) else timeout
+                sub_ele(node, "confirm-timeout").text = str(int(math.ceil(timeout_int/60.0)))
         elif at_time is not None:
             sub_ele(node, "at-time").text = at_time
         if comment is not None:
