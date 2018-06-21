@@ -1,23 +1,27 @@
 #!/usr/bin/env python
+import logging
 
 from ncclient import manager
 from ncclient.xml_ import *
 
-import time
 
-def connect(host, port, user, password, source):
+def connect(host, port, user, password):
     conn = manager.connect(host=host,
-            port=port,
-            username=user,
-            password=password,
-            timeout=10,
-            device_params = {'name':'junos'},
-            hostkey_verify=False)
+                           port=port,
+                           username=user,
+                           password=password,
+                           timeout=60,
+                           device_params={'name': 'junos'},
+                           hostkey_verify=False)
 
     rpc = new_ele('get-software-information')
 
     result = conn.rpc(rpc)
-    print 'Hostname:', result.xpath('//software-information/host-name')[0].text
+    logging.info('Hostname: %s', result.xpath('//software-information/host-name')[0].text)
+
 
 if __name__ == '__main__':
-    connect('router', 830, 'netconf', 'juniper!', 'candidate')
+    LOG_FORMAT = '%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s'
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO, format=LOG_FORMAT)
+
+    connect('router', 830, 'netconf', 'juniper!')
