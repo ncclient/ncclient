@@ -128,7 +128,7 @@ class TestRPC(unittest.TestCase):
             device_handler,
             raise_mode=RaiseMode.ALL,
             timeout=0,
-            async=True)
+            async_=True)
         reply = RPCReply(xml1)
         obj._reply = reply
         node = new_ele("commit")
