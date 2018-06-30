@@ -263,13 +263,13 @@ class RPC(object):
     "By default :class:`RPCReply`. Subclasses can specify a :class:`RPCReply` subclass."
 
 
-    def __init__(self, session, device_handler, async=False, timeout=30, raise_mode=RaiseMode.NONE):
+    def __init__(self, session, device_handler, async_=False, timeout=30, raise_mode=RaiseMode.NONE):
         """
         *session* is the :class:`~ncclient.transport.Session` instance
 
         *device_handler" is the :class:`~ncclient.devices.*.*DeviceHandler` instance
 
-        *async* specifies whether the request is to be made asynchronously, see :attr:`is_async`
+        *async_* specifies whether the request is to be made asynchronously, see :attr:`is_async`
 
         *timeout* is the timeout for a synchronous request, see :attr:`timeout`
 
@@ -281,7 +281,7 @@ class RPC(object):
                 self._assert(cap)
         except AttributeError:
             pass
-        self._async = async
+        self._async = async_
         self._timeout = timeout
         self._raise_mode = raise_mode
         self._id = uuid4().urn # Keeps things simple instead of having a class attr with running ID that has to be locked
@@ -396,9 +396,9 @@ class RPC(object):
         """
         return self._event
 
-    def __set_async(self, async=True):
-        self._async = async
-        if async and not self._session.can_pipeline:
+    def __set_async(self, async_=True):
+        self._async = async_
+        if async_ and not self._session.can_pipeline:
             raise UserWarning('Asynchronous mode not supported for this device/session')
 
     def __set_raise_mode(self, mode):
