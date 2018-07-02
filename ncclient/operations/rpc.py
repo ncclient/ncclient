@@ -396,9 +396,9 @@ class RPC(object):
         """
         return self._event
 
-    def __set_async(self, async=True):
-        self._async = async
-        if async and not self._session.can_pipeline:
+    def __set_async(self, async_mode=True):
+        self._async = async_mode
+        if async_mode and not self._session.can_pipeline:
             raise UserWarning('Asynchronous mode not supported for this device/session')
 
     def __set_raise_mode(self, mode):
