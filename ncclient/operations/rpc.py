@@ -263,7 +263,7 @@ class RPC(object):
     "By default :class:`RPCReply`. Subclasses can specify a :class:`RPCReply` subclass."
 
 
-    def __init__(self, session, device_handler, async=False, timeout=30, raise_mode=RaiseMode.NONE):
+    def __init__(self, session, device_handler, async_mode=False, timeout=30, raise_mode=RaiseMode.NONE):
         """
         *session* is the :class:`~ncclient.transport.Session` instance
 
@@ -281,7 +281,7 @@ class RPC(object):
                 self._assert(cap)
         except AttributeError:
             pass
-        self._async = async
+        self._async = async_mode
         self._timeout = timeout
         self._raise_mode = raise_mode
         self._id = uuid4().urn # Keeps things simple instead of having a class attr with running ID that has to be locked
