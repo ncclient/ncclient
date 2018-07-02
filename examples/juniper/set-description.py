@@ -1,6 +1,8 @@
 #!/usr/bin/env python
+import logging
+import sys
+
 from ncclient import manager
-import getpass
 
 
 def connect(host, port, user, password, command):
@@ -9,19 +11,20 @@ def connect(host, port, user, password, command):
         port=port,
         username=user,
         password=password,
-        timeout=10,
+        timeout=60,
         device_params={'name': 'junos'},
         hostkey_verify=False
     ) as m:
-        with m.locked():
-            m.load_configuration(action='set', config=command)
+        with m.locked('candidate'):
+            result = m.load_configuration(action='set', config=command)
+            logging.info(result)
             result = m.commit()
-            print result
+            logging.info(result)
 
 
 if __name__ == '__main__':
-    host = 'router.example.com'
-    username = raw_input('Give the username for %s: ' % host)
-    password = getpass.getpass('Give the password: ')
+    LOG_FORMAT = '%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s'
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO, format=LOG_FORMAT)
+
     interface = 'em0'
-    connect(host, 830, username, password, 'set interfaces %s description example' % interface)
+    connect('router', 830, 'netconf', 'juniper!', 'set interfaces %s description example' % interface)

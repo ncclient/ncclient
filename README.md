@@ -15,21 +15,29 @@
 > Please feel free to submit PRs or get in touch with @einarnn with any problems, queries or suggestions.
 
 
-ncclient: Python library for NETCONF clients
+# ncclient: Python library for NETCONF clients
 --------------------------------------------
 
 
 ncclient is a Python library that facilitates client-side scripting
 and application development around the NETCONF protocol. `ncclient` was
 developed by [Shikar Bhushan](http://schmizz.net). It is now maintained
-by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org)
+by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org) and Einar Nilsen-Nygaard (@einarnn)
 
 **Docs**: [http://ncclient.readthedocs.org](http://ncclient.readthedocs.org)
 
 **PyPI**: [https://pypi.python.org/pypi/ncclient](https://pypi.python.org/pypi/ncclient)
 
-#### Requirements:
-* version >= Python 2.6 or Python3
+## Recent Highlights
+
+|  Date  | Release | Description |
+| :----: | :-----: | :---------- |
+| 07/02/18 | `0.6.0` | Minor release reinstating Python 3.7 and greater compatibility, but necessitating a change to client code that uses `async_mode`. |
+| 07/02/18 | `0.5.4` | New release rolling up myriad of small commits since `0.5.3`. Please note that this release is **incompatible wth Python 3.7** due to the use of a new Python 3.7 keyword, `async`, in function signatures. This will be resolved in 0.6.0|
+
+## Requirements
+
+* Python 2.7 or Python 3.4+
 * setuptools 0.6+
 * Paramiko 1.7+
 * lxml 3.3.0+
@@ -40,7 +48,7 @@ If you are on Debian/Ubuntu install the following libs (via aptitude or apt-get)
 * libxml2-dev
 * libxslt1-dev
 
-#### Installation:
+## Installation
 
     [ncclient] $ sudo python setup.py install
     
@@ -48,12 +56,13 @@ or via pip:
 
     pip install ncclient
 
-#### Examples:
+## Examples:
 
     [ncclient] $ python examples/juniper/*.py
 
-### Usage
-#### Get device running config
+## Usage
+
+### Get device running config
 Use either an interactive Python console (ipython)
 or integrate the following in your code:
 
@@ -78,7 +87,7 @@ For example to invoke Juniper's functions annd params one has to re-write the ab
 
 Device handlers are easy to implement and prove to be futureproof.
 
-#### Supported device handlers
+## Supported device handlers
 
 * Juniper: device_params={'name':'junos'}
 * Cisco CSR: device_params={'name':'csr'}
@@ -92,13 +101,16 @@ Device handlers are easy to implement and prove to be futureproof.
 * Server or anything not in above: device_params={'name':'default'}
 
 
-### Changes | brief - v0.5.3
+## Changes | brief - v0.5.3
 
 * Add notifications support
 * Add support for ecdsa keys
 * Various bug fixes
 
-### Contributors
+## Contributors
+
+* v0.6.0: @einarnn
+* v0.5.4: @adamcubel, Joel Teichroeb, @leopoul, Chase Garner, @budhadityabanerjee, @earies, @ganeshrn, @vnitinv, Siming Yuan, @mirceaaulinic, @stacywsmith, Xavier Hardy, @jwwilcox, @QijunPan, @avangel, @marekgr, @hugovk, @felixonmars, @dexteradeus
 * v0.5.3: [Justin Wilcox](https://github.com/jwwilcox), [Stacy W. Smith](https://github.com/stacywsmith), [Mircea Ulinic](https://github.com/mirceaulinic), [Ebben Aries](https://github.com/earies), [Einar Nilsen-Nygaard](https://github.com/einarnn), [QijunPan](https://github.com/QijunPan)
 * v0.5.2: [Nitin Kumar](https://github.com/vnitinv), [Kristian Larsson](https://github.com/plajjan), [palashgupta](https://github.com/palashgupta), [Jonathan Provost](https://github.com/JoProvost), [Jainpriyal](https://github.com/Jainpriyal), [sharang](https://github.com/sharang), [pseguel](https://github.com/pseguel), [nnakamot](https://github.com/nnakamot), [Алексей Пастухов](https://github.com/p-alik), [Christian Giese](https://github.com/GIC-de), [Peipei Guo](https://github.com/peipeiguo), [Time Warner Cable Openstack Team](https://github.com/twc-openstack)
 * v0.4.7: [Einar Nilsen-Nygaard](https://github.com/einarnn), [Vaibhav Bajpai](https://github.com/vbajpai), Norio Nakamoto 

@@ -1,6 +1,7 @@
 import unittest
 from mock import patch, MagicMock
 from ncclient import manager
+from ncclient.devices.junos import JunosDeviceHandler
 
 
 class TestManager(unittest.TestCase):
@@ -62,6 +63,13 @@ class TestManager(unittest.TestCase):
 
     def test_make_device_handler(self):
         device_handler = manager.make_device_handler({'name': 'junos'})
+        self.assertEqual(
+            device_handler.__class__.__name__,
+            "JunosDeviceHandler")
+
+    def test_make_device_handler_provided_handler(self):
+        device_handler = manager.make_device_handler(
+            {'handler': JunosDeviceHandler})
         self.assertEqual(
             device_handler.__class__.__name__,
             "JunosDeviceHandler")

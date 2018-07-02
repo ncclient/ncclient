@@ -1,4 +1,4 @@
-#! /usr/bin/env python2.6 
+#! /usr/bin/env python
 #
 # Retrieve a portion selected by an XPATH expression from the running
 # config from the NETCONF server passed on the command line using
