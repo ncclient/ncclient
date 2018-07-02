@@ -16,7 +16,8 @@ by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org)
 **PyPI**: [https://pypi.python.org/pypi/ncclient](https://pypi.python.org/pypi/ncclient)
 
 #### Requirements:
-* Python 2.7 or Python 3.4+
+* Python 2.7 or Python 3.4 to 3.6
+    * Python 3.7 excluded due to use of `async` keyword for versions `0.5.4` and earlier
 * setuptools 0.6+
 * Paramiko 1.7+
 * lxml 3.3.0+
