@@ -45,7 +45,7 @@ setup(name='ncclient',
       license="Apache License 2.0",
       platforms=["Posix; OS X; Windows"],
       keywords=('NETCONF', 'NETCONF Python client', 'Juniper Optimization', 'Cisco NXOS Optimization'),
-      python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*,
+      python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*'
       classifiers=[
           'Development Status :: 5 - Production/Stable',
           'Programming Language :: Python :: 2.7',
