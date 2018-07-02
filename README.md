@@ -87,6 +87,8 @@ Device handlers are easy to implement and prove to be futureproof.
 * Various bug fixes
 
 ### Contributors
+
+* v0.5.4: @adamcubel, Joel Teichroeb, @leopoul, Chase Garner, @budhadityabanerjee, @earies, @ganeshrn, @vnitinv, Siming Yuan, @mirceaaulinic, @stacywsmith, Xavier Hardy, @jwwilcox, @QijunPan, @avangel, @marekgr, @hugovk, @felixonmars, @dexteradeus
 * v0.5.3: [Justin Wilcox](https://github.com/jwwilcox), [Stacy W. Smith](https://github.com/stacywsmith), [Mircea Ulinic](https://github.com/mirceaulinic), [Ebben Aries](https://github.com/earies), [Einar Nilsen-Nygaard](https://github.com/einarnn), [QijunPan](https://github.com/QijunPan)
 * v0.5.2: [Nitin Kumar](https://github.com/vnitinv), [Kristian Larsson](https://github.com/plajjan), [palashgupta](https://github.com/palashgupta), [Jonathan Provost](https://github.com/JoProvost), [Jainpriyal](https://github.com/Jainpriyal), [sharang](https://github.com/sharang), [pseguel](https://github.com/pseguel), [nnakamot](https://github.com/nnakamot), [Алексей Пастухов](https://github.com/p-alik), [Christian Giese](https://github.com/GIC-de), [Peipei Guo](https://github.com/peipeiguo), [Time Warner Cable Openstack Team](https://github.com/twc-openstack)
 * v0.4.7: [Einar Nilsen-Nygaard](https://github.com/einarnn), [Vaibhav Bajpai](https://github.com/vbajpai), Norio Nakamoto 
