@@ -98,6 +98,30 @@ class TestEdit(unittest.TestCase):
         self.assertEqual(call, xml)
 
     @patch('ncclient.operations.RPC._request')
+    def test_copy_config_2(self, mock_request):
+        session = ncclient.transport.SSHSession(self.device_handler)
+        obj = CopyConfig(
+            session,
+            self.device_handler,
+            raise_mode=RaiseMode.ALL)
+        source = new_ele('source')
+        config = sub_ele(source, 'config')
+        configuration = sub_ele(config, 'configuration')
+        system = sub_ele(configuration, 'system')
+        location = sub_ele(system, 'location')
+        sub_ele(location, 'building').text = "Main Campus, A"
+        sub_ele(location, 'floor').text = "5"
+        sub_ele(location, 'rack').text = "27"
+        obj.request(copy.deepcopy(source), "candidate")
+        node = new_ele("copy-config")
+        node.append(util.datastore_or_url("target", "candidate"))
+        node.append(validated_element(source, ("source", qualify("source"))))
+        xml = ElementTree.tostring(node)
+        call = mock_request.call_args_list[0][0][0]
+        call = ElementTree.tostring(call)
+        self.assertEqual(call, xml)
+
+    @patch('ncclient.operations.RPC._request')
     def test_validate_config(self, mock_request):
         session = ncclient.transport.SSHSession(self.device_handler)
         session._server_capabilities = [':validate']
