@@ -20,7 +20,6 @@ import getpass
 import threading
 from binascii import hexlify
 from lxml import etree
-from select import select
 
 try:
     import selectors
