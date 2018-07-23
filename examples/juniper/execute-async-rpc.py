@@ -1,3 +1,5 @@
+import logging
+
 from ncclient import manager
 from ncclient.xml_ import *
 import time
@@ -9,7 +11,7 @@ def connect(host, port, user, password):
                            port=port,
                            username=user,
                            password=password,
-                           timeout=10,
+                           timeout=60,
                            device_params={'name': 'junos'},
                            hostkey_verify=False)
 
@@ -24,15 +26,18 @@ def connect(host, port, user, password):
 
     # for demo purposes, we just wait for the result 
     while not obj.event.is_set():
-        print('waiting for answer ...')
+        logging.info('waiting for answer ...')
         time.sleep(.3)
 
     result = NCElement(obj.reply,
                        junos_dev_handler.transform_reply()
                        ).remove_namespaces(obj.reply.xml)
 
-    print 'Hostname: ', result.findtext('.//host-name')
+    logging.info('Hostname: %s', result.findtext('.//host-name'))
 
 
 if __name__ == '__main__':
+    LOG_FORMAT = '%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s'
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO, format=LOG_FORMAT)
+
     connect('router', 830, 'netconf', 'juniper!')

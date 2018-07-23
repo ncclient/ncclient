@@ -6,7 +6,9 @@ import ncclient.manager
 import ncclient.transport
 from ncclient.xml_ import *
 from ncclient.operations import RaiseMode
+from ncclient.operations.errors import MissingCapabilityError
 from xml.etree import ElementTree
+from lxml import etree
 import copy
 
 
@@ -31,6 +33,52 @@ class TestRetrieve(unittest.TestCase):
         self.assertEqual(call, xml)
 
     @patch('ncclient.operations.retrieve.RPC._request')
+    def test_get_with_defaults(self, mock_request):
+        session = ncclient.transport.SSHSession(self.device_handler)
+        session._server_capabilities = [':with-defaults']
+        obj = Get(session, self.device_handler, raise_mode=RaiseMode.ALL)
+        obj.request(with_defaults='report-all')
+
+        expected_xml = etree.fromstring(
+            '<nc:get xmlns:nc="{base}">'
+            '<ns0:with-defaults xmlns:ns0="{defaults}">report-all</ns0:with-defaults>'
+            '</nc:get>'.format(
+                base=BASE_NS_1_0,
+                defaults=NETCONF_WITH_DEFAULTS_NS
+            )
+        )
+
+        call = mock_request.call_args_list[0][0][0]
+        self.assertEqual(etree.tostring(call), etree.tostring(expected_xml))
+
+    @patch('ncclient.operations.retrieve.RPC._request')
+    def test_get_with_defaults_not_supported(self, mock_request):
+        session = ncclient.transport.SSHSession(self.device_handler)
+        session._server_capabilities = []
+        obj = Get(session, self.device_handler, raise_mode=RaiseMode.ALL)
+        self.assertRaises(
+            MissingCapabilityError,
+            obj.request,
+            with_defaults='report-all'
+        )
+
+    @patch('ncclient.operations.retrieve.RPC._request')
+    def test_with_defaults_valid_options(self, mock_request):
+        session = ncclient.transport.SSHSession(self.device_handler)
+        session._server_capabilities = [':with-defaults']
+        obj = Get(session, self.device_handler, raise_mode=RaiseMode.ALL)
+
+        obj.request(with_defaults='explicit')
+        obj.request(with_defaults='report-all')
+        obj.request(with_defaults='report-all-tagged')
+        obj.request(with_defaults='trim')
+        self.assertRaises(
+            WithDefaultsError,
+            obj.request,
+            with_defaults='invalid-option'
+        )
+
+    @patch('ncclient.operations.retrieve.RPC._request')
     def test_get_config(self, mock_request):
         session = ncclient.transport.SSHSession(self.device_handler)
         obj = GetConfig(session, self.device_handler, raise_mode=RaiseMode.ALL)
@@ -42,6 +90,40 @@ class TestRetrieve(unittest.TestCase):
         call = mock_request.call_args_list[0][0][0]
         call = ElementTree.tostring(call)
         self.assertEqual(call, xml)
+
+    @patch('ncclient.operations.retrieve.RPC._request')
+    def test_get_config_with_defaults(self, mock_request):
+        session = ncclient.transport.SSHSession(self.device_handler)
+        session._server_capabilities = [':with-defaults']
+        obj = GetConfig(session, self.device_handler, raise_mode=RaiseMode.ALL)
+        source = 'candidate'
+        obj.request(source, with_defaults='explicit')
+
+        expected_xml = etree.fromstring(
+            '<nc:get-config xmlns:nc="{base}">'
+            '<nc:source><nc:candidate /></nc:source>'
+            '<ns0:with-defaults xmlns:ns0="{defaults}">explicit</ns0:with-defaults>'
+            '</nc:get-config>'.format(
+                base=BASE_NS_1_0,
+                defaults=NETCONF_WITH_DEFAULTS_NS
+            )
+        )
+
+        call = mock_request.call_args_list[0][0][0]
+        self.assertEqual(etree.tostring(call), etree.tostring(expected_xml))
+
+    @patch('ncclient.operations.retrieve.RPC._request')
+    def test_get_config_with_defaults_not_supported(self, mock_request):
+        session = ncclient.transport.SSHSession(self.device_handler)
+        session._server_capabilities = []
+        obj = GetConfig(session, self.device_handler, raise_mode=RaiseMode.ALL)
+        source = 'candidate'
+        self.assertRaises(
+            MissingCapabilityError,
+            obj.request,
+            source,
+            with_defaults='explicit'
+        )
 
     @patch('ncclient.operations.retrieve.RPC._request')
     def test_get_schema(self, mock_request):

@@ -72,6 +72,9 @@ IETF_NETCONF_NOTIFICATIONS_NS = "urn:ietf:params:xml:ns:yang:ietf-netconf-notifi
 IETF_EVENT_NOTIFICATIONS_NS = "urn:ietf:params:xml:ns:yang:ietf-event-notifications"
 #: Namespace for ietf-yang-push
 IETF_YANG_PUSH_NS = "urn:ietf:params:xml:ns:yang:ietf-yang-push"
+#: Namespace for netconf with-defaults (RFC 6243)
+NETCONF_WITH_DEFAULTS_NS = "urn:ietf:params:xml:ns:yang:ietf-netconf-with-defaults"
+#
 try:
     register_namespace = etree.register_namespace
 except AttributeError:
@@ -216,4 +219,4 @@ new_ele_ns = lambda tag, ns, attrs={}, **extra: etree.Element(qualify(tag,ns), a
 
 sub_ele = lambda parent, tag, attrs={}, **extra: etree.SubElement(parent, qualify(tag), attrs, **extra)
 
-sub_ele_ns = lambda parent, tag, ns, attrs={}, **extra: etree.SubElement(parent, qualify(tag,ns), attrs, **extra)
+sub_ele_ns = lambda parent, tag, ns, attrs={}, **extra: etree.SubElement(parent, qualify(tag, ns), attrs, **extra)

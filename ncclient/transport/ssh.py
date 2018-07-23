@@ -18,6 +18,7 @@ import sys
 import socket
 import getpass
 import re
+import threading
 from binascii import hexlify
 from lxml import etree
 from select import select
@@ -59,7 +60,7 @@ def default_unknown_host_cb(host, fingerprint):
 
     This default callback always returns `False`, which would lead to :meth:`connect` raising a :exc:`SSHUnknownHost` exception.
 
-    Supply another valid callback if you need to verify the host key programatically.
+    Supply another valid callback if you need to verify the host key programmatically.
 
     *host* is the hostname that needs to be verified
 
@@ -253,6 +254,11 @@ class SSHSession(Session):
     def close(self):
         if self._transport.is_active():
             self._transport.close()
+
+        # Wait for the transport thread to close.
+        while self.is_alive() and (self is not threading.current_thread()):
+            self.join(10)
+
         self._channel = None
         self._connected = False
 
@@ -293,7 +299,7 @@ class SSHSession(Session):
         if not (host or sock_fd):
             raise SSHError("Missing host or socket fd")
 
-        # Optionaly, parse .ssh/config
+        # Optionally, parse .ssh/config
         config = {}
         if ssh_config is True:
             ssh_config = "~/.ssh/config" if sys.platform != "win32" else "~/ssh/config"
