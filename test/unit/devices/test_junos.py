@@ -75,6 +75,7 @@ class TestJunosDevice(unittest.TestCase):
         dict["reboot"] = Reboot
         dict["halt"] = Halt
         dict["commit"] = Commit
+        dict["rollback"] = Rollback
         self.assertEqual(dict, self.obj.add_additional_operations())
 
     def test_transform_reply(self):

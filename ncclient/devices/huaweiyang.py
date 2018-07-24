@@ -1,5 +1,5 @@
 """
-Handler for Huawei device specific information.
+Handler for Huawei device specific information through YANG.
 
 Note that for proper import, the classname has to be:
 
@@ -11,15 +11,13 @@ All device-specific handlers derive from the DefaultDeviceHandler, which impleme
 generic information needed for interaction with a Netconf server.
 
 """
-from ncclient.operations.third_party.huawei.rpc import *
-
 from ncclient.xml_ import BASE_NS_1_0
 
 from .default import DefaultDeviceHandler
 
-class HuaweiDeviceHandler(DefaultDeviceHandler):
+class HuaweiyangDeviceHandler(DefaultDeviceHandler):
     """
-    Huawei handler for device specific information.
+    Huawei handler for device specific information .
 
     In the device_params dictionary, which is passed to __init__, you can specify
     the parameter "ssh_subsystem_name". That allows you to configure the preferred
@@ -31,26 +29,12 @@ class HuaweiDeviceHandler(DefaultDeviceHandler):
     _EXEMPT_ERRORS = []
 
     def __init__(self, device_params):
-        super(HuaweiDeviceHandler, self).__init__(device_params)
-
-
-    def add_additional_operations(self):
-        dict = {}
-        dict["cli"] = CLI
-        dict["action"] = Action
-        return dict
-
-    def handle_raw_dispatch(self, raw):
-        return raw.strip('\0')
+        super(HuaweiyangDeviceHandler, self).__init__(device_params)
 
     def get_capabilities(self):
         # Just need to replace a single value in the default capabilities
-        c = super(HuaweiDeviceHandler, self).get_capabilities()
-        c.append('http://www.huawei.com/netconf/capability/execute-cli/1.0')
-        c.append('http://www.huawei.com/netconf/capability/action/1.0')
-        c.append('http://www.huawei.com/netconf/capability/active/1.0')
-        c.append('http://www.huawei.com/netconf/capability/discard-commit/1.0')
-        c.append('http://www.huawei.com/netconf/capability/exchange/1.0')
+        c = []
+        c.append('urn:ietf:params:netconf:base:1.0')
         
         return c
 
@@ -61,6 +45,3 @@ class HuaweiDeviceHandler(DefaultDeviceHandler):
         d = {}
         d.update(self.get_xml_base_namespace_dict())
         return {"nsmap": d}
-
-    def perform_qualify_check(self):
-        return False

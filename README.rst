@@ -15,7 +15,7 @@ Github:
 Requirements:
 ^^^^^^^^^^^^^
 
--  Python >= 2.6 or Python 3
+-  Python 2.7 or Python 3.4+
 -  setuptools 0.6+
 -  Paramiko 1.7+
 -  lxml 3.3.0+
@@ -97,6 +97,22 @@ Supported device handlers
 Changes \| brief
 ~~~~~~~~~~~~~~~~
 
+**v0.6.0**
+
+- Fix use of new Python 3.7 keyword, async
+- Re-enable Python 3.7
+
+**v0.5.4**
+
+- Rollup of minor changes since 0.5.3
+- Disablement of Python 3.7 due to async keyword issue
+
+**v0.5.3**
+
+- Add notifications support
+- Add support for ecdsa keys
+- Various bug fixes
+
 **v0.5.2**
 
 - Add support for Python 3
@@ -165,6 +181,10 @@ Changes \| brief
 Acknowledgements
 ~~~~~~~~~~~~~~~~
 
+-  v0.6.0: `Einar Nilsen-Nygaard`_
+-  v0.5.4: Various
+-  v0.5.3: `Justin Wilcox`_, `Stacy W. Smith`_, `Mircea Ulinic`_,
+   `Ebben Aries`_, `Einar Nilsen-Nygaard`_, `QijunPan`_
 -  v0.5.2: `Nitin Kumar`_, `Kristian Larsson`_, `palashgupta`_,
    `Jonathan Provost`_, `Jainpriyal`_, `sharang`_, `pseguel`_,
    `nnakamot`_, `Алексей Пастухов`_, `Christian Giese`_, `Peipei Guo`_,
@@ -208,3 +228,7 @@ Acknowledgements
 .. _Juergen Brendel: https://github.com/juergenbrendel
 .. _Quentin Loos: https://github.com/Kent1
 .. _Ebben Aries: https://github.com/earies
+.. _Justin Wilcox: https://github.com/jwwilcox
+.. _Stacy W. Smith: https://github.com/stacywsmith
+.. _Mircea Ulinic: https://github.com/mirceaulinic
+.. _QijunPan: https://github.com/QijunPan

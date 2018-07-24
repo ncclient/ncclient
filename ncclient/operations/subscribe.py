@@ -12,15 +12,53 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO
 
-class Notification(object):
-    pass
+from ncclient.operations.rpc import RPC
 
+from ncclient.xml_ import *
 
-class CreateSubscription(object):
-    pass
+from ncclient.operations import util
 
+class CreateSubscription(RPC):
+    "`create-subscription` RPC. Depends on the `:notification` capability."
 
-class NotificationListener(object):
-    pass
+    DEPENDS = [':notification']
+
+    def request(self, filter=None, stream_name=None, start_time=None, stop_time=None):
+        """Creates a subscription for notifications from the server.
+
+        *filter* specifies the subset of notifications to receive (by
+        default all notificaitons are received)
+
+        :seealso: :ref:`filter_params`
+
+        *stream_name* specifies the notification stream name. The
+        default is None meaning all streams.
+
+        *start_time* triggers the notification replay feature to
+        replay notifications from the given time. The default is None,
+        meaning that this is not a replay subscription. The format is
+        an RFC 3339/ISO 8601 date and time.
+
+        *stop_time* indicates the end of the notifications of
+        interest. This parameter must be used with *start_time*. The
+        default is None, meaning that (if *start_time* is present) the
+        notifications will continue until the subscription is
+        terminated. The format is an RFC 3339/ISO 8601 date and time.
+
+        """
+        node = new_ele_ns("create-subscription", NETCONF_NOTIFICATION_NS)
+        if filter is not None:
+            node.append(util.build_filter(filter))
+        if stream_name is not None:
+            sub_ele(node, "stream").text = stream_name
+
+        if start_time is not None:
+            sub_ele(node, "startTime").text = start_time
+
+        if stop_time is not None:
+            if start_time is None:
+                raise ValueError("You must provide start_time if you provide stop_time")
+            sub_ele(node, "stopTime").text = stop_time
+
+        return self._request(node)

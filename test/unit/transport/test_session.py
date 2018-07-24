@@ -2,7 +2,13 @@ import unittest
 from mock import patch
 from ncclient.transport.session import *
 from ncclient.devices.junos import JunosDeviceHandler
+try:
+    from Queue import Queue, Empty
+except ImportError:
+    from queue import Queue, Empty
 import logging
+
+
 
 rpc_reply = """<rpc-reply xmlns:junos="http://xml.juniper.net/junos/12.1X46/junos" attrib1 = "test">
     <software-information>
@@ -29,46 +35,19 @@ hello_rpc_reply = """<hello>
 </hello>
 """
 
-cap_excahnge_err_reply="""warning: user "pyez-ua" does not have access privileges.
-
-error: Restricted user session.
-<!-- No zombies were killed during the creation of this user interface -->
-<rpc-reply>
-<rpc-error>
-<error-severity>warning</error-severity>
-<error-message>
-user "pyez-ua" does not have access privileges.
-</error-message>
-</rpc-error>
-</rpc-reply>
-<rpc-reply>
-<rpc-error>
-<error-type>protocol</error-type>
-<error-tag>operation-failed</error-tag>
-<error-severity>error</error-severity>
-<error-message>
-Restricted user session.
-</error-message>
-</rpc-error>
-</rpc-reply>
-<!-- user nobody, class (unknown) -->
-<hello xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
-  <capabilities>
-    <capability>urn:ietf:params:netconf:base:1.0</capability>
-    <capability>urn:ietf:params:netconf:capability:candidate:1.0</capability>
-    <capability>urn:ietf:params:netconf:capability:confirmed-commit:1.0</capability>
-    <capability>urn:ietf:params:netconf:capability:validate:1.0</capability>
-    <capability>urn:ietf:params:netconf:capability:url:1.0?scheme=http,ftp,file</capability>
-    <capability>urn:ietf:params:xml:ns:netconf:base:1.0</capability>
-    <capability>urn:ietf:params:xml:ns:netconf:capability:candidate:1.0</capability>
-    <capability>urn:ietf:params:xml:ns:netconf:capability:confirmed-commit:1.0</capability>
-    <capability>urn:ietf:params:xml:ns:netconf:capability:validate:1.0</capability>
-    <capability>urn:ietf:params:xml:ns:netconf:capability:url:1.0?protocol=http,ftp,file</capability>
-    <capability>http://xml.juniper.net/netconf/junos/1.0</capability>
-    <capability>http://xml.juniper.net/dmi/system/1.0</capability>
-  </capabilities>
-  <session-id>59894</session-id>
-</hello>"""
+notification="""
+   <notification
+      xmlns="urn:ietf:params:xml:ns:netconf:notification:1.0">
+      <eventTime>2007-07-08T00:01:00Z</eventTime>
+      <event xmlns="http://example.com/event/1.0">
+         <eventClass>fault</eventClass>
+         <reportingEntity>
+             <card>Ethernet0</card>
+         </reportingEntity>
+         <severity>major</severity>
+       </event>
+   </notification>
+"""
 
 class TestSession(unittest.TestCase):
 
@@ -96,22 +75,6 @@ class TestSession(unittest.TestCase):
         obj._dispatch_message(rpc_reply)
         self.assertNotEqual(
             mock_log.call_args_list[0][0][0].find("error parsing dispatch message"), -1)
-
-    @patch('ncclient.transport.session.parse_root')
-    @patch('logging.Logger.debug')
-    def test_dispatch_msg_err_during_cap_exchange(self, mock_log, mock_parse_root):
-        mock_parse_root.side_effect = Exception
-        logging.basicConfig(level=logging.CRITICAL)
-        cap = [':candidate']
-        obj = Session(cap)
-        device_handler = JunosDeviceHandler({'name': 'junos'})
-        obj._device_handler = device_handler
-        listener = HelloHandler(None, None)
-        obj._listeners.add(listener)
-        obj._dispatch_message(cap_excahnge_err_reply)
-        self.assertNotEqual(
-            mock_log.call_args_list[1][0][0].find("dispatching error to"), -1)
-
 
     @patch('ncclient.transport.session.HelloHandler.errback')
     def test_dispatch_error(self, mock_handler):
@@ -259,3 +222,27 @@ class TestSession(unittest.TestCase):
         self.assertEqual(id, "s001")
         caps = ["candidate", "validate"]
         self.assertEqual(capabilities._dict, Capabilities(caps)._dict)
+
+    def test_notification_handler_valid_notification(self):
+        q = Queue()
+        listener = NotificationHandler(q)
+        listener.callback(parse_root(notification), notification)
+        notif = q.get_nowait()
+        self.assertEquals(notif.notification_xml, notification)
+        self.assertRaises(Empty, q.get_nowait)
+
+    def test_notification_handler_non_notification(self):
+        q = Queue()
+        listener = NotificationHandler(q)
+        # This handler should ignore things that aren't notifications
+        listener.callback(parse_root(rpc_reply), rpc_reply)
+        self.assertRaises(Empty, q.get_nowait)
+
+    def test_take_notification(self):
+        cap = [':candidate']
+        obj = Session(cap)
+        obj._notification_q.put('Test object')
+        self.assertEqual(obj.take_notification(block=False, timeout=None),
+                         'Test object')
+        self.assertEqual(obj.take_notification(block=False, timeout=None),
+                         None)

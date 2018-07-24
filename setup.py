@@ -19,21 +19,22 @@ from distutils.command.install import install as _install
 
 import sys
 import platform
+import codecs
 
-if sys.version_info[0] == 2 and sys.version_info[1] < 6:
-    print ("Sorry, Python < 2.6 is not supported")
+if sys.version_info.major == 2 and sys.version_info.minor < 7:
+    print ("Sorry, Python < 2.7 is not supported")
     exit()
 
 #parse requirements
 req_lines = [line.strip() for line in open("requirements.txt").readlines()]
 install_reqs = list(filter(None, req_lines))
 
-with open('README.rst') as file:
+with codecs.open('README.rst', 'r', encoding='utf8') as file:
     long_description = file.read()
 
 
 setup(name='ncclient',
-      version='0.5.2',
+      version='0.6.0',
       description="Python library for NETCONF clients",
       long_description = long_description,
       author="Shikhar Bhushan, Leonidas Poulopoulos, Ebben Aries",
@@ -44,11 +45,14 @@ setup(name='ncclient',
       license="Apache License 2.0",
       platforms=["Posix; OS X; Windows"],
       keywords=('NETCONF', 'NETCONF Python client', 'Juniper Optimization', 'Cisco NXOS Optimization'),
+      python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
       classifiers=[
           'Development Status :: 5 - Production/Stable',
-          'Programming Language :: Python :: 2.6',
           'Programming Language :: Python :: 2.7',
           'Programming Language :: Python :: 3.4',
+          'Programming Language :: Python :: 3.5',
+          'Programming Language :: Python :: 3.6',
+          'Programming Language :: Python :: 3.7',
           'Topic :: System :: Networking',
           'Intended Audience :: Developers',
           'Operating System :: OS Independent',

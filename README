@@ -13,7 +13,7 @@ by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org/ncclient/)
 **PyPI**: [https://pypi.python.org/pypi/ncclient](https://pypi.python.org/pypi/ncclient)
 
 #### Requirements:
-* Python >= 2.6 or Python3
+* Python 2.7 or Python 3.4+
 * setuptools 0.6+
 * Paramiko 1.7+
 * lxml 3.3.0+
@@ -73,15 +73,14 @@ Device handlers are easy to implement and prove to be futureproof.
 * HP Comware: device_params={'name':'hpcomware'}
 
 
-### Changes | brief
+### Changes | brief - v0.5.3
 
-* Add support for Python 3
-* Improve Junos ioproc performance
-* Performance improvements
-* Updated test cases
-* Many bug and performance fixes
+* Add notifications support
+* Add support for ecdsa keys
+* Various bug fixes
 
 ### Contributors
+* v0.5.3: [Justin Wilcox](https://github.com/jwwilcox), [Stacy W. Smith](https://github.com/stacywsmith), [Mircea Ulinic](https://github.com/mirceaulinic), [Ebben Aries](https://github.com/earies), [Einar Nilsen-Nygaard](https://github.com/einarnn), [QijunPan](https://github.com/QijunPan)
 * v0.5.2: [Nitin Kumar](https://github.com/vnitinv), [Kristian Larsson](https://github.com/plajjan), [palashgupta](https://github.com/palashgupta), [Jonathan Provost](https://github.com/JoProvost), [Jainpriyal](https://github.com/Jainpriyal), [sharang](https://github.com/sharang), [pseguel](https://github.com/pseguel), [nnakamot](https://github.com/nnakamot), [Алексей Пастухов](https://github.com/p-alik), [Christian Giese](https://github.com/GIC-de), [Peipei Guo](https://github.com/peipeiguo), [Time Warner Cable Openstack Team](https://github.com/twc-openstack)
 * v0.4.7: [Einar Nilsen-Nygaard](https://github.com/einarnn), [Vaibhav Bajpai](https://github.com/vbajpai), Norio Nakamoto
 * v0.4.6: [Nitin Kumar](https://github.com/vnitinv), [Carl Moberg](https://github.com/cmoberg), [Stavros Kroustouris](https://github.com/kroustou)

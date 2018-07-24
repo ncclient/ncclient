@@ -95,7 +95,14 @@ class CopyConfig(RPC):
         :seealso: :ref:`srctarget_params`"""
         node = new_ele("copy-config")
         node.append(util.datastore_or_url("target", target, self._assert))
-        node.append(util.datastore_or_url("source", source, self._assert))
+
+        try:
+            # datastore name or URL
+            node.append(util.datastore_or_url("source", source, self._assert))
+        except Exception:
+            # `source` with `config` element containing the configuration subtree to copy
+            node.append(validated_element(source, ("source", qualify("source"))))
+
         return self._request(node)
 
 

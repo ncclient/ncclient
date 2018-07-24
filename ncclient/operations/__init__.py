@@ -18,9 +18,10 @@ from ncclient.operations.rpc import RPC, RPCReply, RPCError, RaiseMode
 # rfc4741 ops
 
 from ncclient.operations.retrieve import Get, GetConfig, GetSchema, GetReply, Dispatch
-from ncclient.operations.edit import EditConfig, CopyConfig, DeleteConfig, Validate, Commit, DiscardChanges
+from ncclient.operations.edit import EditConfig, CopyConfig, DeleteConfig, Validate, Commit, DiscardChanges, CancelCommit
 from ncclient.operations.session import CloseSession, KillSession
 from ncclient.operations.lock import Lock, Unlock, LockContext
+from ncclient.operations.subscribe import CreateSubscription
 
 # others...
 from ncclient.operations.flowmon import PoweroffMachine, RebootMachine
@@ -40,9 +41,11 @@ __all__ = [
     'Validate',
     'Commit',
     'DiscardChanges',
+    'CancelCommit',
     'DeleteConfig',
     'Lock',
     'Unlock',
+    'CreateSubscription',
     'PoweroffMachine',
     'RebootMachine',
 ]

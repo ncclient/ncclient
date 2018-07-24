@@ -1,14 +1,18 @@
 #!/usr/bin/env python
+import logging
+import sys
 
 from ncclient import manager
 
-def connect(host, user, password):
+
+def connect(host, port, user, password):
     conn = manager.connect(host=host,
-            username=user,
-            password=password,
-            timeout=10,
-            device_params = {'name':'junos'},
-            hostkey_verify=False)
+                           port=port,
+                           username=user,
+                           password=password,
+                           timeout=60,
+                           device_params={'name': 'junos'},
+                           hostkey_verify=False)
 
     conn.lock()
 
@@ -19,18 +23,23 @@ def connect(host, user, password):
     }
     """
 
-    send_config = conn.edit_config(format='text', config=host_name)
-    print send_config.tostring
+    edit_config_result = conn.edit_config(format='text', config=host_name)
+    logging.info(edit_config_result)
 
-    check_config = conn.validate()
-    print check_config.tostring
+    validate_result = conn.validate()
+    logging.info(validate_result)
 
-    compare_config = conn.compare_configuration()
-    print compare_config.tostring
+    compare_config_result = conn.compare_configuration()
+    logging.info(compare_config_result)
 
     conn.commit()
     conn.unlock()
     conn.close_session()
 
+
 if __name__ == '__main__':
-    connect('router', 'netconf', 'juniper!')
+    LOG_FORMAT = '%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s'
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO, format=LOG_FORMAT)
+
+    connect('router', '22', 'netconf', 'juniper!')
+

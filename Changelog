@@ -1,4 +1,28 @@
-version 0.5.1
+version 0.6.0
+-------------
+
+* Re-enabled Python 3.7 by changing "async" to "async_mode" in several locations
+
+
+version 0.5.4
+-------------
+
+* No major functionality, accumulation of small fixes since 0.5.3 (see commit history)
+* Disable Python 3.7 due to use of "async" (a new Python keyword) in some functions
+
+
+version 0.5.3
+-------------
+
+Fixes/Enhancements
+==================
+
+* Add notifications support
+* Add support for ecdsa keys
+* Various bug fixes
+
+
+version 0.5.2
 -------------
 
 Fixes/Enhancements

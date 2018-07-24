@@ -16,7 +16,7 @@ import re
 from lxml import etree
 from .default import DefaultDeviceHandler
 from ncclient.operations.third_party.juniper.rpc import GetConfiguration, LoadConfiguration, CompareConfiguration
-from ncclient.operations.third_party.juniper.rpc import ExecuteRpc, Command, Reboot, Halt, Commit
+from ncclient.operations.third_party.juniper.rpc import ExecuteRpc, Command, Reboot, Halt, Commit, Rollback
 from ncclient.operations.rpc import RPCError
 from ncclient.xml_ import to_ele
 
@@ -38,6 +38,7 @@ class JunosDeviceHandler(DefaultDeviceHandler):
         dict["reboot"] = Reboot
         dict["halt"] = Halt
         dict["commit"] = Commit
+        dict["rollback"] = Rollback
         return dict
 
     def perform_qualify_check(self):
@@ -47,7 +48,7 @@ class JunosDeviceHandler(DefaultDeviceHandler):
         if 'routing-engine' in raw:
             raw = re.sub(r'<ok/>', '</routing-engine>\n<ok/>', raw)
             return raw
-        # check if error is during cpapbilites exchange itself
+        # check if error is during capabilites exchange itself
         elif re.search('\<rpc-reply\>.*?\</rpc-reply\>.*\</hello\>?', raw, re.M|re.S):
             errs = re.findall('\<rpc-error\>.*?\</rpc-error\>', raw, re.M|re.S)
             err_list = []

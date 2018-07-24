@@ -38,9 +38,11 @@ OPERATIONS = {
     "validate": operations.Validate,
     "commit": operations.Commit,
     "discard_changes": operations.DiscardChanges,
+    "cancel_commit": operations.CancelCommit,
     "delete_config": operations.DeleteConfig,
     "lock": operations.Lock,
     "unlock": operations.Unlock,
+    "create_subscription": operations.CreateSubscription,
     "close_session": operations.CloseSession,
     "kill_session": operations.KillSession,
     "poweroff_machine": operations.PoweroffMachine,
@@ -69,6 +71,10 @@ def make_device_handler(device_params):
     if device_params is None:
         device_params = {}
 
+    handler = device_params.get('handler', None)
+    if handler:
+        return handler(device_params)
+
     device_name = device_params.get("name", "default")
     # Attempt to import device handler class. All device handlers are
     # in a module called "ncclient.devices.<devicename>" and in a class named
@@ -96,6 +102,9 @@ def connect_ssh(*args, **kwds):
     To invoke advanced vendor related operation add device_params =
         {'name':'<vendor_alias>'} in connection paramerers. For the time,
         'junos' and 'nexus' are supported for Juniper and Cisco Nexus respectively.
+
+    A custom device handler can be provided with device_params =
+        {'handler':<handler class>} in connection paramerers.
     """
     # Extract device parameter dict, if it was passed into this function. Need to
     # remove it from kwds, since the session.connect() doesn't like extra stuff in
@@ -226,7 +235,7 @@ class Manager(six.with_metaclass(OpExecutor, object)):
     def execute(self, cls, *args, **kwds):
         return cls(self._session,
                    device_handler=self._device_handler,
-                   async=self._async_mode,
+                   async_mode=self._async_mode,
                    timeout=self._timeout,
                    raise_mode=self._raise_mode).request(*args, **kwds)
 
@@ -264,6 +273,24 @@ class Manager(six.with_metaclass(OpExecutor, object)):
             r = self.rpc(root)
             return r
         return _missing
+
+    def take_notification(self, block=True, timeout=None):
+        """Attempt to retrieve one notification from the queue of received
+        notifications.
+
+        If block is True, the call will wait until a notification is
+        received.
+
+        If timeout is a number greater than 0, the call will wait that
+        many seconds to receive a notification before timing out.
+
+        If there is no notification available when block is False or
+        when the timeout has elapse, None will be returned.
+
+        Otherwise a :class:`~ncclient.operations.notify.Notification`
+        object will be returned.
+        """
+        return self._session.take_notification(block, timeout)
 
     @property
     def client_capabilities(self):

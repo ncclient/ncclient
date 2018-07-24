@@ -1,4 +1,4 @@
-#! /usr/bin/env python2.6 
+#! /usr/bin/env python
 #
 # Create a new user to the running configuration using edit-config
 # and the test-option provided by the :validate capability.

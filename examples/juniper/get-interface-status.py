@@ -1,8 +1,10 @@
 #!/usr/bin/env python
+# Python script to fetch interface name and their operation status
+import sys
+
 import logging
 
 from ncclient import manager
-from ncclient.xml_ import *
 
 
 def connect(host, port, user, password):
@@ -14,13 +16,14 @@ def connect(host, port, user, password):
                            device_params={'name': 'junos'},
                            hostkey_verify=False)
 
-    rpc = """
-    <get-chassis-inventory>
-        <detail/>
-    </get-chassis-inventory>"""
-
-    result = conn.rpc(rpc)
-    logging.info('Chassis serial-number: %s', result.xpath('//chassis-inventory/chassis/serial-number')[0].text)
+    rpc = "<get-interface-information><terse/></get-interface-information>"
+    response = conn.rpc(rpc)
+    interface_name = response.xpath('//physical-interface/name')
+    interface_status = response.xpath('//physical-interface/oper-status')
+    for name, status in zip(interface_name, interface_status):
+        name = name.text.split('\n')[1]
+        status = status.text.split('\n')[1]
+        logging.info("{} - {}".format(name, status))
 
 
 if __name__ == '__main__':
@@ -28,3 +31,4 @@ if __name__ == '__main__':
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format=LOG_FORMAT)
 
     connect('router', 830, 'netconf', 'juniper!')
+

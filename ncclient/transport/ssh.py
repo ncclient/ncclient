@@ -17,6 +17,7 @@ import os
 import sys
 import socket
 import getpass
+import threading
 from binascii import hexlify
 from lxml import etree
 from select import select
@@ -46,7 +47,7 @@ def default_unknown_host_cb(host, fingerprint):
 
     This default callback always returns `False`, which would lead to :meth:`connect` raising a :exc:`SSHUnknownHost` exception.
 
-    Supply another valid callback if you need to verify the host key programatically.
+    Supply another valid callback if you need to verify the host key programmatically.
 
     *host* is the hostname that needs to be verified
 
@@ -127,6 +128,11 @@ class SSHSession(Session):
             self._buffer = StringIO()
             self._buffer.write(remaining.encode())
             self._parsing_pos10 = 0
+            if len(remaining) > 0:
+                # There could be another entire message in the
+                # buffer, so we should try to parse again.
+                logger.debug('Trying another round of parsing since there is still data')
+                self._parse10()
         else:
             # handle case that MSG_DELIM is split over two chunks
             self._parsing_pos10 = buf.tell() - MSG_DELIM_LEN
@@ -147,6 +153,8 @@ class SSHSession(Session):
         buf.seek(self._parsing_pos11)
         message_list = self._message_list # a message is a list of chunks
         chunk_list = []   # a chunk is a list of characters
+
+        should_recurse = False
 
         while True:
             x = buf.read(1)
@@ -253,6 +261,9 @@ class SSHSession(Session):
                         expchunksize = chunksize = 0
                         parsing_state11 = idle
                         inendpos = parsing_pos11 = 0
+                        # There could be another entire message in the
+                        # buffer, so we should try to parse again.
+                        should_recurse = True
                         break
                     else:
                         logger.debug('%s (%s: expect newline)'%(pre, state))
@@ -269,6 +280,10 @@ class SSHSession(Session):
         self._buffer = buf
         self._parsing_pos11 = self._buffer.tell()
         logger.debug('parse11 ending ...')
+
+        if should_recurse:
+            logger.debug('Trying another round of parsing since there is still data')
+            self._parse11()
 
 
     def load_known_hosts(self, filename=None):
@@ -296,6 +311,11 @@ class SSHSession(Session):
     def close(self):
         if self._transport.is_active():
             self._transport.close()
+
+        # Wait for the transport thread to close.
+        while self.is_alive() and (self is not threading.current_thread()):
+            self.join(10)
+
         self._channel = None
         self._connected = False
 
@@ -303,7 +323,7 @@ class SSHSession(Session):
     # REMEMBER to update transport.rst if sig. changes, since it is hardcoded there
     def connect(self, host, port=830, timeout=None, unknown_host_cb=default_unknown_host_cb,
                 username=None, password=None, key_filename=None, allow_agent=True,
-                hostkey_verify=True, look_for_keys=True, ssh_config=None):
+                hostkey_verify=True, look_for_keys=True, ssh_config=None, sock_fd=None):
 
         """Connect via SSH and initialize the NETCONF session. First attempts the publickey authentication method and then password authentication.
 
@@ -330,8 +350,13 @@ class SSHSession(Session):
         *look_for_keys* enables looking in the usual locations for ssh keys (e.g. :file:`~/.ssh/id_*`)
 
         *ssh_config* enables parsing of an OpenSSH configuration file, if set to its path, e.g. :file:`~/.ssh/config` or to True (in this case, use :file:`~/.ssh/config`).
+
+        *sock_fd* is an already open socket which shall be used for this connection. Useful for NETCONF outbound ssh. Use host=None together with a valid sock_fd number
         """
-        # Optionaly, parse .ssh/config
+        if not (host or sock_fd):
+            raise SSHError("Missing host or socket fd")
+
+        # Optionally, parse .ssh/config
         config = {}
         if ssh_config is True:
             ssh_config = "~/.ssh/config" if sys.platform != "win32" else "~/ssh/config"
@@ -344,29 +369,40 @@ class SSHSession(Session):
                 username = config.get("user")
             if key_filename is None:
                 key_filename = config.get("identityfile")
+            if hostkey_verify:
+                userknownhostsfile = config.get("userknownhostsfile")
+                if userknownhostsfile:
+                    self.load_known_hosts(os.path.expanduser(userknownhostsfile))
 
         if username is None:
             username = getpass.getuser()
 
-        sock = None
-        if config.get("proxycommand"):
-            sock = paramiko.proxy.ProxyCommand(config.get("proxycommand"))
-        else:
-            for res in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket.SOCK_STREAM):
-                af, socktype, proto, canonname, sa = res
-                try:
-                    sock = socket.socket(af, socktype, proto)
-                    sock.settimeout(timeout)
-                except socket.error:
-                    continue
-                try:
-                    sock.connect(sa)
-                except socket.error:
-                    sock.close()
-                    continue
-                break
+        if sock_fd is None:
+            if config.get("proxycommand"):
+                sock = paramiko.proxy.ProxyCommand(config.get("proxycommand"))
             else:
-                raise SSHError("Could not open socket to %s:%s" % (host, port))
+                for res in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket.SOCK_STREAM):
+                    af, socktype, proto, canonname, sa = res
+                    try:
+                        sock = socket.socket(af, socktype, proto)
+                        sock.settimeout(timeout)
+                    except socket.error:
+                        continue
+                    try:
+                        sock.connect(sa)
+                    except socket.error:
+                        sock.close()
+                        continue
+                    break
+                else:
+                    raise SSHError("Could not open socket to %s:%s" % (host, port))
+        else:
+            if sys.version_info[0] < 3:
+                s = socket.fromfd(int(sock_fd), socket.AF_INET, socket.SOCK_STREAM)
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, _sock=s)
+            else:
+                sock = socket.fromfd(int(sock_fd), socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(timeout)
 
         t = self._transport = paramiko.Transport(sock)
         t.set_log_channel(logger.name)
@@ -426,7 +462,7 @@ class SSHSession(Session):
         saved_exception = None
 
         for key_filename in key_filenames:
-            for cls in (paramiko.RSAKey, paramiko.DSSKey):
+            for cls in (paramiko.RSAKey, paramiko.DSSKey, paramiko.ECDSAKey):
                 try:
                     key = cls.from_private_key_file(key_filename, password)
                     logger.debug("Trying key %s from %s" %
@@ -452,17 +488,23 @@ class SSHSession(Session):
         if look_for_keys:
             rsa_key = os.path.expanduser("~/.ssh/id_rsa")
             dsa_key = os.path.expanduser("~/.ssh/id_dsa")
+            ecdsa_key = os.path.expanduser("~/.ssh/id_ecdsa")
             if os.path.isfile(rsa_key):
                 keyfiles.append((paramiko.RSAKey, rsa_key))
             if os.path.isfile(dsa_key):
                 keyfiles.append((paramiko.DSSKey, dsa_key))
+            if os.path.isfile(ecdsa_key):
+                keyfiles.append((paramiko.ECDSAKey, ecdsa_key))
             # look in ~/ssh/ for windows users:
             rsa_key = os.path.expanduser("~/ssh/id_rsa")
             dsa_key = os.path.expanduser("~/ssh/id_dsa")
+            ecdsa_key = os.path.expanduser("~/ssh/id_ecdsa")
             if os.path.isfile(rsa_key):
                 keyfiles.append((paramiko.RSAKey, rsa_key))
             if os.path.isfile(dsa_key):
                 keyfiles.append((paramiko.DSSKey, dsa_key))
+            if os.path.isfile(ecdsa_key):
+                keyfiles.append((paramiko.ECDSAKey, ecdsa_key))
 
         for cls, filename in keyfiles:
             try:
