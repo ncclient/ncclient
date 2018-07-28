@@ -16,8 +16,6 @@
 
 
 # ncclient: Python library for NETCONF clients
---------------------------------------------
-
 
 ncclient is a Python library that facilitates client-side scripting
 and application development around the NETCONF protocol. `ncclient` was
@@ -99,6 +97,37 @@ Device handlers are easy to implement and prove to be futureproof.
 * H3C: device_params={'name':'h3c'}
 * HP Comware: device_params={'name':'hpcomware'}
 * Server or anything not in above: device_params={'name':'default'}
+
+
+## For Developers
+
+### Running Unit Tests Locally
+
+To run the same tests locally as are run via GitHub's CI/CD integration with Travis, the following istructions can be followed:
+
+1. Create a virtual environment, in this case using `virtualenvwrapper`:
+
+    ```
+    mkvirtualenv ncclient-testing
+    ```
+
+1. Install your local `ncclient` package:
+
+    ```
+    python setup.py install
+    ```
+
+1. Install testing dependencies:
+
+    ```
+    pip install nose rednose coverage coveralls mock
+    ```
+
+1. Finally, run the tests:
+
+    ```
+    nosetests test --rednose --verbosity=3
+    ```
 
 
 ## Changes | brief - v0.5.3

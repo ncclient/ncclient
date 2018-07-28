@@ -312,6 +312,10 @@ class SSHSession(Session):
                 username = config.get("user")
             if key_filename is None:
                 key_filename = config.get("identityfile")
+            if hostkey_verify:
+                userknownhostsfile = config.get("userknownhostsfile")
+                if userknownhostsfile:
+                    self.load_known_hosts(os.path.expanduser(userknownhostsfile))
 
         if username is None:
             username = getpass.getuser()
