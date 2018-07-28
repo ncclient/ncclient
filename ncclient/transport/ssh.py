@@ -20,7 +20,11 @@ import getpass
 import threading
 from binascii import hexlify
 from lxml import etree
-from select import select
+
+try:
+    import selectors
+except ImportError:
+    import selectors2 as selectors
 
 from ncclient.capabilities import Capabilities
 
@@ -164,7 +168,6 @@ class SSHSession(Session):
                 chunk = b''.join(chunk_list)
                 message_list.append(textify(chunk))
                 break # done reading
-            logger.debug('x: %s', x)
             if state == idle:
                 if x == b'\n':
                     state = instart
@@ -538,59 +541,43 @@ class SSHSession(Session):
         def start_delim(data_len): return '\n#%s\n'%(data_len)
 
         try:
+            s = selectors.DefaultSelector()
+            s.register(chan, selectors.EVENT_READ)
+            logger.debug('selector type = %s', s.__class__.__name__)
             while True:
-                # select on a paramiko ssh channel object does not ever return it in the writable list, so channels don't exactly emulate the socket api
-                r, w, e = select([chan], [], [], TICK)
-                # will wakeup evey TICK seconds to check if something to send, more if something to read (due to select returning chan in readable list)
-                if r:
+
+                # Log what netconf:base version we are using this time
+                # round the loop; _base is updated when we receive the
+                # server's capabilities.
+                logger.debug('Currently selected netconf:base:%0.1f', self._base)
+                
+                # Will wakeup evey TICK seconds to check if something
+                # to send, more quickly if something to read (due to
+                # select returning chan in readable list).
+                events = s.select(timeout=TICK)
+                if events:
                     data = chan.recv(BUF_SIZE)
                     if data:
                         self._buffer.write(data)
-                        if self._server_capabilities:
-                            if 'urn:ietf:params:netconf:base:1.1' in self._server_capabilities and 'urn:ietf:params:netconf:base:1.1' in self._client_capabilities:
-                                logger.debug("Selecting netconf:base:1.1 for encoding")
-                                self._parse11()
-                            elif 'urn:ietf:params:netconf:base:1.0' in self._server_capabilities or 'urn:ietf:params:xml:ns:netconf:base:1.0' in self._server_capabilities or 'urn:ietf:params:netconf:base:1.0' in self._client_capabilities:
-                                logger.debug("Selecting netconf:base:1.0 for encoding")
-                                self._parse10()
-                            else: raise Exception
+                        if self._base == 1.1:
+                            self._parse11()
                         else:
-                            self._parse10() # HELLO msg uses EOM markers.
+                            self._parse10()
                     else:
                         raise SessionCloseError(self._buffer.getvalue())
                 if not q.empty() and chan.send_ready():
                     logger.debug("Sending message")
                     data = q.get()
-                    try:
-                        # send a HELLO msg using v1.0 EOM markers.
-                        validated_element(data, tags='{urn:ietf:params:xml:ns:netconf:base:1.0}hello')
-                        data = "%s%s"%(data, MSG_DELIM)
-                    except XMLError:
-                        # this is not a HELLO msg
-                        # we publish v1.1 support
-                        if 'urn:ietf:params:netconf:base:1.1' in self._client_capabilities:
-                            if self._server_capabilities:
-                                if 'urn:ietf:params:netconf:base:1.1' in self._server_capabilities:
-                                    # send using v1.1 chunked framing
-                                    data = "%s%s%s"%(start_delim(len(data)), data, END_DELIM)
-                                elif 'urn:ietf:params:netconf:base:1.0' in self._server_capabilities or 'urn:ietf:params:xml:ns:netconf:base:1.0' in self._server_capabilities:
-                                    # send using v1.0 EOM markers
-                                    data = "%s%s"%(data, MSG_DELIM)
-                                else: raise Exception
-                            else:
-                                logger.debug('HELLO msg was sent, but server capabilities are still not known')
-                                raise Exception
-                        # we publish only v1.0 support
-                        else:
-                            # send using v1.0 EOM markers
-                            data = "%s%s"%(data, MSG_DELIM)
-                    finally:
-                        logger.debug("Sending: %s", data)
-                        while data:
-                            n = chan.send(data)
-                            if n <= 0:
-                                raise SessionCloseError(self._buffer.getvalue(), data)
-                            data = data[n:]
+                    if self._base == 1.1:
+                        data = "%s%s%s" % (start_delim(len(data)), data, END_DELIM)
+                    else:
+                        data = "%s%s" % (data, MSG_DELIM)
+                    logger.debug("Sending: %s", data)
+                    while data:
+                        n = chan.send(data)
+                        if n <= 0:
+                            raise SessionCloseError(self._buffer.getvalue(), data)
+                        data = data[n:]
         except Exception as e:
             logger.debug("Broke out of main loop, error=%r", e)
             self._dispatch_error(e)
