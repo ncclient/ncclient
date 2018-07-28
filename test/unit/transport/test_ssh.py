@@ -6,12 +6,6 @@ import paramiko
 from ncclient.devices.junos import JunosDeviceHandler
 import sys
 
-try:
-    import selectors
-except ImportError:
-    import selectors2 as selectors
-
-
 reply_data = """<rpc-reply xmlns:junos="http://xml.juniper.net/junos/12.1X46/junos" attrib1 = "test">
     <software-information>
         <host-name>R1</host-name>
@@ -250,50 +244,11 @@ class TestSSH(unittest.TestCase):
         obj.load_known_hosts()
         mock_load.assert_called_once_with("file_name")
 
-    @unittest.skipIf(sys.version_info.major == 2, "test not supported < Python3")
     @patch('ncclient.transport.ssh.SSHSession.close')
     @patch('paramiko.channel.Channel.recv')
-    @patch('selectors.DefaultSelector.select')
+    @patch('selectors.DefaultSelector')
     @patch('ncclient.transport.ssh.Session._dispatch_error')
-    def test_run_recieve_py3(self, mock_error, mock_selector, mock_recv, mock_close):
-        mock_selector.return_value = True
-        mock_recv.return_value = 0
-        device_handler = JunosDeviceHandler({'name': 'junos'})
-        obj = SSHSession(device_handler)
-        obj._channel = paramiko.Channel("c100")
-        obj.run()
-        self.assertTrue(
-            isinstance(
-                mock_error.call_args_list[0][0][0],
-                SessionCloseError))
-
-    @unittest.skipIf(sys.version_info.major == 2, "test not supported < Python3")
-    @patch('ncclient.transport.ssh.SSHSession.close')
-    @patch('paramiko.channel.Channel.send_ready')
-    @patch('paramiko.channel.Channel.send')
-    @patch('selectors.DefaultSelector.select')
-    @patch('ncclient.transport.ssh.Session._dispatch_error')
-    def test_run_send_py3(self, mock_error, mock_selector, mock_send, mock_ready, mock_close):
-        mock_selector.return_value = False
-        mock_ready.return_value = True
-        mock_send.return_value = -1
-        device_handler = JunosDeviceHandler({'name': 'junos'})
-        obj = SSHSession(device_handler)
-        obj._channel = paramiko.Channel("c100")
-        obj._q.put("rpc")
-        obj.run()
-        self.assertEqual(mock_send.call_args_list[0][0][0], "rpc]]>]]>")
-        self.assertTrue(
-            isinstance(
-                mock_error.call_args_list[0][0][0],
-                SessionCloseError))
-
-    @unittest.skipIf(sys.version_info.major >= 3, "test not supported >= Python3")
-    @patch('ncclient.transport.ssh.SSHSession.close')
-    @patch('paramiko.channel.Channel.recv')
-    @patch('selectors2.DefaultSelector')
-    @patch('ncclient.transport.ssh.Session._dispatch_error')
-    def test_run_recieve_py2(self, mock_error, mock_selector, mock_recv, mock_close):
+    def test_run_recieve(self, mock_error, mock_selector, mock_recv, mock_close):
         mock_selector.select.return_value = True
         mock_recv.return_value = 0
         device_handler = JunosDeviceHandler({'name': 'junos'})
@@ -305,14 +260,13 @@ class TestSSH(unittest.TestCase):
                 mock_error.call_args_list[0][0][0],
                 SessionCloseError))
 
-    @unittest.skip("test currently non-functional")
     @patch('ncclient.transport.ssh.SSHSession.close')
     @patch('paramiko.channel.Channel.send_ready')
     @patch('paramiko.channel.Channel.send')
-    @patch('selectors2.DefaultSelector')
+    @patch('selectors.DefaultSelector.select')
     @patch('ncclient.transport.ssh.Session._dispatch_error')
-    def test_run_send_py2(self, mock_error, mock_selector, mock_send, mock_ready, mock_close):
-        mock_selector.select.return_value = False
+    def test_run_send(self, mock_error, mock_selector, mock_send, mock_ready, mock_close):
+        mock_selector.return_value = False
         mock_ready.return_value = True
         mock_send.return_value = -1
         device_handler = JunosDeviceHandler({'name': 'junos'})
