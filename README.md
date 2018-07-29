@@ -1,5 +1,5 @@
-[![Build Status](https://travis-ci.org/ncclient/ncclient.svg?branch=master)](https://travis-ci.org/ncclient/ncclient)
-[![Coverage Status](https://coveralls.io/repos/github/ncclient/ncclient/badge.svg?branch=master)](https://coveralls.io/github/ncclient/ncclient?branch=master)
+[![Build Status](https://travis-ci.org/CiscoDevNet/ncclient.svg?branch=master)](https://travis-ci.org/CiscoDevNet/ncclient)
+[![Coverage Status](https://coveralls.io/repos/github/CiscoDevNet/ncclient/badge.svg?branch=master)](https://coveralls.io/github/CiscoDevNet/ncclient?branch=master)
 [![Documentation Status](https://readthedocs.org/projects/ncclient/badge/?version=latest)](https://readthedocs.org/projects/ncclient/?badge=latest)
 ![Community](https://img.shields.io/badge/support-community-blue.svg?style=flat "Community")
 
