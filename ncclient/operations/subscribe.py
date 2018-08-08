@@ -74,13 +74,17 @@ class CreateSubscription(RPC):
 #
 # Message with period specified
 #
+# - msgid
+# - streamxpath
+# - period
+#
 period_template = '''<?xml version="1.0" encoding="UTF-8"?>
-<rpc message-id="{}" xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+<rpc message-id="{msgid}" xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
  <establish-subscription xmlns="urn:ietf:params:xml:ns:yang:ietf-event-notifications"
    xmlns:yp="urn:ietf:params:xml:ns:yang:ietf-yang-push">
   <stream>yp:yang-push</stream>
-  <yp:xpath-filter>{}</yp:xpath-filter>
-  <yp:period>{}</yp:period>
+  <yp:xpath-filter>{streamxpath}</yp:xpath-filter>
+  <yp:period>{period}</yp:period>
  </establish-subscription>
 </rpc>'''
 
@@ -88,13 +92,35 @@ period_template = '''<?xml version="1.0" encoding="UTF-8"?>
 #
 # Message with dampening-period specified
 #
+# - msgid
+# - streamxpath
+# - dampeningperiod
+#
 dampening_period_template = '''<?xml version="1.0" encoding="UTF-8"?>
-<rpc message-id="{}" xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+<rpc message-id="{msgid}" xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
  <establish-subscription xmlns="urn:ietf:params:xml:ns:yang:ietf-event-notifications"
    xmlns:yp="urn:ietf:params:xml:ns:yang:ietf-yang-push">
   <stream>yp:yang-push</stream>
-  <yp:xpath-filter>{}</yp:xpath-filter>
-  <yp:dampening-period>{}</yp:dampening-period>
+  <yp:xpath-filter>{streamxpath}</yp:xpath-filter>
+  <yp:dampening-period>{dampeningperiod}</yp:dampening-period>
+ </establish-subscription>
+</rpc>'''
+
+
+#
+# Message for stream subscription to yang-notif-native
+#
+# - msgid
+# - streamns
+# - streamident
+# - streamxpath
+#
+stream_subscription_template = '''<?xml version="1.0" encoding="UTF-8"?>
+<rpc message-id="{msgid}" xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+ <establish-subscription xmlns="urn:ietf:params:xml:ns:yang:ietf-event-notifications"
+   xmlns:yp="urn:ietf:params:xml:ns:yang:ietf-yang-push">
+  <stream xmlns:ns1="{streamns}">ns1:{streamident}</stream>
+  <yp:xpath-filter>{streamxpath}</yp:xpath-filter>
  </establish-subscription>
 </rpc>'''
 
@@ -174,7 +200,10 @@ class EstablishSubscription(RPC):
     # DEPENDS = [':ietf-yang-push']
     REPLY_CLS = EstablishSubscriptionReply
     
-    def request(self, callback, errback, xpath=None, period=None, dampening_period=None):
+    def request(self, callback, errback,
+                xpath=None,
+                period=None, dampening_period=None,
+                streamns=None, streamident=None):
         """Create a simple subscription for ietf-yang-push subscriptions.
 
         *callback* user-defined callback for notifications
@@ -187,6 +216,10 @@ class EstablishSubscription(RPC):
 
         *dampening_period* dampening period for change events
 
+        *streamns* XML namespace for a non-default stream identifier
+
+        *streamident* Non-default stream identity
+
         RPC currently supports only stream `yang-push`.
         """
         #
@@ -196,8 +229,12 @@ class EstablishSubscription(RPC):
             raise YangPushError("Must have xpath")
         if period and dampening_period:
             raise YangPushError("Can only have one of period and dampening_period")
-        if (period is None) and (dampening_period is None):
-            raise YangPushError("Must have at least one of period or dampening_period")
+        if (period and streamident) or (dampening_period and streamident):
+            raise YangPushError("Cannot combine custom stream with periodic or on-change")
+        if (period is None) and (dampening_period is None) and (streamident is None):
+            raise YangPushError("Must have at least one of period, dampening_period or streamident")
+        if streamident and not streamns:
+            raise YangPushError("Must specify namespace for custom stream")
 
         #
         # Try to construct request the "standard" way. However,
@@ -216,10 +253,28 @@ class EstablishSubscription(RPC):
 
         # Have to hack request as can't figure out how to force NS
         # inclusion for identity values yet!
-        if period:
-            rpc = period_template.format(self._id, xpath, period)
+        if streamident:
+            subst = {
+                'msgid': self._id,
+                'streamns': streamns,
+                'streamident': streamident,
+                'streamxpath': xpath,
+            }
+            rpc = stream_subscription_template.format(**subst)                
+        elif period:
+            substitutions = {
+                'msgid': self._id,
+                'period': period,
+                'streamxpath': xpath,
+            }
+            rpc = period_template.format(**substitutions)
         else:
-            rpc = dampening_period_template.format(self._id, xpath, dampening_period)
+            substitutions = {
+                'msgid': self._id,
+                'dampeningperiod': dampening_period,
+                'streamxpath': xpath,
+            }
+            rpc = dampening_period_template.format(**substitutions)
 
         # install the listener if necessary
         if not hasattr(self.session, 'yang_push_listener'):
