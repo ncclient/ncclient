@@ -86,6 +86,37 @@ Device handlers are easy to implement and prove to be futureproof.
 * Server or anything not in above: device_params={'name':'default'}
 
 
+## For Developers
+
+### Running Unit Tests Locally
+
+To run the same tests locally as are run via GitHub's CI/CD integration with Travis, the following istructions can be followed:
+
+1. Create a virtual environment, in this case using `virtualenvwrapper`:
+
+    ```
+    mkvirtualenv ncclient-testing
+    ```
+
+1. Install your local `ncclient` package:
+
+    ```
+    python setup.py install
+    ```
+
+1. Install testing dependencies:
+
+    ```
+    pip install nose rednose coverage coveralls mock
+    ```
+
+1. Finally, run the tests:
+
+    ```
+    nosetests test --rednose --verbosity=3
+    ```
+
+
 ## Changes | brief - v0.5.3
 
 * Add notifications support
