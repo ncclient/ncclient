@@ -102,6 +102,10 @@ class SSHSession(Session):
         self._size_num_list = []
         self._message_list = []
 
+    def _dispatch_message(self, raw):
+        logger.info("Received from session %s:\n%s", self.id, raw)
+        return Session._dispatch_message(self, raw)
+
     def _parse(self):
         "Messages ae delimited by MSG_DELIM. The buffer could have grown by a maximum of BUF_SIZE bytes everytime this method is called. Retains state across method calls and if a byte has been read it will not be considered again."
         return self._parse10()
@@ -585,7 +589,8 @@ class SSHSession(Session):
                             # send using v1.0 EOM markers
                             data = "%s%s"%(data, MSG_DELIM)
                     finally:
-                        logger.debug("Sending: %s", data)
+                        logger.info("Sending to session %s:\n%s",
+                                    self.id, data)
                         while data:
                             n = chan.send(data)
                             if n <= 0:
