@@ -83,6 +83,7 @@ class SSHSession(Session):
     def __init__(self, device_handler):
         capabilities = Capabilities(device_handler.get_capabilities())
         Session.__init__(self, capabilities)
+        self._host = None
         self._host_keys = paramiko.HostKeys()
         self._transport = None
         self._connected = False
@@ -103,7 +104,7 @@ class SSHSession(Session):
         self._message_list = []
 
     def _dispatch_message(self, raw):
-        logger.info("Received from session %s:\n%s", self.id, raw)
+        logger.info("Received from %s session %s:\n%s", self.host, self.id, raw)
         return Session._dispatch_message(self, raw)
 
     def _parse(self):
@@ -360,6 +361,8 @@ class SSHSession(Session):
         if not (host or sock_fd):
             raise SSHError("Missing host or socket fd")
 
+        self._host = host
+
         # Optionally, parse .ssh/config
         config = {}
         if ssh_config is True:
@@ -589,8 +592,8 @@ class SSHSession(Session):
                             # send using v1.0 EOM markers
                             data = "%s%s"%(data, MSG_DELIM)
                     finally:
-                        logger.info("Sending to session %s:\n%s",
-                                    self.id, data)
+                        logger.info("Sending to %s session %s:\n%s",
+                                    self.host, self.id, data)
                         while data:
                             n = chan.send(data)
                             if n <= 0:
@@ -600,6 +603,11 @@ class SSHSession(Session):
             logger.debug("Broke out of main loop, error=%r", e)
             self._dispatch_error(e)
             self.close()
+
+    @property
+    def host(self):
+        """Host this session is connected to, or None if not connected."""
+        return self._host
 
     @property
     def transport(self):
