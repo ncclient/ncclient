@@ -105,7 +105,7 @@ class SSHSession(Session):
 
     def _dispatch_message(self, raw):
         logger.info("Received from %s session %s:\n%s", self.host, self.id, raw)
-        return Session._dispatch_message(self, raw)
+        return super(SSHSession, self)._dispatch_message(raw)
 
     def _parse(self):
         "Messages ae delimited by MSG_DELIM. The buffer could have grown by a maximum of BUF_SIZE bytes everytime this method is called. Retains state across method calls and if a byte has been read it will not be considered again."
