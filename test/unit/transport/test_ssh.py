@@ -36,7 +36,10 @@ rpc_reply = reply_data + "\n]]>]]>\n" + reply_ok + "\n]]>]]>\n" + reply_ok
 
 reply_ok_chunk = "\n#%d\n%s\n##\n" % (len(reply_ok), reply_ok)
 
-reply_ok_partial_chunk = "\n#%d\n%s\n" % (len(reply_ok), reply_ok)
+# einarnn: this test message had to be reduced in size as the improved
+# 1.1 parsing finds a whole fragment in it, so needed to have less
+# data in it than the terminating '>'
+reply_ok_partial_chunk = "\n#%d\n%s" % (len(reply_ok), reply_ok[:-1])
 
 # A buffer of data with two complete messages and an incomplete message
 rpc_reply11 = "\n#%d\n%s\n#%d\n%s\n##\n%s%s" % (
@@ -80,6 +83,8 @@ class TestSSH(unittest.TestCase):
             remainder = ok_chunk
         parsemethod(obj)
 
+        import pprint
+        pprint.pprint(mock_dispatch.call_args_list)
         for i in range(0, len(expected_messages)):
             call = mock_dispatch.call_args_list[i][0][0]
             self.assertEqual(call, expected_messages[i])
