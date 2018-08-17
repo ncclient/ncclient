@@ -24,6 +24,7 @@ except ImportError:
     from queue import Queue, Empty
 from ncclient.xml_ import *
 from ncclient.capabilities import Capabilities
+from ncclient.logging_ import SessionLoggerAdapter
 from ncclient.transport.errors import TransportError, SessionError
 from ncclient.transport.notify import Notification
 
@@ -53,8 +54,9 @@ class Session(Thread):
         self._base = NetconfBase.BASE_10
         self._id = None # session-id
         self._connected = False # to be set/cleared by subclass implementation
-        logger.debug('%r created: client_capabilities=%r' %
-                     (self, self._client_capabilities))
+        self.logger = SessionLoggerAdapter(logger, {'session': self})
+        self.logger.debug('%r created: client_capabilities=%r',
+                          self, self._client_capabilities)
         self._device_handler = None # Should be set by child class
 
     def _dispatch_message(self, raw):
@@ -68,23 +70,23 @@ class Session(Thread):
                 self._dispatch_error(device_handled_raw)
                 return
             else:
-                logger.error('error parsing dispatch message: %s' % e)
+                self.logger.error('error parsing dispatch message: %s', e)
                 return
         with self._lock:
             listeners = list(self._listeners)
         for l in listeners:
-            logger.debug('dispatching message to %r: %s' % (l, raw))
+            self.logger.debug('dispatching message to %r: %s', l, raw)
             l.callback(root, raw) # no try-except; fail loudly if you must!
 
     def _dispatch_error(self, err):
         with self._lock:
             listeners = list(self._listeners)
         for l in listeners:
-            logger.debug('dispatching error to %r' % l)
+            self.logger.debug('dispatching error to %r', l)
             try: # here we can be more considerate with catching exceptions
                 l.errback(err)
             except Exception as e:
-                logger.warning('error dispatching to %r: %r' % (l, e))
+                self.logger.warning('error dispatching to %r: %r', l, e)
 
     def _post_connect(self):
         "Greeting stuff"
@@ -102,7 +104,7 @@ class Session(Thread):
         listener = HelloHandler(ok_cb, err_cb)
         self.add_listener(listener)
         self.send(HelloHandler.build(self._client_capabilities, self._device_handler))
-        logger.debug('starting main loop')
+        self.logger.debug('starting main loop')
         self.start()
         # we expect server's hello message, if server doesn't responds in 60 seconds raise exception
         init_event.wait(60)
@@ -115,10 +117,10 @@ class Session(Thread):
         #if ':base:1.0' not in self.server_capabilities:
         #    raise MissingCapabilityError(':base:1.0')
         if 'urn:ietf:params:netconf:base:1.1' in self._server_capabilities and 'urn:ietf:params:netconf:base:1.1' in self._client_capabilities:
-            logger.debug("After 'hello' message selecting netconf:base:1.1 for encoding")
+            self.logger.debug("After 'hello' message selecting netconf:base:1.1 for encoding")
             self._base = NetconfBase.BASE_11
-        logger.info('initialized: session-id=%s | server_capabilities=%s' %
-                    (self._id, self._server_capabilities))
+        self.logger.info('initialized: session-id=%s | server_capabilities=%s',
+                         self._id, self._server_capabilities)
 
     def add_listener(self, listener):
         """Register a listener that will be notified of incoming messages and
@@ -126,7 +128,7 @@ class Session(Thread):
 
         :type listener: :class:`SessionListener`
         """
-        logger.debug('installing listener %r' % listener)
+        self.logger.debug('installing listener %r', listener)
         if not isinstance(listener, SessionListener):
             raise SessionError("Listener must be a SessionListener type")
         with self._lock:
@@ -138,7 +140,7 @@ class Session(Thread):
 
         :type listener: :class:`SessionListener`
         """
-        logger.debug('discarding listener %r' % listener)
+        self.logger.debug('discarding listener %r', listener)
         with self._lock:
             self._listeners.discard(listener)
 
@@ -163,7 +165,7 @@ class Session(Thread):
         """Send the supplied *message* (xml string) to NETCONF server."""
         if not self.connected:
             raise TransportError('Not connected to NETCONF server')
-        logger.debug('queueing %s' % message)
+        self.logger.debug('queueing %s', message)
         self._q.put(message)
 
     def scp(self):

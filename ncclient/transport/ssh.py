@@ -28,6 +28,7 @@ except ImportError:
     import selectors2 as selectors
 
 from ncclient.capabilities import Capabilities
+from ncclient.logging_ import SessionLoggerAdapter
 
 import paramiko
 
@@ -92,7 +93,6 @@ else:
     from io import BytesIO as StringIO
 
 
-
 class SSHSession(Session):
 
     "Implements a :rfc:`4742` NETCONF session over SSH."
@@ -121,8 +121,10 @@ class SSHSession(Session):
         self._message_list = []
         self._closing = threading.Event()
 
+        self.logger = SessionLoggerAdapter(logger, {'session': self})
+
     def _dispatch_message(self, raw):
-        logger.info("Received from %s session %s:\n%s", self.host, self.id, raw)
+        self.logger.info("Received:\n%s", raw)
         return super(SSHSession, self)._dispatch_message(raw)
 
     def _parse(self):
@@ -136,7 +138,7 @@ class SSHSession(Session):
         state across method calls and if a chunk has been read it will not be
         considered again."""
 
-        logger.debug("parsing netconf v1.0")
+        self.logger.debug("parsing netconf v1.0")
         buf = self._buffer
         buf.seek(self._parsing_pos10)
         if MSG_DELIM in buf.read().decode('UTF-8'):
@@ -154,7 +156,7 @@ class SSHSession(Session):
             if len(remaining) > 0:
                 # There could be another entire message in the
                 # buffer, so we should try to parse again.
-                logger.debug('Trying another round of parsing since there is still data')
+                self.logger.debug('Trying another round of parsing since there is still data')
                 self._parse10()
         else:
             # handle case that MSG_DELIM is split over two chunks
@@ -172,7 +174,7 @@ class SSHSession(Session):
         delimiter is found in the wrong place, a #NetconfFramingError
         will be raised."""
         
-        logger.debug("_parse11: starting")
+        self.logger.debug("_parse11: starting")
 
         # suck in whole string that we have (this is what we will work on in
         # this function) and initialize a couple of useful values
@@ -180,23 +182,23 @@ class SSHSession(Session):
         data = self._buffer.getvalue()
         data_len = len(data)
         start = 0
-        logger.debug('_parse11: working with buffer of %d bytes', data_len)
+        self.logger.debug('_parse11: working with buffer of %d bytes', data_len)
         while True and start < data_len:
             # match to see if we found at least some kind of delimiter
-            logger.debug('_parse11: matching from %d bytes from start of buffer', start)
+            self.logger.debug('_parse11: matching from %d bytes from start of buffer', start)
             re_result = RE_NC11_DELIM.match(data[start:].decode('utf-8'))
             if not re_result:
 
                 # not found any kind of delimiter just break; this should only
                 # ever happen if we just have the first few characters of a
                 # message such that we don't yet have a full delimiter
-                logger.debug('_parse11: no delimiter found, buffer="%s"', data[start:].decode())
+                self.logger.debug('_parse11: no delimiter found, buffer="%s"', data[start:].decode())
                 break
 
             # save useful variables for reuse
             re_start = re_result.start()
             re_end = re_result.end()
-            logger.debug('_parse11: regular expression start=%d, end=%d', re_start, re_end)
+            self.logger.debug('_parse11: regular expression start=%d, end=%d', re_start, re_end)
 
             # If the regex doesn't start at the beginning of the buffer,
             # we're in trouble, so throw an error
@@ -210,7 +212,7 @@ class SSHSession(Session):
                 start += re_end
                 message = ''.join(self._message_list)
                 self._message_list = []
-                logger.debug('_parse11: found end of message delimiter')
+                self.logger.debug('_parse11: found end of message delimiter')
                 self._dispatch_message(message)
                 break
 
@@ -219,35 +221,34 @@ class SSHSession(Session):
                 # string that will tell us how many bytes past the end of
                 # where it was found that we need to have available to
                 # save the next chunk off
-                logger.debug('_parse11: found chunk delimiter')
+                self.logger.debug('_parse11: found chunk delimiter')
                 digits = int(re_result.group(1))
-                logger.debug('_parse11: chunk size %d bytes', digits)
+                self.logger.debug('_parse11: chunk size %d bytes', digits)
                 if (data_len-start) >= (re_end + digits):
                     # we have enough data for the chunk
                     fragment = textify(data[start+re_end:start+re_end+digits])
                     self._message_list.append(fragment)
                     start += re_end + digits
-                    logger.debug('_parse11: appending %d bytes', digits)
-                    logger.debug('_parse11: fragment = "%s"', fragment)
+                    self.logger.debug('_parse11: appending %d bytes', digits)
+                    self.logger.debug('_parse11: fragment = "%s"', fragment)
                 else:
                     # we don't have enough bytes, just break out for now
                     # after updating start pointer to start of new chunk
                     start += re_start
-                    logger.debug('_parse11: not enough data for chunk yet')
-                    logger.debug('_parse11: setting start to %d', start)
+                    self.logger.debug('_parse11: not enough data for chunk yet')
+                    self.logger.debug('_parse11: setting start to %d', start)
                     break
                 
         # Now out of the loop, need to see if we need to save back any content
         if start > 0:
-            logger.debug(
+            self.logger.debug(
                 '_parse11: saving back rest of message after %d bytes, original size %d',
                 start, data_len)
             self._buffer = StringIO(data[start:])
             if start < data_len:
-                logger.debug('_parse11: still have data, may have another full message!')
+                self.logger.debug('_parse11: still have data, may have another full message!')
                 self._parse11()
-        logger.debug('_parse11: ending')
-
+        self.logger.debug('_parse11: ending')
 
     def load_known_hosts(self, filename=None):
 
@@ -411,7 +412,7 @@ class SSHSession(Session):
             try:
                 c.invoke_subsystem(subname)
             except paramiko.SSHException as e:
-                logger.info("%s (subsystem request rejected)", e)
+                self.logger.info("%s (subsystem request rejected)", e)
                 handle_exception = self._device_handler.handle_connection_exceptions(self)
                 # Ignore the exception, since we continue to try the different
                 # subsystem names until we find one that can connect.
@@ -432,24 +433,25 @@ class SSHSession(Session):
             for cls in (paramiko.RSAKey, paramiko.DSSKey, paramiko.ECDSAKey):
                 try:
                     key = cls.from_private_key_file(key_filename, password)
-                    logger.debug("Trying key %s from %s" %
-                              (hexlify(key.get_fingerprint()), key_filename))
+                    self.logger.debug("Trying key %s from %s",
+                                      hexlify(key.get_fingerprint()),
+                                      key_filename)
                     self._transport.auth_publickey(username, key)
                     return
                 except Exception as e:
                     saved_exception = e
-                    logger.debug(e)
+                    self.logger.debug(e)
 
         if allow_agent:
             for key in paramiko.Agent().get_keys():
                 try:
-                    logger.debug("Trying SSH agent key %s" %
-                                 hexlify(key.get_fingerprint()))
+                    self.logger.debug("Trying SSH agent key %s",
+                                      hexlify(key.get_fingerprint()))
                     self._transport.auth_publickey(username, key)
                     return
                 except Exception as e:
                     saved_exception = e
-                    logger.debug(e)
+                    self.logger.debug(e)
 
         keyfiles = []
         if look_for_keys:
@@ -476,13 +478,13 @@ class SSHSession(Session):
         for cls, filename in keyfiles:
             try:
                 key = cls.from_private_key_file(filename, password)
-                logger.debug("Trying discovered key %s in %s" %
-                          (hexlify(key.get_fingerprint()), filename))
+                self.logger.debug("Trying discovered key %s in %s",
+                                  hexlify(key.get_fingerprint()), filename)
                 self._transport.auth_publickey(username, key)
                 return
             except Exception as e:
                 saved_exception = e
-                logger.debug(e)
+                self.logger.debug(e)
 
         if password is not None:
             try:
@@ -490,7 +492,7 @@ class SSHSession(Session):
                 return
             except Exception as e:
                 saved_exception = e
-                logger.debug(e)
+                self.logger.debug(e)
 
         if saved_exception is not None:
             # need pep-3134 to do this right
@@ -507,7 +509,7 @@ class SSHSession(Session):
         try:
             s = selectors.DefaultSelector()
             s.register(chan, selectors.EVENT_READ)
-            logger.debug('selector type = %s', s.__class__.__name__)
+            self.logger.debug('selector type = %s', s.__class__.__name__)
             while True:
                     
                 # Will wakeup evey TICK seconds to check if something
@@ -530,27 +532,29 @@ class SSHSession(Session):
                         # End of session, unexpected
                         raise SessionCloseError(self._buffer.getvalue())
                 if not q.empty() and chan.send_ready():
-                    logger.debug("Sending message")
+                    self.logger.debug("Sending message")
                     data = q.get()
                     if self._base == NetconfBase.BASE_11:
                         data = "%s%s%s" % (start_delim(len(data)), data, END_DELIM)
                     else:
                         data = "%s%s" % (data, MSG_DELIM)
-                    logger.debug("Sending: %s", data)
+                    self.logger.info("Sending:\n%s", data)
                     while data:
                         n = chan.send(data)
                         if n <= 0:
                             raise SessionCloseError(self._buffer.getvalue(), data)
                         data = data[n:]
         except Exception as e:
-            logger.debug("Broke out of main loop, error=%r", e)
+            self.logger.debug("Broke out of main loop, error=%r", e)
             self._dispatch_error(e)
             self.close()
 
     @property
     def host(self):
         """Host this session is connected to, or None if not connected."""
-        return self._host
+        if hasattr(self, '_host'):
+            return self._host
+        return None
 
     @property
     def transport(self):
