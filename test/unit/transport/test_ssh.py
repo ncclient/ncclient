@@ -255,7 +255,7 @@ class TestSSH(unittest.TestCase):
     @patch('paramiko.channel.Channel.recv')
     @patch('selectors.DefaultSelector.select')
     @patch('ncclient.transport.ssh.Session._dispatch_error')
-    def test_run_recieve_py3(self, mock_error, mock_selector, mock_recv, mock_close):
+    def test_run_receive_py3(self, mock_error, mock_selector, mock_recv, mock_close):
         mock_selector.return_value = True
         mock_recv.return_value = 0
         device_handler = JunosDeviceHandler({'name': 'junos'})
@@ -293,7 +293,7 @@ class TestSSH(unittest.TestCase):
     @patch('paramiko.channel.Channel.recv')
     @patch('selectors2.DefaultSelector')
     @patch('ncclient.transport.ssh.Session._dispatch_error')
-    def test_run_recieve_py2(self, mock_error, mock_selector, mock_recv, mock_close):
+    def test_run_receive_py2(self, mock_error, mock_selector, mock_recv, mock_close):
         mock_selector.select.return_value = True
         mock_recv.return_value = 0
         device_handler = JunosDeviceHandler({'name': 'junos'})
