@@ -575,7 +575,7 @@ class SSHSession(Session):
                 if not q.empty() and chan.send_ready():
                     logger.debug("Sending message")
                     data = q.get()
-                    if self._base == 1.1:
+                    if self._base == "1.1":
                         data = "%s%s%s" % (start_delim(len(data)), data, END_DELIM)
                     else:
                         data = "%s%s" % (data, MSG_DELIM)
