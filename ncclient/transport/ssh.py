@@ -178,7 +178,6 @@ class SSHSession(Session):
         data_len = len(data)
         start = 0
         logger.debug('_parse11: working with buffer of {0} bytes'.format(data_len))
-        logger.debug('_parse11: data= {0}'.format(data))
         while True:
             # match to see if we found at least some kind of delimiter
             logger.debug('_parse11: matching from {0} bytes from start of buffer'.format(start))
