@@ -1,5 +1,6 @@
 setuptools>0.6
 paramiko==2.4.1
 lxml>=3.3.0
+selectors2>=2.0.1
 six
 python-dateutil>=2.6.0
