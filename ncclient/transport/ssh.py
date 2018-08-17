@@ -556,7 +556,7 @@ class SSHSession(Session):
                 # Log what netconf:base version we are using this time
                 # round the loop; _base is updated when we receive the
                 # server's capabilities.
-                logger.debug('Currently selected netconf:base:%0.1f', self._base)
+                logger.debug('Currently selected netconf:base:%s', self._base)
                 
                 # Will wakeup evey TICK seconds to check if something
                 # to send, more quickly if something to read (due to
