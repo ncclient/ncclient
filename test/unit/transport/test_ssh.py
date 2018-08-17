@@ -83,8 +83,6 @@ class TestSSH(unittest.TestCase):
             remainder = ok_chunk
         parsemethod(obj)
 
-        import pprint
-        pprint.pprint(mock_dispatch.call_args_list)
         for i in range(0, len(expected_messages)):
             call = mock_dispatch.call_args_list[i][0][0]
             self.assertEqual(call, expected_messages[i])
