@@ -87,6 +87,7 @@ class SSHSession(Session):
     def __init__(self, device_handler):
         capabilities = Capabilities(device_handler.get_capabilities())
         Session.__init__(self, capabilities)
+        self._host = None
         self._host_keys = paramiko.HostKeys()
         self._transport = None
         self._connected = False
@@ -105,6 +106,10 @@ class SSHSession(Session):
         self._inendpos = 0
         self._size_num_list = []
         self._message_list = []
+
+    def _dispatch_message(self, raw):
+        logger.info("Received from %s session %s:\n%s", self.host, self.id, raw)
+        return super(SSHSession, self)._dispatch_message(raw)
 
     def _parse(self):
         "Messages ae delimited by MSG_DELIM. The buffer could have grown by a maximum of BUF_SIZE bytes everytime this method is called. Retains state across method calls and if a byte has been read it will not be considered again."
@@ -359,6 +364,8 @@ class SSHSession(Session):
         if not (host or sock_fd):
             raise SSHError("Missing host or socket fd")
 
+        self._host = host
+
         # Optionally, parse .ssh/config
         config = {}
         if ssh_config is True:
@@ -582,6 +589,11 @@ class SSHSession(Session):
             logger.debug("Broke out of main loop, error=%r", e)
             self._dispatch_error(e)
             self.close()
+
+    @property
+    def host(self):
+        """Host this session is connected to, or None if not connected."""
+        return self._host
 
     @property
     def transport(self):
