@@ -566,7 +566,7 @@ class SSHSession(Session):
                     data = chan.recv(BUF_SIZE)
                     if data:
                         self._buffer.write(data)
-                        if self._base == 1.1:
+                        if self._base == "1.1":
                             self._parse11()
                         else:
                             self._parse10()
