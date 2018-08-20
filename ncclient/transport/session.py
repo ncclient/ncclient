@@ -30,6 +30,12 @@ from ncclient.transport.notify import Notification
 logger = logging.getLogger('ncclient.transport.session')
 
 
+class NetconfBase(object):
+    '''Netconf Base protocol version'''
+    BASE_10 = 1
+    BASE_11 = 2
+
+    
 class Session(Thread):
 
     "Base class for use by transport protocol implementations."
@@ -44,7 +50,7 @@ class Session(Thread):
         self._notification_q = Queue()
         self._client_capabilities = capabilities
         self._server_capabilities = None # yet
-        self._base = "1.0"
+        self._base = NetconfBase.BASE_10
         self._id = None # session-id
         self._connected = False # to be set/cleared by subclass implementation
         logger.debug('%r created: client_capabilities=%r' %
@@ -110,7 +116,7 @@ class Session(Thread):
         #    raise MissingCapabilityError(':base:1.0')
         if 'urn:ietf:params:netconf:base:1.1' in self._server_capabilities and 'urn:ietf:params:netconf:base:1.1' in self._client_capabilities:
             logger.debug("After 'hello' message selecting netconf:base:1.1 for encoding")
-            self._base = "1.1"
+            self._base = NetconfBase.BASE_11
         logger.info('initialized: session-id=%s | server_capabilities=%s' %
                     (self._id, self._server_capabilities))
 
