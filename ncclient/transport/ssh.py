@@ -119,6 +119,7 @@ class SSHSession(Session):
         self._inendpos = 0
         self._size_num_list = []
         self._message_list = []
+        self._closing = threading.Event()
 
     def _dispatch_message(self, raw):
         logger.info("Received from %s session %s:\n%s", self.host, self.id, raw)
@@ -271,6 +272,7 @@ class SSHSession(Session):
             self._host_keys.load(filename)
 
     def close(self):
+        self._closing.set()
         if self._transport.is_active():
             self._transport.close()
 
@@ -398,6 +400,7 @@ class SSHSession(Session):
         self._auth(username, password, key_filenames, allow_agent, look_for_keys)
 
         self._connected = True # there was no error authenticating
+        self._closing.clear()
         # TODO: leopoul: Review, test, and if needed rewrite this part
         subsystem_names = self._device_handler.get_ssh_subsystem_names()
         for subname in subsystem_names:
@@ -520,7 +523,11 @@ class SSHSession(Session):
                             self._parse11()
                         else:
                             self._parse10()
+                    elif self._closing.is_set():
+                        # End of session, expected
+                        break
                     else:
+                        # End of session, unexpected
                         raise SessionCloseError(self._buffer.getvalue())
                 if not q.empty() and chan.send_ready():
                     logger.debug("Sending message")
