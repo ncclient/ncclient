@@ -53,11 +53,10 @@ TICK = 0.1
 # When matched:
 #
 # * result.group(0) will contain whole matched string
-# * result.group(1) will contain the '#[0-9]+'
-# * result.group(2) will contain the digit string for a chunk
-# * result.group(3) will be defined if '##' found
+# * result.group(1) will contain the digit string for a chunk
+# * result.group(2) will be defined if '##' found
 #
-RE_NC11_DELIM = re.compile('\n(#([0-9]+)|(##))\n')
+RE_NC11_DELIM = re.compile(r'\n(?:#([0-9]+)|(##))\n')
 
 
 def default_unknown_host_cb(host, fingerprint):
@@ -165,9 +164,12 @@ class SSHSession(Session):
     def _parse11(self):
         
         """Messages are split into chunks. Chunks and messages are delimited
-        by the regex #RE_NC11_DELIM defined earlier in this file. Each time we
-        get called here either a chunk delimiter or an end-of-message delimiter
-        should be found. If it's not, a framing error will be raised."""
+        by the regex #RE_NC11_DELIM defined earlier in this file. Each
+        time we get called here either a chunk delimiter or an
+        end-of-message delimiter should be found iff there is enough
+        data. If there is not enough data, we will wait for more. If a
+        delimiter is found in the wrong place, a #NetconfFramingError
+        will be raised."""
         
         logger.debug("_parse11: starting")
 
@@ -200,7 +202,7 @@ class SSHSession(Session):
             if re_start != 0:
                 raise NetconfFramingError('_parse11: delimiter not at start of match buffer', data[start:])
 
-            if re_result.group(3):
+            if re_result.group(2):
                 # we've found the end of the message, need to form up
                 # whole message, save back remainder (if any) to buffer
                 # and dispatch the message
@@ -211,13 +213,13 @@ class SSHSession(Session):
                 self._dispatch_message(message)
                 break
 
-            elif re_result.group(2):
+            elif re_result.group(1):
                 # we've found a chunk delimiter, and group(2) is the digit
                 # string that will tell us how many bytes past the end of
                 # where it was found that we need to have available to
                 # save the next chunk off
                 logger.debug('_parse11: found chunk delimiter')
-                digits = int(re_result.group(2))
+                digits = int(re_result.group(1))
                 logger.debug('_parse11: chunk size {0} bytes'.format(digits))
                 if (data_len-start) >= (re_end + digits):
                     # we have enough data for the chunk
@@ -238,8 +240,9 @@ class SSHSession(Session):
         if start > 0:
             logger.debug('_parse11: saving back rest of message after {0} bytes, original size {1}'.format(start, data_len))
             self._buffer = StringIO(data[start:])
-            logger.debug('_parse11: still have data, may have another full message!')
-            self._parse11()
+            if start < data_len:
+                logger.debug('_parse11: still have data, may have another full message!')
+                self._parse11()
         logger.debug('_parse11: ending')
 
 
