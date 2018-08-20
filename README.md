@@ -17,6 +17,7 @@ by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org) and Einar Nilsen-Nygaa
 
 |  Date  | Release | Description |
 | :----: | :-----: | :---------- |
+| 08/20/18 | `0.6.1` | Migration to user `selectors` instead of `select`, allowing higher scale operations; improved `netconf:base:1.1` parsing. |
 | 07/02/18 | `0.6.0` | Minor release reinstating Python 3.7 and greater compatibility, but necessitating a change to client code that uses `async_mode`. |
 | 07/02/18 | `0.5.4` | New release rolling up myriad of small commits since `0.5.3`. Please note that this release is **incompatible wth Python 3.7** due to the use of a new Python 3.7 keyword, `async`, in function signatures. This will be resolved in 0.6.0|
 
@@ -41,6 +42,10 @@ or via pip:
 
     pip install ncclient
 
+Also locally via pip from within local clone:
+
+    pip install -U .
+
 ## Examples:
 
     [ncclient] $ python examples/juniper/*.py
@@ -61,29 +66,36 @@ or integrate the following in your code:
 As of 0.4.1 ncclient integrates Juniper's and Cisco's forks, lots of new concepts
 have been introduced that ease management of Juniper and Cisco devices respectively.
 The biggest change is the introduction of device handlers in connection paramms.
-For example to invoke Juniper's functions annd params one has to re-write the above with ***device_params={'name':'junos'}***:
+For example to invoke Juniper's functions annd params one has to re-write the above with `device_params={'name':'junos'}`:
 
     from ncclient import manager
 
-    with manager.connect(host=host, port=830, username=user, hostkey_verify=False, device_params={'name':'junos'}) as m:
+    with manager.connect(host=host, port=830,
+                         username=user, hostkey_verify=False,
+                         device_params={'name':'junos'}) as m:
         c = m.get_config(source='running').data_xml
         with open("%s.xml" % host, 'w') as f:
             f.write(c)
 
 Device handlers are easy to implement and prove to be futureproof.
 
-## Supported device handlers
+### Supported device handlers
 
-* Juniper: device_params={'name':'junos'}
-* Cisco CSR: device_params={'name':'csr'}
-* Cisco Nexus: device_params={'name':'nexus'}
-* Cisco IOS XR: device_params={'name':'iosxr'}
-* Cisco IOS XE: device_params={'name':'iosxe'}
-* Huawei: device_params={'name':'huawei'}
-* Alcatel Lucent: device_params={'name':'alu'}
-* H3C: device_params={'name':'h3c'}
-* HP Comware: device_params={'name':'hpcomware'}
-* Server or anything not in above: device_params={'name':'default'}
+When instantiating a connection to a known type of NETCONF server:
+
+* Juniper: `device_params={'name':'junos'}`
+* Cisco:
+    - CSR: `device_params={'name':'csr'}`
+    - Nexus: `device_params={'name':'nexus'}`
+    - IOS XR: `device_params={'name':'iosxr'}`
+    - IOS XE: `device_params={'name':'iosxe'}`
+* Huawei:
+    - `device_params={'name':'huawei'}`
+    - `device_params={'name':'huaweiyang'}`
+* Alcatel Lucent: `device_params={'name':'alu'}`
+* H3C: `device_params={'name':'h3c'}`
+* HP Comware: `device_params={'name':'hpcomware'}`
+* Server or anything not in above: `device_params={'name':'default'}`
 
 
 ## For Developers
@@ -165,14 +177,9 @@ Thus, making a release becomes a simple process:
         dist/ncclient-0.6.1.tar.gz
     ```
 
-## Changes | brief - v0.5.3
-
-* Add notifications support
-* Add support for ecdsa keys
-* Various bug fixes
-
 ## Contributors
 
+* v0.6.1: @einarnn, @glennmatthews, @bryan-stripe, @nickylba
 * v0.6.0: @einarnn
 * v0.5.4: @adamcubel, Joel Teichroeb, @leopoul, Chase Garner, @budhadityabanerjee, @earies, @ganeshrn, @vnitinv, Siming Yuan, @mirceaaulinic, @stacywsmith, Xavier Hardy, @jwwilcox, @QijunPan, @avangel, @marekgr, @hugovk, @felixonmars, @dexteradeus
 * v0.5.3: [Justin Wilcox](https://github.com/jwwilcox), [Stacy W. Smith](https://github.com/stacywsmith), [Mircea Ulinic](https://github.com/mirceaulinic), [Ebben Aries](https://github.com/earies), [Einar Nilsen-Nygaard](https://github.com/einarnn), [QijunPan](https://github.com/QijunPan)
