@@ -179,23 +179,23 @@ class SSHSession(Session):
         data = self._buffer.getvalue()
         data_len = len(data)
         start = 0
-        logger.debug('_parse11: working with buffer of {0} bytes'.format(data_len))
+        logger.debug('_parse11: working with buffer of %d bytes', data_len)
         while True:
             # match to see if we found at least some kind of delimiter
-            logger.debug('_parse11: matching from {0} bytes from start of buffer'.format(start))
+            logger.debug('_parse11: matching from %d bytes from start of buffer', start)
             re_result = RE_NC11_DELIM.match(data[start:].decode('utf-8'))
             if not re_result:
 
                 # not found any kind of delimiter just break; this should only
                 # ever happen if we just have the first few characters of a
                 # message such that we don't yet have a full delimiter
-                logger.debug('_parse11: no delimiter found, buffer={0}'.format(data[start:]))
+                logger.debug('_parse11: no delimiter found, buffer="%s"', data[start:].encode())
                 break
 
             # save useful variables for reuse
             re_start = re_result.start()
             re_end = re_result.end()
-            logger.debug('_parse11: regular expression start={0}, end={1}'.format(re_start, re_end))
+            logger.debug('_parse11: regular expression start=%d, end=%d', re_start, re_end)
 
             # If the regex doesn't start at the beginning of the buffer,
             # we're in trouble, so throw an error
@@ -220,25 +220,27 @@ class SSHSession(Session):
                 # save the next chunk off
                 logger.debug('_parse11: found chunk delimiter')
                 digits = int(re_result.group(1))
-                logger.debug('_parse11: chunk size {0} bytes'.format(digits))
+                logger.debug('_parse11: chunk size %d bytes', digits)
                 if (data_len-start) >= (re_end + digits):
                     # we have enough data for the chunk
                     fragment = textify(data[start+re_end:start+re_end+digits])
                     self._message_list.append(fragment)
                     start += re_end + digits
-                    logger.debug('_parse11: appending {0} bytes'.format(digits))
-                    logger.debug('_parse11: fragment = "{0}"'.format(fragment))
+                    logger.debug('_parse11: appending %d bytes', digits)
+                    logger.debug('_parse11: fragment = "%s"', fragment)
                 else:
                     # we don't have enough bytes, just break out for now
                     # after updating start pointer to start of new chunk
                     start += re_start
                     logger.debug('_parse11: not enough data for chunk yet')
-                    logger.debug('_parse11: setting start to {0}'.format(start))
+                    logger.debug('_parse11: setting start to %d', start)
                     break
                 
         # Now out of the loop, need to see if we need to save back any content
         if start > 0:
-            logger.debug('_parse11: saving back rest of message after {0} bytes, original size {1}'.format(start, data_len))
+            logger.debug(
+                '_parse11: saving back rest of message after %d bytes, original size %d',
+                start, data_len)
             self._buffer = StringIO(data[start:])
             if start < data_len:
                 logger.debug('_parse11: still have data, may have another full message!')
