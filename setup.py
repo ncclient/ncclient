@@ -20,6 +20,11 @@ from distutils.command.install import install as _install
 import sys
 import platform
 import codecs
+import versioneer
+
+__author__ = "Shikhar Bhushan, Leonidas Poulopoulos, Ebben Aries, Einar Nilsen-Nygaard"
+__author_email__ = "shikhar@schmizz.net, lpoulopoulos@verisign.com, earies@juniper.net, einarnn@gmail.com"
+__licence__ = "Apache 2.0"
 
 if sys.version_info.major == 2 and sys.version_info.minor < 7:
     print ("Sorry, Python < 2.7 is not supported")
@@ -34,15 +39,16 @@ with codecs.open('README.rst', 'r', encoding='utf8') as file:
 
 
 setup(name='ncclient',
-      version='0.6.0',
+      version=versioneer.get_version(),
+      cmdclass=versioneer.get_cmdclass(),
       description="Python library for NETCONF clients",
       long_description = long_description,
-      author="Shikhar Bhushan, Leonidas Poulopoulos, Ebben Aries",
-      author_email="shikhar@schmizz.net, lpoulopoulos@verisign.com, earies@juniper.net",
+      author=__author__,
+      author_email=__author_email__,
       url="http://ncclient.org",
       packages=find_packages('.'),
       install_requires=install_reqs,
-      license="Apache License 2.0",
+      license=__licence__,
       platforms=["Posix; OS X; Windows"],
       keywords=('NETCONF', 'NETCONF Python client', 'Juniper Optimization', 'Cisco NXOS Optimization'),
       python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
@@ -57,8 +63,7 @@ setup(name='ncclient',
           'Intended Audience :: Developers',
           'Operating System :: OS Independent',
           'Topic :: Software Development :: Libraries :: Python Modules',
-      ]
-      )
+      ])
 
 
 

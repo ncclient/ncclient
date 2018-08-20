@@ -46,3 +46,6 @@ class SSHUnknownHostError(SSHError):
         SSHError.__init__(self, 'Unknown host key [%s] for [%s]' % (fingerprint, host))
         self.host = host
         self.fingerprint = fingerprint
+
+class NetconfFramingError(TransportError):
+    pass
