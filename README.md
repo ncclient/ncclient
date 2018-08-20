@@ -98,10 +98,10 @@ To run the same tests locally as are run via GitHub's CI/CD integration with Tra
     mkvirtualenv ncclient-testing
     ```
 
-1. Install your local `ncclient` package:
+1. Install your local `ncclient` package (ensuring you are in your virtual environment):
 
     ```
-    python setup.py install
+    pip install -U .
     ```
 
 1. Install testing dependencies:
@@ -116,6 +116,54 @@ To run the same tests locally as are run via GitHub's CI/CD integration with Tra
     nosetests test --rednose --verbosity=3
     ```
 
+### Making a Release
+
+As of `0.6.1`, `versioneer` has been integrated into the `ncclient` codebase. This simplifies the creation of a new release, by ensuring that version numbers are automatically generated from the git tag used for the release, which **must** be in the form `v0.1.2`. Versioneer also allows for the clean install of development versions locally using pip. For example:
+
+```
+$ pip install -U .
+Processing /opt/git-repos/versioneer-ncclient
+
+[...intermediate ouput elided...]
+
+Building wheels for collected packages: ncclient
+  Running setup.py bdist_wheel for ncclient ... done
+  Stored in directory: /Users/einarnn/Library/Caches/pip/wheels/fb/48/a8/5c781ebcfff7f091e18950e125c0ff638a5a2dc006610aa1e5
+Successfully built ncclient
+Installing collected packages: ncclient
+  Found existing installation: ncclient 0.6.1
+    Uninstalling ncclient-0.6.1:
+      Successfully uninstalled ncclient-0.6.1
+Successfully installed ncclient-0.6.0+23.g0d9ccd6.dirty
+```
+
+Thus, making a release becomes a simple process:
+
+1. Ensure all tests run clean (ideally both locally and via Travis) and that `README.md` (yes, this file!!) has been updated appropriately.
+2. Apply appropriate version tag, e.g. `git tag v0.6.1`
+3. Build packages:
+
+    ```
+    python setup.py bdist sdist
+    ```
+
+4. After ensuring twine is installed, test twine upload:
+
+    ```
+    twine upload \
+        --repository-url https://test.pypi.org/legacy/ \
+        -u ******* -p ******* \
+        dist/ncclient-0.6.1.tar.gz
+    ````
+
+5. Push git tags back to origin, `git push --tags`
+6. Do real twine upload:
+
+    ```
+    twine upload \
+        -u ******* -p ******* \
+        dist/ncclient-0.6.1.tar.gz
+    ```
 
 ## Changes | brief - v0.5.3
 
