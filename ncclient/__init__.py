@@ -16,9 +16,13 @@ __version__ = (0,5,3)
 
 import sys
 
-if sys.version_info < (2, 6):
-    raise RuntimeError('You need Python 2.6+ for this module.')
+if sys.version_info < (2, 7):
+    raise RuntimeError('You need Python 2.7+ for this module.')
 
 class NCClientError(Exception):
     "Base type for all NCClient errors"
     pass
+
+from ._version import get_versions
+__version__ = get_versions()['version']
+del get_versions

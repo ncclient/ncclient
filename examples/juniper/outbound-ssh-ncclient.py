@@ -26,8 +26,9 @@
 """
 
 
-import sys
+import logging
 import socket
+import sys
 import time
 
 from ncclient import manager
@@ -39,10 +40,10 @@ def listener(port, user, password):
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.bind(('', port))
     s.listen(5)
-    print('Listening on port %d for incoming sessions ...' % (port))
+    logging.info('Listening on port %d for incoming sessions ...', port)
     while True:
         client, addr = s.accept()
-        print('Got a connection from %s:%d!' % (addr[0], addr[1]))
+        logging.info('Got a connection from %s:%d!', addr[0], addr[1])
         launch_junos_proxy(client, addr, user, password)
 
 
@@ -69,26 +70,29 @@ def launch_junos_proxy(client, addr, user, password):
         else:
             msg += c
 
-    print('MSG %s %s %s' % (val['MSG-ID'], val['MSG-VER'], val['DEVICE-ID']))
-    print('Logging in ...')
+    logging.info('MSG %s %s %s', val['MSG-ID'], val['MSG-VER'], val['DEVICE-ID'])
+    logging.info('Logging in ...')
 
     sock_fd = client.fileno()
     conn = manager.connect(host=None,
                            sock_fd=sock_fd,
                            username=user,
                            password=password,
-                           timeout=10,
+                           timeout=60,
                            device_params={'name': 'junos'},
                            hostkey_verify=False)
 
     rpc = new_ele('get-software-information')
 
-    print('requesting info...')
+    logging.info('requesting info...')
     result = conn.rpc(rpc)
-    print('   Hostname: ' +  result.xpath('//software-information/host-name')[0].text)
-    print('    Version: ' + result.xpath('//software-information/junos-version')[0].text)
+    logging.info('   Hostname: ' + result.xpath('//software-information/host-name')[0].text)
+    logging.info('    Version: ' + result.xpath('//software-information/junos-version')[0].text)
     sys.exit(0)
 
 
 if __name__ == '__main__':
+    LOG_FORMAT = '%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s'
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO, format=LOG_FORMAT)
+
     listener(2200, 'netconf', 'juniper!')

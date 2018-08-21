@@ -1,4 +1,4 @@
-#! /usr/bin/env python2.6 
+#! /usr/bin/env python
 #
 # Delete an existing user from the running configuration using
 # edit-config and the test-option provided by the :validate

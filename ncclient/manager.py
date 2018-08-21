@@ -72,6 +72,10 @@ def make_device_handler(device_params):
     if device_params is None:
         device_params = {}
 
+    handler = device_params.get('handler', None)
+    if handler:
+        return handler(device_params)
+
     device_name = device_params.get("name", "default")
     # Attempt to import device handler class. All device handlers are
     # in a module called "ncclient.devices.<devicename>" and in a class named
@@ -99,6 +103,9 @@ def connect_ssh(*args, **kwds):
     To invoke advanced vendor related operation add device_params =
         {'name':'<vendor_alias>'} in connection paramerers. For the time,
         'junos' and 'nexus' are supported for Juniper and Cisco Nexus respectively.
+
+    A custom device handler can be provided with device_params =
+        {'handler':<handler class>} in connection paramerers.
     """
     # Extract device parameter dict, if it was passed into this function. Need to
     # remove it from kwds, since the session.connect() doesn't like extra stuff in
@@ -230,7 +237,7 @@ class Manager(six.with_metaclass(OpExecutor, object)):
     def execute(self, cls, *args, **kwds):
         return cls(self._session,
                    device_handler=self._device_handler,
-                   async=self._async_mode,
+                   async_mode=self._async_mode,
                    timeout=self._timeout,
                    raise_mode=self._raise_mode).request(*args, **kwds)
 
