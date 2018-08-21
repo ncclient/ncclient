@@ -63,7 +63,7 @@ class TestSession(unittest.TestCase):
         mock_handler.assert_called_once_with(parse_root(rpc_reply), rpc_reply)
 
     @patch('ncclient.transport.session.parse_root')
-    @patch('logging.Logger.error')
+    @patch('ncclient.logging_.SessionLoggerAdapter.error')
     def test_dispatch_message_error(self, mock_log, mock_parse_root):
         mock_parse_root.side_effect = Exception
         cap = [':candidate']
@@ -85,7 +85,7 @@ class TestSession(unittest.TestCase):
         obj._dispatch_error("Error")
         mock_handler.assert_called_once_with("Error")
 
-    @patch('logging.Logger.info')
+    @patch('ncclient.logging_.SessionLoggerAdapter.info')
     @patch('ncclient.transport.session.Thread.start')
     @patch('ncclient.transport.session.Event')
     def test_post_connect(self, mock_lock, mock_handler, mock_log):
@@ -97,11 +97,13 @@ class TestSession(unittest.TestCase):
         obj._id = 100
         obj._server_capabilities = cap
         obj._post_connect()
-        log_call = mock_log.call_args_list[0][0][0]
-        self.assertNotEqual(log_call.find("initialized"), -1)
-        self.assertNotEqual(log_call.find("session-id=100"), -1)
+        log_args = mock_log.call_args_list[0][0]
+        self.assertNotEqual(log_args[0].find("initialized"), -1)
+        self.assertNotEqual(log_args[0].find("session-id="), -1)
+        self.assertEqual(log_args[1], 100)
         self.assertNotEqual(
-            log_call.find("server_capabilities=[':candidate']"), -1)
+            log_args[0].find("server_capabilities="), -1)
+        self.assertEqual(log_args[2], [':candidate'])
 
     def test_add_listener(self):
         cap = [':candidate']
