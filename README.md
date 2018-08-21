@@ -17,7 +17,7 @@ by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org) and Einar Nilsen-Nygaa
 
 |  Date  | Release | Description |
 | :----: | :-----: | :---------- |
-| 08/20/18 | `0.6.1` | Migration to user `selectors` instead of `select`, allowing higher scale operations; improved `netconf:base:1.1` parsing. |
+| 08/20/18 | `0.6.2` | Migration to user `selectors` instead of `select`, allowing higher scale operations; improved `netconf:base:1.1` parsing. |
 | 07/02/18 | `0.6.0` | Minor release reinstating Python 3.7 and greater compatibility, but necessitating a change to client code that uses `async_mode`. |
 | 07/02/18 | `0.5.4` | New release rolling up myriad of small commits since `0.5.3`. Please note that this release is **incompatible wth Python 3.7** due to the use of a new Python 3.7 keyword, `async`, in function signatures. This will be resolved in 0.6.0|
 
@@ -179,7 +179,7 @@ Thus, making a release becomes a simple process:
 
 ## Contributors
 
-* v0.6.1: @einarnn, @glennmatthews, @bryan-stripe, @nickylba
+* v0.6.2: @einarnn, @glennmatthews, @bryan-stripe, @nickylba
 * v0.6.0: @einarnn
 * v0.5.4: @adamcubel, Joel Teichroeb, @leopoul, Chase Garner, @budhadityabanerjee, @earies, @ganeshrn, @vnitinv, Siming Yuan, @mirceaaulinic, @stacywsmith, Xavier Hardy, @jwwilcox, @QijunPan, @avangel, @marekgr, @hugovk, @felixonmars, @dexteradeus
 * v0.5.3: [Justin Wilcox](https://github.com/jwwilcox), [Stacy W. Smith](https://github.com/stacywsmith), [Mircea Ulinic](https://github.com/mirceaulinic), [Ebben Aries](https://github.com/earies), [Einar Nilsen-Nygaard](https://github.com/einarnn), [QijunPan](https://github.com/QijunPan)

@@ -180,7 +180,7 @@ class SSHSession(Session):
         data_len = len(data)
         start = 0
         logger.debug('_parse11: working with buffer of %d bytes', data_len)
-        while True:
+        while True and start < data_len:
             # match to see if we found at least some kind of delimiter
             logger.debug('_parse11: matching from %d bytes from start of buffer', start)
             re_result = RE_NC11_DELIM.match(data[start:].decode('utf-8'))
@@ -189,7 +189,7 @@ class SSHSession(Session):
                 # not found any kind of delimiter just break; this should only
                 # ever happen if we just have the first few characters of a
                 # message such that we don't yet have a full delimiter
-                logger.debug('_parse11: no delimiter found, buffer="%s"', data[start:].encode())
+                logger.debug('_parse11: no delimiter found, buffer="%s"', data[start:].decode())
                 break
 
             # save useful variables for reuse
