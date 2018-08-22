@@ -75,6 +75,10 @@ Editing
     :members: request
     :show-inheritance:
 
+.. autoclass:: CancelCommit
+    :members: request
+    :show-inheritance:
+
 Locking
 ........
 

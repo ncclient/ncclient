@@ -35,47 +35,6 @@ hello_rpc_reply = """<hello>
 </hello>
 """
 
-cap_excahnge_err_reply="""warning: user "pyez-ua" does not have access privileges.
-
-error: Restricted user session.
-<!-- No zombies were killed during the creation of this user interface -->
-<rpc-reply>
-<rpc-error>
-<error-severity>warning</error-severity>
-<error-message>
-user "pyez-ua" does not have access privileges.
-</error-message>
-</rpc-error>
-</rpc-reply>
-<rpc-reply>
-<rpc-error>
-<error-type>protocol</error-type>
-<error-tag>operation-failed</error-tag>
-<error-severity>error</error-severity>
-<error-message>
-Restricted user session.
-</error-message>
-</rpc-error>
-</rpc-reply>
-<!-- user nobody, class (unknown) -->
-<hello xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
-  <capabilities>
-    <capability>urn:ietf:params:netconf:base:1.0</capability>
-    <capability>urn:ietf:params:netconf:capability:candidate:1.0</capability>
-    <capability>urn:ietf:params:netconf:capability:confirmed-commit:1.0</capability>
-    <capability>urn:ietf:params:netconf:capability:validate:1.0</capability>
-    <capability>urn:ietf:params:netconf:capability:url:1.0?scheme=http,ftp,file</capability>
-    <capability>urn:ietf:params:xml:ns:netconf:base:1.0</capability>
-    <capability>urn:ietf:params:xml:ns:netconf:capability:candidate:1.0</capability>
-    <capability>urn:ietf:params:xml:ns:netconf:capability:confirmed-commit:1.0</capability>
-    <capability>urn:ietf:params:xml:ns:netconf:capability:validate:1.0</capability>
-    <capability>urn:ietf:params:xml:ns:netconf:capability:url:1.0?protocol=http,ftp,file</capability>
-    <capability>http://xml.juniper.net/netconf/junos/1.0</capability>
-    <capability>http://xml.juniper.net/dmi/system/1.0</capability>
-  </capabilities>
-  <session-id>59894</session-id>
-</hello>"""
-
 notification="""
    <notification
       xmlns="urn:ietf:params:xml:ns:netconf:notification:1.0">
@@ -104,7 +63,7 @@ class TestSession(unittest.TestCase):
         mock_handler.assert_called_once_with(parse_root(rpc_reply), rpc_reply)
 
     @patch('ncclient.transport.session.parse_root')
-    @patch('logging.Logger.error')
+    @patch('ncclient.logging_.SessionLoggerAdapter.error')
     def test_dispatch_message_error(self, mock_log, mock_parse_root):
         mock_parse_root.side_effect = Exception
         cap = [':candidate']
@@ -117,22 +76,6 @@ class TestSession(unittest.TestCase):
         self.assertNotEqual(
             mock_log.call_args_list[0][0][0].find("error parsing dispatch message"), -1)
 
-    @patch('ncclient.transport.session.parse_root')
-    @patch('logging.Logger.debug')
-    def test_dispatch_msg_err_during_cap_exchange(self, mock_log, mock_parse_root):
-        mock_parse_root.side_effect = Exception
-        logging.basicConfig(level=logging.CRITICAL)
-        cap = [':candidate']
-        obj = Session(cap)
-        device_handler = JunosDeviceHandler({'name': 'junos'})
-        obj._device_handler = device_handler
-        listener = HelloHandler(None, None)
-        obj._listeners.add(listener)
-        obj._dispatch_message(cap_excahnge_err_reply)
-        self.assertNotEqual(
-            mock_log.call_args_list[1][0][0].find("dispatching error to"), -1)
-
-
     @patch('ncclient.transport.session.HelloHandler.errback')
     def test_dispatch_error(self, mock_handler):
         cap = [':candidate']
@@ -142,7 +85,7 @@ class TestSession(unittest.TestCase):
         obj._dispatch_error("Error")
         mock_handler.assert_called_once_with("Error")
 
-    @patch('logging.Logger.info')
+    @patch('ncclient.logging_.SessionLoggerAdapter.info')
     @patch('ncclient.transport.session.Thread.start')
     @patch('ncclient.transport.session.Event')
     def test_post_connect(self, mock_lock, mock_handler, mock_log):
@@ -154,11 +97,13 @@ class TestSession(unittest.TestCase):
         obj._id = 100
         obj._server_capabilities = cap
         obj._post_connect()
-        log_call = mock_log.call_args_list[0][0][0]
-        self.assertNotEqual(log_call.find("initialized"), -1)
-        self.assertNotEqual(log_call.find("session-id=100"), -1)
+        log_args = mock_log.call_args_list[0][0]
+        self.assertNotEqual(log_args[0].find("initialized"), -1)
+        self.assertNotEqual(log_args[0].find("session-id="), -1)
+        self.assertEqual(log_args[1], 100)
         self.assertNotEqual(
-            log_call.find("server_capabilities=[':candidate']"), -1)
+            log_args[0].find("server_capabilities="), -1)
+        self.assertEqual(log_args[2], [':candidate'])
 
     def test_add_listener(self):
         cap = [':candidate']

@@ -17,6 +17,7 @@ from uuid import uuid4
 import six
 
 from ncclient.xml_ import *
+from ncclient.logging_ import SessionLoggerAdapter
 from ncclient.transport import SessionListener
 
 from ncclient.operations.errors import OperationError, TimeoutExpiredError, MissingCapabilityError
@@ -197,6 +198,8 @@ class RPCReplyListener(SessionListener): # internal use
                 instance._device_handler = device_handler
                 #instance._pipelined = session.can_pipeline
                 session.add_listener(instance)
+                instance.logger = SessionLoggerAdapter(logger,
+                                                       {'session': session})
             return instance
 
     def register(self, id, rpc):
@@ -208,23 +211,22 @@ class RPCReplyListener(SessionListener): # internal use
         if self._device_handler.perform_qualify_check():
             if tag != qualify("rpc-reply"):
                 return
-        for key in attrs: # in the <rpc-reply> attributes
-            if key == "message-id": # if we found msgid attr
-                id = attrs[key] # get the msgid
-                with self._lock:
-                    try:
-                        rpc = self._id2rpc[id] # the corresponding rpc
-                        logger.debug("Delivering to %r" % rpc)
-                        rpc.deliver_reply(raw)
-                    except KeyError:
-                        raise OperationError("Unknown 'message-id': %s" % id)
-                    # no catching other exceptions, fail loudly if must
-                    else:
-                        # if no error delivering, can del the reference to the RPC
-                        del self._id2rpc[id]
-                        break
-        else:
+        if "message-id" not in attrs:
+            # required attribute so raise OperationError
             raise OperationError("Could not find 'message-id' attribute in <rpc-reply>")
+        else:
+            id = attrs["message-id"]  # get the msgid
+            with self._lock:
+                try:
+                    rpc = self._id2rpc[id]  # the corresponding rpc
+                    self.logger.debug("Delivering to %r", rpc)
+                    rpc.deliver_reply(raw)
+                except KeyError:
+                    raise OperationError("Unknown 'message-id': %s" % id)
+                # no catching other exceptions, fail loudly if must
+                else:
+                    # if no error delivering, can del the reference to the RPC
+                    del self._id2rpc[id]
 
     def errback(self, err):
         try:
@@ -264,7 +266,7 @@ class RPC(object):
     "By default :class:`RPCReply`. Subclasses can specify a :class:`RPCReply` subclass."
 
 
-    def __init__(self, session, device_handler, async=False, timeout=30, raise_mode=RaiseMode.NONE):
+    def __init__(self, session, device_handler, async_mode=False, timeout=30, raise_mode=RaiseMode.NONE):
         """
         *session* is the :class:`~ncclient.transport.Session` instance
 
@@ -282,7 +284,7 @@ class RPC(object):
                 self._assert(cap)
         except AttributeError:
             pass
-        self._async = async
+        self._async = async_mode
         self._timeout = timeout
         self._raise_mode = raise_mode
         self._id = uuid4().urn # Keeps things simple instead of having a class attr with running ID that has to be locked
@@ -292,6 +294,7 @@ class RPC(object):
         self._error = None
         self._event = Event()
         self._device_handler = device_handler
+        self.logger = SessionLoggerAdapter(logger, {'session': session})
 
 
     def _wrap(self, subele):
@@ -311,14 +314,14 @@ class RPC(object):
 
         *op* is the operation to be requested as an :class:`~xml.etree.ElementTree.Element`
         """
-        logger.info('Requesting %r' % self.__class__.__name__)
+        self.logger.info('Requesting %r', self.__class__.__name__)
         req = self._wrap(op)
         self._session.send(req)
         if self._async:
-            logger.debug('Async request, returning %r', self)
+            self.logger.debug('Async request, returning %r', self)
             return self
         else:
-            logger.debug('Sync request, will wait for timeout=%r' % self._timeout)
+            self.logger.debug('Sync request, will wait for timeout=%r', self._timeout)
             self._event.wait(self._timeout)
             if self._event.isSet():
                 if self._error:
@@ -397,9 +400,9 @@ class RPC(object):
         """
         return self._event
 
-    def __set_async(self, async=True):
-        self._async = async
-        if async and not self._session.can_pipeline:
+    def __set_async(self, async_mode=True):
+        self._async = async_mode
+        if async_mode and not self._session.can_pipeline:
             raise UserWarning('Asynchronous mode not supported for this device/session')
 
     def __set_raise_mode(self, mode):

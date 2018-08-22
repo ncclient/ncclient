@@ -1,4 +1,4 @@
-#! /usr/bin/env python2.6 
+#! /usr/bin/env python
 #
 # Delete a list of existing users from the running configuration using
 # edit-config; protect the transaction using a lock.

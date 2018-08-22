@@ -7,7 +7,7 @@ xml = """<filter type="xpath">
         <configuration>
             <system>
                 <services/>
-            <system>
+            </system>
         </configuration>
     </filter>"""
 
@@ -70,7 +70,7 @@ class TestUtils(unittest.TestCase):
         criteria =  """<configuration>
             <system>
                 <services/>
-            <system>
+            </system>
         </configuration>"""
         filter = ("subtree", criteria)
         reply = build_filter(filter, capcheck="cap")
@@ -83,7 +83,7 @@ class TestUtils(unittest.TestCase):
         criteria =  """<configuration>
             <system>
                 <services/>
-            <system>
+            </system>
         </configuration>"""
         filter = ("text", criteria)
         self.assertRaises(OperationError,

@@ -29,7 +29,7 @@ from lxml import etree
 
 from ncclient import NCClientError
 
-parser = etree.XMLParser(recover=True)
+parser = etree.XMLParser(recover=False)
 
 class XMLError(NCClientError):
     pass
@@ -66,6 +66,8 @@ H3C_ACTION_1_0 = "http://www.h3c.com/netconf/action:1.0"
 NETCONF_MONITORING_NS = "urn:ietf:params:xml:ns:yang:ietf-netconf-monitoring"
 #: Namespace for netconf notifications
 NETCONF_NOTIFICATION_NS = "urn:ietf:params:xml:ns:netconf:notification:1.0"
+#: Namespace for netconf with-defaults (RFC 6243)
+NETCONF_WITH_DEFAULTS_NS = "urn:ietf:params:xml:ns:yang:ietf-netconf-with-defaults"
 #
 try:
     register_namespace = etree.register_namespace
@@ -207,3 +209,5 @@ new_ele = lambda tag, attrs={}, **extra: etree.Element(qualify(tag), attrs, **ex
 new_ele_ns = lambda tag, ns, attrs={}, **extra: etree.Element(qualify(tag,ns), attrs, **extra)
 
 sub_ele = lambda parent, tag, attrs={}, **extra: etree.SubElement(parent, qualify(tag), attrs, **extra)
+
+sub_ele_ns = lambda parent, tag, ns, attrs={}, **extra: etree.SubElement(parent, qualify(tag, ns), attrs, **extra)
