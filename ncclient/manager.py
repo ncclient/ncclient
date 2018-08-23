@@ -23,6 +23,7 @@ from ncclient import operations
 from ncclient import transport
 import six
 import logging
+import functools
 
 from ncclient.xml_ import *
 
@@ -161,32 +162,7 @@ def connect(*args, **kwds):
         else:
             return connect_ssh(*args, **kwds)
 
-
-class OpExecutor(type):
-
-    def __new__(cls, name, bases, attrs):
-        def make_wrapper(op_cls):
-            def wrapper(self, *args, **kwds):
-                return self.execute(op_cls, *args, **kwds)
-            wrapper.__doc__ = op_cls.request.__doc__
-            return wrapper
-        for op_name, op_cls in six.iteritems(OPERATIONS):
-            attrs[op_name] = make_wrapper(op_cls)
-        return super(OpExecutor, cls).__new__(cls, name, bases, attrs)
-
-    def __call__(cls, *args, **kwargs):
-        def make_wrapper(op_cls):
-            def wrapper(self, *args, **kwds):
-                return self.execute(op_cls, *args, **kwds)
-            wrapper.__doc__ = op_cls.request.__doc__
-            return wrapper
-        if VENDOR_OPERATIONS:
-            for op_name, op_cls in six.iteritems(VENDOR_OPERATIONS):
-                setattr(cls, op_name, make_wrapper(op_cls))
-        return super(OpExecutor, cls).__call__(*args, **kwargs)
-
-
-class Manager(six.with_metaclass(OpExecutor, object)):
+class Manager(object):
 
     """
     For details on the expected behavior of the operations and their
@@ -263,16 +239,21 @@ class Manager(six.with_metaclass(OpExecutor, object)):
         raise NotImplementedError
 
     def __getattr__(self, method):
-        """Parse args/kwargs correctly in order to build XML element"""
-        def _missing(*args, **kwargs):
-            m = method.replace('_', '-')
-            root = new_ele(m)
-            if args:
-                for arg in args:
-                    sub_ele(root, arg)
-            r = self.rpc(root)
-            return r
-        return _missing
+        if method in VENDOR_OPERATIONS:
+            return functools.partial(self.execute, VENDOR_OPERATIONS[method])
+        elif method in OPERATIONS:
+            return functools.partial(self.execute, OPERATIONS[method])
+        else:
+            """Parse args/kwargs correctly in order to build XML element"""
+            def _missing(*args, **kwargs):
+                m = method.replace('_', '-')
+                root = new_ele(m)
+                if args:
+                    for arg in args:
+                        sub_ele(root, arg)
+                r = self.rpc(root)
+                return r
+            return _missing
 
     def take_notification(self, block=True, timeout=None):
         """Attempt to retrieve one notification from the queue of received
