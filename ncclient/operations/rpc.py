@@ -17,6 +17,7 @@ from uuid import uuid4
 import six
 
 from ncclient.xml_ import *
+from ncclient.logging_ import SessionLoggerAdapter
 from ncclient.transport import SessionListener
 
 from ncclient.operations.errors import OperationError, TimeoutExpiredError, MissingCapabilityError
@@ -201,6 +202,8 @@ class RPCReplyListener(SessionListener): # internal use
                 instance._device_handler = device_handler
                 #instance._pipelined = session.can_pipeline
                 session.add_listener(instance)
+                instance.logger = SessionLoggerAdapter(logger,
+                                                       {'session': session})
             return instance
 
     def register(self, id, rpc):
@@ -220,7 +223,7 @@ class RPCReplyListener(SessionListener): # internal use
             with self._lock:
                 try:
                     rpc = self._id2rpc[id]  # the corresponding rpc
-                    logger.debug("Delivering to %r" % rpc)
+                    self.logger.debug("Delivering to %r", rpc)
                     rpc.deliver_reply(raw)
                 except KeyError:
                     raise OperationError("Unknown 'message-id': %s" % id)
@@ -295,6 +298,7 @@ class RPC(object):
         self._error = None
         self._event = Event()
         self._device_handler = device_handler
+        self.logger = SessionLoggerAdapter(logger, {'session': session})
 
 
     def _wrap(self, subele):
@@ -302,7 +306,6 @@ class RPC(object):
         ele = new_ele("rpc", {"message-id": self._id},
                       **self._device_handler.get_xml_extra_prefix_kwargs())
         ele.append(subele)
-        #print to_xml(ele)
         return to_xml(ele)
 
     def _request(self, op, raw_xml=None):
@@ -323,17 +326,17 @@ class RPC(object):
          :class:`~xml.etree.ElementTree.Element`
 
         """
-        logger.info('Requesting %r' % self.__class__.__name__)
+        self.logger.info('Requesting %r', self.__class__.__name__)
         if op is not None:
             req = self._wrap(op)
         else:
             req = raw_xml
         self._session.send(req)
         if self._async:
-            logger.debug('Async request, returning %r', self)
+            self.logger.debug('Async request, returning %r', self)
             return self
         else:
-            logger.debug('Sync request, will wait for timeout=%r' % self._timeout)
+            self.logger.debug('Sync request, will wait for timeout=%r', self._timeout)
             self._event.wait(self._timeout)
             if self._event.isSet():
                 if self._error:
