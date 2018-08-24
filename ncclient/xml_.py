@@ -19,6 +19,7 @@
 import io
 import sys
 import six
+import types
 from six import StringIO
 from io import BytesIO
 from lxml import etree
@@ -148,12 +149,15 @@ XPATH_NAMESPACES = {
     're':'http://exslt.org/regular-expressions'
 }
 
+
 class NCElement(object):
     def __init__(self, result, transform_reply):
         self.__result = result
         self.__transform_reply = transform_reply
-        self.__doc = self.remove_namespaces(self.__result)
-
+        if isinstance(transform_reply, types.FunctionType):
+            self.__doc = self.__transform_reply(result._root)
+        else:
+            self.__doc = self.remove_namespaces(self.__result)
 
     def xpath(self, expression):
         """
