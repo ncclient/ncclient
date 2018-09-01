@@ -73,8 +73,8 @@ class GetSchemaReply(GetReply):
     def _parsing_hook(self, root):
         self._data = None
         if not self._errors:
-            self._data = root.find(qualify("data", NETCONF_MONITORING_NS)).text
-
+            data = root.find(qualify("data", NETCONF_MONITORING_NS))
+            self._data = data.text if data else None
 
 class Get(RPC):
 
