@@ -19,6 +19,7 @@ import socket
 import getpass
 import re
 import threading
+import base64
 from binascii import hexlify
 from lxml import etree
 
@@ -286,9 +287,20 @@ class SSHSession(Session):
 
 
     # REMEMBER to update transport.rst if sig. changes, since it is hardcoded there
-    def connect(self, host, port=830, timeout=None, unknown_host_cb=default_unknown_host_cb,
-                username=None, password=None, key_filename=None, allow_agent=True,
-                hostkey_verify=True, look_for_keys=True, ssh_config=None, sock_fd=None):
+    def connect(self,
+            host,
+            port=830,
+            timeout=None,
+            unknown_host_cb=default_unknown_host_cb,
+            username=None,
+            password=None,
+            key_filename=None,
+            allow_agent=True,
+            hostkey_verify=True,
+            hostkey=None,
+            look_for_keys=True,
+            ssh_config=None,
+            sock_fd=None):
 
         """Connect via SSH and initialize the NETCONF session. First attempts the publickey authentication method and then password authentication.
 
@@ -311,6 +323,8 @@ class SSHSession(Session):
         *allow_agent* enables querying SSH agent (if found) for keys
 
         *hostkey_verify* enables hostkey verification from ~/.ssh/known_hosts
+
+        *hostkey* ensures that the remote hostkey exactly matches this
 
         *look_for_keys* enables looking in the usual locations for ssh keys (e.g. :file:`~/.ssh/id_*`)
 
@@ -381,12 +395,32 @@ class SSHSession(Session):
         except paramiko.SSHException:
             raise SSHError('Negotiation failed')
 
-        # host key verification
-        server_key = t.get_remote_server_key()
+        # Nonstandard port - append to hostname for host pubkey checking
+        if port is not 22:
+            host = '[%s]:%d' % (host, port)
 
-        fingerprint = _colonify(hexlify(server_key.get_fingerprint()))
+        if hostkey:
+            key_object = None
+            # Since each key (base64-decoded) begins with the key type e.g. 'ssh-ed25519',
+            # we don't need to specify/pass it in; instead leave for the paramiko key class to check,
+            # which raises SSHException if the key type within the key doesn't match that for the class
+            for key_cls in [paramiko.RSAKey, paramiko.DSSKey, paramiko.ECDSAKey, paramiko.Ed25519Key]:
+                try:
+                    key_object = key_cls(data=base64.b64decode(hostkey))
+                except paramiko.SSHException, e:
+                    # Not a key of this type - try the next
+                    pass
+            if not key_object:
+                # We've tried all known host key types and haven't found which one to use - bail
+                raise e
+            # Add the supplied hostkey to my host_keys, to be used in the following .check()
+            # key_object.get_name() is actually the key type e.g. 'ssh-rsa'
+            self._host_keys.add(host, key_object.get_name(), key_object)
 
-        if hostkey_verify:
+        # If hostkey specified we always verify it
+        if hostkey_verify or hostkey:
+            server_key = t.get_remote_server_key()
+            fingerprint = _colonify(hexlify(server_key.get_fingerprint()))
             known_host = self._host_keys.check(host, server_key)
             if not known_host and not unknown_host_cb(host, fingerprint):
                 raise SSHUnknownHostError(host, fingerprint)
