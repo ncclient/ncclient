@@ -407,7 +407,7 @@ class SSHSession(Session):
             for key_cls in [paramiko.RSAKey, paramiko.DSSKey, paramiko.ECDSAKey, paramiko.Ed25519Key]:
                 try:
                     key_object = key_cls(data=base64.b64decode(hostkey))
-                except paramiko.SSHException:
+                except paramiko.SSHException as e:
                     # Not a key of this type - try the next
                     pass
             if not key_object:
