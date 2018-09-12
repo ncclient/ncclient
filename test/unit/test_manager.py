@@ -37,11 +37,6 @@ class TestManager(unittest.TestCase):
         manager.connect(host='host', hostkey=hostkey)
         mock_ssh.assert_called_once_with(host='host', hostkey=hostkey)
 
-    # Confirm that a key with Incorrect Padding (for base64 decoding) fails
-    def test_connect_ssh_with_hostkey_rsa_invalid_padding(self):
-        hostkey = '...INCORRRECT...AAAAB3NzaC1yc2EAAAADAQABAAABAQDfEAdDrz3l8+PF510ivzWyX/pjpn3Cp6UgjJOinXz82e1LTURZhKwm8blcP8aWe8Uri65Roe6Q/H1WMaR3jFJj4UW2EZY5N+M4esPhoP/APOnDu2XNKy9AK9yD/Bu64TYgkIPQ/6FHdotcQdYTAJ+ac+YfJMp5mhVPnRIh4rlF08a0/tDHzLJVMEoXzp5nfVHcA4W3+5RRhklbct10U0jxHmG8Db9XbKiEbhWs/UMy59UpJ+zr7zLUYPRntgqqkpCyyfeHFNK1P6m3FmyT06QekOioCFmY05y65dkjAwBlaO1RKj1X1lgCirRWu4vxYBo9ewIGPZtuzeyp7jnl7kGV'
-        self.assertRaises(TypeError, manager.connect, host='127.0.0.1', hostkey=hostkey)
-
     @patch('ncclient.manager.connect_ssh')
     def test_connect_outbound_ssh(self, mock_ssh):
         manager.connect(host=None, sock_fd=6)
