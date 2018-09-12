@@ -19,6 +19,7 @@ import socket
 import getpass
 import re
 import threading
+import base64
 from binascii import hexlify
 from lxml import etree
 
@@ -39,6 +40,9 @@ from ncclient.xml_ import *
 
 import logging
 logger = logging.getLogger("ncclient.transport.ssh")
+
+PORT_NETCONF_DEFAULT = 830
+PORT_SSH_DEFAULT = 22
 
 BUF_SIZE = 4096
 # v1.0: RFC 4742
@@ -286,9 +290,21 @@ class SSHSession(Session):
 
 
     # REMEMBER to update transport.rst if sig. changes, since it is hardcoded there
-    def connect(self, host, port=830, timeout=None, unknown_host_cb=default_unknown_host_cb,
-                username=None, password=None, key_filename=None, allow_agent=True,
-                hostkey_verify=True, look_for_keys=True, ssh_config=None, sock_fd=None):
+    def connect(
+            self,
+            host,
+            port                = PORT_NETCONF_DEFAULT,
+            timeout             = None,
+            unknown_host_cb     = default_unknown_host_cb,
+            username            = None,
+            password            = None,
+            key_filename        = None,
+            allow_agent         = True,
+            hostkey_verify      = True,
+            hostkey             = None,
+            look_for_keys       = True,
+            ssh_config          = None,
+            sock_fd             = None):
 
         """Connect via SSH and initialize the NETCONF session. First attempts the publickey authentication method and then password authentication.
 
@@ -296,7 +312,7 @@ class SSHSession(Session):
 
         *host* is the hostname or IP address to connect to
 
-        *port* is by default 830, but some devices use the default SSH port of 22 so this may need to be specified
+        *port* is by default PORT_NETCONF_DEFAULT, but some devices use the default SSH port of 22 (PORT_SSH_DEFAULT) so this may need to be specified
 
         *timeout* is an optional timeout for socket connect
 
@@ -311,6 +327,8 @@ class SSHSession(Session):
         *allow_agent* enables querying SSH agent (if found) for keys
 
         *hostkey_verify* enables hostkey verification from ~/.ssh/known_hosts
+
+        *hostkey* only connect when server presents a public hostkey matching this
 
         *look_for_keys* enables looking in the usual locations for ssh keys (e.g. :file:`~/.ssh/id_*`)
 
@@ -371,25 +389,57 @@ class SSHSession(Session):
                 sock = socket.fromfd(int(sock_fd), socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(timeout)
 
-        t = self._transport = paramiko.Transport(sock)
-        t.set_log_channel(logger.name)
+        self._transport = paramiko.Transport(sock)
+        self._transport.set_log_channel(logger.name)
         if config.get("compression") == 'yes':
-            t.use_compression()
+            self._transport.use_compression()
 
+        # Set preferred host keys, to those we possess for the host
+        # Otherwise may have a situation where known_hosts contains a valid key for the host,
+        # but that key is not selected during negotiation
+        if self._host_keys:
+            if port == PORT_SSH_DEFAULT:
+                known_hosts_lookup = host
+            else:
+                known_hosts_lookup = '[%s]:%s' % (host, port)
+            known_host_keys_for_this_host = self._host_keys.lookup(known_hosts_lookup)
+            if known_host_keys_for_this_host:
+                self._transport._preferred_keys = [x.key.get_name() for x in known_host_keys_for_this_host._entries]
+
+        # If we need to connect with a specific hostkey, negotiate for only its type
+        if hostkey:
+            hostkey_obj = None
+            for key_cls in [paramiko.DSSKey, paramiko.Ed25519Key, paramiko.RSAKey, paramiko.ECDSAKey]:
+                try:
+                    hostkey_obj = key_cls(data=base64.b64decode(hostkey))
+                except paramiko.SSHException as e:
+                    # Not a key of this type - try the next
+                    pass
+            if not hostkey_obj:
+                # We've tried all known host key types and haven't found which one to use - bail
+                raise e
+            self._transport._preferred_keys = [hostkey_obj.get_name()]
+    
+        # Connect
         try:
-            t.start_client()
+            self._transport.start_client()
         except paramiko.SSHException:
-            raise SSHError('Negotiation failed')
+            # Raise original exception; don't swallow details
+            raise
+        server_key_obj = self._transport.get_remote_server_key()
+        fingerprint = _colonify(hexlify(server_key_obj.get_fingerprint()))
 
-        # host key verification
-        server_key = t.get_remote_server_key()
-
-        fingerprint = _colonify(hexlify(server_key.get_fingerprint()))
-
+        if port == PORT_SSH_DEFAULT:
+            known_hosts_lookup = host
+        else:
+            known_hosts_lookup = '[%s]:%s' % (host, port)
         if hostkey_verify:
-            known_host = self._host_keys.check(host, server_key)
-            if not known_host and not unknown_host_cb(host, fingerprint):
-                raise SSHUnknownHostError(host, fingerprint)
+            # For looking up entries for nonstandard (22) ssh ports in known_hosts
+            # we enclose host in brackets and append port number
+            is_known_host = self._host_keys.check(known_hosts_lookup, server_key_obj)
+
+            if not is_known_host and not unknown_host_cb(host, fingerprint):
+                raise SSHUnknownHostError(known_hosts_lookup, fingerprint)
 
         if key_filename is None:
             key_filenames = []
@@ -398,19 +448,26 @@ class SSHSession(Session):
         else:
             key_filenames = key_filename
 
+        # If hostkey specified, remote host /must/ use that hostkey
+        if hostkey:
+            if( hostkey_obj.get_name() != server_key_obj.get_name() or
+                hostkey_obj.asbytes() != server_key_obj.asbytes()):
+                    raise SSHUnknownHostError(known_hosts_lookup, fingerprint)
+
         self._auth(username, password, key_filenames, allow_agent, look_for_keys)
 
         self._connected = True # there was no error authenticating
         self._closing.clear()
+
         # TODO: leopoul: Review, test, and if needed rewrite this part
         subsystem_names = self._device_handler.get_ssh_subsystem_names()
         for subname in subsystem_names:
-            c = self._channel = self._transport.open_session()
-            self._channel_id = c.get_id()
+            self._channel = self._transport.open_session()
+            self._channel_id = self._channel.get_id()
             channel_name = "%s-subsystem-%s" % (subname, str(self._channel_id))
-            c.set_name(channel_name)
+            self._channel.set_name(channel_name)
             try:
-                c.invoke_subsystem(subname)
+                self._channel.invoke_subsystem(subname)
             except paramiko.SSHException as e:
                 self.logger.info("%s (subsystem request rejected)", e)
                 handle_exception = self._device_handler.handle_connection_exceptions(self)
@@ -419,7 +476,7 @@ class SSHSession(Session):
                 #have to handle exception for each vendor here
                 if not handle_exception:
                     continue
-            self._channel_name = c.get_name()
+            self._channel_name = self._channel.get_name()
             self._post_connect()
             return
         raise SSHError("Could not open connection, possibly due to unacceptable"

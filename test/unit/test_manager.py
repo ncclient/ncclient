@@ -20,6 +20,11 @@ class TestManager(unittest.TestCase):
         mock_ssh.assert_called_once_with(host='host')
 
     @patch('ncclient.manager.connect_ssh')
+    def test_connect_ssh_with_hostkey(self, mock_ssh):
+        manager.connect(host='host', hostkey='AAAAC3NzaC1lZDI1NTE5AAAAIIiHpGSf8fla6tCwLpwshvMGmUK+B/0v5CsRu+5v4uT7')
+        mock_ssh.assert_called_once_with(host='host', hostkey='AAAAC3NzaC1lZDI1NTE5AAAAIIiHpGSf8fla6tCwLpwshvMGmUK+B/0v5CsRu+5v4uT7')
+
+    @patch('ncclient.manager.connect_ssh')
     def test_connect_outbound_ssh(self, mock_ssh):
         manager.connect(host=None, sock_fd=6)
         mock_ssh.assert_called_once_with(host=None, sock_fd=6)
