@@ -68,7 +68,7 @@ class JunosDeviceHandler(DefaultDeviceHandler):
                     xslt = etree.XSLT(etree.XML(add_ns))
                     transformed_xml = etree.XML(etree.tostring(xslt(doc)))
                     err_list.append(RPCError(transformed_xml))
-                return RPCError(to_ele(''.join(errs)), err_list)
+                return RPCError(to_ele(''.join(errs))to_ele("<rpc-reply>"+''.join(errs)+"</rpc-reply>"), err_list)
         else:
             return False
 
