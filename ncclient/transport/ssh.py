@@ -301,7 +301,7 @@ class SSHSession(Session):
             key_filename        = None,
             allow_agent         = True,
             hostkey_verify      = True,
-            hostkey             = None,
+            hostkey_b64         = None,
             look_for_keys       = True,
             ssh_config          = None,
             sock_fd             = None):
@@ -328,7 +328,7 @@ class SSHSession(Session):
 
         *hostkey_verify* enables hostkey verification from ~/.ssh/known_hosts
 
-        *hostkey* only connect when server presents a public hostkey matching this
+        *hostkey_b64* only connect when server presents a public hostkey matching this (obtain from server /etc/ssh/ssh_host_*pub or ssh-keyscan)
 
         *look_for_keys* enables looking in the usual locations for ssh keys (e.g. :file:`~/.ssh/id_*`)
 
@@ -407,11 +407,11 @@ class SSHSession(Session):
                 self._transport._preferred_keys = [x.key.get_name() for x in known_host_keys_for_this_host._entries]
 
         # If we need to connect with a specific hostkey, negotiate for only its type
-        if hostkey:
+        if hostkey_b64:
             hostkey_obj = None
             for key_cls in [paramiko.DSSKey, paramiko.Ed25519Key, paramiko.RSAKey, paramiko.ECDSAKey]:
                 try:
-                    hostkey_obj = key_cls(data=base64.b64decode(hostkey))
+                    hostkey_obj = key_cls(data=base64.b64decode(hostkey_b64))
                 except paramiko.SSHException as e:
                     # Not a key of this type - try the next
                     pass
@@ -449,7 +449,7 @@ class SSHSession(Session):
             key_filenames = key_filename
 
         # If hostkey specified, remote host /must/ use that hostkey
-        if hostkey:
+        if hostkey_b64:
             if( hostkey_obj.get_name() != server_key_obj.get_name() or
                 hostkey_obj.asbytes() != server_key_obj.asbytes()):
                     raise SSHUnknownHostError(known_hosts_lookup, fingerprint)
