@@ -394,20 +394,8 @@ class SSHSession(Session):
         if config.get("compression") == 'yes':
             self._transport.use_compression()
 
-        # Set preferred host keys, to those we possess for the host
-        # Otherwise may have a situation where known_hosts contains a valid key for the host,
-        # but that key is not selected during negotiation
-        if self._host_keys:
-            if port == PORT_SSH_DEFAULT:
-                known_hosts_lookup = host
-            else:
-                known_hosts_lookup = '[%s]:%s' % (host, port)
-            known_host_keys_for_this_host = self._host_keys.lookup(known_hosts_lookup)
-            if known_host_keys_for_this_host:
-                self._transport._preferred_keys = [x.key.get_name() for x in known_host_keys_for_this_host._entries]
-
-        # If we need to connect with a specific hostkey, negotiate for only its type
         if hostkey_b64:
+            # If we need to connect with a specific hostkey, negotiate for only its type
             hostkey_obj = None
             for key_cls in [paramiko.DSSKey, paramiko.Ed25519Key, paramiko.RSAKey, paramiko.ECDSAKey]:
                 try:
@@ -419,6 +407,17 @@ class SSHSession(Session):
                 # We've tried all known host key types and haven't found a suitable one to use - bail
                 raise e
             self._transport._preferred_keys = [hostkey_obj.get_name()]
+        elif self._host_keys:
+            # Else set preferred host keys to those we possess for the host
+            # (avoids situation where known_hosts contains a valid key for the host, but that key type is not selected during negotiation)
+            if port == PORT_SSH_DEFAULT:
+                known_hosts_lookup = host
+            else:
+                known_hosts_lookup = '[%s]:%s' % (host, port)
+            known_host_keys_for_this_host = self._host_keys.lookup(known_hosts_lookup)
+            if known_host_keys_for_this_host:
+                self._transport._preferred_keys = [x.key.get_name() for x in known_host_keys_for_this_host._entries]
+
 
         # Connect
         try:
