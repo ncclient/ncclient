@@ -32,10 +32,9 @@ from ncclient.logging_ import SessionLoggerAdapter
 
 import paramiko
 
-from ncclient.transport.errors import AuthenticationError, SessionCloseError, SSHError, SSHUnknownHostError
+from ncclient.transport.errors import AuthenticationError, SessionCloseError, SSHError, SSHUnknownHostError, NetconfFramingError
 from ncclient.transport.session import Session
 from ncclient.transport.session import NetconfBase
-from ncclient.xml_ import *
 
 import logging
 logger = logging.getLogger("ncclient.transport.ssh")
@@ -76,12 +75,14 @@ def default_unknown_host_cb(host, fingerprint):
     """
     return False
 
+
 def _colonify(fp):
     fp = fp.decode('UTF-8')
     finga = fp[:2]
-    for idx  in range(2, len(fp), 2):
+    for idx in range(2, len(fp), 2):
         finga += ":" + fp[idx:idx+2]
     return finga
+
 
 if sys.version < '3':
     def textify(buf):
@@ -287,7 +288,6 @@ class SSHSession(Session):
         self._channel = None
         self._connected = False
 
-
     # REMEMBER to update transport.rst if sig. changes, since it is hardcoded there
     def connect(
             self,
@@ -399,12 +399,12 @@ class SSHSession(Session):
             for key_cls in [paramiko.DSSKey, paramiko.Ed25519Key, paramiko.RSAKey, paramiko.ECDSAKey]:
                 try:
                     hostkey_obj = key_cls(data=base64.b64decode(hostkey_b64))
-                except paramiko.SSHException as e:
+                except paramiko.SSHException:
                     # Not a key of this type - try the next
                     pass
             if not hostkey_obj:
                 # We've tried all known host key types and haven't found a suitable one to use - bail
-                raise e
+                raise SSHError("Couldn't find suitable paramiko key class for host key %s" % hostkey_b64)
             self._transport._preferred_keys = [hostkey_obj.get_name()]
         elif self._host_keys:
             # Else set preferred host keys to those we possess for the host
@@ -417,12 +417,10 @@ class SSHSession(Session):
             if known_host_keys_for_this_host:
                 self._transport._preferred_keys = [x.key.get_name() for x in known_host_keys_for_this_host._entries]
 
-
         # Connect
         try:
             self._transport.start_client()
         except paramiko.SSHException as e:
-            # Raise SSHError, with original error message from paramiko
             raise SSHError('Negotiation failed: ' % e)
 
         server_key_obj = self._transport.get_remote_server_key()
@@ -440,7 +438,7 @@ class SSHSession(Session):
 
             if hostkey_b64:
                 # If hostkey specified, remote host /must/ use that hostkey
-                if( hostkey_obj.get_name()==server_key_obj.get_name() and hostkey_obj.asbytes()==server_key_obj.asbytes()):
+                if(hostkey_obj.get_name() == server_key_obj.get_name() and hostkey_obj.asbytes() == server_key_obj.asbytes()):
                     is_known_host = True
             else:
                 # Check known_hosts
@@ -449,18 +447,17 @@ class SSHSession(Session):
             if not is_known_host and not unknown_host_cb(host, fingerprint):
                 raise SSHUnknownHostError(known_hosts_lookup, fingerprint)
 
-
         # Authenticating with our private key/identity
         if key_filename is None:
             key_filenames = []
         elif isinstance(key_filename, (str, bytes)):
-            key_filenames = [ key_filename ]
+            key_filenames = [key_filename]
         else:
             key_filenames = key_filename
 
         self._auth(username, password, key_filenames, allow_agent, look_for_keys)
 
-        self._connected = True # there was no error authenticating
+        self._connected = True      # there was no error authenticating
         self._closing.clear()
 
         # TODO: leopoul: Review, test, and if needed rewrite this part
@@ -477,7 +474,7 @@ class SSHSession(Session):
                 handle_exception = self._device_handler.handle_connection_exceptions(self)
                 # Ignore the exception, since we continue to try the different
                 # subsystem names until we find one that can connect.
-                #have to handle exception for each vendor here
+                # have to handle exception for each vendor here
                 if not handle_exception:
                     continue
             self._channel_name = self._channel.get_name()
@@ -565,7 +562,7 @@ class SSHSession(Session):
         chan = self._channel
         q = self._q
 
-        def start_delim(data_len): return '\n#%s\n'%(data_len)
+        def start_delim(data_len): return '\n#%s\n' % (data_len)
 
         try:
             s = selectors.DefaultSelector()
