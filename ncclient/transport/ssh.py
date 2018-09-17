@@ -21,7 +21,6 @@ import re
 import threading
 import base64
 from binascii import hexlify
-from lxml import etree
 
 try:
     import selectors
