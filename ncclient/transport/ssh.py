@@ -416,7 +416,7 @@ class SSHSession(Session):
                     # Not a key of this type - try the next
                     pass
             if not hostkey_obj:
-                # We've tried all known host key types and haven't found which one to use - bail
+                # We've tried all known host key types and haven't found a suitable one to use - bail
                 raise e
             self._transport._preferred_keys = [hostkey_obj.get_name()]
 
@@ -426,34 +426,39 @@ class SSHSession(Session):
         except paramiko.SSHException as e:
             # Raise SSHError, with original error message from paramiko
             raise SSHError('Negotiation failed: ' % e)
+
         server_key_obj = self._transport.get_remote_server_key()
         fingerprint = _colonify(hexlify(server_key_obj.get_fingerprint()))
 
-        # For looking up entries for nonstandard (22) ssh ports in known_hosts
-        # we enclose host in brackets and append port number
-        if port == PORT_SSH_DEFAULT:
-            known_hosts_lookup = host
-        else:
-            known_hosts_lookup = '[%s]:%s' % (host, port)
-
         if hostkey_verify:
-            is_known_host = self._host_keys.check(known_hosts_lookup, server_key_obj)
+            is_known_host = False
+
+            # For looking up entries for nonstandard (22) ssh ports in known_hosts
+            # we enclose host in brackets and append port number
+            if port == PORT_SSH_DEFAULT:
+                known_hosts_lookup = host
+            else:
+                known_hosts_lookup = '[%s]:%s' % (host, port)
+
+            if hostkey_b64:
+                # If hostkey specified, remote host /must/ use that hostkey
+                if( hostkey_obj.get_name()==server_key_obj.get_name() and hostkey_obj.asbytes()==server_key_obj.asbytes()):
+                    is_known_host = True
+            else:
+                # Check known_hosts
+                is_known_host = self._host_keys.check(known_hosts_lookup, server_key_obj)
 
             if not is_known_host and not unknown_host_cb(host, fingerprint):
                 raise SSHUnknownHostError(known_hosts_lookup, fingerprint)
 
+
+        # Authenticating with our private key/identity
         if key_filename is None:
             key_filenames = []
         elif isinstance(key_filename, (str, bytes)):
             key_filenames = [ key_filename ]
         else:
             key_filenames = key_filename
-
-        # If hostkey specified, remote host /must/ use that hostkey
-        if hostkey_b64:
-            if( hostkey_obj.get_name() != server_key_obj.get_name() or
-                hostkey_obj.asbytes() != server_key_obj.asbytes()):
-                    raise SSHUnknownHostError(known_hosts_lookup, fingerprint)
 
         self._auth(username, password, key_filenames, allow_agent, look_for_keys)
 
