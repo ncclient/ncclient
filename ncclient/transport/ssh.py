@@ -169,7 +169,7 @@ class SSHSession(Session):
                 self._parsing_pos10 = 0
 
     def _parse11(self):
-        
+
         """Messages are split into chunks. Chunks and messages are delimited
         by the regex #RE_NC11_DELIM defined earlier in this file. Each
         time we get called here either a chunk delimiter or an
@@ -177,7 +177,7 @@ class SSHSession(Session):
         data. If there is not enough data, we will wait for more. If a
         delimiter is found in the wrong place, a #NetconfFramingError
         will be raised."""
-        
+
         self.logger.debug("_parse11: starting")
 
         # suck in whole string that we have (this is what we will work on in
@@ -242,7 +242,7 @@ class SSHSession(Session):
                     self.logger.debug('_parse11: not enough data for chunk yet')
                     self.logger.debug('_parse11: setting start to %d', start)
                     break
-                
+
         # Now out of the loop, need to see if we need to save back any content
         if start > 0:
             self.logger.debug(
@@ -312,7 +312,7 @@ class SSHSession(Session):
 
         *host* is the hostname or IP address to connect to
 
-        *port* is by default PORT_NETCONF_DEFAULT, but some devices use the default SSH port of 22 (PORT_SSH_DEFAULT) so this may need to be specified
+        *port* is by default 830 (PORT_NETCONF_DEFAULT), but some devices use the default SSH port of 22 (PORT_SSH_DEFAULT) so this may need to be specified
 
         *timeout* is an optional timeout for socket connect
 
@@ -419,7 +419,7 @@ class SSHSession(Session):
                 # We've tried all known host key types and haven't found which one to use - bail
                 raise e
             self._transport._preferred_keys = [hostkey_obj.get_name()]
-    
+
         # Connect
         try:
             self._transport.start_client()
@@ -429,13 +429,14 @@ class SSHSession(Session):
         server_key_obj = self._transport.get_remote_server_key()
         fingerprint = _colonify(hexlify(server_key_obj.get_fingerprint()))
 
+        # For looking up entries for nonstandard (22) ssh ports in known_hosts
+        # we enclose host in brackets and append port number
         if port == PORT_SSH_DEFAULT:
             known_hosts_lookup = host
         else:
             known_hosts_lookup = '[%s]:%s' % (host, port)
+
         if hostkey_verify:
-            # For looking up entries for nonstandard (22) ssh ports in known_hosts
-            # we enclose host in brackets and append port number
             is_known_host = self._host_keys.check(known_hosts_lookup, server_key_obj)
 
             if not is_known_host and not unknown_host_cb(host, fingerprint):
@@ -568,7 +569,7 @@ class SSHSession(Session):
             s.register(chan, selectors.EVENT_READ)
             self.logger.debug('selector type = %s', s.__class__.__name__)
             while True:
-                    
+
                 # Will wakeup evey TICK seconds to check if something
                 # to send, more quickly if something to read (due to
                 # select returning chan in readable list).
