@@ -285,6 +285,8 @@ class SSHSession(Session):
         while self.is_alive() and (self is not threading.current_thread()):
             self.join(10)
 
+        if self._channel:
+            self._channel.close()
         self._channel = None
         self._connected = False
 
