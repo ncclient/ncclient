@@ -15,7 +15,7 @@ generic information needed for interaction with a Netconf server.
 
 from .default import DefaultDeviceHandler
 
-def iosxr_unknown_host_cb(host, fingerprint):
+def clixon_unknown_host_cb(host, fingerprint):
         #This will ignore the unknown host check when connecting to Clixon based devices
         return True
 
