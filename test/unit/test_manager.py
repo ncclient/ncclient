@@ -20,6 +20,24 @@ class TestManager(unittest.TestCase):
         mock_ssh.assert_called_once_with(host='host')
 
     @patch('ncclient.manager.connect_ssh')
+    def test_connect_ssh_with_hostkey_ed25519(self, mock_ssh):
+        hostkey = 'AAAAC3NzaC1lZDI1NTE5AAAAIIiHpGSf8fla6tCwLpwshvMGmUK+B/0v5CsRu+5v4uT7'
+        manager.connect(host='host', hostkey=hostkey)
+        mock_ssh.assert_called_once_with(host='host', hostkey=hostkey)
+
+    @patch('ncclient.manager.connect_ssh')
+    def test_connect_ssh_with_hostkey_ecdsa(self, mock_ssh):
+        hostkey = 'AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFJV9xLkuntH3Ry0GmK4FjYlW+01Ik4j/gbW+i3yIx+YEkF0B3iM7kiyDPqvmOPuVGfW+gq5oQzzdvHKspNkw70='
+        manager.connect(host='host', hostkey=hostkey)
+        mock_ssh.assert_called_once_with(host='host', hostkey=hostkey)
+
+    @patch('ncclient.manager.connect_ssh')
+    def test_connect_ssh_with_hostkey_rsa(self, mock_ssh):
+        hostkey = 'AAAAB3NzaC1yc2EAAAADAQABAAABAQDfEAdDrz3l8+PF510ivzWyX/pjpn3Cp6UgjJOinXz82e1LTURZhKwm8blcP8aWe8Uri65Roe6Q/H1WMaR3jFJj4UW2EZY5N+M4esPhoP/APOnDu2XNKy9AK9yD/Bu64TYgkIPQ/6FHdotcQdYTAJ+ac+YfJMp5mhVPnRIh4rlF08a0/tDHzLJVMEoXzp5nfVHcA4W3+5RRhklbct10U0jxHmG8Db9XbKiEbhWs/UMy59UpJ+zr7zLUYPRntgqqkpCyyfeHFNK1P6m3FmyT06QekOioCFmY05y65dkjAwBlaO1RKj1X1lgCirRWu4vxYBo9ewIGPZtuzeyp7jnl7kGV'
+        manager.connect(host='host', hostkey=hostkey)
+        mock_ssh.assert_called_once_with(host='host', hostkey=hostkey)
+
+    @patch('ncclient.manager.connect_ssh')
     def test_connect_outbound_ssh(self, mock_ssh):
         manager.connect(host=None, sock_fd=6)
         mock_ssh.assert_called_once_with(host=None, sock_fd=6)
