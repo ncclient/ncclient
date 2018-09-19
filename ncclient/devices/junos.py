@@ -20,11 +20,13 @@ from ncclient.operations.third_party.juniper.rpc import ExecuteRpc, Command, Reb
 from ncclient.operations.rpc import RPCError
 from ncclient.xml_ import to_ele
 
+
 class JunosDeviceHandler(DefaultDeviceHandler):
     """
     Juniper handler for device specific information.
 
     """
+
     def __init__(self, device_params):
         super(JunosDeviceHandler, self).__init__(device_params)
 
@@ -49,8 +51,9 @@ class JunosDeviceHandler(DefaultDeviceHandler):
             raw = re.sub(r'<ok/>', '</routing-engine>\n<ok/>', raw)
             return raw
         # check if error is during capabilites exchange itself
-        elif re.search('\<rpc-reply\>.*?\</rpc-reply\>.*\</hello\>?', raw, re.M|re.S):
-            errs = re.findall('\<rpc-error\>.*?\</rpc-error\>', raw, re.M|re.S)
+        elif re.search('\<rpc-reply\>.*?\</rpc-reply\>.*\</hello\>?', raw, re.M | re.S):
+            errs = re.findall(
+                '\<rpc-error\>.*?\</rpc-error\>', raw, re.M | re.S)
             err_list = []
             if errs:
                 add_ns = """
@@ -68,16 +71,17 @@ class JunosDeviceHandler(DefaultDeviceHandler):
                     xslt = etree.XSLT(etree.XML(add_ns))
                     transformed_xml = etree.XML(etree.tostring(xslt(doc)))
                     err_list.append(RPCError(transformed_xml))
-                return RPCError(to_ele(''.join(errs)), err_list)
+                return RPCError(to_ele("<rpc-reply>"+''.join(errs)+"</rpc-reply>"), err_list)
         else:
             return False
 
     def handle_connection_exceptions(self, sshsession):
-        c = sshsession._channel = sshsession._transport.open_channel(kind="session")
+        c = sshsession._channel = sshsession._transport.open_channel(
+            kind="session")
         c.set_name("netconf-command-" + str(sshsession._channel_id))
         c.exec_command("xml-mode netconf need-trailer")
         return True
-    
+
     def transform_reply(self):
         reply = '''<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
         <xsl:output method="xml" indent="no"/>
