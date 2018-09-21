@@ -165,6 +165,7 @@ class RPCReply(object):
     @property
     def ok(self):
         "Boolean value indicating if there were no errors."
+        self.parse()
         return not self.errors # empty list => false
 
     @property
