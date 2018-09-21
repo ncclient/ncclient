@@ -421,7 +421,7 @@ class SSHSession(Session):
         try:
             self._transport.start_client()
         except paramiko.SSHException as e:
-            raise SSHError('Negotiation failed: ' % e)
+            raise SSHError('Negotiation failed: %s' % e)
 
         server_key_obj = self._transport.get_remote_server_key()
         fingerprint = _colonify(hexlify(server_key_obj.get_fingerprint()))
