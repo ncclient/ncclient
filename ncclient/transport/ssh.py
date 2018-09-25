@@ -19,8 +19,8 @@ import socket
 import getpass
 import re
 import threading
+import base64
 from binascii import hexlify
-from lxml import etree
 
 try:
     import selectors
@@ -32,13 +32,15 @@ from ncclient.logging_ import SessionLoggerAdapter
 
 import paramiko
 
-from ncclient.transport.errors import AuthenticationError, SessionCloseError, SSHError, SSHUnknownHostError
+from ncclient.transport.errors import AuthenticationError, SessionCloseError, SSHError, SSHUnknownHostError, NetconfFramingError
 from ncclient.transport.session import Session
 from ncclient.transport.session import NetconfBase
-from ncclient.xml_ import *
 
 import logging
 logger = logging.getLogger("ncclient.transport.ssh")
+
+PORT_NETCONF_DEFAULT = 830
+PORT_SSH_DEFAULT = 22
 
 BUF_SIZE = 4096
 # v1.0: RFC 4742
@@ -73,12 +75,14 @@ def default_unknown_host_cb(host, fingerprint):
     """
     return False
 
+
 def _colonify(fp):
     fp = fp.decode('UTF-8')
     finga = fp[:2]
-    for idx  in range(2, len(fp), 2):
+    for idx in range(2, len(fp), 2):
         finga += ":" + fp[idx:idx+2]
     return finga
+
 
 if sys.version < '3':
     def textify(buf):
@@ -165,7 +169,7 @@ class SSHSession(Session):
                 self._parsing_pos10 = 0
 
     def _parse11(self):
-        
+
         """Messages are split into chunks. Chunks and messages are delimited
         by the regex #RE_NC11_DELIM defined earlier in this file. Each
         time we get called here either a chunk delimiter or an
@@ -173,7 +177,7 @@ class SSHSession(Session):
         data. If there is not enough data, we will wait for more. If a
         delimiter is found in the wrong place, a #NetconfFramingError
         will be raised."""
-        
+
         self.logger.debug("_parse11: starting")
 
         # suck in whole string that we have (this is what we will work on in
@@ -238,7 +242,7 @@ class SSHSession(Session):
                     self.logger.debug('_parse11: not enough data for chunk yet')
                     self.logger.debug('_parse11: setting start to %d', start)
                     break
-                
+
         # Now out of the loop, need to see if we need to save back any content
         if start > 0:
             self.logger.debug(
@@ -284,11 +288,22 @@ class SSHSession(Session):
         self._channel = None
         self._connected = False
 
-
     # REMEMBER to update transport.rst if sig. changes, since it is hardcoded there
-    def connect(self, host, port=830, timeout=None, unknown_host_cb=default_unknown_host_cb,
-                username=None, password=None, key_filename=None, allow_agent=True,
-                hostkey_verify=True, look_for_keys=True, ssh_config=None, sock_fd=None):
+    def connect(
+            self,
+            host,
+            port                = PORT_NETCONF_DEFAULT,
+            timeout             = None,
+            unknown_host_cb     = default_unknown_host_cb,
+            username            = None,
+            password            = None,
+            key_filename        = None,
+            allow_agent         = True,
+            hostkey_verify      = True,
+            hostkey_b64         = None,
+            look_for_keys       = True,
+            ssh_config          = None,
+            sock_fd             = None):
 
         """Connect via SSH and initialize the NETCONF session. First attempts the publickey authentication method and then password authentication.
 
@@ -296,7 +311,7 @@ class SSHSession(Session):
 
         *host* is the hostname or IP address to connect to
 
-        *port* is by default 830, but some devices use the default SSH port of 22 so this may need to be specified
+        *port* is by default 830 (PORT_NETCONF_DEFAULT), but some devices use the default SSH port of 22 (PORT_SSH_DEFAULT) so this may need to be specified
 
         *timeout* is an optional timeout for socket connect
 
@@ -311,6 +326,8 @@ class SSHSession(Session):
         *allow_agent* enables querying SSH agent (if found) for keys
 
         *hostkey_verify* enables hostkey verification from ~/.ssh/known_hosts
+
+        *hostkey_b64* only connect when server presents a public hostkey matching this (obtain from server /etc/ssh/ssh_host_*pub or ssh-keyscan)
 
         *look_for_keys* enables looking in the usual locations for ssh keys (e.g. :file:`~/.ssh/id_*`)
 
@@ -371,55 +388,96 @@ class SSHSession(Session):
                 sock = socket.fromfd(int(sock_fd), socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(timeout)
 
-        t = self._transport = paramiko.Transport(sock)
-        t.set_log_channel(logger.name)
+        self._transport = paramiko.Transport(sock)
+        self._transport.set_log_channel(logger.name)
         if config.get("compression") == 'yes':
-            t.use_compression()
+            self._transport.use_compression()
 
+        if hostkey_b64:
+            # If we need to connect with a specific hostkey, negotiate for only its type
+            hostkey_obj = None
+            for key_cls in [paramiko.DSSKey, paramiko.Ed25519Key, paramiko.RSAKey, paramiko.ECDSAKey]:
+                try:
+                    hostkey_obj = key_cls(data=base64.b64decode(hostkey_b64))
+                except paramiko.SSHException:
+                    # Not a key of this type - try the next
+                    pass
+            if not hostkey_obj:
+                # We've tried all known host key types and haven't found a suitable one to use - bail
+                raise SSHError("Couldn't find suitable paramiko key class for host key %s" % hostkey_b64)
+            self._transport._preferred_keys = [hostkey_obj.get_name()]
+        elif self._host_keys:
+            # Else set preferred host keys to those we possess for the host
+            # (avoids situation where known_hosts contains a valid key for the host, but that key type is not selected during negotiation)
+            if port == PORT_SSH_DEFAULT:
+                known_hosts_lookup = host
+            else:
+                known_hosts_lookup = '[%s]:%s' % (host, port)
+            known_host_keys_for_this_host = self._host_keys.lookup(known_hosts_lookup)
+            if known_host_keys_for_this_host:
+                self._transport._preferred_keys = [x.key.get_name() for x in known_host_keys_for_this_host._entries]
+
+        # Connect
         try:
-            t.start_client()
-        except paramiko.SSHException:
-            raise SSHError('Negotiation failed')
+            self._transport.start_client()
+        except paramiko.SSHException as e:
+            raise SSHError('Negotiation failed: %s' % e)
 
-        # host key verification
-        server_key = t.get_remote_server_key()
-
-        fingerprint = _colonify(hexlify(server_key.get_fingerprint()))
+        server_key_obj = self._transport.get_remote_server_key()
+        fingerprint = _colonify(hexlify(server_key_obj.get_fingerprint()))
 
         if hostkey_verify:
-            known_host = self._host_keys.check(host, server_key)
-            if not known_host and not unknown_host_cb(host, fingerprint):
-                raise SSHUnknownHostError(host, fingerprint)
+            is_known_host = False
 
+            # For looking up entries for nonstandard (22) ssh ports in known_hosts
+            # we enclose host in brackets and append port number
+            if port == PORT_SSH_DEFAULT:
+                known_hosts_lookup = host
+            else:
+                known_hosts_lookup = '[%s]:%s' % (host, port)
+
+            if hostkey_b64:
+                # If hostkey specified, remote host /must/ use that hostkey
+                if(hostkey_obj.get_name() == server_key_obj.get_name() and hostkey_obj.asbytes() == server_key_obj.asbytes()):
+                    is_known_host = True
+            else:
+                # Check known_hosts
+                is_known_host = self._host_keys.check(known_hosts_lookup, server_key_obj)
+
+            if not is_known_host and not unknown_host_cb(host, fingerprint):
+                raise SSHUnknownHostError(known_hosts_lookup, fingerprint)
+
+        # Authenticating with our private key/identity
         if key_filename is None:
             key_filenames = []
         elif isinstance(key_filename, (str, bytes)):
-            key_filenames = [ key_filename ]
+            key_filenames = [key_filename]
         else:
             key_filenames = key_filename
 
         self._auth(username, password, key_filenames, allow_agent, look_for_keys)
 
-        self._connected = True # there was no error authenticating
+        self._connected = True      # there was no error authenticating
         self._closing.clear()
+
         # TODO: leopoul: Review, test, and if needed rewrite this part
         subsystem_names = self._device_handler.get_ssh_subsystem_names()
         for subname in subsystem_names:
-            c = self._channel = self._transport.open_session()
-            self._channel_id = c.get_id()
+            self._channel = self._transport.open_session()
+            self._channel_id = self._channel.get_id()
             channel_name = "%s-subsystem-%s" % (subname, str(self._channel_id))
-            c.set_name(channel_name)
+            self._channel.set_name(channel_name)
             try:
-                c.invoke_subsystem(subname)
+                self._channel.invoke_subsystem(subname)
             except paramiko.SSHException as e:
                 self.logger.info("%s (subsystem request rejected)", e)
                 handle_exception = self._device_handler.handle_connection_exceptions(self)
                 # Ignore the exception, since we continue to try the different
                 # subsystem names until we find one that can connect.
-                #have to handle exception for each vendor here
+                # have to handle exception for each vendor here
                 if not handle_exception:
                     continue
-            self._channel_name = c.get_name()
+            self._channel_name = self._channel.get_name()
             self._post_connect()
             return
         raise SSHError("Could not open connection, possibly due to unacceptable"
@@ -504,14 +562,14 @@ class SSHSession(Session):
         chan = self._channel
         q = self._q
 
-        def start_delim(data_len): return '\n#%s\n'%(data_len)
+        def start_delim(data_len): return '\n#%s\n' % (data_len)
 
         try:
             s = selectors.DefaultSelector()
             s.register(chan, selectors.EVENT_READ)
             self.logger.debug('selector type = %s', s.__class__.__name__)
             while True:
-                    
+
                 # Will wakeup evey TICK seconds to check if something
                 # to send, more quickly if something to read (due to
                 # select returning chan in readable list).
