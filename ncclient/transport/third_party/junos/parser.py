@@ -160,12 +160,14 @@ class SAXParser(ContentHandler):
             rpc_msg_id = attributes._attrs['message-id']
             if rpc_msg_id in rpc_reply_listner[0]._id2rpc:
                 rpc_reply_handler = rpc_reply_listner[0]._id2rpc[rpc_msg_id]
-                if rpc_reply_handler._filter_xml is not None:
-                    self._cur = self._root = _get_sax_parser_root(rpc_reply_handler._filter_xml)
+                if hasattr(rpc_reply_handler, '_filter_xml') and \
+                        rpc_reply_handler._filter_xml is not None:
+                    self._cur = self._root = _get_sax_parser_root(
+                        rpc_reply_handler._filter_xml)
                     self._use_filter = True
                 else:
-                    # in case last rpc called used sax parsing and error'd out without resetting
-                    # use_filer in endElement rpc-reply check
+                    # in case last rpc called used sax parsing and error'd out
+                    # without resetting use_filer in endElement rpc-reply check
                     self._use_filter = False
         if self._use_filter:
             if self._ignoretag is not None:
