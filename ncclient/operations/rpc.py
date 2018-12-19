@@ -296,6 +296,7 @@ class RPC(object):
         self._event = Event()
         self._device_handler = device_handler
         self.logger = SessionLoggerAdapter(logger, {'session': session})
+        self._filter_xml = None  # to be used for sax parsing
 
 
     def _wrap(self, subele):
@@ -303,7 +304,6 @@ class RPC(object):
         ele = new_ele("rpc", {"message-id": self._id},
                       **self._device_handler.get_xml_extra_prefix_kwargs())
         ele.append(subele)
-        #print to_xml(ele)
         return to_xml(ele)
 
     def _request(self, op):
@@ -314,6 +314,8 @@ class RPC(object):
         In asynchronous mode, returns immediately, returning `self`. The :attr:`event` attribute will be set when the reply has been received (see :attr:`reply`) or an error occured (see :attr:`error`).
 
         *op* is the operation to be requested as an :class:`~xml.etree.ElementTree.Element`
+
+        *filter_xml* input xml of type :class:`~xml.etree.ElementTree.Element` for sax parsing.
         """
         self.logger.info('Requesting %r', self.__class__.__name__)
         req = self._wrap(op)

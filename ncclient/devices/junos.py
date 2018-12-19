@@ -19,6 +19,8 @@ from ncclient.operations.third_party.juniper.rpc import GetConfiguration, LoadCo
 from ncclient.operations.third_party.juniper.rpc import ExecuteRpc, Command, Reboot, Halt, Commit, Rollback
 from ncclient.operations.rpc import RPCError
 from ncclient.xml_ import to_ele
+from ncclient.transport.third_party.junos.parser import JunosXMLParser
+from ncclient.transport.parser import DefaultXMLParser
 
 
 class JunosDeviceHandler(DefaultDeviceHandler):
@@ -110,3 +112,10 @@ class JunosDeviceHandler(DefaultDeviceHandler):
             return reply
         else:
             return reply.encode('UTF-8')
+
+    def get_xml_parser(self, session):
+        # use_sax_filter can be used to disable default SAX parsing
+        if self.device_params.get('use_filter', True):
+            return JunosXMLParser(session)
+        else:
+            return DefaultXMLParser(session)

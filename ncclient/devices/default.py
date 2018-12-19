@@ -22,9 +22,13 @@ All device-specific handlers derive from the DefaultDeviceHandler, which impleme
 generic information needed for interaction with a Netconf server.
 
 """
+
+from ncclient.transport.parser import DefaultXMLParser
+
 import sys
 if sys.version >= '3':
     xrange = range
+
 
 class DefaultDeviceHandler(object):
     """
@@ -221,3 +225,13 @@ class DefaultDeviceHandler(object):
 
     def transform_reply(self):
         return False
+
+    def get_xml_parser(self, session):
+        """
+        vendor can chose which parser to use for RPC reply response.
+        Default being DOM
+
+        :param session: ssh session onject
+        :return: default DOM parser
+        """
+        return DefaultXMLParser(session)

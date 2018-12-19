@@ -34,16 +34,20 @@ class LoadConfiguration(RPC):
                 config_node = sub_ele(node, 'configuration-set').text = config
             return self._request(node)
 
+
 class CompareConfiguration(RPC):
     def request(self, rollback=0):
         node = new_ele('get-configuration', {'compare':'rollback', 'rollback':str(rollback)})
         return self._request(node)
 
+
 class ExecuteRpc(RPC):
-    def request(self, rpc):
+    def request(self, rpc, filter_xml=None):
         if isinstance(rpc, str):
             rpc = to_ele(rpc)
+        self._filter_xml = filter_xml
         return self._request(rpc)
+
 
 class Command(RPC):
     def request(self, command=None, format='xml'):
@@ -51,15 +55,18 @@ class Command(RPC):
         node.text = command
         return self._request(node)
 
+
 class Reboot(RPC):
     def request(self):
         node = new_ele('request-reboot')
         return self._request(node)
 
+
 class Halt(RPC):
     def request(self):
         node = new_ele('request-halt')
         return self._request(node)
+
 
 class Commit(RPC):
     "`commit` RPC. Depends on the `:candidate` capability, and the `:confirmed-commit`."
