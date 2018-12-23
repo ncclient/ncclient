@@ -605,10 +605,9 @@ class SSHSession(Session):
                             raise SessionCloseError(self._buffer.getvalue(), data)
                         data = data[n:]
         except Exception as e:
-            raise e
-            #self.logger.debug("Broke out of main loop, error=%r", e)
-            #self._dispatch_error(e)
-            #self.close()
+            self.logger.debug("Broke out of main loop, error=%r", e)
+            self._dispatch_error(e)
+            self.close()
 
     @property
     def host(self):
