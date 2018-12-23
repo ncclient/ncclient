@@ -11,15 +11,16 @@ All device-specific handlers derive from the DefaultDeviceHandler, which impleme
 generic information needed for interaction with a Netconf server.
 
 """
-
-
 from .default import DefaultDeviceHandler
-
 from ncclient.operations.third_party.iosxe.rpc import SaveConfig
+from ncclient.operations.third_party.iosxe.rpc import EstablishSubscription
+from ncclient.operations.third_party.iosxe.rpc import DeleteSubscription
+
 
 def iosxe_unknown_host_cb(host, fingerprint):
         #This will ignore the unknown host check when connecting to CSR devices
         return True
+
 
 class IosxeDeviceHandler(DefaultDeviceHandler):
     """
@@ -32,6 +33,8 @@ class IosxeDeviceHandler(DefaultDeviceHandler):
     def add_additional_operations(self):
         dict = {}
         dict["save_config"] = SaveConfig
+        dict["establish_subscription"] = EstablishSubscription
+        dict["delete_subscription"] = DeleteSubscription
         return dict
         
     def add_additional_ssh_connect_params(self, kwargs):

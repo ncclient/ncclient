@@ -67,6 +67,12 @@ H3C_ACTION_1_0 = "http://www.h3c.com/netconf/action:1.0"
 NETCONF_MONITORING_NS = "urn:ietf:params:xml:ns:yang:ietf-netconf-monitoring"
 #: Namespace for netconf notifications
 NETCONF_NOTIFICATION_NS = "urn:ietf:params:xml:ns:netconf:notification:1.0"
+#: Namespace for ietf-netconf-notifications
+IETF_NETCONF_NOTIFICATIONS_NS = "urn:ietf:params:xml:ns:yang:ietf-netconf-notifications"
+#: Namespace for ietf-event-notifications
+IETF_EVENT_NOTIFICATIONS_NS = "urn:ietf:params:xml:ns:yang:ietf-event-notifications"
+#: Namespace for ietf-yang-push
+IETF_YANG_PUSH_NS = "urn:ietf:params:xml:ns:yang:ietf-yang-push"
 #: Namespace for netconf with-defaults (RFC 6243)
 NETCONF_WITH_DEFAULTS_NS = "urn:ietf:params:xml:ns:yang:ietf-netconf-with-defaults"
 #

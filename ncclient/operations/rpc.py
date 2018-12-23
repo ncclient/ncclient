@@ -157,6 +157,10 @@ class RPCReply(object):
         "No-op by default. Gets passed the *root* element for the reply."
         pass
 
+    def _post_process(self, original_rpc):
+        '''No-op by default. Gets passed the original RPC we got a reply to.'''
+        pass
+
     @property
     def xml(self):
         "*rpc-reply* element as returned."
@@ -306,17 +310,32 @@ class RPC(object):
         #print to_xml(ele)
         return to_xml(ele)
 
-    def _request(self, op):
+    def _request(self, op, raw_xml=None):
         """Implementations of :meth:`request` call this method to send the request and process the reply.
 
-        In synchronous mode, blocks until the reply is received and returns :class:`RPCReply`. Depending on the :attr:`raise_mode` a `rpc-error` element in the reply may lead to an :exc:`RPCError` exception.
+        In synchronous mode, blocks until the reply is received and
+        returns :class:`RPCReply`. Depending on the :attr:`raise_mode`
+        a `rpc-error` element in the reply may lead to an
+        :exc:`RPCError` exception.
 
-        In asynchronous mode, returns immediately, returning `self`. The :attr:`event` attribute will be set when the reply has been received (see :attr:`reply`) or an error occured (see :attr:`error`).
+        In asynchronous mode, returns immediately, returning
+        `self`. The :attr:`event` attribute will be set when the reply
+        has been received (see :attr:`reply`) or an error occured (see
+        :attr:`error`).
 
-        *op* is the operation to be requested as an :class:`~xml.etree.ElementTree.Element`
+        *op* is the operation to be requested as an
+        :class:`~xml.etree.ElementTree.Element`
+
+        *raw_xml* is the ability to send a raw XML string for the
+        RPC. Used if the default marshaling cannot handle the message
+        requirements.
+
         """
         self.logger.info('Requesting %r', self.__class__.__name__)
-        req = self._wrap(op)
+        if op is not None:
+            req = self._wrap(op)
+        else:
+            req = raw_xml
         self._session.send(req)
         if self._async:
             self.logger.debug('Async request, returning %r', self)
@@ -329,6 +348,7 @@ class RPC(object):
                     # Error that prevented reply delivery
                     raise self._error
                 self._reply.parse()
+                self._reply._post_process(self)
                 if self._reply.error is not None and not self._device_handler.is_rpc_error_exempt(self._reply.error.message):
                     # <rpc-error>'s [ RPCError ]
 
