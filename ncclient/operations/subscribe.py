@@ -16,6 +16,7 @@ from ncclient.operations.rpc import RPC
 from ncclient.xml_ import *
 from ncclient.operations import util
 from ncclient.operations.errors import AlreadyHasEventListener
+from ncclient.transport.session import NotificationHandler
 
 
 class CreateSubscription(RPC):
