@@ -114,7 +114,7 @@ class JunosDeviceHandler(DefaultDeviceHandler):
             return reply.encode('UTF-8')
 
     def get_xml_parser(self, session):
-        # use_sax_filter can be used to disable default SAX parsing
+        # use_filter in device_params can be used to disable using SAX parsing
         if self.device_params.get('use_filter', True):
             return JunosXMLParser(session)
         else:

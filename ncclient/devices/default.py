@@ -231,7 +231,7 @@ class DefaultDeviceHandler(object):
         vendor can chose which parser to use for RPC reply response.
         Default being DOM
 
-        :param session: ssh session onject
+        :param session: ssh session object
         :return: default DOM parser
         """
         return DefaultXMLParser(session)

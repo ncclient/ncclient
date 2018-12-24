@@ -42,6 +42,8 @@ class JunosXMLParser(DefaultXMLParser):
         self._session = session
         self.sax_parser = make_parser()
         self.sax_parser.setContentHandler(SAXParser(session))
+        # To handle case when incoming data does not contain MSG_DELIM
+        self._wait_for_delimiter_data = (False, '')
 
     def parse(self, data):
         try:
@@ -75,8 +77,17 @@ class JunosXMLParser(DefaultXMLParser):
             self._session._buffer.seek(0, os.SEEK_END)
             self._session._buffer.write(remaining.encode())
         else:
-            # need to test what all case can come here
-            pass
+            # When data is "-reply/>]]>" or "]]>"
+            # Data is not full MSG_DELIM, So check if last rpc reply is complete.
+            # if then, wait for next iteration of data and do a recursive call to
+            # _delimiter_check for MSG_DELIM check
+            buf = self._session._buffer
+            rpc_response_last_msg = buf.read(
+                buf.tell() - RPC_REPLY_END_TAG_LEN).decode('UTF-8')
+            if RPC_REPLY_END_TAG in rpc_response_last_msg:
+                self._wait_for_delimiter_data = (True, self._wait_for_delimiter_data[1]+data)
+            if self._wait_for_delimiter_data[0]:
+                self._delimiter_check(self._wait_for_delimiter_data[1])
 
 
 def __dict_replace(s, d):
@@ -127,7 +138,7 @@ def quoteattr(data, entities={}):
     the optional entities parameter.  The keys and values must all be
     strings; each key will be replaced with its corresponding value.
     """
-    entities = entities.copy()
+    # entities = entities.copy()
     entities.update({'\n': '&#10;', '\r': '&#13;', '\t':'&#9;'})
     data = escape(data, entities)
     if '"' in data:
@@ -153,22 +164,21 @@ class SAXParser(ContentHandler):
 
     def startElement(self, tag, attributes):
         if tag == 'rpc-reply':
+            # in case last rpc called used sax parsing and error'd out
+            # without resetting use_filer in endElement rpc-reply check
+            self._use_filter = False
             with self._lock:
-                listners = list(self._session._listeners)
-            rpc_reply_listner = [i for i in listners if
+                listeners = list(self._session._listeners)
+            rpc_reply_listener = [i for i in listeners if
                                  isinstance(i, rpc.RPCReplyListener)]
             rpc_msg_id = attributes._attrs['message-id']
-            if rpc_msg_id in rpc_reply_listner[0]._id2rpc:
-                rpc_reply_handler = rpc_reply_listner[0]._id2rpc[rpc_msg_id]
+            if rpc_msg_id in rpc_reply_listener[0]._id2rpc:
+                rpc_reply_handler = rpc_reply_listener[0]._id2rpc[rpc_msg_id]
                 if hasattr(rpc_reply_handler, '_filter_xml') and \
                         rpc_reply_handler._filter_xml is not None:
                     self._cur = self._root = _get_sax_parser_root(
                         rpc_reply_handler._filter_xml)
                     self._use_filter = True
-                else:
-                    # in case last rpc called used sax parsing and error'd out
-                    # without resetting use_filer in endElement rpc-reply check
-                    self._use_filter = False
         if self._use_filter:
             if self._ignoretag is not None:
                 return
