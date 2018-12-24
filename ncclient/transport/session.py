@@ -274,7 +274,7 @@ class HelloHandler(SessionListener):
             elif child.tag == qualify("capabilities") or child.tag == "capabilities" :
                 for cap in child.getchildren():
                     if cap.tag == qualify("capability") or cap.tag == "capability":
-                        capabilities.append(cap.text)
+                        capabilities.append(cap.text.strip())
         return sid, Capabilities(capabilities)
 
 

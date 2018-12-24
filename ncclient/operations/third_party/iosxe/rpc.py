@@ -141,7 +141,7 @@ class EstablishSubscription(RPC):
     
     "`establish-subscription` RPC"
 
-    # DEPENDS = [':ietf-yang-push']
+    DEPENDS = ['urn:ietf:params:netconf:capability:notification:1.1']
     REPLY_CLS = EstablishSubscriptionReply
     
     def request(self, callback, errback,
@@ -270,7 +270,7 @@ class DeleteSubscription(RPC):
     
     "`establish-subscription` RPC"
 
-    # DEPENDS = [':ietf-yang-push']
+    DEPENDS = ['urn:ietf:params:netconf:capability:notification:1.1']
     REPLY_CLS = DeleteSubscriptionReply
     
     def request(self, subscription_id=None):
