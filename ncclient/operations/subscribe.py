@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from ncclient.operations.rpc import RPC
-
 from ncclient.xml_ import *
-
 from ncclient.operations import util
+from ncclient.operations.errors import AlreadyHasEventListener
+
 
 class CreateSubscription(RPC):
     "`create-subscription` RPC. Depends on the `:notification` capability."
@@ -47,6 +46,8 @@ class CreateSubscription(RPC):
         terminated. The format is an RFC 3339/ISO 8601 date and time.
 
         """
+        if self.session.has_event_listener:
+            raise AlreadyHasEventListener()
         node = new_ele_ns("create-subscription", NETCONF_NOTIFICATION_NS)
         if filter is not None:
             node.append(util.build_filter(filter))
@@ -60,5 +61,17 @@ class CreateSubscription(RPC):
             if start_time is None:
                 raise ValueError("You must provide start_time if you provide stop_time")
             sub_ele(node, "stopTime").text = stop_time
+
+        # Install the listener if necessary, error if there is a
+        # conflicting listener already installed, such as a Yang Push
+        # Listener. Note that any new event listener type will have to
+        # do something siimilar if they consume the same events.
+        if not hasattr(self.session, 'notification_listener'):
+            if self.session.has_event_listener:
+                raise AlreadyHasEventListener()
+            else:
+                self.session.notification_listener = NotificationHandler(self.session._notification_q)
+                self.session.add_listener(self.session.notification_listener)
+                self.session.has_event_listener = True
 
         return self._request(node)

@@ -22,3 +22,6 @@ class TimeoutExpiredError(NCClientError):
 
 class MissingCapabilityError(NCClientError):
     pass
+
+class AlreadyHasEventListener(NCClientError):
+    pass

@@ -100,7 +100,8 @@ class Session(Thread):
         def err_cb(err):
             error[0] = err
             init_event.set()
-        self.add_listener(NotificationHandler(self._notification_q))
+        # commented out in favor of conditional addition of listener
+        # self.add_listener(NotificationHandler(self._notification_q))
         listener = HelloHandler(ok_cb, err_cb)
         self.add_listener(listener)
         self.send(HelloHandler.build(self._client_capabilities, self._device_handler))
