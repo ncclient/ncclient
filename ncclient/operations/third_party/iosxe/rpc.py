@@ -2,6 +2,7 @@ from lxml import etree
 from ncclient.xml_ import *
 from ncclient.operations.rpc import RPC
 from ncclient.operations.rpc import RPCReply
+from ncclient.operations.errors import AlreadyHasEventListener
 from ncclient.transport import SessionListener
 from dateutil.parser import parse
 import logging
@@ -220,10 +221,18 @@ class EstablishSubscription(RPC):
             }
             rpc = dampening_period_template.format(**substitutions)
 
-        # install the listener if necessary
+        # Install the listener if necessary, error if there is a
+        # conflicting listener already installed, such as
+        # NotificationHandler. Note that any new event listener type
+        # will have to do something siimilar if they consume the same
+        # events.
         if not hasattr(self.session, 'yang_push_listener'):
-            self.session.yang_push_listener = YangPushListener()
-            self.session.add_listener(self.session.yang_push_listener)
+            if self.session.has_event_listener:
+                raise AlreadyHasEventListener()
+            else:
+                self.session.yang_push_listener = YangPushListener()
+                self.session.add_listener(self.session.yang_push_listener)
+                self.session.has_event_listener = True
 
         # add the callbacks against the message id for now; will patch
         # that up in the reply

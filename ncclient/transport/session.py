@@ -54,6 +54,7 @@ class Session(Thread):
         self._base = NetconfBase.BASE_10
         self._id = None # session-id
         self._connected = False # to be set/cleared by subclass implementation
+        self.has_event_listener = False
         self.logger = SessionLoggerAdapter(logger, {'session': self})
         self.logger.debug('%r created: client_capabilities=%r',
                           self, self._client_capabilities)
