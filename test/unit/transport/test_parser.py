@@ -9,6 +9,10 @@ from ncclient.transport.ssh import SSHSession
 from ncclient.operations.third_party.juniper.rpc import *
 from ncclient.operations import RaiseMode
 
+try:
+    import selectors
+except ImportError:
+    import selectors2 as selectors
 
 class TestSession(unittest.TestCase):
     @patch('ncclient.transport.SSHSession.connected')
