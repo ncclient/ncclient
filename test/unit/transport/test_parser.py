@@ -15,6 +15,8 @@ except ImportError:
     import selectors2 as selectors
 
 class TestSession(unittest.TestCase):
+
+    @unittest.skipIf(sys.version_info.major == 2, "test not supported < Python3")
     @patch('ncclient.transport.SSHSession.connected')
     @patch('paramiko.channel.Channel.send_ready')
     @patch('paramiko.channel.Channel.send')
@@ -43,6 +45,7 @@ class TestSession(unittest.TestCase):
         # as filter_xml is not having software-information, response wont contain it
         self.assertEqual(len(resp.xpath('multi-routing-engine-item/software-information')), 0)
 
+    @unittest.skipIf(sys.version_info.major == 2, "test not supported < Python3")
     @patch('ncclient.transport.SSHSession.connected')
     @patch('paramiko.channel.Channel.send_ready')
     @patch('paramiko.channel.Channel.send')
