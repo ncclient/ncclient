@@ -53,9 +53,9 @@ class JunosDeviceHandler(DefaultDeviceHandler):
             raw = re.sub(r'<ok/>', '</routing-engine>\n<ok/>', raw)
             return raw
         # check if error is during capabilites exchange itself
-        elif re.search('\<rpc-reply\>.*?\</rpc-reply\>.*\</hello\>?', raw, re.M | re.S):
+        elif re.search(r'<rpc-reply>.*?</rpc-reply>.*</hello>?', raw, re.M | re.S):
             errs = re.findall(
-                '\<rpc-error\>.*?\</rpc-error\>', raw, re.M | re.S)
+                r'<rpc-error>.*?</rpc-error>', raw, re.M | re.S)
             err_list = []
             if errs:
                 add_ns = """
@@ -114,8 +114,8 @@ class JunosDeviceHandler(DefaultDeviceHandler):
             return reply.encode('UTF-8')
 
     def get_xml_parser(self, session):
-        # use_filter in device_params can be used to disable using SAX parsing
-        if self.device_params.get('use_filter', True):
+        # use_filter in device_params can be used to enabled using SAX parsing
+        if self.device_params.get('use_filter', False):
             return JunosXMLParser(session)
         else:
             return DefaultXMLParser(session)
