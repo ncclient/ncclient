@@ -1,9 +1,9 @@
-<rpc-reply message-id="urn:uuid:e0a7abe3-fffa-11e5-b78e-b8e85604f858">
+<rpc-reply dummy='tests"s' message-id="urn:uuid:e0a7abe3-fffa-11e5-b78e-b8e85604f858">
     <multi-routing-engine-results>
 
         <multi-routing-engine-item>
 
-            <re-name>re0</re-name>
+            <re-name>tests</re-name>
 
             <software-information>
                 <host-name>wf-kiwi</host-name>

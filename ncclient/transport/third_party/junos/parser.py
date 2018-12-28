@@ -25,6 +25,8 @@ from xml.sax import make_parser
 from ncclient.transport.parser import DefaultXMLParser
 from ncclient.operations import rpc
 
+import six
+
 import logging
 logger = logging.getLogger("ncclient.transport.third_party.junos.parser")
 
@@ -43,7 +45,7 @@ class JunosXMLParser(DefaultXMLParser):
         self.sax_parser = make_parser()
         self.sax_parser.setContentHandler(SAXParser(session))
         # To handle case when incoming data does not contain MSG_DELIM
-        self._wait_for_delimiter_data = (False, '')
+        self._wait_for_delimiter_data = (False, six.b(''))
 
     def parse(self, data):
         try:
@@ -82,10 +84,11 @@ class JunosXMLParser(DefaultXMLParser):
             # if then, wait for next iteration of data and do a recursive call to
             # _delimiter_check for MSG_DELIM check
             buf = self._session._buffer
-            rpc_response_last_msg = buf.read(
-                buf.tell() - RPC_REPLY_END_TAG_LEN).decode('UTF-8')
+            buf.seek(buf.tell() - RPC_REPLY_END_TAG_LEN - MSG_DELIM_LEN)
+            rpc_response_last_msg = buf.read().decode('UTF-8')
             if RPC_REPLY_END_TAG in rpc_response_last_msg:
-                self._wait_for_delimiter_data = (True, self._wait_for_delimiter_data[1]+data)
+                self._wait_for_delimiter_data = (
+                    True, self._wait_for_delimiter_data[1]+data.encode('utf-8'))
             if self._wait_for_delimiter_data[0]:
                 self._delimiter_check(self._wait_for_delimiter_data[1])
 
