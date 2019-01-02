@@ -1,10 +1,20 @@
+#
+# IOS XE-specific implementation of an early draft of the IETF YANG
+# Push drafts. This implementation may be used with IOS XE 16.6.1
+# onwards where the platform advertises the capability
+# `urn:ietf:params:netconf:capability:notification:1.1`.
+#
+# When IOS XE supports RFC-compliant versions of the IETF YANG Push
+# functionality, this implementation will be retired.
+#
 from lxml import etree
+from lxml.builder import ElementMaker
 from ncclient.xml_ import *
 from ncclient.operations.rpc import RPC
 from ncclient.operations.rpc import RPCReply
 from ncclient.operations.errors import AlreadyHasEventListener
 from ncclient.transport import SessionListener
-from dateutil.parser import parse
+from dateutil.parser import parse as dateutil_parse
 import logging
 
 
@@ -12,62 +22,8 @@ logger = logging.getLogger("ncclient.operations.rpc")
 
 class SaveConfig(RPC):
     def request(self):
-        node = etree.Element(qualify('save-config', "http://cisco.com/yang/cisco-ia"))
+        node = new_ele_ns('save-config', 'http://cisco.com/yang/cisco-ia')
         return self._request(node)
-
-
-#
-# Message with period specified
-#
-# - msgid
-# - streamxpath
-# - period
-#
-period_template = '''<?xml version="1.0" encoding="UTF-8"?>
-<rpc message-id="{msgid}" xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
- <establish-subscription xmlns="urn:ietf:params:xml:ns:yang:ietf-event-notifications"
-   xmlns:yp="urn:ietf:params:xml:ns:yang:ietf-yang-push">
-  <stream>yp:yang-push</stream>
-  <yp:xpath-filter>{streamxpath}</yp:xpath-filter>
-  <yp:period>{period}</yp:period>
- </establish-subscription>
-</rpc>'''
-
-
-#
-# Message with dampening-period specified
-#
-# - msgid
-# - streamxpath
-# - dampeningperiod
-#
-dampening_period_template = '''<?xml version="1.0" encoding="UTF-8"?>
-<rpc message-id="{msgid}" xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
- <establish-subscription xmlns="urn:ietf:params:xml:ns:yang:ietf-event-notifications"
-   xmlns:yp="urn:ietf:params:xml:ns:yang:ietf-yang-push">
-  <stream>yp:yang-push</stream>
-  <yp:xpath-filter>{streamxpath}</yp:xpath-filter>
-  <yp:dampening-period>{dampeningperiod}</yp:dampening-period>
- </establish-subscription>
-</rpc>'''
-
-
-#
-# Message for stream subscription to yang-notif-native
-#
-# - msgid
-# - streamns
-# - streamident
-# - streamxpath
-#
-stream_subscription_template = '''<?xml version="1.0" encoding="UTF-8"?>
-<rpc message-id="{msgid}" xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
- <establish-subscription xmlns="urn:ietf:params:xml:ns:yang:ietf-event-notifications"
-   xmlns:yp="urn:ietf:params:xml:ns:yang:ietf-yang-push">
-  <stream xmlns:ns1="{streamns}">ns1:{streamident}</stream>
-  <yp:xpath-filter>{streamxpath}</yp:xpath-filter>
- </establish-subscription>
-</rpc>'''
 
 
 class EstablishSubscriptionReply(RPCReply):
@@ -94,7 +50,7 @@ class EstablishSubscriptionReply(RPCReply):
 
     @property
     def subscription_result(self):
-        "*subscription-result* element as an :class:`~xml.etree.ElementTree.Element`"
+        "*subscription-result* element's text content"
         if not self._parsed:
             self.parse()
         return self._subscription_result.text
@@ -115,7 +71,7 @@ class EstablishSubscriptionReply(RPCReply):
 
     @property
     def subscription_id(self):
-        "*subscription-id* element as an :class:`~xml.etree.ElementTree.Element`"
+        "*subscription-id* element's integer value"
         if not self._parsed:
             self.parse()
         if self._subscription_id is not None:
@@ -182,44 +138,41 @@ class EstablishSubscription(RPC):
             raise YangPushError("Must specify namespace for custom stream")
 
         #
-        # Try to construct request the "standard" way. However,
-        # doesn't work because cannot force lxml to include namespace
-        # values for identities.
+        # construct base rpc
         #
-        # node = new_ele_ns("establish-subscription", IETF_EVENT_NOTIFICATIONS_NS)
-        # stream = sub_ele_ns(node, "stream", IETF_EVENT_NOTIFICATIONS_NS)
-        # stream.text = 'yp:yang-push'
-        # stream.attrib = { 'xmlns:yp': IETF_YANG_PUSH_NS }
-        # sub_ele_ns(node, "xpath-filter", IETF_YANG_PUSH_NS).text = xpath
-        # if period:
-        #     sub_ele_ns(node, "period", IETF_YANG_PUSH_NS).text = str(period)
-        # elif dampening_period:
-        #     sub_ele_ns(node, "dampening-period", IETF_YANG_PUSH_NS).text = str(dampening_period)
+        rpc = new_ele_ns('establish-subscription', IETF_EVENT_NOTIFICATIONS_NS)
 
-        # Have to hack request as can't figure out how to force NS
-        # inclusion for identity values yet!
+        #
+        # Using ElementMaker to force the correct insertion of XML
+        # namespaces for identity values.
+        #
         if streamident:
-            subst = {
-                'msgid': self._id,
-                'streamns': streamns,
-                'streamident': streamident,
-                'streamxpath': xpath,
-            }
-            rpc = stream_subscription_template.format(**subst)                
-        elif period:
-            substitutions = {
-                'msgid': self._id,
-                'period': period,
-                'streamxpath': xpath,
-            }
-            rpc = period_template.format(**substitutions)
+            ele_maker = ElementMaker(namespace=IETF_EVENT_NOTIFICATIONS_NS,
+                                     nsmap={'streamns': streamns})
+            stream = ele_maker('stream')
+            stream.text = 'streamns:{}'.format(streamident)
+            rpc.append(stream)
+            xpath_filter = sub_ele_ns(rpc, 'xpath-filter',
+                                      IETF_YANG_PUSH_NS)
+            xpath_filter.text = xpath
         else:
-            substitutions = {
-                'msgid': self._id,
-                'dampeningperiod': dampening_period,
-                'streamxpath': xpath,
-            }
-            rpc = dampening_period_template.format(**substitutions)
+            ele_maker = ElementMaker(namespace=IETF_EVENT_NOTIFICATIONS_NS,
+                                     nsmap={'yp': IETF_YANG_PUSH_NS})
+            stream = ele_maker('stream')
+            stream.text = 'yp:yang-push'
+            rpc.append(stream)
+            ele_xpath_filter = sub_ele_ns(rpc, 'xpath-filter',
+                                          IETF_YANG_PUSH_NS)
+            ele_xpath_filter.text = xpath
+            if period:
+                ele_period = sub_ele_ns(rpc, 'period',
+                                        IETF_YANG_PUSH_NS)
+                ele_period.text = str(period)
+            else:
+                ele_dampening_period = sub_ele_ns(rpc, 'dampening-period',
+                                                  IETF_YANG_PUSH_NS)
+                ele_dampening_period.text = str(dampening_period)
+
 
         # Install the listener if necessary, error if there is a
         # conflicting listener already installed, such as
@@ -239,7 +192,7 @@ class EstablishSubscription(RPC):
         self.session.yang_push_listener.add_subscription_listener(self._id, callback, errback)
             
         # Now process the request
-        return self._request(None, raw_xml=rpc)
+        return self._request(rpc)
 
 
 class DeleteSubscriptionReply(RPCReply):
@@ -352,7 +305,7 @@ class YangPushNotification(object):
             # extract eventTime
             event_time = root.find(qualify("eventTime", NETCONF_NOTIFICATION_NS))
             if event_time is not None:
-                self._event_time = parse(event_time.text)
+                self._event_time = dateutil_parse(event_time.text)
 
             # determine type of event
             type = root.find(qualify("push-update", IETF_YANG_PUSH_NS))
