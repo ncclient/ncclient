@@ -177,7 +177,7 @@ class EstablishSubscription(RPC):
         # Install the listener if necessary, error if there is a
         # conflicting listener already installed, such as
         # NotificationHandler. Note that any new event listener type
-        # will have to do something siimilar if they consume the same
+        # will have to do something similar if they consume the same
         # events.
         if not hasattr(self.session, 'yang_push_listener'):
             if self.session.has_event_listener:
@@ -208,7 +208,7 @@ class DeleteSubscriptionReply(RPCReply):
 
     @property
     def subscription_result(self):
-        "*subscription-result* element as an :class:`~xml.etree.ElementTree.Element`"
+        "*subscription-result* element's text content"
         if not self._parsed:
             self.parse()
         return self._subscription_result.text
@@ -230,7 +230,7 @@ class DeleteSubscriptionReply(RPCReply):
 
 class DeleteSubscription(RPC):
     
-    "`establish-subscription` RPC"
+    "`delete-subscription` RPC"
 
     DEPENDS = ['urn:ietf:params:netconf:capability:notification:1.1']
     REPLY_CLS = DeleteSubscriptionReply
@@ -308,13 +308,13 @@ class YangPushNotification(object):
                 self._event_time = dateutil_parse(event_time.text)
 
             # determine type of event
-            type = root.find(qualify("push-update", IETF_YANG_PUSH_NS))
-            if type is not None:
+            event_type = root.find(qualify("push-update", IETF_YANG_PUSH_NS))
+            if event_type is not None:
                 self._type = YangPushNotificationType.PUSH_UPDATE
                 self._datastore = root.find(
                     './/%s' % qualify('datastore-contents-xml', IETF_YANG_PUSH_NS))
             else:
-                type = root.find(qualify("push-change-update", IETF_YANG_PUSH_NS))
+                event_type = root.find(qualify("push-change-update", IETF_YANG_PUSH_NS))
                 if type is not None:
                     self._type = YangPushNotificationType.PUSH_CHANGE_UPDATE
                     self._datastore = root.find(
@@ -323,16 +323,18 @@ class YangPushNotification(object):
                     self.type = YangPushNotificationType.UNKNOWN
 
             # extract subscription-id
-            if type is not None:
+            if event_type is not None:
                 subscription_id = type.find(qualify("subscription-id", IETF_YANG_PUSH_NS))
                 if subscription_id is not None:
                     self._subscription_id = int(subscription_id.text)
 
-            # flag that we're parsed now
-            self._parsed = True
-
         except Exception as e:
             self._invalid = True
+            
+        # flag that we're parsed now; set unconditionally to prevent
+        # constant re-parsing attempts
+        self._parsed = True
+
 
     @property
     def invalid(self):
@@ -435,11 +437,12 @@ class YangPushListener(SessionListener):
         if notif.invalid:
             logger.error("Couldn't parse notification")
             return
-        try:
+
+        if notif.subscription_id in self.subscription_listeners:
             user_callback, _ = self.subscription_listeners[notif.subscription_id]
             user_callback(notif)
-        except:
-            logger.error("No callback for subscription_id=%d" % notif.subscription_id)
+        else:
+            logger.error("No callback for subscription_id=%d", notif.subscription_id)
 
 
     def errback(self, ex):
