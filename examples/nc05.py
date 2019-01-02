@@ -11,11 +11,11 @@ warnings.simplefilter("ignore", DeprecationWarning)
 from ncclient import manager
 
 def demo(host, user, name):
-    snippet = """<config xmlns:xc="urn:ietf:params:xml:ns:netconf:base:1.0">
+    snippet = """<nc:config xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
       <aaa xmlns="http://tail-f.com/ns/aaa/1.1">
-        <authentication> <users> <user xc:operation="delete">
+        <authentication> <users> <user nc:operation="delete">
         <name>%s</name>
-      </user></users></authentication></aaa></config>""" % name
+      </user></users></authentication></aaa></nc:config>""" % name
 
     with manager.connect(host=host, port=22, username=user) as m:
         assert(":validate" in m.server_capabilities)
