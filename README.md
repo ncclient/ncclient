@@ -8,11 +8,14 @@
 >
 > This is a **temporary fork**, maintained by @einarnn, of the main ncclient repository that has initial support for pre-RFC IETF YANG Push functionality as implemented in IOS XE 16.6.1 onwards. This functionality will be upstreamed sometime after the the IETF YANG Push drafts achieve RFC status.
 >
-> Recommended installation process is to first install vanilla ncclient via pip, and then install this fork over the top:
+> Recommended installation process is to first install vanilla ncclient via pip, and then install this fork over the top after having updated setuptools (if it hasn't already been updated):
 >
 > ```
+> pip install setuptools>=40.6.3
 > pip install --upgrade git+https://github.com/CiscoDevNet/ncclient.git
 > ```
+>
+> Please note that the upgrade of `setuptools` is required to enable parsing of a newer format of pip dependency. This upgrade of setuptools will be required for releases of `ncclient` > 0.6.3
 >
 > Please feel free to submit PRs or get in touch with @einarnn with any problems, queries or suggestions.
 
