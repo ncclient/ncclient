@@ -1,0 +1,3 @@
+Host fake_host
+    hostname 10.0.0.1
+    proxycommand ssh -W %h:%p jumphost.domain.com
