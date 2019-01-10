@@ -349,7 +349,21 @@ class SSHSession(Session):
         if ssh_config is not None:
             config = paramiko.SSHConfig()
             config.parse(open(os.path.expanduser(ssh_config)))
+            
+            # Save default Paramiko SSH port so it can be reverted
+            paramiko_default_ssh_port = paramiko.config.SSH_PORT
+            
+            # Change the default SSH port to the port specified by the user so expand_variables 
+            # replaces %p with the passed in port rather than 22 (the defauld paramiko.config.SSH_PORT)
+
+            paramiko.config.SSH_PORT = port
+
             config = config.lookup(host)
+
+            # paramiko.config.SSHconfig::expand_variables is called by lookup so we can set the SSH port
+            # back to the default
+            paramiko.config.SSH_PORT = paramiko_default_ssh_port
+
             host = config.get("hostname", host)
             if username is None:
                 username = config.get("user")
@@ -365,6 +379,7 @@ class SSHSession(Session):
 
         if sock_fd is None:
             if config.get("proxycommand"):
+                self.logger.debug("Configuring Proxy. %s", config.get("proxycommand"))
                 sock = paramiko.proxy.ProxyCommand(config.get("proxycommand"))
             else:
                 for res in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket.SOCK_STREAM):
