@@ -2,7 +2,7 @@ import unittest
 from mock import patch, MagicMock
 from ncclient import manager
 from ncclient.devices.junos import JunosDeviceHandler
-
+import logging
 
 class TestManager(unittest.TestCase):
 
@@ -48,6 +48,27 @@ class TestManager(unittest.TestCase):
                                                         'local': True})
         mock_ssh.assert_called_once_with(host='localhost', 
                             device_params={'local': True, 'name': 'junos'})
+
+    @patch('paramiko.proxy.ProxyCommand')
+    @patch('paramiko.Transport')
+    @patch('ncclient.transport.ssh.hexlify')
+    @patch('ncclient.transport.ssh.Session._post_connect')
+    def test_connect_with_ssh_config(self, mock_session, mock_hex, mock_trans, mock_proxy):
+        log = logging.getLogger('TestManager.test_connect_with_ssh_config')
+        ssh_config_path = 'test/unit/ssh_config'
+
+        conn = manager.connect(host='fake_host',
+                                    port=830,
+                                    username='user',
+                                    password='password',
+                                    timeout=10,
+                                    hostkey_verify=False, 
+                                    allow_agent=False,
+                                    ssh_config=ssh_config_path)
+        
+        log.debug(mock_proxy.call_args[0][0])
+        self.assertEqual(mock_proxy.called, 1)
+        mock_proxy.assert_called_with('ssh -W 10.0.0.1:830 jumphost.domain.com')
 
     @patch('socket.socket')
     @patch('paramiko.Transport')
