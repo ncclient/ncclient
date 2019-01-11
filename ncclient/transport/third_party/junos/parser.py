@@ -25,6 +25,8 @@ from xml.sax import make_parser
 from ncclient.transport.parser import DefaultXMLParser
 from ncclient.operations import rpc
 
+import time
+
 import six
 
 import logging
@@ -184,6 +186,7 @@ class SAXParser(ContentHandler):
                     self._use_filter = True
         if self._use_filter:
             if self._ignoretag is not None:
+                time.sleep(0)
                 return
 
             if self._cur == self._root and self._cur.tag == tag:
@@ -216,6 +219,7 @@ class SAXParser(ContentHandler):
             self._write_buffer(tag, format_str='<{}{}>', **attributes)
 
     def endElement(self, tag):
+        time.sleep(0)
         if tag == 'rpc-reply':
             self._use_filter = False
         if self._use_filter:
@@ -234,6 +238,7 @@ class SAXParser(ContentHandler):
             self._write_buffer(tag, format_str='</{}>')
 
     def characters(self, content):
+        time.sleep(0)
         if self._use_filter:
             if self._currenttag is not None:
                 self._write_buffer(content, format_str='{}')
