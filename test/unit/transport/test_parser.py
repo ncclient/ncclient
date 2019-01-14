@@ -86,6 +86,70 @@ class TestSession(unittest.TestCase):
     @patch('ncclient.transport.SSHSession')
     @patch('selectors.DefaultSelector.select')
     @patch('ncclient.operations.rpc.uuid4')
+    def test_filter_xml_delimiter_multiple_rpc_reply(self, mock_uuid4, mock_select,
+                                            mock_session, mock_recv, mock_close,
+                                            mock_send, mock_send_ready,
+                                            mock_connected):
+        mock_send.return_value = True
+        mock_send_ready.return_value = -1
+        mock_uuid4.return_value = type('dummy', (), {'urn': "urn:uuid:e0a7abe3-fffa-11e5-b78e-b8e85604f858"})
+        device_handler = manager.make_device_handler({'name': 'junos', 'use_filter': True})
+        rpc = '<get-software-information/>'
+        mock_recv.side_effect = self._read_file('get-software-information.xml')[:-1] + [b"</rpc-reply>]]>",
+                                                                                        b"]]><rpc-reply>"] + \
+                                self._read_file('get-software-information.xml')[1:]
+        session = SSHSession(device_handler)
+        session._connected = True
+        session._channel = paramiko.Channel("c100")
+        session.parser = session._device_handler.get_xml_parser(session)
+        obj = ExecuteRpc(session, device_handler, raise_mode=RaiseMode.ALL)
+        obj._filter_xml = '<multi-routing-engine-results><multi-routing-engine-item><re-name/></multi-routing-engine-item></multi-routing-engine-results>'
+        session.run()
+        resp = obj.request(rpc)._NCElement__doc[0]
+        self.assertEqual(len(resp.xpath('multi-routing-engine-item/re-name')), 2)
+        self.assertEqual(len(resp.xpath('multi-routing-engine-item/software-information')), 0)
+
+    @unittest.skipIf(sys.version_info.major == 2, "test not supported < Python3")
+    @patch('ncclient.transport.SSHSession.connected')
+    @patch('paramiko.channel.Channel.send_ready')
+    @patch('paramiko.channel.Channel.send')
+    @patch('ncclient.transport.ssh.SSHSession.close')
+    @patch('paramiko.channel.Channel.recv')
+    @patch('ncclient.transport.SSHSession')
+    @patch('selectors.DefaultSelector.select')
+    @patch('ncclient.operations.rpc.uuid4')
+    def test_filter_xml_delimiter_splited_rpc_reply(self, mock_uuid4, mock_select,
+                                            mock_session, mock_recv, mock_close,
+                                            mock_send, mock_send_ready,
+                                            mock_connected):
+        mock_send.return_value = True
+        mock_send_ready.return_value = -1
+        mock_uuid4.return_value = type('dummy', (), {'urn': "urn:uuid:e0a7abe3-fffa-11e5-b78e-b8e85604f858"})
+        device_handler = manager.make_device_handler({'name': 'junos', 'use_filter': True})
+        rpc = '<get-software-information/>'
+        mock_recv.side_effect = self._read_file('get-software-information.xml')[:-1] + [b"</rpc", b"-reply>]]>",
+                                                                                        b"]]><rpc-reply>"] + \
+                                self._read_file('get-software-information.xml')[1:]
+        session = SSHSession(device_handler)
+        session._connected = True
+        session._channel = paramiko.Channel("c100")
+        session.parser = session._device_handler.get_xml_parser(session)
+        obj = ExecuteRpc(session, device_handler, raise_mode=RaiseMode.ALL)
+        obj._filter_xml = '<multi-routing-engine-results><multi-routing-engine-item><re-name/></multi-routing-engine-item></multi-routing-engine-results>'
+        session.run()
+        resp = obj.request(rpc)._NCElement__doc[0]
+        self.assertEqual(len(resp.xpath('multi-routing-engine-item/re-name')), 2)
+        self.assertEqual(len(resp.xpath('multi-routing-engine-item/software-information')), 0)
+
+    @unittest.skipIf(sys.version_info.major == 2, "test not supported < Python3")
+    @patch('ncclient.transport.SSHSession.connected')
+    @patch('paramiko.channel.Channel.send_ready')
+    @patch('paramiko.channel.Channel.send')
+    @patch('ncclient.transport.ssh.SSHSession.close')
+    @patch('paramiko.channel.Channel.recv')
+    @patch('ncclient.transport.SSHSession')
+    @patch('selectors.DefaultSelector.select')
+    @patch('ncclient.operations.rpc.uuid4')
     def test_use_filter_xml_without_sax_input(self, mock_uuid4, mock_select,
                                               mock_session, mock_recv,
                                               mock_close, mock_send,

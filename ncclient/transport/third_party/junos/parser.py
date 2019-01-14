@@ -16,6 +16,8 @@ import os
 
 from threading import Lock
 
+import difflib
+
 from xml.sax.handler import ContentHandler
 from lxml import etree
 from lxml.builder import E
@@ -46,8 +48,6 @@ class JunosXMLParser(DefaultXMLParser):
         self._session = session
         self.sax_parser = make_parser()
         self.sax_parser.setContentHandler(SAXParser(session))
-        # To handle case when incoming data does not contain MSG_DELIM
-        self._wait_for_delimiter_data = (False, six.b(''))
 
     def parse(self, data):
         try:
@@ -88,12 +88,20 @@ class JunosXMLParser(DefaultXMLParser):
             buf = self._session._buffer
             buf.seek(buf.tell() - RPC_REPLY_END_TAG_LEN - MSG_DELIM_LEN)
             rpc_response_last_msg = buf.read().decode('UTF-8')
-            if RPC_REPLY_END_TAG in rpc_response_last_msg:
-                self._wait_for_delimiter_data = (
-                    True, self._wait_for_delimiter_data[1]+data.encode('utf-8'))
-            if self._wait_for_delimiter_data[0]:
-                self._delimiter_check(self._wait_for_delimiter_data[1])
 
+            if RPC_REPLY_END_TAG in rpc_response_last_msg:
+                # RPC_REPLY_END_TAG and data can be overlapping
+                match_obj = difflib.SequenceMatcher(None, RPC_REPLY_END_TAG,
+                                                    data).get_matching_blocks()
+                if match_obj:
+                    # 0 means second string match start from beginning, hence
+                    # there is a overlap
+                    if match_obj[0].b == 0:
+                        # matching char are of match_obj[0].size
+                        self._delimiter_check((rpc_response_last_msg +
+                                               data[match_obj[0].size:]).encode('utf-8'))
+                    else:
+                        self._delimiter_check((rpc_response_last_msg+data).encode('utf-8'))
 
 def __dict_replace(s, d):
     """Replace substrings of a string using a dictionary."""
