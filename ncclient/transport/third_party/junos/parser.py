@@ -27,8 +27,6 @@ from xml.sax import make_parser
 from ncclient.transport.parser import DefaultXMLParser
 from ncclient.operations import rpc
 
-import time
-
 import six
 
 import logging
@@ -77,10 +75,12 @@ class JunosXMLParser(DefaultXMLParser):
             if remaining.strip() != '':
                 self.sax_parser.feed(remaining)
         elif RPC_REPLY_END_TAG in data:
+            logger.warning("Check delimiter with data received: %s" % data)
             msg, delim, remaining = data.partition(RPC_REPLY_END_TAG)
             self._session._buffer.seek(0, os.SEEK_END)
             self._session._buffer.write(remaining.encode())
         else:
+            logger.warning("Check delimiter with data received : %s" % data)
             # When data is "-reply/>]]>" or "]]>"
             # Data is not full MSG_DELIM, So check if last rpc reply is complete.
             # if then, wait for next iteration of data and do a recursive call to
@@ -88,7 +88,6 @@ class JunosXMLParser(DefaultXMLParser):
             buf = self._session._buffer
             buf.seek(buf.tell() - RPC_REPLY_END_TAG_LEN - MSG_DELIM_LEN)
             rpc_response_last_msg = buf.read().decode('UTF-8')
-
             if RPC_REPLY_END_TAG in rpc_response_last_msg:
                 # RPC_REPLY_END_TAG and data can be overlapping
                 match_obj = difflib.SequenceMatcher(None, RPC_REPLY_END_TAG,
@@ -194,7 +193,6 @@ class SAXParser(ContentHandler):
                     self._use_filter = True
         if self._use_filter:
             if self._ignoretag is not None:
-                time.sleep(0)
                 return
 
             if self._cur == self._root and self._cur.tag == tag:
@@ -227,7 +225,6 @@ class SAXParser(ContentHandler):
             self._write_buffer(tag, format_str='<{}{}>', **attributes)
 
     def endElement(self, tag):
-        time.sleep(0)
         if tag == 'rpc-reply':
             self._use_filter = False
         if self._use_filter:
@@ -246,7 +243,6 @@ class SAXParser(ContentHandler):
             self._write_buffer(tag, format_str='</{}>')
 
     def characters(self, content):
-        time.sleep(0)
         if self._use_filter:
             if self._currenttag is not None:
                 self._write_buffer(content, format_str='{}')
