@@ -39,6 +39,8 @@ MSG_DELIM_LEN = len(MSG_DELIM)
 RPC_REPLY_END_TAG = "</rpc-reply>"
 RPC_REPLY_END_TAG_LEN = len(RPC_REPLY_END_TAG)
 
+RPC_REPLY_START_TAG = "<rpc-reply"
+
 
 class JunosXMLParser(DefaultXMLParser):
     def __init__(self, session):
@@ -75,12 +77,12 @@ class JunosXMLParser(DefaultXMLParser):
             if remaining.strip() != '':
                 self.sax_parser.feed(remaining)
         elif RPC_REPLY_END_TAG in data:
-            logger.warning("Check delimiter with data received: %s" % data)
+            logger.warning("Check for rpc reply end tag within data received: %s" % data)
             msg, delim, remaining = data.partition(RPC_REPLY_END_TAG)
             self._session._buffer.seek(0, os.SEEK_END)
             self._session._buffer.write(remaining.encode())
         else:
-            logger.warning("Check delimiter with data received : %s" % data)
+            logger.warning("Check if end delimiter is splitted within data received: %s" % data)
             # When data is "-reply/>]]>" or "]]>"
             # Data is not full MSG_DELIM, So check if last rpc reply is complete.
             # if then, wait for next iteration of data and do a recursive call to
@@ -89,8 +91,8 @@ class JunosXMLParser(DefaultXMLParser):
             buf.seek(buf.tell() - RPC_REPLY_END_TAG_LEN - MSG_DELIM_LEN)
             rpc_response_last_msg = buf.read().decode('UTF-8')
             if RPC_REPLY_END_TAG in rpc_response_last_msg:
-                # RPC_REPLY_END_TAG and data can be overlapping
-                match_obj = difflib.SequenceMatcher(None, RPC_REPLY_END_TAG,
+                # rpc_response_last_msg and data can be overlapping
+                match_obj = difflib.SequenceMatcher(None, rpc_response_last_msg,
                                                     data).get_matching_blocks()
                 if match_obj:
                     # 0 means second string match start from beginning, hence
@@ -98,9 +100,20 @@ class JunosXMLParser(DefaultXMLParser):
                     if match_obj[0].b == 0:
                         # matching char are of match_obj[0].size
                         self._delimiter_check((rpc_response_last_msg +
-                                               data[match_obj[0].size:]).encode('utf-8'))
+                                               data[match_obj[0].size:]).encode())
                     else:
-                        self._delimiter_check((rpc_response_last_msg+data).encode('utf-8'))
+                        data = rpc_response_last_msg+data
+                        if MSG_DELIM in data:
+                            # there can be residual end delimiter chars in buffer.
+                            # as first if condition will add full delimiter, so clean
+                            # it off
+                            clean_up = len(rpc_response_last_msg) - (
+                                    rpc_response_last_msg.find(RPC_REPLY_END_TAG) +
+                                    RPC_REPLY_END_TAG_LEN)
+                            self._session._buffer.truncate(buf.tell() - clean_up)
+                            self._delimiter_check(data.encode())
+                        else:
+                            self._delimiter_check((rpc_response_last_msg + data).encode())
 
 def __dict_replace(s, d):
     """Replace substrings of a string using a dictionary."""
