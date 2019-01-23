@@ -4,18 +4,21 @@ ncclient: Python library for NETCONF clients
 ncclient is a Python library that facilitates client-side scripting and
 application development around the NETCONF protocol. ``ncclient`` was
 developed by `Shikar Bhushan <http://schmizz.net>`_. It is now
-maintained by `Leonidas Poulopoulos (@leopoul) <http://ncclient.org/ncclient>`_
+maintained by `Leonidas Poulopoulos (@leopoul) <http://ncclient.org>`_
 
 Docs:
 `http://ncclient.readthedocs.org <http://ncclient.readthedocs.org>`_
 
+Github:
+`https://github.com/ncclient/ncclient <https://github.com/ncclient/ncclient>`_
+
 Requirements:
 ^^^^^^^^^^^^^
 
--  Python 2.6 <= version < 3.0
+-  Python 2.7 or Python 3.4+
 -  setuptools 0.6+
 -  Paramiko 1.7+
--  lxml 3.0+
+-  lxml 3.3.0+
 -  libxml2
 -  libxslt
 
@@ -87,9 +90,65 @@ Supported device handlers
 * Cisco CSR: device_params={'name':'csr'}
 * Cisco Nexus: device_params={'name':'nexus'}
 * Huawei: device_params={'name':'huawei'}
+* Alcatel Lucent: device_params={'name':'alu'}
+* H3C: device_params={'name':'h3c'}
+* HP Comware: device_params={'name':'hpcomware'}
 
 Changes \| brief
 ~~~~~~~~~~~~~~~~
+
+**v0.6.0**
+
+- Fix use of new Python 3.7 keyword, async
+- Re-enable Python 3.7
+
+**v0.5.4**
+
+- Rollup of minor changes since 0.5.3
+- Disablement of Python 3.7 due to async keyword issue
+
+**v0.5.3**
+
+- Add notifications support
+- Add support for ecdsa keys
+- Various bug fixes
+
+**v0.5.2**
+
+- Add support for Python 3
+- Improve Junos ioproc performance
+- Performance improvements
+- Updated test cases
+- Many bug and performance fixes
+
+
+**v0.4.7**
+
+- Add support for netconf 1.1
+
+**v0.4.6**
+
+- Fix multiple RPC error generation
+- Add support for cancel-commit and persist param
+- Add more examples
+
+**v0.4.5**
+
+- Add Huawei device support
+- Add cli command support for hpcomware v7 devices
+- Add H3C support, Support H3C CLI,Action,Get_bulk,Save,Rollback,etc.
+- Add alcatel lucent support
+
+- Rewrite multiple error handling
+- Add coveralls support, with shield in README.md
+- Set severity level to higher when multiple
+- Simplify logging and multi-error reporting
+- Keep stacktrace of errors
+- Check for known hosts on hostkey_verify only
+- Add check for device sending back null error_text
+- Fix RPC.raise_mode
+- Specifying hostkey_verify=False should not load_known_hosts
+- Check the correct field on rpc-error element
 
 **v0.4.3**
 
@@ -122,7 +181,54 @@ Changes \| brief
 Acknowledgements
 ~~~~~~~~~~~~~~~~
 
-- v0.4.3: Thanks to all contributors and bug hunters; `Jeremy Schulman <https://github.com/jeremyschulman>`_, `Ray Solomon <https://github.com/rsolomo>`_, `Rick Sherman <https://github.com/shermdog>`_, `subhak186 <https://github.com/subhak186>`_.
-- v0.4.2: Thanks to all contributors; `katharh <https://github.com/katharh>`_, `Francis Luong (Franco) <https://github.com/francisluong>`_, `Vincent Bernat <https://github.com/vincentbernat>`_, `Juergen Brendel <https://github.com/juergenbrendel>`_, `Quentin Loos <https://github.com/Kent1>`_, `Ray Solomon <https://github.com/rsolomo>`_, `Sebastian Wiesinger <https://github.com/sebastianw>`_, `Ebben Aries <https://github.com/earies>`_ .
-- v0.4.1: Many thanks, primarily to `Jeremy Schulman <https://github.com/jeremyschulman>`_ (Juniper) for providing his precious feedback, to `Eben Aries <https://github.com/earies>`_ (Juniper) for his contribution, to Juergen Brendel (Cisco) for the Cisco fork and to all contributors from Cisco and Juniper.
+-  v0.6.0: `Einar Nilsen-Nygaard`_
+-  v0.5.4: Various
+-  v0.5.3: `Justin Wilcox`_, `Stacy W. Smith`_, `Mircea Ulinic`_,
+   `Ebben Aries`_, `Einar Nilsen-Nygaard`_, `QijunPan`_
+-  v0.5.2: `Nitin Kumar`_, `Kristian Larsson`_, `palashgupta`_,
+   `Jonathan Provost`_, `Jainpriyal`_, `sharang`_, `pseguel`_,
+   `nnakamot`_, `Алексей Пастухов`_, `Christian Giese`_, `Peipei Guo`_,
+   `Time Warner Cable Openstack Team`_
+-  v0.4.7: `Einar Nilsen-Nygaard`_, `Vaibhav Bajpai`_, Norio Nakamoto
+-  v0.4.6: `Nitin Kumar`_, `Carl Moberg`_, `Stavros Kroustouris`_
+-  v0.4.5: `Sebastian Wiesinger`_, `Vincent Bernat`_, `Matthew Stone`_,
+   `Nitin Kumar`_
+-  v0.4.3: `Jeremy Schulman`_, `Ray Solomon`_, `Rick Sherman`_,
+   `subhak186`_
+-  v0.4.2: `katharh`_, `Francis Luong (Franco)`_, `Vincent Bernat`_,
+   `Juergen Brendel`_, `Quentin Loos`_, `Ray Solomon`_, `Sebastian
+   Wiesinger`_, `Ebben Aries`_
+-  v0.4.1: `Jeremy Schulman`_, `Ebben Aries`_, Juergen Brendel
 
+.. _Nitin Kumar: https://github.com/vnitinv
+.. _Kristian Larsson: https://github.com/plajjan
+.. _palashgupta: https://github.com/palashgupta
+.. _Jonathan Provost: https://github.com/JoProvost
+.. _Jainpriyal: https://github.com/Jainpriyal
+.. _sharang: https://github.com/sharang
+.. _pseguel: https://github.com/pseguel
+.. _nnakamot: https://github.com/nnakamot
+.. _Алексей Пастухов: https://github.com/p-alik
+.. _Christian Giese: https://github.com/GIC-de
+.. _Peipei Guo: https://github.com/peipeiguo
+.. _Time Warner Cable Openstack Team: https://github.com/twc-openstack
+.. _Einar Nilsen-Nygaard: https://github.com/einarnn
+.. _Vaibhav Bajpai: https://github.com/vbajpai
+.. _Carl Moberg: https://github.com/cmoberg
+.. _Stavros Kroustouris: https://github.com/kroustou
+.. _Sebastian Wiesinger: https://github.com/sebastianw
+.. _Vincent Bernat: https://github.com/vincentbernat
+.. _Matthew Stone: https://github.com/bigmstone
+.. _Jeremy Schulman: https://github.com/jeremyschulman
+.. _Ray Solomon: https://github.com/rsolomo
+.. _Rick Sherman: https://github.com/shermdog
+.. _subhak186: https://github.com/subhak186
+.. _katharh: https://github.com/katharh
+.. _Francis Luong (Franco): https://github.com/francisluong
+.. _Juergen Brendel: https://github.com/juergenbrendel
+.. _Quentin Loos: https://github.com/Kent1
+.. _Ebben Aries: https://github.com/earies
+.. _Justin Wilcox: https://github.com/jwwilcox
+.. _Stacy W. Smith: https://github.com/stacywsmith
+.. _Mircea Ulinic: https://github.com/mirceaulinic
+.. _QijunPan: https://github.com/QijunPan

@@ -1,4 +1,4 @@
-#! /usr/bin/env python2.6
+#! /usr/bin/env python
 #
 # Retrieve the running config from the NETCONF server passed on the
 # command line using get-config and write the XML configs to files.

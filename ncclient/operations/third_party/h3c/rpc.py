@@ -57,8 +57,7 @@ class CLI(RPC):
 class Action(RPC):
     def request(self, action=None):
         node = new_ele("action")
-        if filter is not None:
-            node.append(validated_element(action))
+        node.append(validated_element(action))
         return self._request(node)
 
 class Save(RPC):

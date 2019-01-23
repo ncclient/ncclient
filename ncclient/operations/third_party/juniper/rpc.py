@@ -4,6 +4,8 @@ from ncclient.operations.rpc import RPC
 from ncclient.operations.rpc import RPCReply
 from ncclient.operations.rpc import RPCError
 from ncclient import NCClientError
+import math
+
 
 class GetConfiguration(RPC):
     def request(self, format='xml', filter=None):
@@ -24,6 +26,8 @@ class LoadConfiguration(RPC):
             if format == 'xml':
                 config_node = sub_ele(node, 'configuration')
                 config_node.append(config)
+            if format == 'json':
+                config_node = sub_ele(node, 'configuration-json').text = config
             if format == 'text' and not action == 'set':
                 config_node = sub_ele(node, 'configuration-text').text = config
             if action == 'set' and format == 'text':
@@ -62,7 +66,7 @@ class Commit(RPC):
 
     DEPENDS = [':candidate']
 
-    def request(self, confirmed=False, timeout=None, comment=None, synchronize=False, at_time=None):
+    def request(self, confirmed=False, timeout=None, comment=None, synchronize=False, at_time=None, check=False):
         """Commit the candidate configuration as the device's new current configuration. Depends on the `:candidate` capability.
 
         A confirmed commit (i.e. if *confirmed* is `True`) is reverted if there is no followup commit within the *timeout* interval. If no timeout is specified the confirm timeout defaults to 600 seconds (10 minutes). A confirming commit may have the *confirmed* parameter but this is not required. Depends on the `:confirmed-commit` capability.
@@ -77,19 +81,37 @@ class Commit(RPC):
 
         *at_time* Mutually exclusive with confirmed. The time at which the commit should happen. Junos expects either of these two formats:
             A time value of the form hh:mm[:ss] (hours, minutes, and, optionally, seconds)
-            A date and time value of the form yyyy-mm-dd hh:mm[:ss] (year, month, date, hours, minutes, and, optionally, seconds)"""
-        node = new_ele("commit")
+            A date and time value of the form yyyy-mm-dd hh:mm[:ss] (year, month, date, hours, minutes, and, optionally, seconds)
+
+        *check* Verify the syntactic correctness of the candidate configuration"""
+        # NOTE: non netconf standard, Junos specific commit-configuration element, see
+        # https://www.juniper.net/documentation/en_US/junos/topics/reference/tag-summary/junos-xml-protocol-commit-configuration.html
+        node = new_ele_ns("commit-configuration", "")
         if confirmed and at_time is not None:
             raise NCClientError("'Commit confirmed' and 'commit at' are mutually exclusive.")
         if confirmed:
             self._assert(":confirmed-commit")
             sub_ele(node, "confirmed")
             if timeout is not None:
-                sub_ele(node, "confirm-timeout").text = timeout
+                # NOTE: For Junos, confirm-timeout has to be given in minutes:
+                # https://www.juniper.net/documentation/en_US/junos/topics/reference/tag-summary/junos-xml-protocol-commit-configuration.html
+                # but the netconf standard and ncclient library uses seconds:
+                # https://tools.ietf.org/html/rfc6241#section-8.4.5
+                # http://ncclient.readthedocs.io/en/latest/manager.html#ncclient.manager.Manager.commit
+                # so need to convert the value in seconds to minutes.
+                timeout_int = int(timeout) if isinstance(timeout, str) else timeout
+                sub_ele(node, "confirm-timeout").text = str(int(math.ceil(timeout_int/60.0)))
         elif at_time is not None:
             sub_ele(node, "at-time").text = at_time
         if comment is not None:
             sub_ele(node, "log").text = comment
         if synchronize:
             sub_ele(node, "synchronize")
+        if check:
+            sub_ele(node, "check")
+        return self._request(node)
+
+class Rollback(RPC):
+    def request(self, rollback=0):
+        node = new_ele('load-configuration', {'rollback':str(rollback)})
         return self._request(node)

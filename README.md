@@ -1,25 +1,32 @@
-[![Build Status](https://travis-ci.org/leopoul/ncclient.svg?branch=master)](https://travis-ci.org/leopoul/ncclient)
-[![PyPi version](https://pypip.in/v/ncclient/badge.png)](https://crate.io/packages/ncclient/)
-[![PyPi downloads](https://pypip.in/d/ncclient/badge.png)](https://crate.io/packages/ncclient/)
+[![Build Status](https://travis-ci.org/ncclient/ncclient.svg?branch=master)](https://travis-ci.org/ncclient/ncclient)
+[![Coverage Status](https://coveralls.io/repos/github/ncclient/ncclient/badge.svg?branch=master)](https://coveralls.io/github/ncclient/ncclient?branch=master)
 [![Documentation Status](https://readthedocs.org/projects/ncclient/badge/?version=latest)](https://readthedocs.org/projects/ncclient/?badge=latest)
 
-ncclient: Python library for NETCONF clients
---------------------------------------------
+# ncclient: Python library for NETCONF clients
 
 ncclient is a Python library that facilitates client-side scripting
 and application development around the NETCONF protocol. `ncclient` was
 developed by [Shikar Bhushan](http://schmizz.net). It is now maintained
-by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org/ncclient/)
+by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org) and Einar Nilsen-Nygaard (@einarnn)
 
 **Docs**: [http://ncclient.readthedocs.org](http://ncclient.readthedocs.org)
 
 **PyPI**: [https://pypi.python.org/pypi/ncclient](https://pypi.python.org/pypi/ncclient)
 
-#### Requirements:
-* Python 2.6 <= version < 3.0
+## Recent Highlights
+
+|  Date  | Release | Description |
+| :----: | :-----: | :---------- |
+| 08/20/18 | `0.6.2` | Migration to user `selectors` instead of `select`, allowing higher scale operations; improved `netconf:base:1.1` parsing. |
+| 07/02/18 | `0.6.0` | Minor release reinstating Python 3.7 and greater compatibility, but necessitating a change to client code that uses `async_mode`. |
+| 07/02/18 | `0.5.4` | New release rolling up myriad of small commits since `0.5.3`. Please note that this release is **incompatible wth Python 3.7** due to the use of a new Python 3.7 keyword, `async`, in function signatures. This will be resolved in 0.6.0|
+
+## Requirements
+
+* Python 2.7 or Python 3.4+
 * setuptools 0.6+
 * Paramiko 1.7+
-* lxml 3.0+
+* lxml 3.3.0+
 * libxml2
 * libxslt
 
@@ -27,7 +34,7 @@ If you are on Debian/Ubuntu install the following libs (via aptitude or apt-get)
 * libxml2-dev
 * libxslt1-dev
 
-#### Installation:
+## Installation
 
     [ncclient] $ sudo python setup.py install
     
@@ -35,12 +42,17 @@ or via pip:
 
     pip install ncclient
 
-#### Examples:
+Also locally via pip from within local clone:
+
+    pip install -U .
+
+## Examples:
 
     [ncclient] $ python examples/juniper/*.py
 
-### Usage
-####Get device running config
+## Usage
+
+### Get device running config
 Use either an interactive Python console (ipython)
 or integrate the following in your code:
 
@@ -54,35 +66,128 @@ or integrate the following in your code:
 As of 0.4.1 ncclient integrates Juniper's and Cisco's forks, lots of new concepts
 have been introduced that ease management of Juniper and Cisco devices respectively.
 The biggest change is the introduction of device handlers in connection paramms.
-For example to invoke Juniper's functions annd params one has to re-write the above with ***device_params={'name':'junos'}***:
+For example to invoke Juniper's functions annd params one has to re-write the above with `device_params={'name':'junos'}`:
 
     from ncclient import manager
 
-    with manager.connect(host=host, port=830, username=user, hostkey_verify=False, device_params={'name':'junos'}) as m:
+    with manager.connect(host=host, port=830,
+                         username=user, hostkey_verify=False,
+                         device_params={'name':'junos'}) as m:
         c = m.get_config(source='running').data_xml
         with open("%s.xml" % host, 'w') as f:
             f.write(c)
 
 Device handlers are easy to implement and prove to be futureproof.
 
-####Supported device handlers
+### Supported device handlers
 
-* Juniper: device_params={'name':'junos'}
-* Cisco CSR: device_params={'name':'csr'}
-* Cisco Nexus: device_params={'name':'nexus'}
-* Huawei: device_params={'name':'huawei'}
+When instantiating a connection to a known type of NETCONF server:
+
+* Juniper: `device_params={'name':'junos'}`
+* Cisco:
+    - CSR: `device_params={'name':'csr'}`
+    - Nexus: `device_params={'name':'nexus'}`
+    - IOS XR: `device_params={'name':'iosxr'}`
+    - IOS XE: `device_params={'name':'iosxe'}`
+* Huawei:
+    - `device_params={'name':'huawei'}`
+    - `device_params={'name':'huaweiyang'}`
+* Alcatel Lucent: `device_params={'name':'alu'}`
+* H3C: `device_params={'name':'h3c'}`
+* HP Comware: `device_params={'name':'hpcomware'}`
+* Server or anything not in above: `device_params={'name':'default'}`
 
 
-### Changes | brief
+## For Developers
 
-* Nexus exec_command operation
-* Allow specifying multiple cmd elements in Cisco Nexus
-* Update rpc for nested rpc-errors
-* Prevent race condition in threading
-* Prevent hanging in session close
+### Running Unit Tests Locally
 
-### Acknowledgements
-* v0.4.3: Thanks to all contributors and bug hunters; [Jeremy Schulman](https://github.com/jeremyschulman), [Ray Solomon](https://github.com/rsolomo), [Rick Sherman](https://github.com/shermdog), [subhak186](https://github.com/subhak186)
-* v0.4.2: Thanks to all contributors; [katharh](https://github.com/katharh), [Francis Luong (Franco)](https://github.com/francisluong), [Vincent Bernat](https://github.com/vincentbernat), [Juergen Brendel](https://github.com/juergenbrendel), [Quentin Loos](https://github.com/Kent1), [Ray Solomon](https://github.com/rsolomo), [Sebastian Wiesinger](https://github.com/sebastianw), [Ebben Aries](https://github.com/earies) 
-* v0.4.1: Many thanks, primarily to [Jeremy Schulman](https://github.com/jeremyschulman) (Juniper) for providing his precious feedback, to [Ebben Aries](https://github.com/earies) (Juniper) for his contribution, to Juergen Brendel (Cisco) for the Cisco fork and to all contributors from Cisco and Juniper.
+To run the same tests locally as are run via GitHub's CI/CD integration with Travis, the following istructions can be followed:
+
+1. Create a virtual environment, in this case using `virtualenvwrapper`:
+
+    ```
+    mkvirtualenv ncclient-testing
+    ```
+
+1. Install your local `ncclient` package (ensuring you are in your virtual environment):
+
+    ```
+    pip install -U .
+    ```
+
+1. Install testing dependencies:
+
+    ```
+    pip install nose rednose coverage coveralls mock
+    ```
+
+1. Finally, run the tests:
+
+    ```
+    nosetests test --rednose --verbosity=3
+    ```
+
+### Making a Release
+
+As of `0.6.1`, `versioneer` has been integrated into the `ncclient` codebase. This simplifies the creation of a new release, by ensuring that version numbers are automatically generated from the git tag used for the release, which **must** be in the form `v0.1.2`. Versioneer also allows for the clean install of development versions locally using pip. For example:
+
+```
+$ pip install -U .
+Processing /opt/git-repos/versioneer-ncclient
+
+[...intermediate ouput elided...]
+
+Building wheels for collected packages: ncclient
+  Running setup.py bdist_wheel for ncclient ... done
+  Stored in directory: /Users/einarnn/Library/Caches/pip/wheels/fb/48/a8/5c781ebcfff7f091e18950e125c0ff638a5a2dc006610aa1e5
+Successfully built ncclient
+Installing collected packages: ncclient
+  Found existing installation: ncclient 0.6.1
+    Uninstalling ncclient-0.6.1:
+      Successfully uninstalled ncclient-0.6.1
+Successfully installed ncclient-0.6.0+23.g0d9ccd6.dirty
+```
+
+Thus, making a release becomes a simple process:
+
+1. Ensure all tests run clean (ideally both locally and via Travis) and that `README.md` (yes, this file!!) has been updated appropriately.
+2. Apply appropriate version tag, e.g. `git tag v0.6.1`
+3. Build packages:
+
+    ```
+    python setup.py bdist sdist
+    ```
+
+4. After ensuring twine is installed, test twine upload:
+
+    ```
+    twine upload \
+        --repository-url https://test.pypi.org/legacy/ \
+        -u ******* -p ******* \
+        dist/ncclient-0.6.1.tar.gz
+    ````
+
+5. Push git tags back to origin, `git push --tags`
+6. Do real twine upload:
+
+    ```
+    twine upload \
+        -u ******* -p ******* \
+        dist/ncclient-0.6.1.tar.gz
+    ```
+
+## Contributors
+
+* v0.6.2: @einarnn, @glennmatthews, @bryan-stripe, @nickylba
+* v0.6.0: @einarnn
+* v0.5.4: @adamcubel, Joel Teichroeb, @leopoul, Chase Garner, @budhadityabanerjee, @earies, @ganeshrn, @vnitinv, Siming Yuan, @mirceaaulinic, @stacywsmith, Xavier Hardy, @jwwilcox, @QijunPan, @avangel, @marekgr, @hugovk, @felixonmars, @dexteradeus
+* v0.5.3: [Justin Wilcox](https://github.com/jwwilcox), [Stacy W. Smith](https://github.com/stacywsmith), [Mircea Ulinic](https://github.com/mirceaulinic), [Ebben Aries](https://github.com/earies), [Einar Nilsen-Nygaard](https://github.com/einarnn), [QijunPan](https://github.com/QijunPan)
+* v0.5.2: [Nitin Kumar](https://github.com/vnitinv), [Kristian Larsson](https://github.com/plajjan), [palashgupta](https://github.com/palashgupta), [Jonathan Provost](https://github.com/JoProvost), [Jainpriyal](https://github.com/Jainpriyal), [sharang](https://github.com/sharang), [pseguel](https://github.com/pseguel), [nnakamot](https://github.com/nnakamot), [Алексей Пастухов](https://github.com/p-alik), [Christian Giese](https://github.com/GIC-de), [Peipei Guo](https://github.com/peipeiguo), [Time Warner Cable Openstack Team](https://github.com/twc-openstack)
+* v0.4.7: [Einar Nilsen-Nygaard](https://github.com/einarnn), [Vaibhav Bajpai](https://github.com/vbajpai), Norio Nakamoto 
+* v0.4.6: [Nitin Kumar](https://github.com/vnitinv), [Carl Moberg](https://github.com/cmoberg), [Stavros Kroustouris](https://github.com/kroustou) 
+* v0.4.5: [Sebastian Wiesinger](https://github.com/sebastianw), [Vincent Bernat](https://github.com/vincentbernat), [Matthew Stone](https://github.com/bigmstone), [Nitin Kumar](https://github.com/vnitinv)
+* v0.4.3: [Jeremy Schulman](https://github.com/jeremyschulman), [Ray Solomon](https://github.com/rsolomo), [Rick Sherman](https://github.com/shermdog), [subhak186](https://github.com/subhak186)
+* v0.4.2: [katharh](https://github.com/katharh), [Francis Luong (Franco)](https://github.com/francisluong), [Vincent Bernat](https://github.com/vincentbernat), [Juergen Brendel](https://github.com/juergenbrendel), [Quentin Loos](https://github.com/Kent1), [Ray Solomon](https://github.com/rsolomo), [Sebastian Wiesinger](https://github.com/sebastianw), [Ebben Aries](https://github.com/earies) 
+* v0.4.1: [Jeremy Schulman](https://github.com/jeremyschulman), [Ebben Aries](https://github.com/earies), Juergen Brendel
 

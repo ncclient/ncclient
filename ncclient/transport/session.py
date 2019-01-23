@@ -15,20 +15,28 @@
 
 
 import re
-
-from Queue import Queue
+import sys
+import logging
 from threading import Thread, Lock, Event
-
+try:
+    from Queue import Queue, Empty
+except ImportError:
+    from queue import Queue, Empty
 from ncclient.xml_ import *
 from ncclient.capabilities import Capabilities
+from ncclient.logging_ import SessionLoggerAdapter
+from ncclient.transport.errors import TransportError, SessionError
+from ncclient.transport.notify import Notification
 
-from errors import TransportError, SessionError
-
-import logging
 logger = logging.getLogger('ncclient.transport.session')
-logger.setLevel(logging.WARNING)
 
 
+class NetconfBase(object):
+    '''Netconf Base protocol version'''
+    BASE_10 = 1
+    BASE_11 = 2
+
+    
 class Session(Thread):
 
     "Base class for use by transport protocol implementations."
@@ -40,39 +48,45 @@ class Session(Thread):
         self._lock = Lock()
         self.setName('session')
         self._q = Queue()
+        self._notification_q = Queue()
         self._client_capabilities = capabilities
         self._server_capabilities = None # yet
+        self._base = NetconfBase.BASE_10
         self._id = None # session-id
         self._connected = False # to be set/cleared by subclass implementation
-        logger.debug('%r created: client_capabilities=%r' %
-                     (self, self._client_capabilities))
+        self.logger = SessionLoggerAdapter(logger, {'session': self})
+        self.logger.debug('%r created: client_capabilities=%r',
+                          self, self._client_capabilities)
         self._device_handler = None # Should be set by child class
 
     def _dispatch_message(self, raw):
         try:
             root = parse_root(raw)
         except Exception as e:
-            if self._device_handler.handle_raw_dispatch(raw):
-                raw = self._device_handler.handle_raw_dispatch(raw)
-                root = parse_root(raw)
+            device_handled_raw=self._device_handler.handle_raw_dispatch(raw)
+            if isinstance(device_handled_raw, str):
+                root = parse_root(device_handled_raw)
+            elif isinstance(device_handled_raw, Exception):
+                self._dispatch_error(device_handled_raw)
+                return
             else:
-                logger.error('error parsing dispatch message: %s' % e)
+                self.logger.error('error parsing dispatch message: %s', e)
                 return
         with self._lock:
             listeners = list(self._listeners)
         for l in listeners:
-            logger.debug('dispatching message to %r: %s' % (l, raw))
+            self.logger.debug('dispatching message to %r: %s', l, raw)
             l.callback(root, raw) # no try-except; fail loudly if you must!
 
     def _dispatch_error(self, err):
         with self._lock:
             listeners = list(self._listeners)
         for l in listeners:
-            logger.debug('dispatching error to %r' % l)
+            self.logger.debug('dispatching error to %r', l)
             try: # here we can be more considerate with catching exceptions
                 l.errback(err)
             except Exception as e:
-                logger.warning('error dispatching to %r: %r' % (l, e))
+                self.logger.warning('error dispatching to %r: %r', l, e)
 
     def _post_connect(self):
         "Greeting stuff"
@@ -86,21 +100,27 @@ class Session(Thread):
         def err_cb(err):
             error[0] = err
             init_event.set()
+        self.add_listener(NotificationHandler(self._notification_q))
         listener = HelloHandler(ok_cb, err_cb)
         self.add_listener(listener)
         self.send(HelloHandler.build(self._client_capabilities, self._device_handler))
-        logger.debug('starting main loop')
+        self.logger.debug('starting main loop')
         self.start()
-        # we expect server's hello message
-        init_event.wait()
+        # we expect server's hello message, if server doesn't responds in 60 seconds raise exception
+        init_event.wait(60)
+        if not init_event.is_set():
+            raise SessionError("Capability exchange timed out")
         # received hello message or an error happened
         self.remove_listener(listener)
         if error[0]:
             raise error[0]
         #if ':base:1.0' not in self.server_capabilities:
         #    raise MissingCapabilityError(':base:1.0')
-        logger.info('initialized: session-id=%s | server_capabilities=%s' %
-                    (self._id, self._server_capabilities))
+        if 'urn:ietf:params:netconf:base:1.1' in self._server_capabilities and 'urn:ietf:params:netconf:base:1.1' in self._client_capabilities:
+            self.logger.debug("After 'hello' message selecting netconf:base:1.1 for encoding")
+            self._base = NetconfBase.BASE_11
+        self.logger.info('initialized: session-id=%s | server_capabilities=%s',
+                         self._id, self._server_capabilities)
 
     def add_listener(self, listener):
         """Register a listener that will be notified of incoming messages and
@@ -108,7 +128,7 @@ class Session(Thread):
 
         :type listener: :class:`SessionListener`
         """
-        logger.debug('installing listener %r' % listener)
+        self.logger.debug('installing listener %r', listener)
         if not isinstance(listener, SessionListener):
             raise SessionError("Listener must be a SessionListener type")
         with self._lock:
@@ -120,7 +140,7 @@ class Session(Thread):
 
         :type listener: :class:`SessionListener`
         """
-        logger.debug('discarding listener %r' % listener)
+        self.logger.debug('discarding listener %r', listener)
         with self._lock:
             self._listeners.discard(listener)
 
@@ -145,12 +165,18 @@ class Session(Thread):
         """Send the supplied *message* (xml string) to NETCONF server."""
         if not self.connected:
             raise TransportError('Not connected to NETCONF server')
-        logger.debug('queueing %s' % message)
+        self.logger.debug('queueing %s', message)
         self._q.put(message)
 
     def scp(self):
         raise NotImplementedError
     ### Properties
+
+    def take_notification(self, block, timeout):
+        try:
+            return self._notification_q.get(block, timeout)
+        except Empty:
+            return None
 
     @property
     def connected(self):
@@ -230,7 +256,11 @@ class HelloHandler(SessionListener):
         hello = new_ele("hello", **xml_namespace_kwargs)
         caps = sub_ele(hello, "capabilities")
         def fun(uri): sub_ele(caps, "capability").text = uri
-        map(fun, capabilities)
+        #python3 changes
+        if sys.version < '3':
+            map(fun, capabilities)
+        else:
+            list(map(fun, capabilities))
         return to_xml(hello)
 
     @staticmethod
@@ -246,3 +276,16 @@ class HelloHandler(SessionListener):
                     if cap.tag == qualify("capability") or cap.tag == "capability":
                         capabilities.append(cap.text)
         return sid, Capabilities(capabilities)
+
+
+class NotificationHandler(SessionListener):
+    def __init__(self, notification_q):
+        self._notification_q = notification_q
+
+    def callback(self, root, raw):
+        tag, _ = root
+        if tag == qualify('notification', NETCONF_NOTIFICATION_NS):
+            self._notification_q.put(Notification(raw))
+
+    def errback(self, _):
+        pass

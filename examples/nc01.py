@@ -1,4 +1,4 @@
-#! /usr/bin/env python2.6
+#! /usr/bin/env python
 #
 # Connect to the NETCONF server passed on the command line and
 # display their capabilities. This script and the following scripts

@@ -16,7 +16,7 @@
 
 from ncclient.xml_ import *
 
-from errors import OperationError, MissingCapabilityError
+from ncclient.operations.errors import OperationError, MissingCapabilityError
 
 def one_of(*args):
     "Verifies that only one of the arguments is not None"

@@ -1,4 +1,4 @@
-#! /usr/bin/env python2.6 
+#! /usr/bin/env python
 #
 # Create a new user to the running configuration using edit-config
 # and the test-option provided by the :validate capability.
@@ -10,12 +10,12 @@ warnings.simplefilter("ignore", DeprecationWarning)
 from ncclient import manager
 
 def demo(host, user, name, uid, gid):
-    snippet = """<config xmlns:xc="urn:ietf:params:xml:ns:netconf:base:1.0">
+    snippet = """<nc:config xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
       <aaa xmlns="http://tail-f.com/ns/aaa/1.1">
-        <authentication> <users> <user xc:operation="create">
+        <authentication> <users> <user nc:operation="create">
         <name>%s</name> <uid>%s</uid> <gid>%s</gid>
         <password>*</password> <ssh_keydir/> <homedir/>
-      </user></users></authentication></aaa></config>""" % (name, uid, gid)
+      </user></users></authentication></aaa></nc:config>""" % (name, uid, gid)
 
     with manager.connect(host=host, port=22, username=user) as m:
         assert(":validate" in m.server_capabilities)

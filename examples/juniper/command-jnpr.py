@@ -1,31 +1,37 @@
 #!/usr/bin/env python
+import logging
+import sys
 
 from ncclient import manager
 
 
 def connect(host, port, user, password):
     conn = manager.connect(host=host,
-            port=port,
-            username=user,
-            password=password,
-            timeout=10,
-            device_params = {'name':'junos'},
-            hostkey_verify=False)
+                           port=port,
+                           username=user,
+                           password=password,
+                           timeout=60,
+                           device_params={'name': 'junos'},
+                           hostkey_verify=False)
 
-    print 'show system users'
-    print '*' * 30
+    logging.info('show system users')
+    logging.info('*' * 30)
     result = conn.command(command='show system users', format='text')
-    print result.tostring
+    logging.info(result)
 
-    print 'show version'
-    print '*' * 30
+    logging.info('show version')
+    logging.info('*' * 30)
     result = conn.command('show version', format='text')
-    print result.xpath('output')[0].text
+    logging.info(result.xpath('output')[0].text)
 
-    print 'bgp summary'
-    print '*' * 30
+    logging.info('bgp summary')
+    logging.info('*' * 30)
     result = conn.command('show bgp summary')
-    print result.tostring
+    logging.info(result)
+
 
 if __name__ == '__main__':
+    LOG_FORMAT = '%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s'
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO, format=LOG_FORMAT)
+
     connect('router', '22', 'netconf', 'juniper!')

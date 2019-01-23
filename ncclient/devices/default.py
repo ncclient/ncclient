@@ -22,6 +22,10 @@ All device-specific handlers derive from the DefaultDeviceHandler, which impleme
 generic information needed for interaction with a Netconf server.
 
 """
+import sys
+if sys.version >= '3':
+    xrange = range
+
 class DefaultDeviceHandler(object):
     """
     Default handler for device specific information.
@@ -78,6 +82,7 @@ class DefaultDeviceHandler(object):
         """
         return [
             "urn:ietf:params:netconf:base:1.0",
+            "urn:ietf:params:netconf:base:1.1",
             "urn:ietf:params:netconf:capability:writable-running:1.0",
             "urn:ietf:params:netconf:capability:candidate:1.0",
             "urn:ietf:params:netconf:capability:confirmed-commit:1.0",
@@ -86,8 +91,10 @@ class DefaultDeviceHandler(object):
             "urn:ietf:params:netconf:capability:url:1.0?scheme=http,ftp,file,https,sftp",
             "urn:ietf:params:netconf:capability:validate:1.0",
             "urn:ietf:params:netconf:capability:xpath:1.0",
+            "urn:ietf:params:netconf:capability:notification:1.0",
             "urn:liberouter:params:netconf:capability:power-control:1.0",
-            "urn:ietf:params:netconf:capability:interleave:1.0"
+            "urn:ietf:params:netconf:capability:interleave:1.0",
+            "urn:ietf:params:netconf:capability:with-defaults:1.0"
         ]
 
     def get_xml_base_namespace_dict(self):
@@ -160,7 +167,10 @@ class DefaultDeviceHandler(object):
         Return True/False depending on found match.
 
         """
-        error_text = error_text.lower().strip()
+        if error_text is not None:
+            error_text = error_text.lower().strip()
+        else:
+            error_text = 'no error given'
 
         # Compare the error text against all the exempt errors.
         for ex in self._exempt_errors_exact_match:
@@ -211,4 +221,3 @@ class DefaultDeviceHandler(object):
 
     def transform_reply(self):
         return False
-

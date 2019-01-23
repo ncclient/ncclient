@@ -18,11 +18,12 @@ This module is a thin layer of abstraction around the library.
 It exposes all core functionality.
 """
 
-import capabilities
-import operations
-import transport
-
+from ncclient import capabilities
+from ncclient import operations
+from ncclient import transport
+import six
 import logging
+import functools
 
 from ncclient.xml_ import *
 
@@ -31,15 +32,18 @@ logger = logging.getLogger('ncclient.manager')
 OPERATIONS = {
     "get": operations.Get,
     "get_config": operations.GetConfig,
+    "get_schema": operations.GetSchema,
     "dispatch": operations.Dispatch,
     "edit_config": operations.EditConfig,
     "copy_config": operations.CopyConfig,
     "validate": operations.Validate,
     "commit": operations.Commit,
     "discard_changes": operations.DiscardChanges,
+    "cancel_commit": operations.CancelCommit,
     "delete_config": operations.DeleteConfig,
     "lock": operations.Lock,
     "unlock": operations.Unlock,
+    "create_subscription": operations.CreateSubscription,
     "close_session": operations.CloseSession,
     "kill_session": operations.KillSession,
     "poweroff_machine": operations.PoweroffMachine,
@@ -68,6 +72,10 @@ def make_device_handler(device_params):
     if device_params is None:
         device_params = {}
 
+    handler = device_params.get('handler', None)
+    if handler:
+        return handler(device_params)
+
     device_name = device_params.get("name", "default")
     # Attempt to import device handler class. All device handlers are
     # in a module called "ncclient.devices.<devicename>" and in a class named
@@ -95,6 +103,9 @@ def connect_ssh(*args, **kwds):
     To invoke advanced vendor related operation add device_params =
         {'name':'<vendor_alias>'} in connection paramerers. For the time,
         'junos' and 'nexus' are supported for Juniper and Cisco Nexus respectively.
+
+    A custom device handler can be provided with device_params =
+        {'handler':<handler class>} in connection paramerers.
     """
     # Extract device parameter dict, if it was passed into this function. Need to
     # remove it from kwds, since the session.connect() doesn't like extra stuff in
@@ -110,14 +121,15 @@ def connect_ssh(*args, **kwds):
     global VENDOR_OPERATIONS
     VENDOR_OPERATIONS.update(device_handler.add_additional_operations())
     session = transport.SSHSession(device_handler)
-    session.load_known_hosts()
+    if "hostkey_verify" not in kwds or kwds["hostkey_verify"]:
+        session.load_known_hosts()
 
     try:
        session.connect(*args, **kwds)
     except Exception as ex:
         if session.transport:
             session.close()
-        raise ex
+        raise
     return Manager(session, device_handler, **kwds)
 
 def connect_ioproc(*args, **kwds):
@@ -143,34 +155,12 @@ def connect_ioproc(*args, **kwds):
 def connect(*args, **kwds):
     if "host" in kwds:
         host = kwds["host"]
-        if host != 'localhost':
-            return connect_ssh(*args, **kwds)
-        else:
+        device_params = kwds.get('device_params', {})
+        if host == 'localhost' and device_params.get('name') == 'junos' \
+                and device_params.get('local'):
             return connect_ioproc(*args, **kwds)
-
-class OpExecutor(type):
-
-    def __new__(cls, name, bases, attrs):
-        def make_wrapper(op_cls):
-            def wrapper(self, *args, **kwds):
-                return self.execute(op_cls, *args, **kwds)
-            wrapper.func_doc = op_cls.request.func_doc
-            return wrapper
-        for op_name, op_cls in OPERATIONS.iteritems():
-            attrs[op_name] = make_wrapper(op_cls)
-        return super(OpExecutor, cls).__new__(cls, name, bases, attrs)
-
-    def __call__(cls, *args, **kwargs):
-        def make_wrapper(op_cls):
-            def wrapper(self, *args, **kwds):
-                return self.execute(op_cls, *args, **kwds)
-            wrapper.func_doc = op_cls.request.func_doc
-            return wrapper
-        if VENDOR_OPERATIONS:
-            for op_name, op_cls in VENDOR_OPERATIONS.iteritems():
-                setattr(cls, op_name, make_wrapper(op_cls))
-        return super(OpExecutor, cls).__call__(*args, **kwargs)
-
+        else:
+            return connect_ssh(*args, **kwds)
 
 class Manager(object):
 
@@ -192,7 +182,7 @@ class Manager(object):
             m.close_session()
     """
 
-    __metaclass__ = OpExecutor
+   # __metaclass__ = OpExecutor
 
     def __init__(self, session, device_handler, timeout=30, *args, **kwargs):
         self._session = session
@@ -221,7 +211,7 @@ class Manager(object):
     def execute(self, cls, *args, **kwds):
         return cls(self._session,
                    device_handler=self._device_handler,
-                   async=self._async_mode,
+                   async_mode=self._async_mode,
                    timeout=self._timeout,
                    raise_mode=self._raise_mode).request(*args, **kwds)
 
@@ -249,16 +239,39 @@ class Manager(object):
         raise NotImplementedError
 
     def __getattr__(self, method):
-        """Parse args/kwargs correctly in order to build XML element"""
-        def _missing(*args, **kwargs):
-            m = method.replace('_', '-')
-            root = new_ele(m)
-            if args:
-                for arg in args:
-                    sub_ele(root, arg)
-            r = self.rpc(root)
-            return r
-        return _missing
+        if method in VENDOR_OPERATIONS:
+            return functools.partial(self.execute, VENDOR_OPERATIONS[method])
+        elif method in OPERATIONS:
+            return functools.partial(self.execute, OPERATIONS[method])
+        else:
+            """Parse args/kwargs correctly in order to build XML element"""
+            def _missing(*args, **kwargs):
+                m = method.replace('_', '-')
+                root = new_ele(m)
+                if args:
+                    for arg in args:
+                        sub_ele(root, arg)
+                r = self.rpc(root)
+                return r
+            return _missing
+
+    def take_notification(self, block=True, timeout=None):
+        """Attempt to retrieve one notification from the queue of received
+        notifications.
+
+        If block is True, the call will wait until a notification is
+        received.
+
+        If timeout is a number greater than 0, the call will wait that
+        many seconds to receive a notification before timing out.
+
+        If there is no notification available when block is False or
+        when the timeout has elapse, None will be returned.
+
+        Otherwise a :class:`~ncclient.operations.notify.Notification`
+        object will be returned.
+        """
+        return self._session.take_notification(block, timeout)
 
     @property
     def client_capabilities(self):

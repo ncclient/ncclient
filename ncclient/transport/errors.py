@@ -24,6 +24,9 @@ class SessionError(NCClientError):
 class AuthenticationError(TransportError):
     pass
 
+class PermissionError(TransportError):
+    pass
+
 class SessionCloseError(TransportError):
 
     def __init__(self, in_buf, out_buf=None):
@@ -43,3 +46,6 @@ class SSHUnknownHostError(SSHError):
         SSHError.__init__(self, 'Unknown host key [%s] for [%s]' % (fingerprint, host))
         self.host = host
         self.fingerprint = fingerprint
+
+class NetconfFramingError(TransportError):
+    pass
