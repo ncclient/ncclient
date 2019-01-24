@@ -13,13 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import base64
+import getpass
 import os
+import re
+import six
 import sys
 import socket
-import getpass
-import re
 import threading
-import base64
 from binascii import hexlify
 
 try:
@@ -378,9 +379,14 @@ class SSHSession(Session):
             username = getpass.getuser()
 
         if sock_fd is None:
-            if config.get("proxycommand"):
-                self.logger.debug("Configuring Proxy. %s", config.get("proxycommand"))
-                sock = paramiko.proxy.ProxyCommand(config.get("proxycommand"))
+            proxycommand = config.get("proxycommand")
+            if proxycommand:
+                self.logger.debug("Configuring Proxy. %s", proxycommand)
+                if not isinstance(proxycommand, six.string_types):
+                  proxycommand = [os.path.expanduser(elem) for elem in proxycommand]
+                else:
+                  proxycommand = os.path.expanduser(proxycommand)
+                sock = paramiko.proxy.ProxyCommand(proxycommand)
             else:
                 for res in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket.SOCK_STREAM):
                     af, socktype, proto, canonname, sa = res
