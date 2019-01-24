@@ -386,10 +386,6 @@ class SSHSession(Session):
                 else:
                   proxycommand = os.path.expanduser(proxycommand)
                 sock = paramiko.proxy.ProxyCommand(proxycommand)
-
-    if config.get("proxycommand"):
-                self.logger.debug("Configuring Proxy. %s", config.get("proxycommand"))
-                sock = paramiko.proxy.ProxyCommand(config.get("proxycommand"))
             else:
                 for res in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket.SOCK_STREAM):
                     af, socktype, proto, canonname, sa = res
