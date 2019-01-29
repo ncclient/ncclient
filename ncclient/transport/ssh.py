@@ -17,7 +17,6 @@ import os
 import sys
 import socket
 import getpass
-import re
 import threading
 import base64
 from binascii import hexlify
@@ -36,6 +35,7 @@ from ncclient.transport.errors import AuthenticationError, SessionCloseError, SS
 from ncclient.transport.session import Session
 from ncclient.transport.session import NetconfBase
 from ncclient.transport.parser import DefaultXMLParser
+from ncclient.transport.parser import SAXFilterXMLNotFoundError
 
 import logging
 logger = logging.getLogger("ncclient.transport.ssh")
@@ -445,7 +445,12 @@ class SSHSession(Session):
                 if events:
                     data = chan.recv(BUF_SIZE)
                     if data:
-                        self.parser.parse(data)
+                        try:
+                            self.parser.parse(data)
+                        except SAXFilterXMLNotFoundError:
+                            self.logger.debug('switching from sax to dom parsing')
+                            self.parser = DefaultXMLParser(self)
+                            self.parser.parse(data)
                     elif self._closing.is_set():
                         # End of session, expected
                         break

@@ -26,8 +26,8 @@ from xml.sax import make_parser
 
 from ncclient.transport.parser import DefaultXMLParser
 from ncclient.operations import rpc
-
-import six
+from ncclient.transport.parser import SAXFilterXMLNotFoundError
+from ncclient.operations.errors import OperationError
 
 import logging
 logger = logging.getLogger("ncclient.transport.third_party.junos.parser")
@@ -75,7 +75,13 @@ class JunosXMLParser(DefaultXMLParser):
             self.sax_parser = make_parser()
             self.sax_parser.setContentHandler(SAXParser(self._session))
             if remaining.strip() != '':
-                self.sax_parser.feed(remaining)
+                try:
+                    self.sax_parser.feed(remaining)
+                except SAXFilterXMLNotFoundError:
+                    self._parse10()
+                    self.logger.debug('switching from sax to dom parsing')
+                    self._session.parser = DefaultXMLParser(self._session)
+                    self._session.parser.parse(remaining.encode())
         elif RPC_REPLY_END_TAG in data:
             logger.warning("Check for rpc reply end tag within data received: %s" % data)
             msg, delim, remaining = data.partition(RPC_REPLY_END_TAG)
@@ -89,7 +95,7 @@ class JunosXMLParser(DefaultXMLParser):
             # _delimiter_check for MSG_DELIM check
             buf = self._session._buffer
             buf.seek(buf.tell() - RPC_REPLY_END_TAG_LEN - MSG_DELIM_LEN)
-            rpc_response_last_msg = buf.read().decode('UTF-8')
+            rpc_response_last_msg = buf.read().decode('UTF-8').replace('\n', '')
             if RPC_REPLY_END_TAG in rpc_response_last_msg:
                 # rpc_response_last_msg and data can be overlapping
                 match_obj = difflib.SequenceMatcher(None, rpc_response_last_msg,
@@ -185,13 +191,11 @@ class SAXParser(ContentHandler):
         self._session = session
         self._validate_reply_and_sax_tag = False
         self._lock = Lock()
-        self._use_filter = False
 
     def startElement(self, tag, attributes):
         if tag == 'rpc-reply':
             # in case last rpc called used sax parsing and error'd out
             # without resetting use_filer in endElement rpc-reply check
-            self._use_filter = False
             with self._lock:
                 listeners = list(self._session._listeners)
             rpc_reply_listener = [i for i in listeners if
@@ -203,64 +207,56 @@ class SAXParser(ContentHandler):
                         rpc_reply_handler._filter_xml is not None:
                     self._cur = self._root = _get_sax_parser_root(
                         rpc_reply_handler._filter_xml)
-                    self._use_filter = True
-        if self._use_filter:
-            if self._ignoretag is not None:
-                return
-
-            if self._cur == self._root and self._cur.tag == tag:
-                node = self._root
-            else:
-                node = self._cur.find(tag)
-
-            if self._validate_reply_and_sax_tag:
-                if tag != self._root.tag:
-                    self._write_buffer(tag, format_str='<{}>\n')
-                    self._cur = E(tag, self._cur)
                 else:
-                    self._write_buffer(tag, format_str='<{}{}>', **attributes)
-                    self._cur = node
-                    self._currenttag = tag
-                self._validate_reply_and_sax_tag = False
-                self._defaulttags.append(tag)
-            elif node is not None:
+                    raise SAXFilterXMLNotFoundError(rpc_reply_handler)
+            else:
+                raise OperationError("Unknown 'message-id': %s" % rpc_msg_id)
+        if self._ignoretag is not None:
+            return
+
+        if self._cur == self._root and self._cur.tag == tag:
+            node = self._root
+        else:
+            node = self._cur.find(tag)
+
+        if self._validate_reply_and_sax_tag:
+            if tag != self._root.tag:
+                self._write_buffer(tag, format_str='<{}>\n')
+                self._cur = E(tag, self._cur)
+            else:
                 self._write_buffer(tag, format_str='<{}{}>', **attributes)
                 self._cur = node
                 self._currenttag = tag
-            elif tag == 'rpc-reply':
-                self._write_buffer(tag, format_str='<{}{}>', **attributes)
-                self._defaulttags.append(tag)
-                self._validate_reply_and_sax_tag = True
-            else:
-                self._currenttag = None
-                self._ignoretag = tag
-        else:
+            self._validate_reply_and_sax_tag = False
+            self._defaulttags.append(tag)
+        elif node is not None:
             self._write_buffer(tag, format_str='<{}{}>', **attributes)
+            self._cur = node
+            self._currenttag = tag
+        elif tag == 'rpc-reply':
+            self._write_buffer(tag, format_str='<{}{}>', **attributes)
+            self._defaulttags.append(tag)
+            self._validate_reply_and_sax_tag = True
+        else:
+            self._currenttag = None
+            self._ignoretag = tag
 
     def endElement(self, tag):
-        if tag == 'rpc-reply':
-            self._use_filter = False
-        if self._use_filter:
-            if self._ignoretag == tag:
-                self._ignoretag = None
+        if self._ignoretag == tag:
+            self._ignoretag = None
 
-            if tag in self._defaulttags:
-                self._write_buffer(tag, format_str='</{}>\n')
+        if tag in self._defaulttags:
+            self._write_buffer(tag, format_str='</{}>\n')
 
-            elif self._cur.tag == tag:
-                self._write_buffer(tag, format_str='</{}>\n')
-                self._cur = self._cur.getparent()
+        elif self._cur.tag == tag:
+            self._write_buffer(tag, format_str='</{}>\n')
+            self._cur = self._cur.getparent()
 
-            self._currenttag = None
-        else:
-            self._write_buffer(tag, format_str='</{}>')
+        self._currenttag = None
 
     def characters(self, content):
-        if self._use_filter:
-            if self._currenttag is not None:
-                self._write_buffer(content, format_str='{}')
-        else:
-            self._session._buffer.write(str.encode(content))
+        if self._currenttag is not None:
+            self._write_buffer(content, format_str='{}')
 
     def _write_buffer(self, content, format_str, **kwargs):
         # print(content, format_str, kwargs)

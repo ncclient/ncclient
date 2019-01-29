@@ -22,18 +22,22 @@ try:
 except ImportError:
     import selectors2 as selectors
 
+from xml.sax.handler import ContentHandler
 
 from ncclient.transport.errors import NetconfFramingError
 from ncclient.transport.session import NetconfBase
 from ncclient.logging_ import SessionLoggerAdapter
+from ncclient.operations.errors import OperationError
+from ncclient.transport import SessionListener
+
+import logging
+logger = logging.getLogger("ncclient.transport.parser")
 
 if sys.version < '3':
     from six import StringIO
 else:
     from io import BytesIO as StringIO
 
-import logging
-logger = logging.getLogger("ncclient.transport.parser")
 
 PORT_NETCONF_DEFAULT = 830
 PORT_SSH_DEFAULT = 22
@@ -63,6 +67,27 @@ if sys.version < '3':
 else:
     def textify(buf):
         return buf.decode('UTF-8')
+
+
+class SAXParserHandler(SessionListener):
+
+    def __init__(self, session):
+        self._session = session
+
+    def callback(self, root, raw):
+        if type(self._session.parser) == DefaultXMLParser:
+            self._session.parser = self._session._device_handler.get_xml_parser(self._session)
+
+    def errback(self, _):
+        pass
+
+
+class SAXFilterXMLNotFoundError(OperationError):
+    def __init__(self, rpc_listner):
+        self._listner = rpc_listner
+
+    def __str__(self):
+        return "SAX filter input xml not provided for listner: %s" % self._listner
 
 
 class DefaultXMLParser(object):
@@ -110,15 +135,18 @@ class DefaultXMLParser(object):
                 self._session._dispatch_message(msg.encode())
             else:
                 self._session._dispatch_message(msg)
-            # create new buffer which contains remaining of old buffer
             self._session._buffer = StringIO()
-            self._session._buffer.write(remaining.encode())
             self._parsing_pos10 = 0
-            if len(remaining) > 0:
+            if len(remaining.strip()) > 0:
                 # There could be another entire message in the
                 # buffer, so we should try to parse again.
-                self.logger.debug('Trying another round of parsing since there is still data')
-                self._parse10()
+                if type(self._session.parser) != DefaultXMLParser:
+                    self.logger.debug('send remaining data to SAX parser')
+                    self._session.parser.parse(remaining)
+                else:
+                    self.logger.debug('Trying another round of parsing since there is still data')
+                    self._session._buffer.write(remaining.encode())
+                    self._parse10()
         else:
             # handle case that MSG_DELIM is split over two chunks
             self._parsing_pos10 = buf.tell() - MSG_DELIM_LEN
