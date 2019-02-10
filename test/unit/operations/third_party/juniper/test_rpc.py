@@ -147,7 +147,7 @@ class TestRPC(unittest.TestCase):
             raise_mode=RaiseMode.ALL)
         obj.request(rollback=2)
         node = new_ele(
-            'get-configuration', {'compare': 'rollback', 'rollback': str(2)})
+            'get-configuration', {'compare': 'rollback', 'rollback': str(2), 'format': 'text'})
         call = mock_request.call_args_list[0][0][0]
         self.assertEqual(call.tag, node.tag)
         self.assertEqual(call.attrib, node.attrib)
