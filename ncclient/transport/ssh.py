@@ -59,7 +59,7 @@ TICK = 0.1
 # * result.group(1) will contain the digit string for a chunk
 # * result.group(2) will be defined if '##' found
 #
-RE_NC11_DELIM = re.compile(rb'\n(?:#([0-9]+)|(##))\n')
+RE_NC11_DELIM = re.compile(br'\n(?:#([0-9]+)|(##))\n')
 
 
 def default_unknown_host_cb(host, fingerprint):
