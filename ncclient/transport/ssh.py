@@ -60,7 +60,7 @@ TICK = 0.1
 # * result.group(1) will contain the digit string for a chunk
 # * result.group(2) will be defined if '##' found
 #
-RE_NC11_DELIM = re.compile(r'\n(?:#([0-9]+)|(##))\n')
+RE_NC11_DELIM = re.compile(br'\n(?:#([0-9]+)|(##))\n')
 
 
 def default_unknown_host_cb(host, fingerprint):
@@ -191,7 +191,7 @@ class SSHSession(Session):
         while True and start < data_len:
             # match to see if we found at least some kind of delimiter
             self.logger.debug('_parse11: matching from %d bytes from start of buffer', start)
-            re_result = RE_NC11_DELIM.match(data[start:].decode('utf-8'))
+            re_result = RE_NC11_DELIM.match(data[start:])
             if not re_result:
 
                 # not found any kind of delimiter just break; this should only
