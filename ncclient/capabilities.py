@@ -12,8 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import sys
 import six
+
+
+logger = logging.getLogger("ncclient.capabilities")
+
 
 def _abbreviate(uri):
     if uri.startswith("urn:ietf:params") and ":netconf:" in uri:
@@ -103,7 +108,7 @@ class Capability(object):
 
         capability.parameters = {
             param.key: param.value
-            for param in _parse_parameter_string(param_string)
+            for param in _parse_parameter_string(param_string, uri)
         }
 
         return capability
@@ -118,9 +123,17 @@ class Capability(object):
         return _abbreviate(self.namespace_uri)
 
 
-def _parse_parameter_string(string):
+def _parse_parameter_string(string, uri):
     for param_string in string.split('&'):
-        yield _Parameter.from_string(param_string)
+        try:
+            yield _Parameter.from_string(param_string)
+        except _InvalidParameter:
+            logger.error(
+                "Invalid parameter '{param}' in capability URI '{uri}'".format(
+                    param=param_string,
+                    uri=uri,
+                )
+            )
 
 
 class _Parameter(object):
@@ -136,7 +149,11 @@ class _Parameter(object):
         try:
             key, value = string.split('=')
         except ValueError:
-            # TODO raise custom error
-            raise
+            raise _InvalidParameter
 
         return cls(key, value)
+
+
+class _InvalidParameter(Exception):
+
+    pass
