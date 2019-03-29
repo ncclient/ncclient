@@ -114,6 +114,7 @@ def _validate_with_defaults_mode(mode, capabilities):
 
 
 def _get_valid_with_defaults_modes(capabilities):
+    """Reference: https://tools.ietf.org/html/rfc6243#section-4.3"""
     capability = capabilities[":with-defaults"]
 
     try:
