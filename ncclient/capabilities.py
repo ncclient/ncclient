@@ -108,6 +108,12 @@ class Capability(object):
 
         return capability
 
+    def __eq__(self, other):
+        return (
+            self.namespace_uri == other.namespace_uri and
+            self.parameters == other.parameters
+        )
+
     def get_abbreviations(self):
         return _abbreviate(self.namespace_uri)
 
