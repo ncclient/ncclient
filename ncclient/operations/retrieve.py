@@ -20,25 +20,11 @@ from lxml import etree
 
 from ncclient.operations import util
 
-_VALID_WITH_DEFAULTS = [
-    "explicit",
-    "report-all",
-    "report-all-tagged",
-    "trim"
-]
 
 class WithDefaultsError(OperationError):
 
-    """Raised when an invalid "with-defaults" option is specified in a Get or
-       GetConfig request"""
+    """Invalid 'with-defaults' mode or capability URI"""
 
-    def __init__(self, invalid_mode):
-        super(WithDefaultsError, self).__init__(
-            "Invalid 'with-defaults' mode '{provided}', must be one of the "
-            "following: {options}".format(
-                provided=invalid_mode,
-                options=', '.join(_VALID_WITH_DEFAULTS)
-            ))
 
 class GetReply(RPCReply):
 
@@ -97,14 +83,56 @@ class Get(RPC):
             node.append(util.build_filter(filter))
         if with_defaults is not None:
             self._assert(":with-defaults")
-            _append_with_defaults(node, with_defaults)
+            _append_with_defaults_mode(
+                node,
+                with_defaults,
+                self._session.server_capabilities,
+            )
         return self._request(node)
 
-def _append_with_defaults(node, with_defaults):
-    if with_defaults.strip().lower() not in _VALID_WITH_DEFAULTS:
-        raise WithDefaultsError(with_defaults)
-    with_defaults_ele = sub_ele_ns(node, "with-defaults", NETCONF_WITH_DEFAULTS_NS)
-    with_defaults_ele.text = with_defaults
+
+def _append_with_defaults_mode(node, mode, capabilities):
+    _validate_with_defaults_mode(mode, capabilities)
+    with_defaults_element = sub_ele_ns(
+        node,
+        "with-defaults",
+        NETCONF_WITH_DEFAULTS_NS,
+    )
+    with_defaults_element.text = mode
+
+
+def _validate_with_defaults_mode(mode, capabilities):
+    valid_modes = _get_valid_with_defaults_modes(capabilities)
+    if mode.strip().lower() not in valid_modes:
+        raise WithDefaultsError(
+            "Invalid 'with-defaults' mode '{provided}'; the server only "
+            "supports the following: {options}".format(
+                provided=mode,
+                options=', '.join(valid_modes)
+            )
+        )
+
+
+def _get_valid_with_defaults_modes(capabilities):
+    capability = capabilities[":with-defaults"]
+
+    try:
+        valid_modes = [capability.parameters["basic-mode"]]
+    except KeyError:
+        raise WithDefaultsError(
+            "Invalid 'with-defaults' capability URI advertised by the server; "
+            "missing 'basic-mode' parameter"
+        )
+
+    try:
+        also_supported = capability.parameters["also-supported"]
+    except KeyError:
+        return valid_modes
+
+    valid_modes.extend(also_supported.split(","))
+
+    return valid_modes
+
 
 class GetConfig(RPC):
 
@@ -129,7 +157,11 @@ class GetConfig(RPC):
             node.append(util.build_filter(filter))
         if with_defaults is not None:
             self._assert(":with-defaults")
-            _append_with_defaults(node, with_defaults)
+            _append_with_defaults_mode(
+                node,
+                with_defaults,
+                self._session.server_capabilities,
+            )
         return self._request(node)
 
 class GetSchema(RPC):
