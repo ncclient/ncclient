@@ -97,7 +97,7 @@ class Capability(object):
 
     @classmethod
     def from_uri(cls, uri):
-        split_uri = uri.split('?')
+        split_uri = uri.split("?")
         namespace_uri = split_uri[0]
         capability = cls(namespace_uri)
 
@@ -124,7 +124,7 @@ class Capability(object):
 
 
 def _parse_parameter_string(string, uri):
-    for param_string in string.split('&'):
+    for param_string in string.split("&"):
         try:
             yield _Parameter.from_string(param_string)
         except _InvalidParameter:
@@ -147,7 +147,7 @@ class _Parameter(object):
     @classmethod
     def from_string(cls, string):
         try:
-            key, value = string.split('=')
+            key, value = string.split("=")
         except ValueError:
             raise _InvalidParameter
 
