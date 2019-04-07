@@ -13,7 +13,7 @@ warnings.simplefilter("ignore", DeprecationWarning)
 from ncclient import manager
 
 exec_conf_prefix = """
-      <config xmlns:xc="urn:ietf:params:xml:ns:netconf:base:1.0">
+      <nc:config xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
         <configure xmlns="http://www.cisco.com/nxos:1.0:vlan_mgr_cli">
           <__XML__MODE__exec_configure>
 """
@@ -21,7 +21,7 @@ exec_conf_prefix = """
 exec_conf_postfix = """
           </__XML__MODE__exec_configure>
         </configure>
-      </config>
+      </nc:config>
 """
 
 cmd_vlan_conf_snippet= """
@@ -67,7 +67,7 @@ cmd_vlan_int_snippet = """
 """
 
 cmd_no_vlan_int_snippet = """
-      <config xmlns:xc="urn:ietf:params:xml:ns:netconf:base:1.0">
+      <nc:config xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
         <configure xmlns="http://www.cisco.com/nxos:1.0:vlan_mgr_cli">
           <__XML__MODE__exec_configure>
           <interface>
@@ -92,7 +92,7 @@ cmd_no_vlan_int_snippet = """
           </interface>
           </__XML__MODE__exec_configure>
         </configure>
-      </config>
+      </nc:config>
 """
 
 filter_show_vlan_brief_snippet =  """

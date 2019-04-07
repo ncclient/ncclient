@@ -13,13 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import base64
+import getpass
 import os
+import re
+import six
 import sys
 import socket
-import getpass
-import re
 import threading
-import base64
 from binascii import hexlify
 
 try:
@@ -59,7 +60,7 @@ TICK = 0.1
 # * result.group(1) will contain the digit string for a chunk
 # * result.group(2) will be defined if '##' found
 #
-RE_NC11_DELIM = re.compile(r'\n(?:#([0-9]+)|(##))\n')
+RE_NC11_DELIM = re.compile(br'\n(?:#([0-9]+)|(##))\n')
 
 
 def default_unknown_host_cb(host, fingerprint):
@@ -190,7 +191,7 @@ class SSHSession(Session):
         while True and start < data_len:
             # match to see if we found at least some kind of delimiter
             self.logger.debug('_parse11: matching from %d bytes from start of buffer', start)
-            re_result = RE_NC11_DELIM.match(data[start:].decode('utf-8'))
+            re_result = RE_NC11_DELIM.match(data[start:])
             if not re_result:
 
                 # not found any kind of delimiter just break; this should only
@@ -349,7 +350,21 @@ class SSHSession(Session):
         if ssh_config is not None:
             config = paramiko.SSHConfig()
             config.parse(open(os.path.expanduser(ssh_config)))
+            
+            # Save default Paramiko SSH port so it can be reverted
+            paramiko_default_ssh_port = paramiko.config.SSH_PORT
+            
+            # Change the default SSH port to the port specified by the user so expand_variables 
+            # replaces %p with the passed in port rather than 22 (the defauld paramiko.config.SSH_PORT)
+
+            paramiko.config.SSH_PORT = port
+
             config = config.lookup(host)
+
+            # paramiko.config.SSHconfig::expand_variables is called by lookup so we can set the SSH port
+            # back to the default
+            paramiko.config.SSH_PORT = paramiko_default_ssh_port
+
             host = config.get("hostname", host)
             if username is None:
                 username = config.get("user")
@@ -364,8 +379,14 @@ class SSHSession(Session):
             username = getpass.getuser()
 
         if sock_fd is None:
-            if config.get("proxycommand"):
-                sock = paramiko.proxy.ProxyCommand(config.get("proxycommand"))
+            proxycommand = config.get("proxycommand")
+            if proxycommand:
+                self.logger.debug("Configuring Proxy. %s", proxycommand)
+                if not isinstance(proxycommand, six.string_types):
+                  proxycommand = [os.path.expanduser(elem) for elem in proxycommand]
+                else:
+                  proxycommand = os.path.expanduser(proxycommand)
+                sock = paramiko.proxy.ProxyCommand(proxycommand)
             else:
                 for res in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket.SOCK_STREAM):
                     af, socktype, proto, canonname, sa = res
