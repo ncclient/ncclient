@@ -4,6 +4,7 @@ from mock import patch
 from ncclient import manager
 import ncclient.manager
 import ncclient.transport
+from ncclient.capabilities import Capabilities
 from ncclient.xml_ import *
 from ncclient.operations import RaiseMode
 from ncclient.operations.errors import MissingCapabilityError
@@ -33,9 +34,35 @@ class TestRetrieve(unittest.TestCase):
         self.assertEqual(call, xml)
 
     @patch('ncclient.operations.retrieve.RPC._request')
-    def test_get_with_defaults(self, mock_request):
+    def test_get_with_defaults_basic_mode(self, mock_request):
         session = ncclient.transport.SSHSession(self.device_handler)
-        session._server_capabilities = [':with-defaults']
+        session._server_capabilities = Capabilities([
+            "urn:ietf:params:netconf:capability:with-defaults:1.0"
+            "?basic-mode=explicit"
+        ])
+        obj = Get(session, self.device_handler, raise_mode=RaiseMode.ALL)
+        obj.request(with_defaults='explicit')
+
+        expected_xml = etree.fromstring(
+            '<nc:get xmlns:nc="{base}">'
+            '<ns0:with-defaults xmlns:ns0="{defaults}">explicit</ns0:with-defaults>'
+            '</nc:get>'.format(
+                base=BASE_NS_1_0,
+                defaults=NETCONF_WITH_DEFAULTS_NS
+            )
+        )
+
+        call = mock_request.call_args_list[0][0][0]
+        self.assertEqual(etree.tostring(call), etree.tostring(expected_xml))
+
+    @patch('ncclient.operations.retrieve.RPC._request')
+    def test_get_with_defaults_also_supported(self, mock_request):
+        session = ncclient.transport.SSHSession(self.device_handler)
+        session._server_capabilities = Capabilities([
+            "urn:ietf:params:netconf:capability:with-defaults:1.0"
+            "?basic-mode=explicit"
+            "&also-supported=report-all,trim"
+        ])
         obj = Get(session, self.device_handler, raise_mode=RaiseMode.ALL)
         obj.request(with_defaults='report-all')
 
@@ -54,28 +81,33 @@ class TestRetrieve(unittest.TestCase):
     @patch('ncclient.operations.retrieve.RPC._request')
     def test_get_with_defaults_not_supported(self, mock_request):
         session = ncclient.transport.SSHSession(self.device_handler)
-        session._server_capabilities = []
+        session._server_capabilities = Capabilities([
+            "urn:ietf:params:netconf:capability:with-defaults:1.0"
+            "?basic-mode=explicit"
+            "&also-supported=report-all,trim"
+        ])
+        obj = Get(session, self.device_handler, raise_mode=RaiseMode.ALL)
+
+        expected_error = (
+            "Invalid 'with-defaults' mode 'report-all-tagged'; the server "
+            "only supports the following: explicit, report-all, trim"
+        )
+        self.assertRaisesRegexp(
+            WithDefaultsError,
+            expected_error,
+            obj.request,
+            with_defaults='report-all-tagged'
+        )
+
+    @patch('ncclient.operations.retrieve.RPC._request')
+    def test_get_with_defaults_missing_capability(self, mock_request):
+        session = ncclient.transport.SSHSession(self.device_handler)
+        session._server_capabilities = Capabilities([])
         obj = Get(session, self.device_handler, raise_mode=RaiseMode.ALL)
         self.assertRaises(
             MissingCapabilityError,
             obj.request,
             with_defaults='report-all'
-        )
-
-    @patch('ncclient.operations.retrieve.RPC._request')
-    def test_with_defaults_valid_options(self, mock_request):
-        session = ncclient.transport.SSHSession(self.device_handler)
-        session._server_capabilities = [':with-defaults']
-        obj = Get(session, self.device_handler, raise_mode=RaiseMode.ALL)
-
-        obj.request(with_defaults='explicit')
-        obj.request(with_defaults='report-all')
-        obj.request(with_defaults='report-all-tagged')
-        obj.request(with_defaults='trim')
-        self.assertRaises(
-            WithDefaultsError,
-            obj.request,
-            with_defaults='invalid-option'
         )
 
     @patch('ncclient.operations.retrieve.RPC._request')
@@ -94,7 +126,10 @@ class TestRetrieve(unittest.TestCase):
     @patch('ncclient.operations.retrieve.RPC._request')
     def test_get_config_with_defaults(self, mock_request):
         session = ncclient.transport.SSHSession(self.device_handler)
-        session._server_capabilities = [':with-defaults']
+        session._server_capabilities = Capabilities([
+            "urn:ietf:params:netconf:capability:with-defaults:1.0"
+            "?basic-mode=explicit"
+        ])
         obj = GetConfig(session, self.device_handler, raise_mode=RaiseMode.ALL)
         source = 'candidate'
         obj.request(source, with_defaults='explicit')
@@ -113,9 +148,9 @@ class TestRetrieve(unittest.TestCase):
         self.assertEqual(etree.tostring(call), etree.tostring(expected_xml))
 
     @patch('ncclient.operations.retrieve.RPC._request')
-    def test_get_config_with_defaults_not_supported(self, mock_request):
+    def test_get_config_with_defaults_missing_capability(self, mock_request):
         session = ncclient.transport.SSHSession(self.device_handler)
-        session._server_capabilities = []
+        session._server_capabilities = Capabilities([])
         obj = GetConfig(session, self.device_handler, raise_mode=RaiseMode.ALL)
         source = 'candidate'
         self.assertRaises(
