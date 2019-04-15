@@ -374,6 +374,10 @@ class SSHSession(Session):
                 userknownhostsfile = config.get("userknownhostsfile")
                 if userknownhostsfile:
                     self.load_known_hosts(os.path.expanduser(userknownhostsfile))
+            if timeout is None:
+                timeout = config.get("connecttimeout")
+                if timeout:
+                    timeout = int(timeout)
 
         if username is None:
             username = getpass.getuser()
