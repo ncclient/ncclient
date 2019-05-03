@@ -349,7 +349,8 @@ class SSHSession(Session):
             ssh_config = "~/.ssh/config" if sys.platform != "win32" else "~/ssh/config"
         if ssh_config is not None:
             config = paramiko.SSHConfig()
-            config.parse(open(os.path.expanduser(ssh_config)))
+            with open(os.path.expanduser(ssh_config)) as ssh_config_file_obj:
+                config.parse(ssh_config_file_obj)
             
             # Save default Paramiko SSH port so it can be reverted
             paramiko_default_ssh_port = paramiko.config.SSH_PORT
