@@ -89,32 +89,47 @@ def make_device_handler(device_params):
     return handler_obj
 
 
+def _extract_device_params(kwds):
+    if "device_params" in kwds:
+        device_params = kwds["device_params"]
+        del kwds["device_params"]
+    else:
+        device_params = None
+    return device_params
+
+def _extract_manager_params(kwds):
+    if "manager_params" in kwds:
+        manager_params = kwds["manager_params"]
+        del kwds["manager_params"]
+    else:
+        manager_params = {}
+    return manager_params
+
 def connect_ssh(*args, **kwds):
     """
     Initialize a :class:`Manager` over the SSH transport.
     For documentation of arguments see :meth:`ncclient.transport.SSHSession.connect`.
 
     The underlying :class:`ncclient.transport.SSHSession` is created with
-        :data:`CAPABILITIES`. It is first instructed to
-        :meth:`~ncclient.transport.SSHSession.load_known_hosts` and then
-        all the provided arguments are passed directly to its implementation
-        of :meth:`~ncclient.transport.SSHSession.connect`.
+    :data:`CAPABILITIES`. It is first instructed to
+    :meth:`~ncclient.transport.SSHSession.load_known_hosts` and then
+    all the provided arguments are passed directly to its implementation
+    of :meth:`~ncclient.transport.SSHSession.connect`.
 
-    To invoke advanced vendor related operation add device_params =
-        {'name':'<vendor_alias>'} in connection paramerers. For the time,
-        'junos' and 'nexus' are supported for Juniper and Cisco Nexus respectively.
+    To customize the :class:`Manager`, add a `manager_params` dictionnary in connection
+    parameters (e.g. `manager_params={'timeout': 60}` for a bigger RPC timeout paramater)
 
-    A custom device handler can be provided with device_params =
-        {'handler':<handler class>} in connection paramerers.
+    To invoke advanced vendor related operation add
+    `device_params={'name': '<vendor_alias>'}` in connection parameters. For the time,
+    'junos' and 'nexus' are supported for Juniper and Cisco Nexus respectively.
+
+    A custom device handler can be provided with
+    `device_params={'handler':<handler class>}` in connection parameters.
     """
-    # Extract device parameter dict, if it was passed into this function. Need to
-    # remove it from kwds, since the session.connect() doesn't like extra stuff in
-    # there.
-    if "device_params" in kwds:
-        device_params = kwds["device_params"]
-        del kwds["device_params"]
-    else:
-        device_params = None
+    # Extract device parameter and manager parameter dictionaries, if they were passed into this function.
+    # Remove them from kwds (which should keep only session.connect() parameters).
+    device_params = _extract_device_params(kwds)
+    manager_params = _extract_manager_params(kwds)
 
     device_handler = make_device_handler(device_params)
     device_handler.add_additional_ssh_connect_params(kwds)
@@ -130,17 +145,16 @@ def connect_ssh(*args, **kwds):
         if session.transport:
             session.close()
         raise
-    return Manager(session, device_handler, **kwds)
+    return Manager(session, device_handler, **manager_params)
 
 def connect_ioproc(*args, **kwds):
-    if "device_params" in kwds:
-        device_params = kwds["device_params"]
-        del kwds["device_params"]
+    device_params = _extract_device_params(kwds)
+    manager_params = _extract_manager_params(kwds)
+
+    if device_params:
         import_string = 'ncclient.transport.third_party.'
         import_string += device_params['name'] + '.ioproc'
         third_party_import = __import__(import_string, fromlist=['IOProc'])
-    else:
-        device_params = None
 
     device_handler = make_device_handler(device_params)
 
@@ -149,7 +163,7 @@ def connect_ioproc(*args, **kwds):
     session = third_party_import.IOProc(device_handler)
     session.connect()
 
-    return Manager(session, device_handler, **kwds)
+    return Manager(session, device_handler, **manager_params)
 
 
 def connect(*args, **kwds):
@@ -184,7 +198,7 @@ class Manager(object):
 
    # __metaclass__ = OpExecutor
 
-    def __init__(self, session, device_handler, timeout=30, *args, **kwargs):
+    def __init__(self, session, device_handler, timeout=30):
         self._session = session
         self._async_mode = False
         self._timeout = timeout
