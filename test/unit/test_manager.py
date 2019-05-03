@@ -11,6 +11,12 @@ class TestManager(unittest.TestCase):
         m = MagicMock()
         mock_ssh.return_value = m
         conn = self._mock_manager()
+        m.connect.assert_called_once_with(host='10.10.10.10',
+                                          port=22,
+                                          username='user',
+                                          password='password',
+                                          hostkey_verify=False, allow_agent=False,
+                                          timeout=3)
         self.assertEqual(conn._session, m)
         self.assertEqual(conn._timeout, 10)
 
@@ -62,7 +68,7 @@ class TestManager(unittest.TestCase):
                                     username='user',
                                     password='password',
                                     timeout=10,
-                                    hostkey_verify=False, 
+                                    hostkey_verify=False,
                                     allow_agent=False,
                                     ssh_config=ssh_config_path)
         
@@ -90,9 +96,10 @@ class TestManager(unittest.TestCase):
                                     port=22,
                                     username='user',
                                     password='password',
-                                    timeout=10,
+                                    timeout=3,
+                                    hostkey_verify=False,
                                     device_params={'local': True, 'name': 'junos'},
-                                    hostkey_verify=False)
+                                    manager_params={'timeout': 10})
         self.assertEqual(mock_connect.called, 1)
         self.assertEqual(conn._timeout, 10)
         self.assertEqual(conn._device_handler.device_params, {'local': True, 'name': 'junos'}) 
@@ -182,9 +189,10 @@ class TestManager(unittest.TestCase):
                                     port=22,
                                     username='user',
                                     password='password',
-                                    timeout=10,
+                                    timeout=3,
+                                    hostkey_verify=False, allow_agent=False,
                                     device_params={'name': 'junos'},
-                                    hostkey_verify=False, allow_agent=False)
+                                    manager_params={'timeout': 10})
         return conn
 
     @patch('socket.fromfd')
