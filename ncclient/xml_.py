@@ -69,6 +69,8 @@ NETCONF_MONITORING_NS = "urn:ietf:params:xml:ns:yang:ietf-netconf-monitoring"
 NETCONF_NOTIFICATION_NS = "urn:ietf:params:xml:ns:netconf:notification:1.0"
 #: Namespace for netconf with-defaults (RFC 6243)
 NETCONF_WITH_DEFAULTS_NS = "urn:ietf:params:xml:ns:yang:ietf-netconf-with-defaults"
+#: Namespace for Alcatel-Lucent
+ALU_CONFIG = "urn:alcatel-lucent.com:sros:ns:yang:conf-r13"
 #
 try:
     register_namespace = etree.register_namespace
