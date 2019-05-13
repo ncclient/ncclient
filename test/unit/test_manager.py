@@ -67,7 +67,6 @@ class TestManager(unittest.TestCase):
                                     port=830,
                                     username='user',
                                     password='password',
-                                    timeout=10,
                                     hostkey_verify=False,
                                     allow_agent=False,
                                     ssh_config=ssh_config_path)
@@ -209,7 +208,6 @@ class TestManager(unittest.TestCase):
                                     sock_fd=6,
                                     username='user',
                                     password='password',
-                                    timeout=10,
                                     device_params={'name': 'junos'},
                                     hostkey_verify=False, allow_agent=False)
         return conn
