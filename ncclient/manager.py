@@ -198,12 +198,16 @@ class Manager(object):
 
    # __metaclass__ = OpExecutor
 
+
+    HUGE_TREE_DEFAULT = False
+    """Default for `huge_tree` support for XML parsing of RPC replies (defaults to False)"""
+
     def __init__(self, session, device_handler, timeout=30):
         self._session = session
         self._async_mode = False
         self._timeout = timeout
         self._raise_mode = operations.RaiseMode.ALL
-        self._huge_tree = False
+        self._huge_tree = self.HUGE_TREE_DEFAULT
         self._device_handler = device_handler
 
     def __enter__(self):
@@ -336,7 +340,8 @@ class Manager(object):
 
     @property
     def huge_tree(self):
-        """Whether `huge_tree` support for xml parsing of RPC replies is enabled (default=False)"""
+        """Whether `huge_tree` support for XML parsing of RPC replies is enabled (default=False)
+        The default value is configurable through :attr:`~ncclient.manager.Manager.HUGE_TREE_DEFAULT`"""
         return self._huge_tree
 
     @huge_tree.setter
