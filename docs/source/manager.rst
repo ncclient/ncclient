@@ -86,6 +86,7 @@ Presence of capabilities is verified to the extent possible, and you can expect 
 
     .. autoattribute:: connected
 
+    .. autoattribute:: huge_tree
 
 Special kinds of parameters
 ---------------------------
