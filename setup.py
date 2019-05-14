@@ -34,6 +34,9 @@ if sys.version_info.major == 2 and sys.version_info.minor < 7:
 req_lines = [line.strip() for line in open("requirements.txt").readlines()]
 install_reqs = list(filter(None, req_lines))
 
+test_req_lines = [line.strip() for line in open("test-requirements.txt").readlines()]
+test_reqs = list(filter(None, test_req_lines))
+
 with codecs.open('README.rst', 'r', encoding='utf8') as file:
     long_description = file.read()
 
@@ -48,9 +51,10 @@ setup(name='ncclient',
       url="https://github.com/ncclient/ncclient",
       packages=find_packages('.'),
       install_requires=install_reqs,
+      tests_require=test_reqs,
       license=__licence__,
       platforms=["Posix; OS X; Windows"],
-      keywords=('NETCONF', 'NETCONF Python client', 'Juniper Optimization', 'Cisco NXOS Optimization'),
+      keywords=['NETCONF', 'NETCONF Python client', 'Juniper Optimization', 'Cisco NXOS Optimization'],
       python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
       classifiers=[
           'Development Status :: 5 - Production/Stable',
