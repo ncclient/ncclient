@@ -21,3 +21,7 @@ venv/
 ENV/
 
 .idea
+
+.coverage
+docs/html
+.tox
