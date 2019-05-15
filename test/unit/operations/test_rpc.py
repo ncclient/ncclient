@@ -92,9 +92,7 @@ class TestRPC(unittest.TestCase):
     @patch('ncclient.transport.Session.send')
     @patch(patch_str)
     def test_rpc_send(self, mock_thread, mock_send):
-        device_handler = manager.make_device_handler({'name': 'junos'})
-        capabilities = Capabilities(device_handler.get_capabilities())
-        session = ncclient.transport.Session(capabilities)
+        device_handler, session = self._mock_device_handler_and_session()
         obj = RPC(session, device_handler, raise_mode=RaiseMode.ALL, timeout=0)
         reply = RPCReply(xml1)
         obj._reply = reply
@@ -120,9 +118,7 @@ class TestRPC(unittest.TestCase):
     @patch('ncclient.transport.Session.send')
     @patch(patch_str)
     def test_rpc_async(self, mock_thread, mock_send):
-        device_handler = manager.make_device_handler({'name': 'junos'})
-        capabilities = Capabilities(device_handler.get_capabilities())
-        session = ncclient.transport.Session(capabilities)
+        device_handler, session = self._mock_device_handler_and_session()
         obj = RPC(
             session,
             device_handler,
@@ -138,9 +134,7 @@ class TestRPC(unittest.TestCase):
     @patch('ncclient.transport.Session.send')
     @patch(patch_str)
     def test_rpc_timeout_error(self, mock_thread, mock_send):
-        device_handler = manager.make_device_handler({'name': 'junos'})
-        capabilities = Capabilities(device_handler.get_capabilities())
-        session = ncclient.transport.Session(capabilities)
+        device_handler, session = self._mock_device_handler_and_session()
         obj = RPC(session, device_handler, raise_mode=RaiseMode.ALL, timeout=0)
         reply = RPCReply(xml1)
         obj.deliver_reply(reply)
@@ -152,9 +146,7 @@ class TestRPC(unittest.TestCase):
     @patch('ncclient.transport.Session.send')
     @patch(patch_str)
     def test_rpc_rpcerror(self, mock_thread, mock_send):
-        device_handler = manager.make_device_handler({'name': 'junos'})
-        capabilities = Capabilities(device_handler.get_capabilities())
-        session = ncclient.transport.Session(capabilities)
+        device_handler, session = self._mock_device_handler_and_session()
         obj = RPC(session, device_handler, raise_mode=RaiseMode.ALL, timeout=0)
         reply = RPCReply(xml1)
         obj._reply = reply
@@ -168,11 +160,15 @@ class TestRPC(unittest.TestCase):
     @patch('ncclient.transport.Session.send')
     @patch(patch_str)
     def test_rpc_capability_error(self, mock_thread, mock_send):
-        device_handler = manager.make_device_handler({'name': 'junos'})
-        capabilities = Capabilities(device_handler.get_capabilities())
-        session = ncclient.transport.Session(capabilities)
+        device_handler, session = self._mock_device_handler_and_session()
         session._server_capabilities = [':running']
         obj = RPC(session, device_handler, raise_mode=RaiseMode.ALL, timeout=0)
         obj._assert(':running')
         self.assertRaises(MissingCapabilityError,
             obj._assert, ':candidate')
+
+    def _mock_device_handler_and_session(self):
+        device_handler = manager.make_device_handler({'name': 'junos'})
+        capabilities = Capabilities(device_handler.get_capabilities())
+        session = ncclient.transport.Session(capabilities)
+        return device_handler, session
