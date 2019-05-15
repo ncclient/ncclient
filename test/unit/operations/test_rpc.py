@@ -7,6 +7,7 @@ import ncclient.transport
 from ncclient.xml_ import *
 from ncclient.operations import RaiseMode
 from ncclient.capabilities import Capabilities
+from xml.sax.saxutils import escape
 import sys
 
 if sys.version >= '3':
@@ -78,6 +79,16 @@ xml4 = """<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns:junos
 </data>
 </rpc-reply>"""
 
+# Huge dummy text configuration to trigger "xml.etree.XMLSyntaxError: xmlSAX2Characters: huge text node"
+# - The maximum size of a single text node is `#define XML_MAX_TEXT_LENGTH 10000000`
+#   (https://gitlab.gnome.org/GNOME/libxml2/blob/master/include/libxml/parserInternals.h)
+# - The text should contain at least one special character that should be escaped (e.g. '>')
+huge_configuration_text = "-->\n" + "Huge configuration. " * 500000
+
+xml5_huge = """<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns:junos="http://xml.juniper.net/junos/18.2R1/junos" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="urn:uuid:b8b20a95-7822-4c59-97a3-44435d6fc6a7">
+<configuration-text xmlns="http://xml.juniper.net/xnm/1.1/xnm">%s</configuration-text>
+</rpc-reply>""" % escape(huge_configuration_text)
+
 
 class TestRPC(unittest.TestCase):
 
@@ -87,6 +98,18 @@ class TestRPC(unittest.TestCase):
         self.assertTrue(obj.ok)
         self.assertFalse(obj.error)
         self.assertEqual(xml4, obj.xml)
+        self.assertTrue(obj._parsed)
+
+    def test_rpc_reply_huge_text_node_exception(self):
+        obj = RPCReply(xml5_huge)
+        self.assertRaises(etree.XMLSyntaxError, obj.parse)
+
+    def test_rpc_reply_huge_text_node_workaround(self):
+        obj = RPCReply(xml5_huge, huge_tree=True)
+        obj.parse()
+        self.assertTrue(obj.ok)
+        self.assertFalse(obj.error)
+        self.assertEqual(xml5_huge, obj.xml)
         self.assertTrue(obj._parsed)
 
     @patch('ncclient.transport.Session.send')
@@ -166,6 +189,29 @@ class TestRPC(unittest.TestCase):
         obj._assert(':running')
         self.assertRaises(MissingCapabilityError,
             obj._assert, ':candidate')
+
+    @patch('ncclient.transport.Session.send')
+    def test_rpc_huge_text_node_exception(self, mock_send):
+        device_handler, session = self._mock_device_handler_and_session()
+        obj = RPC(session, device_handler, raise_mode=RaiseMode.ALL, timeout=0)
+
+        obj.deliver_reply(xml5_huge)
+        node = new_ele("get-configuration", {'format': 'text'})
+        self.assertRaises(etree.XMLSyntaxError, obj._request, node)
+
+    @patch('ncclient.transport.Session.send')
+    def test_rpc_huge_text_node_workaround(self, mock_send):
+        device_handler, session = self._mock_device_handler_and_session()
+        obj = RPC(session, device_handler, raise_mode=RaiseMode.ALL, timeout=0, huge_tree=True)
+        self.assertTrue(obj.huge_tree)
+
+        obj.deliver_reply(xml5_huge)
+        node = new_ele("get-configuration", {'format': 'text'})
+        result = obj._request(node)
+
+        self.assertEqual(result.find('configuration-text').text, huge_configuration_text)
+        obj.huge_tree = False
+        self.assertFalse(obj.huge_tree)
 
     def _mock_device_handler_and_session(self):
         device_handler = manager.make_device_handler({'name': 'junos'})
