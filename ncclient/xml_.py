@@ -114,7 +114,10 @@ def to_xml(ele, encoding="UTF-8", pretty_print=False):
 
 
 def to_ele(x, huge_tree=False):
-    "Convert and return the :class:`~xml.etree.ElementTree.Element` for the XML document *x*. If *x* is already an :class:`~xml.etree.ElementTree.Element` simply returns that."
+    """Convert and return the :class:`~xml.etree.ElementTree.Element` for the XML document *x*. If *x* is already an :class:`~xml.etree.ElementTree.Element` simply returns that.
+
+    *huge_tree*: parse XML with very deep trees and very long text content
+    """
     if sys.version < '3':
         return x if etree.iselement(x) else etree.fromstring(x, parser=_get_parser(huge_tree))
     else:

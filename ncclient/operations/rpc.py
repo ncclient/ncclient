@@ -120,6 +120,10 @@ class RPCReply(object):
 
     """Represents an *rpc-reply*. Only concerns itself with whether the operation was successful.
 
+    *raw*: the raw unparsed reply
+
+    *huge_tree*: parse XML with very deep trees and very long text content
+
     .. note::
         If the reply has not yet been parsed there is an implicit, one-time parsing overhead to
         accessing some of the attributes defined by this class.
@@ -431,6 +435,7 @@ class RPC(object):
 
     @property
     def huge_tree(self):
+        """Whether `huge_tree` support for XML parsing of RPC replies is enabled (default=False)"""
         return self._huge_tree
 
     @huge_tree.setter
