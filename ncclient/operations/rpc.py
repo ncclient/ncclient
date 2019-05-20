@@ -120,6 +120,10 @@ class RPCReply(object):
 
     """Represents an *rpc-reply*. Only concerns itself with whether the operation was successful.
 
+    *raw*: the raw unparsed reply
+
+    *huge_tree*: parse XML with very deep trees and very long text content
+
     .. note::
         If the reply has not yet been parsed there is an implicit, one-time parsing overhead to
         accessing some of the attributes defined by this class.
@@ -128,11 +132,12 @@ class RPCReply(object):
     ERROR_CLS = RPCError
     "Subclasses can specify a different error class, but it should be a subclass of `RPCError`."
 
-    def __init__(self, raw):
+    def __init__(self, raw, huge_tree=False):
         self._raw = raw
         self._parsed = False
         self._root = None
         self._errors = []
+        self._huge_tree = huge_tree
 
     def __repr__(self):
         return self._raw
@@ -140,7 +145,7 @@ class RPCReply(object):
     def parse(self):
         "Parses the *rpc-reply*."
         if self._parsed: return
-        root = self._root = to_ele(self._raw) # The <rpc-reply> element
+        root = self._root = to_ele(self._raw, huge_tree=self._huge_tree) # The <rpc-reply> element
         # Per RFC 4741 an <ok/> tag is sent when there are no errors or warnings
         ok = root.find(qualify("ok"))
         if ok is None:
@@ -267,7 +272,7 @@ class RPC(object):
     "By default :class:`RPCReply`. Subclasses can specify a :class:`RPCReply` subclass."
 
 
-    def __init__(self, session, device_handler, async_mode=False, timeout=30, raise_mode=RaiseMode.NONE):
+    def __init__(self, session, device_handler, async_mode=False, timeout=30, raise_mode=RaiseMode.NONE, huge_tree=False):
         """
         *session* is the :class:`~ncclient.transport.Session` instance
 
@@ -278,6 +283,8 @@ class RPC(object):
         *timeout* is the timeout for a synchronous request, see :attr:`timeout`
 
         *raise_mode* specifies the exception raising mode, see :attr:`raise_mode`
+
+        *huge_tree* parse xml with huge_tree support (e.g. for large text config retrieval), see :attr:`huge_tree`
         """
         self._session = session
         try:
@@ -288,6 +295,7 @@ class RPC(object):
         self._async = async_mode
         self._timeout = timeout
         self._raise_mode = raise_mode
+        self._huge_tree = huge_tree
         self._id = uuid4().urn # Keeps things simple instead of having a class attr with running ID that has to be locked
         self._listener = RPCReplyListener(session, device_handler)
         self._listener.register(self._id, self)
@@ -340,7 +348,7 @@ class RPC(object):
                         else:
                             raise self._reply.error
                 if self._device_handler.transform_reply():
-                    return NCElement(self._reply, self._device_handler.transform_reply())
+                    return NCElement(self._reply, self._device_handler.transform_reply(), huge_tree=self._huge_tree)
                 else:
                     return self._reply
             else:
@@ -361,7 +369,7 @@ class RPC(object):
 
     def deliver_reply(self, raw):
         # internal use
-        self._reply = self.REPLY_CLS(raw)
+        self._reply = self.REPLY_CLS(raw, huge_tree=self._huge_tree)
         self._event.set()
 
     def deliver_error(self, err):
@@ -424,3 +432,12 @@ class RPC(object):
 
     Irrelevant for asynchronous usage.
     """
+
+    @property
+    def huge_tree(self):
+        """Whether `huge_tree` support for XML parsing of RPC replies is enabled (default=False)"""
+        return self._huge_tree
+
+    @huge_tree.setter
+    def huge_tree(self, x):
+        self._huge_tree = x
