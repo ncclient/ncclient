@@ -198,11 +198,16 @@ class Manager(object):
 
    # __metaclass__ = OpExecutor
 
+
+    HUGE_TREE_DEFAULT = False
+    """Default for `huge_tree` support for XML parsing of RPC replies (defaults to False)"""
+
     def __init__(self, session, device_handler, timeout=30):
         self._session = session
         self._async_mode = False
         self._timeout = timeout
         self._raise_mode = operations.RaiseMode.ALL
+        self._huge_tree = self.HUGE_TREE_DEFAULT
         self._device_handler = device_handler
 
     def __enter__(self):
@@ -227,7 +232,8 @@ class Manager(object):
                    device_handler=self._device_handler,
                    async_mode=self._async_mode,
                    timeout=self._timeout,
-                   raise_mode=self._raise_mode).request(*args, **kwds)
+                   raise_mode=self._raise_mode,
+                   huge_tree=self._huge_tree).request(*args, **kwds)
 
     def locked(self, target):
         """Returns a context manager for a lock on a datastore, where
@@ -331,3 +337,13 @@ class Manager(object):
     exceptions. Valid values are the constants defined in
     :class:`~ncclient.operations.RaiseMode`.
     The default value is :attr:`~ncclient.operations.RaiseMode.ALL`."""
+
+    @property
+    def huge_tree(self):
+        """Whether `huge_tree` support for XML parsing of RPC replies is enabled (default=False)
+        The default value is configurable through :attr:`~ncclient.manager.Manager.HUGE_TREE_DEFAULT`"""
+        return self._huge_tree
+
+    @huge_tree.setter
+    def huge_tree(self, x):
+        self._huge_tree = x

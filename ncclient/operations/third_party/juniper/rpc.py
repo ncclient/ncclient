@@ -12,6 +12,9 @@ class GetConfiguration(RPC):
         node = new_ele('get-configuration', {'format':format})
         if filter is not None:
             node.append(filter)
+        if format !='xml':
+            # The entire config comes as a single text element and this requires huge_tree support for large configs
+            self._huge_tree = True
         return self._request(node)
 
 class LoadConfiguration(RPC):

@@ -11,7 +11,7 @@ Base classes
 ------------
 
 .. autoclass:: RPC
-    :members: DEPENDS, REPLY_CLS, _assert, _request, request, event, error, reply, raise_mode, is_async, timeout
+    :members: DEPENDS, REPLY_CLS, _assert, _request, request, event, error, reply, raise_mode, is_async, timeout, huge_tree
 
 .. autoclass:: RPCReply
     :members: xml, ok, error, errors, _parsing_hook
