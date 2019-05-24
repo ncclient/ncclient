@@ -306,7 +306,8 @@ class SSHSession(Session):
             hostkey_b64         = None,
             look_for_keys       = True,
             ssh_config          = None,
-            sock_fd             = None):
+            sock_fd             = None,
+            bind_addr           = None):
 
         """Connect via SSH and initialize the NETCONF session. First attempts the publickey authentication method and then password authentication.
 
@@ -337,6 +338,8 @@ class SSHSession(Session):
         *ssh_config* enables parsing of an OpenSSH configuration file, if set to its path, e.g. :file:`~/.ssh/config` or to True (in this case, use :file:`~/.ssh/config`).
 
         *sock_fd* is an already open socket which shall be used for this connection. Useful for NETCONF outbound ssh. Use host=None together with a valid sock_fd number
+
+        *bind_addr* is a (local) source IP address to use, must be reachable from the remote device.
         """
         if not (host or sock_fd):
             raise SSHError("Missing host or socket fd")
@@ -401,6 +404,8 @@ class SSHSession(Session):
                     except socket.error:
                         continue
                     try:
+                        if bind_addr:
+                            sock.bind((bind_addr, 0))
                         sock.connect(sa)
                     except socket.error:
                         sock.close()
