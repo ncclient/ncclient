@@ -58,7 +58,8 @@ def build_filter(spec, capcheck=None):
             raise OperationError("Invalid filter type")
     else:
 
-        rep = validated_element(spec, ("filter", qualify("filter")))
+        rep = validated_element(spec, ("filter", qualify("filter"),
+                                       qualify("filter", ns=NETCONF_NOTIFICATION_NS)))
         # results in XMLError: line 105 ncclient/xml_.py - commented by earies - 5/10/13
         #rep = validated_element(spec, ("filter", qualify("filter")),
         #                                attrs=("type",))
