@@ -35,7 +35,8 @@ by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org) and Einar Nilsen-Nygaa
 
 |  Date  | Release | Description |
 | :----: | :-----: | :---------- |
-| 05/27/19 | `0.6.5` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.5) |
+| 05/27/19 | `0.6.6` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.5) |
+| 05/27/19 | `0.6.5` | Pulled due to bug in PyPi upload |
 | 04/07/19 | `0.6.4` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.4) |
 | 09/26/18 | `0.6.3` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.3) |
 | 08/20/18 | `0.6.2` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.2) |
