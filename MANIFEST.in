@@ -1,4 +1,4 @@
-include *.rst requirements.txt LICENSE
+include *.rst requirements.txt test-requirements.txt LICENSE
 graft docs
 graft examples
 include versioneer.py
