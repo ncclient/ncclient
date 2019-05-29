@@ -4,6 +4,7 @@ from ncclient import manager
 from ncclient.devices.junos import JunosDeviceHandler
 import logging
 
+
 class TestManager(unittest.TestCase):
 
     @patch('ncclient.transport.SSHSession')
@@ -67,11 +68,10 @@ class TestManager(unittest.TestCase):
                                     port=830,
                                     username='user',
                                     password='password',
-                                    timeout=10,
                                     hostkey_verify=False,
                                     allow_agent=False,
                                     ssh_config=ssh_config_path)
-        
+
         log.debug(mock_proxy.call_args[0][0])
         self.assertEqual(mock_proxy.called, 1)
         mock_proxy.assert_called_with('ssh -W 10.0.0.1:830 jumphost.domain.com')
@@ -184,6 +184,29 @@ class TestManager(unittest.TestCase):
         conn = self._mock_manager()
         self.assertEqual(conn.connected, True)
 
+    @patch('ncclient.manager.Manager.HUGE_TREE_DEFAULT')
+    @patch('ncclient.transport.SSHSession')
+    @patch('ncclient.operations.rpc.RPC')
+    def test_manager_huge_node(self, mock_rpc, mock_session, default_value):
+
+        # Set default value to True only in this test through the default_value mock
+        default_value = True
+
+        # true should propagate all the way to the RPC
+        conn = self._mock_manager()
+        self.assertTrue(conn.huge_tree)
+        conn.execute(mock_rpc)
+        mock_rpc.assert_called_once()
+        self.assertTrue(mock_rpc.call_args[1]['huge_tree'])
+
+        # false should propagate all the way to the RPC
+        conn.huge_tree = False
+        self.assertFalse(conn.huge_tree)
+        mock_rpc.reset_mock()
+        conn.execute(mock_rpc)
+        mock_rpc.assert_called_once()
+        self.assertFalse(mock_rpc.call_args[1]['huge_tree'])
+
     def _mock_manager(self):
         conn = manager.connect(host='10.10.10.10',
                                     port=22,
@@ -209,10 +232,10 @@ class TestManager(unittest.TestCase):
                                     sock_fd=6,
                                     username='user',
                                     password='password',
-                                    timeout=10,
                                     device_params={'name': 'junos'},
                                     hostkey_verify=False, allow_agent=False)
         return conn
+
 
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(TestManager)

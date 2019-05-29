@@ -3,3 +3,5 @@ graft docs
 graft examples
 include versioneer.py
 include ncclient/_version.py
+include test
+include test-requirements.txt

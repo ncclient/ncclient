@@ -38,6 +38,8 @@ Presence of capabilities is verified to the extent possible, and you can expect 
 
 .. autoclass:: Manager
 
+    .. autoattribute:: HUGE_TREE_DEFAULT
+
     .. automethod:: get_config(source, filter=None)
 
     .. automethod:: edit_config(target, config, default_operation=None, test_option=None, error_option=None)
@@ -86,6 +88,7 @@ Presence of capabilities is verified to the extent possible, and you can expect 
 
     .. autoattribute:: connected
 
+    .. autoattribute:: huge_tree
 
 Special kinds of parameters
 ---------------------------
