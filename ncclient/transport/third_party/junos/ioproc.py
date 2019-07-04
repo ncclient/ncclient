@@ -66,7 +66,7 @@ class IOProc(SSHSession):
         try:
             while True:
                 # write
-                data = q.get() + MSG_DELIM
+                data = q.get().encode() + MSG_DELIM
                 chan.stdin.write(data)
                 chan.stdin.flush()
                 # read
