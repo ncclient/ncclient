@@ -36,7 +36,7 @@ class IOProc(SSHSession):
         self._device_handler = device_handler
 
     def close(self):
-        self._channel.wait()
+        stdout, stderr = self._channel.communicate()
         self._channel = None
         self._connected = False
 
