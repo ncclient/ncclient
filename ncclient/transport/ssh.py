@@ -521,7 +521,7 @@ class SSHSession(Session):
         saved_exception = None
 
         for key_filename in key_filenames:
-            for cls in (paramiko.RSAKey, paramiko.DSSKey, paramiko.ECDSAKey):
+            for cls in (paramiko.RSAKey, paramiko.DSSKey, paramiko.ECDSAKey, paramiko.Ed25519Key):
                 try:
                     key = cls.from_private_key_file(key_filename, password)
                     self.logger.debug("Trying key %s from %s",
