@@ -50,7 +50,7 @@ class IOProc(SSHSession):
                 raise PermissionError(obj.group(1))
             else:
                 raise PermissionError('Restricted user session')
-        elif 'xml-mode: command not found' in stdoutdata:
+        elif six.b('xml-mode: command not found') in stdoutdata:
             raise PermissionError('xml-mode: command not found')
         self._channel = Popen([NETCONF_SHELL],
                               stdin=PIPE, stdout=PIPE, stderr=STDOUT)
