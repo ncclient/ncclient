@@ -83,11 +83,11 @@ class SAXParserHandler(SessionListener):
 
 
 class SAXFilterXMLNotFoundError(OperationError):
-    def __init__(self, rpc_listner):
-        self._listner = rpc_listner
+    def __init__(self, rpc_listener):
+        self._listener = rpc_listener
 
     def __str__(self):
-        return "SAX filter input xml not provided for listner: %s" % self._listner
+        return "SAX filter input xml not provided for listener: %s" % self._listener
 
 
 class DefaultXMLParser(object):

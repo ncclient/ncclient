@@ -27,14 +27,11 @@ from xml.sax import make_parser
 from ncclient.transport.parser import DefaultXMLParser
 from ncclient.operations import rpc
 from ncclient.transport.parser import SAXFilterXMLNotFoundError
+from ncclient.transport.parser import MSG_DELIM, MSG_DELIM_LEN
 from ncclient.operations.errors import OperationError
 
 import logging
 logger = logging.getLogger("ncclient.transport.third_party.junos.parser")
-
-# v1.0: RFC 4742
-MSG_DELIM = "]]>]]>"
-MSG_DELIM_LEN = len(MSG_DELIM)
 
 RPC_REPLY_END_TAG = "</rpc-reply>"
 RPC_REPLY_END_TAG_LEN = len(RPC_REPLY_END_TAG)
