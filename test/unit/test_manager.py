@@ -71,7 +71,7 @@ class TestManager(unittest.TestCase):
                                     hostkey_verify=False,
                                     allow_agent=False,
                                     ssh_config=ssh_config_path)
-        
+
         log.debug(mock_proxy.call_args[0][0])
         self.assertEqual(mock_proxy.called, 1)
         mock_proxy.assert_called_with('ssh -W 10.0.0.1:830 jumphost.domain.com')
