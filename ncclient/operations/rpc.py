@@ -311,7 +311,6 @@ class RPC(object):
         ele = new_ele("rpc", {"message-id": self._id},
                       **self._device_handler.get_xml_extra_prefix_kwargs())
         ele.append(subele)
-        #print to_xml(ele)
         return to_xml(ele)
 
     def _request(self, op):
