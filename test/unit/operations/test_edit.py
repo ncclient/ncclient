@@ -56,9 +56,9 @@ class TestEdit(unittest.TestCase):
                     default_operation="default", test_option="test")
         node = new_ele("edit-config")
         node.append(util.datastore_or_url("target", "running"))
-        sub_ele(node, "error-option").text = "rollback-on-error"
-        sub_ele(node, "test-option").text = "test"
         sub_ele(node, "default-operation").text = "default"
+        sub_ele(node, "test-option").text = "test"
+        sub_ele(node, "error-option").text = "rollback-on-error"
         config_text = sub_ele(node, "config-text")
         sub_ele(config_text, "configuration-text").text = root
         xml = ElementTree.tostring(node)
