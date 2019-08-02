@@ -13,12 +13,16 @@ generic information needed for interaction with a Netconf server.
 """
 
 import re
+
 from lxml import etree
 from .default import DefaultDeviceHandler
 from ncclient.operations.third_party.juniper.rpc import GetConfiguration, LoadConfiguration, CompareConfiguration
 from ncclient.operations.third_party.juniper.rpc import ExecuteRpc, Command, Reboot, Halt, Commit, Rollback
 from ncclient.operations.rpc import RPCError
 from ncclient.xml_ import to_ele
+from ncclient.transport.third_party.junos.parser import JunosXMLParser
+from ncclient.transport.parser import DefaultXMLParser
+from ncclient.transport.parser import SAXParserHandler
 
 
 class JunosDeviceHandler(DefaultDeviceHandler):
@@ -51,9 +55,9 @@ class JunosDeviceHandler(DefaultDeviceHandler):
             raw = re.sub(r'<ok/>', '</routing-engine>\n<ok/>', raw)
             return raw
         # check if error is during capabilites exchange itself
-        elif re.search('\<rpc-reply\>.*?\</rpc-reply\>.*\</hello\>?', raw, re.M | re.S):
+        elif re.search(r'<rpc-reply>.*?</rpc-reply>.*</hello>?', raw, re.M | re.S):
             errs = re.findall(
-                '\<rpc-error\>.*?\</rpc-error\>', raw, re.M | re.S)
+                r'<rpc-error>.*?</rpc-error>', raw, re.M | re.S)
             err_list = []
             if errs:
                 add_ns = """
@@ -110,3 +114,15 @@ class JunosDeviceHandler(DefaultDeviceHandler):
             return reply
         else:
             return reply.encode('UTF-8')
+
+    def get_xml_parser(self, session):
+        # use_filter in device_params can be used to enabled using SAX parsing
+        if self.device_params.get('use_filter', False):
+            l = session.get_listener_instance(SAXParserHandler)
+            if l:
+                session.remove_listener(l)
+                del l
+            session.add_listener(SAXParserHandler(session))
+            return JunosXMLParser(session)
+        else:
+            return DefaultXMLParser(session)
