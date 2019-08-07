@@ -38,6 +38,7 @@ class HuaweiDeviceHandler(DefaultDeviceHandler):
         dict = {}
         dict["cli"] = CLI
         dict["action"] = Action
+        dict["update"] = Update
         return dict
 
     def handle_raw_dispatch(self, raw):
@@ -51,6 +52,7 @@ class HuaweiDeviceHandler(DefaultDeviceHandler):
         c.append('http://www.huawei.com/netconf/capability/active/1.0')
         c.append('http://www.huawei.com/netconf/capability/discard-commit/1.0')
         c.append('http://www.huawei.com/netconf/capability/exchange/1.0')
+        c.append('http://www.huawei.com/netconf/capability/update/1.0')
         
         return c
 

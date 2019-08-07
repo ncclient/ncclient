@@ -25,3 +25,17 @@ class Action(RPC):
         node = new_ele("execute-action", attrs={"xmlns":HW_PRIVATE_NS})
         node.append(validated_element(action))
         return self._request(node)
+
+
+class Update(RPC):
+    """
+    update configure or update candidate DB to running DB.
+    """
+    def request(self, candidate=True):
+        if candidate:
+            node = new_ele("commit")
+            update = new_ele("update-candidate", attrs={"xmlns":HW_PRIVATE_NS})
+            node.append(update)
+        else:
+            node = new_ele("update ", attrs={"xmlns":HW_PRIVATE_NS})
+        return self._request(node)
