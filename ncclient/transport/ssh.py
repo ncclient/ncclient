@@ -43,7 +43,6 @@ import logging
 logger = logging.getLogger("ncclient.transport.ssh")
 
 PORT_NETCONF_DEFAULT = 830
-PORT_SSH_DEFAULT = 22
 
 BUF_SIZE = 4096
 # v1.0: RFC 4742
@@ -189,7 +188,7 @@ class SSHSession(Session):
 
         *host* is the hostname or IP address to connect to
 
-        *port* is by default 830 (PORT_NETCONF_DEFAULT), but some devices use the default SSH port of 22 (PORT_SSH_DEFAULT) so this may need to be specified
+        *port* is by default 830 (PORT_NETCONF_DEFAULT), but some devices use the default SSH port of 22 so this may need to be specified
 
         *timeout* is an optional timeout for socket connect
 
@@ -316,11 +315,9 @@ class SSHSession(Session):
         elif self._host_keys:
             # Else set preferred host keys to those we possess for the host
             # (avoids situation where known_hosts contains a valid key for the host, but that key type is not selected during negotiation)
-            if port == PORT_SSH_DEFAULT:
-                known_hosts_lookup = host
-            else:
-                known_hosts_lookup = '[%s]:%s' % (host, port)
-            known_host_keys_for_this_host = self._host_keys.lookup(known_hosts_lookup)
+            known_host_keys_for_this_host = self._host_keys.lookup(host) or {}
+            host_port = '[%s]:%s' % (host, port)
+            known_host_keys_for_this_host.update(self._host_keys.lookup(host_port) or {})
             if known_host_keys_for_this_host:
                 self._transport._preferred_keys = [x.key.get_name() for x in known_host_keys_for_this_host._entries]
 
@@ -338,10 +335,7 @@ class SSHSession(Session):
 
             # For looking up entries for nonstandard (22) ssh ports in known_hosts
             # we enclose host in brackets and append port number
-            if port == PORT_SSH_DEFAULT:
-                known_hosts_lookup = host
-            else:
-                known_hosts_lookup = '[%s]:%s' % (host, port)
+            known_hosts_lookups = [host, '[%s]:%s' % (host, port)]
 
             if hostkey_b64:
                 # If hostkey specified, remote host /must/ use that hostkey
@@ -349,10 +343,10 @@ class SSHSession(Session):
                     is_known_host = True
             else:
                 # Check known_hosts
-                is_known_host = self._host_keys.check(known_hosts_lookup, server_key_obj)
+                is_known_host = any(self._host_keys.check(lookup, server_key_obj) for lookup in known_hosts_lookups)
 
             if not is_known_host and not unknown_host_cb(host, fingerprint):
-                raise SSHUnknownHostError(known_hosts_lookup, fingerprint)
+                raise SSHUnknownHostError(known_hosts_lookup[0], fingerprint)
 
         # Authenticating with our private key/identity
         if key_filename is None:
