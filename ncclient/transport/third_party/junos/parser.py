@@ -51,6 +51,12 @@ class JunosXMLParser(DefaultXMLParser):
             self.sax_parser.feed(data)
         except SAXParseException:
             self._delimiter_check(data)
+        except SAXFilterXMLNotFoundError:
+            self.logger.debug('Missing SAX filter_xml. Switching from sax to dom parsing')
+            self._session.parser = DefaultXMLParser(self._session)
+            if not isinstance(data, bytes):
+                data = str.encode(data)
+            self._session._buffer.write(data)
         finally:
             self._parse10()
 
