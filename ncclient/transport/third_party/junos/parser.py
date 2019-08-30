@@ -268,5 +268,5 @@ class SAXParser(ContentHandler):
         for (name, value) in kwargs.items():
             attr = ' {}={}'.format(name, quoteattr(value))
             attrs = attrs + attr
-        data = format_str.format(content, attrs)
+        data = format_str.format(escape(content), attrs)
         self._session._buffer.write(str.encode(data))
