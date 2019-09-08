@@ -45,16 +45,16 @@ class EditConfig(RPC):
         """
         node = new_ele("edit-config")
         node.append(util.datastore_or_url("target", target, self._assert))
+        if default_operation is not None:
+        # TODO: check if it is a valid default-operation
+            sub_ele(node, "default-operation").text = default_operation
+        if test_option is not None:
+            self._assert(':validate')
+            sub_ele(node, "test-option").text = test_option
         if error_option is not None:
             if error_option == "rollback-on-error":
                 self._assert(":rollback-on-error")
             sub_ele(node, "error-option").text = error_option
-        if test_option is not None:
-            self._assert(':validate')
-            sub_ele(node, "test-option").text = test_option
-        if default_operation is not None:
-        # TODO: check if it is a valid default-operation
-            sub_ele(node, "default-operation").text = default_operation
 # <<<<<<< HEAD
 #         node.append(validated_element(config, ("config", qualify("config"))))
 # =======

@@ -13,18 +13,24 @@ generic information needed for interaction with a Netconf server.
 """
 
 import re
+
 from lxml import etree
 from .default import DefaultDeviceHandler
 from ncclient.operations.third_party.juniper.rpc import GetConfiguration, LoadConfiguration, CompareConfiguration
 from ncclient.operations.third_party.juniper.rpc import ExecuteRpc, Command, Reboot, Halt, Commit, Rollback
 from ncclient.operations.rpc import RPCError
 from ncclient.xml_ import to_ele
+from ncclient.transport.third_party.junos.parser import JunosXMLParser
+from ncclient.transport.parser import DefaultXMLParser
+from ncclient.transport.parser import SAXParserHandler
+
 
 class JunosDeviceHandler(DefaultDeviceHandler):
     """
     Juniper handler for device specific information.
 
     """
+
     def __init__(self, device_params):
         super(JunosDeviceHandler, self).__init__(device_params)
 
@@ -49,8 +55,9 @@ class JunosDeviceHandler(DefaultDeviceHandler):
             raw = re.sub(r'<ok/>', '</routing-engine>\n<ok/>', raw)
             return raw
         # check if error is during capabilites exchange itself
-        elif re.search('\<rpc-reply\>.*?\</rpc-reply\>.*\</hello\>?', raw, re.M|re.S):
-            errs = re.findall('\<rpc-error\>.*?\</rpc-error\>', raw, re.M|re.S)
+        elif re.search(r'<rpc-reply>.*?</rpc-reply>.*</hello>?', raw, re.M | re.S):
+            errs = re.findall(
+                r'<rpc-error>.*?</rpc-error>', raw, re.M | re.S)
             err_list = []
             if errs:
                 add_ns = """
@@ -68,16 +75,17 @@ class JunosDeviceHandler(DefaultDeviceHandler):
                     xslt = etree.XSLT(etree.XML(add_ns))
                     transformed_xml = etree.XML(etree.tostring(xslt(doc)))
                     err_list.append(RPCError(transformed_xml))
-                return RPCError(to_ele(''.join(errs)), err_list)
+                return RPCError(to_ele("<rpc-reply>"+''.join(errs)+"</rpc-reply>"), err_list)
         else:
             return False
 
     def handle_connection_exceptions(self, sshsession):
-        c = sshsession._channel = sshsession._transport.open_channel(kind="session")
+        c = sshsession._channel = sshsession._transport.open_channel(
+            kind="session")
         c.set_name("netconf-command-" + str(sshsession._channel_id))
         c.exec_command("xml-mode netconf need-trailer")
         return True
-    
+
     def transform_reply(self):
         reply = '''<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
         <xsl:output method="xml" indent="no"/>
@@ -106,3 +114,15 @@ class JunosDeviceHandler(DefaultDeviceHandler):
             return reply
         else:
             return reply.encode('UTF-8')
+
+    def get_xml_parser(self, session):
+        # use_filter in device_params can be used to enabled using SAX parsing
+        if self.device_params.get('use_filter', False):
+            l = session.get_listener_instance(SAXParserHandler)
+            if l:
+                session.remove_listener(l)
+                del l
+            session.add_listener(SAXParserHandler(session))
+            return JunosXMLParser(session)
+        else:
+            return DefaultXMLParser(session)
