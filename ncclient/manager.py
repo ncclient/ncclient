@@ -90,20 +90,18 @@ def make_device_handler(device_params):
 
 
 def _extract_device_params(kwds):
-    if "device_params" in kwds:
-        device_params = kwds["device_params"]
-        del kwds["device_params"]
-    else:
-        device_params = None
+    device_params = kwds.pop("device_params", None)
+
     return device_params
 
 def _extract_manager_params(kwds):
-    if "manager_params" in kwds:
-        manager_params = kwds["manager_params"]
-        del kwds["manager_params"]
-    else:
-        manager_params = {}
+    manager_params = kwds.pop("manager_params", {})
+
+    # To maintain backward compatibility
+    if 'timeout' not in manager_params and 'timeout' in kwds:
+        manager_params['timeout'] = kwds['timeout']
     return manager_params
+
 
 def connect_ssh(*args, **kwds):
     """
@@ -116,8 +114,8 @@ def connect_ssh(*args, **kwds):
     all the provided arguments are passed directly to its implementation
     of :meth:`~ncclient.transport.SSHSession.connect`.
 
-    To customize the :class:`Manager`, add a `manager_params` dictionnary in connection
-    parameters (e.g. `manager_params={'timeout': 60}` for a bigger RPC timeout paramater)
+    To customize the :class:`Manager`, add a `manager_params` dictionary in connection
+    parameters (e.g. `manager_params={'timeout': 60}` for a bigger RPC timeout parameter)
 
     To invoke advanced vendor related operation add
     `device_params={'name': '<vendor_alias>'}` in connection parameters. For the time,
@@ -147,6 +145,7 @@ def connect_ssh(*args, **kwds):
         raise
     return Manager(session, device_handler, **manager_params)
 
+
 def connect_ioproc(*args, **kwds):
     device_params = _extract_device_params(kwds)
     manager_params = _extract_manager_params(kwds)
@@ -175,6 +174,7 @@ def connect(*args, **kwds):
             return connect_ioproc(*args, **kwds)
         else:
             return connect_ssh(*args, **kwds)
+
 
 class Manager(object):
 
