@@ -121,7 +121,11 @@ class SSHSession(Session):
         self.logger = SessionLoggerAdapter(logger, {'session': self})
 
     def _dispatch_message(self, raw):
-        self.logger.info("Received:\n%s", raw)
+        # Provide basic response message
+        self.logger.info("Received message from host")
+        # Changing this to debug level logging as this may pose a security risk
+        # logging configuration info
+        self.logger.debug("Received:\n%s", raw)
         return super(SSHSession, self)._dispatch_message(raw)
 
     def _parse(self):
