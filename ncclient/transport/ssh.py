@@ -123,8 +123,7 @@ class SSHSession(Session):
     def _dispatch_message(self, raw):
         # Provide basic response message
         self.logger.info("Received message from host")
-        # Changing this to debug level logging as this may pose a security risk
-        # logging configuration info
+        # Provide complete response from host at debug log level
         self.logger.debug("Received:\n%s", raw)
         return super(SSHSession, self)._dispatch_message(raw)
 
