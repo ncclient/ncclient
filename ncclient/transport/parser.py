@@ -142,7 +142,7 @@ class DefaultXMLParser(object):
                 # buffer, so we should try to parse again.
                 if type(self._session.parser) != DefaultXMLParser:
                     self.logger.debug('send remaining data to SAX parser')
-                    self._session.parser.parse(remaining)
+                    self._session.parser.parse(remaining.encode())
                 else:
                     self.logger.debug('Trying another round of parsing since there is still data')
                     self._session._buffer.write(remaining.encode())
