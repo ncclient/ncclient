@@ -91,7 +91,7 @@ class JunosXMLParser(DefaultXMLParser):
             self._session._buffer.seek(0, os.SEEK_END)
             self._session._buffer.write(remaining.encode())
         else:
-            logger.warning("Check if end delimiter is splitted within data received: %s" % data)
+            logger.warning("Check if end delimiter is split within data received: %s" % data)
             # When data is "-reply/>]]>" or "]]>"
             # Data is not full MSG_DELIM, So check if last rpc reply is complete.
             # if then, wait for next iteration of data and do a recursive call to
@@ -123,6 +123,7 @@ class JunosXMLParser(DefaultXMLParser):
                             self._delimiter_check(data.encode())
                         else:
                             self._delimiter_check((rpc_response_last_msg + data).encode())
+
 
 def __dict_replace(s, d):
     """Replace substrings of a string using a dictionary."""
