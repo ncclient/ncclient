@@ -74,17 +74,11 @@ class JunosXMLParser(DefaultXMLParser):
             msg, delim, remaining = data.partition(MSG_DELIM)
             self._session._buffer.seek(0, os.SEEK_END)
             self._session._buffer.write(delim.encode())
+            if remaining.strip() != '':
+                self._session._buffer.write(remaining.encode())
             # we need to renew parser, as old parser is gone.
             self.sax_parser = make_parser()
             self.sax_parser.setContentHandler(SAXParser(self._session))
-            if remaining.strip() != '':
-                try:
-                    self.sax_parser.feed(remaining)
-                except SAXFilterXMLNotFoundError:
-                    self._parse10()
-                    self.logger.debug('switching from sax to dom parsing')
-                    self._session.parser = DefaultXMLParser(self._session)
-                    self._session.parser.parse(remaining.encode())
         elif RPC_REPLY_END_TAG in data:
             logger.warning("Check for rpc reply end tag within data received: %s" % data)
             msg, delim, remaining = data.partition(RPC_REPLY_END_TAG)
