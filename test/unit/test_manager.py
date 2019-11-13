@@ -2,6 +2,7 @@ import unittest
 from mock import patch, MagicMock
 from ncclient import manager
 from ncclient.devices.junos import JunosDeviceHandler
+import logging
 
 
 class TestManager(unittest.TestCase):
@@ -11,6 +12,12 @@ class TestManager(unittest.TestCase):
         m = MagicMock()
         mock_ssh.return_value = m
         conn = self._mock_manager()
+        m.connect.assert_called_once_with(host='10.10.10.10',
+                                          port=22,
+                                          username='user',
+                                          password='password',
+                                          hostkey_verify=False, allow_agent=False,
+                                          timeout=3)
         self.assertEqual(conn._session, m)
         self.assertEqual(conn._timeout, 10)
 
@@ -49,6 +56,26 @@ class TestManager(unittest.TestCase):
         mock_ssh.assert_called_once_with(host='localhost', 
                             device_params={'local': True, 'name': 'junos'})
 
+    @patch('paramiko.proxy.ProxyCommand')
+    @patch('paramiko.Transport')
+    @patch('ncclient.transport.ssh.hexlify')
+    @patch('ncclient.transport.ssh.Session._post_connect')
+    def test_connect_with_ssh_config(self, mock_session, mock_hex, mock_trans, mock_proxy):
+        log = logging.getLogger('TestManager.test_connect_with_ssh_config')
+        ssh_config_path = 'test/unit/ssh_config'
+
+        conn = manager.connect(host='fake_host',
+                                    port=830,
+                                    username='user',
+                                    password='password',
+                                    hostkey_verify=False,
+                                    allow_agent=False,
+                                    ssh_config=ssh_config_path)
+
+        log.debug(mock_proxy.call_args[0][0])
+        self.assertEqual(mock_proxy.called, 1)
+        mock_proxy.assert_called_with('ssh -W 10.0.0.1:830 jumphost.domain.com')
+
     @patch('socket.socket')
     @patch('paramiko.Transport')
     @patch('ncclient.transport.ssh.hexlify')
@@ -69,9 +96,10 @@ class TestManager(unittest.TestCase):
                                     port=22,
                                     username='user',
                                     password='password',
-                                    timeout=10,
+                                    timeout=3,
+                                    hostkey_verify=False,
                                     device_params={'local': True, 'name': 'junos'},
-                                    hostkey_verify=False)
+                                    manager_params={'timeout': 10})
         self.assertEqual(mock_connect.called, 1)
         self.assertEqual(conn._timeout, 10)
         self.assertEqual(conn._device_handler.device_params, {'local': True, 'name': 'junos'}) 
@@ -156,14 +184,38 @@ class TestManager(unittest.TestCase):
         conn = self._mock_manager()
         self.assertEqual(conn.connected, True)
 
+    @patch('ncclient.manager.Manager.HUGE_TREE_DEFAULT')
+    @patch('ncclient.transport.SSHSession')
+    @patch('ncclient.operations.rpc.RPC')
+    def test_manager_huge_node(self, mock_rpc, mock_session, default_value):
+
+        # Set default value to True only in this test through the default_value mock
+        default_value = True
+
+        # true should propagate all the way to the RPC
+        conn = self._mock_manager()
+        self.assertTrue(conn.huge_tree)
+        conn.execute(mock_rpc)
+        mock_rpc.assert_called_once()
+        self.assertTrue(mock_rpc.call_args[1]['huge_tree'])
+
+        # false should propagate all the way to the RPC
+        conn.huge_tree = False
+        self.assertFalse(conn.huge_tree)
+        mock_rpc.reset_mock()
+        conn.execute(mock_rpc)
+        mock_rpc.assert_called_once()
+        self.assertFalse(mock_rpc.call_args[1]['huge_tree'])
+
     def _mock_manager(self):
         conn = manager.connect(host='10.10.10.10',
                                     port=22,
                                     username='user',
                                     password='password',
-                                    timeout=10,
+                                    timeout=3,
+                                    hostkey_verify=False, allow_agent=False,
                                     device_params={'name': 'junos'},
-                                    hostkey_verify=False, allow_agent=False)
+                                    manager_params={'timeout': 10})
         return conn
 
     @patch('socket.fromfd')
@@ -180,10 +232,10 @@ class TestManager(unittest.TestCase):
                                     sock_fd=6,
                                     username='user',
                                     password='password',
-                                    timeout=10,
                                     device_params={'name': 'junos'},
                                     hostkey_verify=False, allow_agent=False)
         return conn
+
 
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(TestManager)

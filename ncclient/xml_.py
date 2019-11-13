@@ -31,6 +31,12 @@ from lxml import etree
 from ncclient import NCClientError
 
 parser = etree.XMLParser(recover=False)
+huge_parser = etree.XMLParser(recover=False, huge_tree=True)
+
+
+def _get_parser(huge_tree=False):
+    return huge_parser if huge_tree else parser
+
 
 class XMLError(NCClientError):
     pass
@@ -75,6 +81,8 @@ IETF_EVENT_NOTIFICATIONS_NS = "urn:ietf:params:xml:ns:yang:ietf-event-notificati
 IETF_YANG_PUSH_NS = "urn:ietf:params:xml:ns:yang:ietf-yang-push"
 #: Namespace for netconf with-defaults (RFC 6243)
 NETCONF_WITH_DEFAULTS_NS = "urn:ietf:params:xml:ns:yang:ietf-netconf-with-defaults"
+#: Namespace for Alcatel-Lucent
+ALU_CONFIG = "urn:alcatel-lucent.com:sros:ns:yang:conf-r13"
 #
 try:
     register_namespace = etree.register_namespace
@@ -113,12 +121,17 @@ def to_xml(ele, encoding="UTF-8", pretty_print=False):
         return xml.decode('UTF-8') if xml.startswith(b'<?xml') \
             else '<?xml version="1.0" encoding="%s"?>%s' % (encoding, xml.decode('UTF-8'))
 
-def to_ele(x):
-    "Convert and return the :class:`~xml.etree.ElementTree.Element` for the XML document *x*. If *x* is already an :class:`~xml.etree.ElementTree.Element` simply returns that."
+
+def to_ele(x, huge_tree=False):
+    """Convert and return the :class:`~xml.etree.ElementTree.Element` for the XML document *x*. If *x* is already an :class:`~xml.etree.ElementTree.Element` simply returns that.
+
+    *huge_tree*: parse XML with very deep trees and very long text content
+    """
     if sys.version < '3':
-        return x if etree.iselement(x) else etree.fromstring(x, parser=parser)
+        return x if etree.iselement(x) else etree.fromstring(x, parser=_get_parser(huge_tree))
     else:
-        return x if etree.iselement(x) else etree.fromstring(x.encode('UTF-8'), parser=parser)
+        return x if etree.iselement(x) else etree.fromstring(x.encode('UTF-8'), parser=_get_parser(huge_tree))
+
 
 def parse_root(raw):
     "Efficiently parses the root element of a *raw* XML document, returning a tuple of its qualified name and attribute dictionary."
@@ -160,9 +173,10 @@ XPATH_NAMESPACES = {
 
 
 class NCElement(object):
-    def __init__(self, result, transform_reply):
+    def __init__(self, result, transform_reply, huge_tree=False):
         self.__result = result
         self.__transform_reply = transform_reply
+        self.__huge_tree = huge_tree
         if isinstance(transform_reply, types.FunctionType):
             self.__doc = self.__transform_reply(result._root)
         else:
@@ -198,7 +212,7 @@ class NCElement(object):
     @property
     def tostring(self):
         """return a pretty-printed string output for rpc reply"""
-        parser = etree.XMLParser(remove_blank_text=True)
+        parser = etree.XMLParser(remove_blank_text=True, huge_tree=self.__huge_tree)
         outputtree = etree.XML(etree.tostring(self.__doc), parser)
         return etree.tostring(outputtree, pretty_print=True)
 
@@ -210,10 +224,12 @@ class NCElement(object):
     def remove_namespaces(self, rpc_reply):
         """remove xmlns attributes from rpc reply"""
         self.__xslt=self.__transform_reply
-        self.__parser = etree.XMLParser(remove_blank_text=True)
+        self.__parser = etree.XMLParser(remove_blank_text=True, huge_tree=self.__huge_tree)
         self.__xslt_doc = etree.parse(io.BytesIO(self.__xslt), self.__parser)
         self.__transform = etree.XSLT(self.__xslt_doc)
-        self.__root = etree.fromstring(str(self.__transform(etree.parse(StringIO(str(rpc_reply))))))
+        self.__root = etree.fromstring(str(self.__transform(etree.parse(StringIO(str(rpc_reply)),
+                                                                        parser=self.__parser))),
+                                       parser=self.__parser)
         return self.__root
 
 

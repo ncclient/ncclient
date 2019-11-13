@@ -13,13 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import base64
+import getpass
 import os
+import re
+import six
 import sys
 import socket
-import getpass
-import re
 import threading
-import base64
 from binascii import hexlify
 
 try:
@@ -35,17 +36,17 @@ import paramiko
 from ncclient.transport.errors import AuthenticationError, SessionCloseError, SSHError, SSHUnknownHostError, NetconfFramingError
 from ncclient.transport.session import Session
 from ncclient.transport.session import NetconfBase
+from ncclient.transport.parser import DefaultXMLParser
+from ncclient.transport.parser import SAXFilterXMLNotFoundError
 
 import logging
 logger = logging.getLogger("ncclient.transport.ssh")
 
 PORT_NETCONF_DEFAULT = 830
-PORT_SSH_DEFAULT = 22
 
 BUF_SIZE = 4096
 # v1.0: RFC 4742
 MSG_DELIM = "]]>]]>"
-MSG_DELIM_LEN = len(MSG_DELIM)
 # v1.1: RFC 6242
 END_DELIM = '\n##\n'
 
@@ -59,7 +60,7 @@ TICK = 0.1
 # * result.group(1) will contain the digit string for a chunk
 # * result.group(2) will be defined if '##' found
 #
-RE_NC11_DELIM = re.compile(r'\n(?:#([0-9]+)|(##))\n')
+RE_NC11_DELIM = re.compile(br'\n(?:#([0-9]+)|(##))\n')
 
 
 def default_unknown_host_cb(host, fingerprint):
@@ -112,146 +113,23 @@ class SSHSession(Session):
         self._channel_id = None
         self._channel_name = None
         self._buffer = StringIO()
-        # parsing-related, see _parse()
         self._device_handler = device_handler
-        self._parsing_state10 = 0
-        self._parsing_pos10 = 0
         self._message_list = []
         self._closing = threading.Event()
+        self.parser = DefaultXMLParser(self)  # SAX or DOM parser
 
         self.logger = SessionLoggerAdapter(logger, {'session': self})
 
     def _dispatch_message(self, raw):
-        self.logger.info("Received:\n%s", raw)
+        # Provide basic response message
+        self.logger.info("Received message from host")
+        # Provide complete response from host at debug log level
+        self.logger.debug("Received:\n%s", raw)
         return super(SSHSession, self)._dispatch_message(raw)
 
     def _parse(self):
-        
-        """Messages ae delimited by MSG_DELIM. The buffer could have grown
-        by a maximum of BUF_SIZE bytes everytime this method is called.
-        Retains state across method calls and if a byte has been read it
-        will not be considered again."""
-        
-        return self._parse10()
-
-    def _parse10(self):
-
-        """Messages are delimited by MSG_DELIM. The buffer could have grown by
-        a maximum of BUF_SIZE bytes everytime this method is called. Retains
-        state across method calls and if a chunk has been read it will not be
-        considered again."""
-
-        self.logger.debug("parsing netconf v1.0")
-        buf = self._buffer
-        buf.seek(self._parsing_pos10)
-        if MSG_DELIM in buf.read().decode('UTF-8'):
-            buf.seek(0)
-            msg, _, remaining = buf.read().decode('UTF-8').partition(MSG_DELIM)
-            msg = msg.strip()
-            if sys.version < '3':
-                self._dispatch_message(msg.encode())
-            else:
-                self._dispatch_message(msg)
-            # create new buffer which contains remaining of old buffer
-            self._buffer = StringIO()
-            self._buffer.write(remaining.encode())
-            self._parsing_pos10 = 0
-            if len(remaining) > 0:
-                # There could be another entire message in the
-                # buffer, so we should try to parse again.
-                self.logger.debug('Trying another round of parsing since there is still data')
-                self._parse10()
-        else:
-            # handle case that MSG_DELIM is split over two chunks
-            self._parsing_pos10 = buf.tell() - MSG_DELIM_LEN
-            if self._parsing_pos10 < 0:
-                self._parsing_pos10 = 0
-
-    def _parse11(self):
-
-        """Messages are split into chunks. Chunks and messages are delimited
-        by the regex #RE_NC11_DELIM defined earlier in this file. Each
-        time we get called here either a chunk delimiter or an
-        end-of-message delimiter should be found iff there is enough
-        data. If there is not enough data, we will wait for more. If a
-        delimiter is found in the wrong place, a #NetconfFramingError
-        will be raised."""
-
-        self.logger.debug("_parse11: starting")
-
-        # suck in whole string that we have (this is what we will work on in
-        # this function) and initialize a couple of useful values
-        self._buffer.seek(0, os.SEEK_SET)
-        data = self._buffer.getvalue()
-        data_len = len(data)
-        start = 0
-        self.logger.debug('_parse11: working with buffer of %d bytes', data_len)
-        while True and start < data_len:
-            # match to see if we found at least some kind of delimiter
-            self.logger.debug('_parse11: matching from %d bytes from start of buffer', start)
-            re_result = RE_NC11_DELIM.match(data[start:].decode('utf-8'))
-            if not re_result:
-
-                # not found any kind of delimiter just break; this should only
-                # ever happen if we just have the first few characters of a
-                # message such that we don't yet have a full delimiter
-                self.logger.debug('_parse11: no delimiter found, buffer="%s"', data[start:].decode())
-                break
-
-            # save useful variables for reuse
-            re_start = re_result.start()
-            re_end = re_result.end()
-            self.logger.debug('_parse11: regular expression start=%d, end=%d', re_start, re_end)
-
-            # If the regex doesn't start at the beginning of the buffer,
-            # we're in trouble, so throw an error
-            if re_start != 0:
-                raise NetconfFramingError('_parse11: delimiter not at start of match buffer', data[start:])
-
-            if re_result.group(2):
-                # we've found the end of the message, need to form up
-                # whole message, save back remainder (if any) to buffer
-                # and dispatch the message
-                start += re_end
-                message = ''.join(self._message_list)
-                self._message_list = []
-                self.logger.debug('_parse11: found end of message delimiter')
-                self._dispatch_message(message)
-                break
-
-            elif re_result.group(1):
-                # we've found a chunk delimiter, and group(2) is the digit
-                # string that will tell us how many bytes past the end of
-                # where it was found that we need to have available to
-                # save the next chunk off
-                self.logger.debug('_parse11: found chunk delimiter')
-                digits = int(re_result.group(1))
-                self.logger.debug('_parse11: chunk size %d bytes', digits)
-                if (data_len-start) >= (re_end + digits):
-                    # we have enough data for the chunk
-                    fragment = textify(data[start+re_end:start+re_end+digits])
-                    self._message_list.append(fragment)
-                    start += re_end + digits
-                    self.logger.debug('_parse11: appending %d bytes', digits)
-                    self.logger.debug('_parse11: fragment = "%s"', fragment)
-                else:
-                    # we don't have enough bytes, just break out for now
-                    # after updating start pointer to start of new chunk
-                    start += re_start
-                    self.logger.debug('_parse11: not enough data for chunk yet')
-                    self.logger.debug('_parse11: setting start to %d', start)
-                    break
-
-        # Now out of the loop, need to see if we need to save back any content
-        if start > 0:
-            self.logger.debug(
-                '_parse11: saving back rest of message after %d bytes, original size %d',
-                start, data_len)
-            self._buffer = StringIO(data[start:])
-            if start < data_len:
-                self.logger.debug('_parse11: still have data, may have another full message!')
-                self._parse11()
-        self.logger.debug('_parse11: ending')
+        "Messages ae delimited by MSG_DELIM. The buffer could have grown by a maximum of BUF_SIZE bytes everytime this method is called. Retains state across method calls and if a byte has been read it will not be considered again."
+        return self.parser._parse10()
 
     def load_known_hosts(self, filename=None):
 
@@ -304,7 +182,8 @@ class SSHSession(Session):
             hostkey_b64         = None,
             look_for_keys       = True,
             ssh_config          = None,
-            sock_fd             = None):
+            sock_fd             = None,
+            bind_addr           = None):
 
         """Connect via SSH and initialize the NETCONF session. First attempts the publickey authentication method and then password authentication.
 
@@ -312,7 +191,7 @@ class SSHSession(Session):
 
         *host* is the hostname or IP address to connect to
 
-        *port* is by default 830 (PORT_NETCONF_DEFAULT), but some devices use the default SSH port of 22 (PORT_SSH_DEFAULT) so this may need to be specified
+        *port* is by default 830 (PORT_NETCONF_DEFAULT), but some devices use the default SSH port of 22 so this may need to be specified
 
         *timeout* is an optional timeout for socket connect
 
@@ -335,6 +214,8 @@ class SSHSession(Session):
         *ssh_config* enables parsing of an OpenSSH configuration file, if set to its path, e.g. :file:`~/.ssh/config` or to True (in this case, use :file:`~/.ssh/config`).
 
         *sock_fd* is an already open socket which shall be used for this connection. Useful for NETCONF outbound ssh. Use host=None together with a valid sock_fd number
+
+        *bind_addr* is a (local) source IP address to use, must be reachable from the remote device.
         """
         if not (host or sock_fd):
             raise SSHError("Missing host or socket fd")
@@ -347,8 +228,23 @@ class SSHSession(Session):
             ssh_config = "~/.ssh/config" if sys.platform != "win32" else "~/ssh/config"
         if ssh_config is not None:
             config = paramiko.SSHConfig()
-            config.parse(open(os.path.expanduser(ssh_config)))
+            with open(os.path.expanduser(ssh_config)) as ssh_config_file_obj:
+                config.parse(ssh_config_file_obj)
+
+            # Save default Paramiko SSH port so it can be reverted
+            paramiko_default_ssh_port = paramiko.config.SSH_PORT
+
+            # Change the default SSH port to the port specified by the user so expand_variables
+            # replaces %p with the passed in port rather than 22 (the defauld paramiko.config.SSH_PORT)
+
+            paramiko.config.SSH_PORT = port
+
             config = config.lookup(host)
+
+            # paramiko.config.SSHconfig::expand_variables is called by lookup so we can set the SSH port
+            # back to the default
+            paramiko.config.SSH_PORT = paramiko_default_ssh_port
+
             host = config.get("hostname", host)
             if username is None:
                 username = config.get("user")
@@ -358,13 +254,23 @@ class SSHSession(Session):
                 userknownhostsfile = config.get("userknownhostsfile")
                 if userknownhostsfile:
                     self.load_known_hosts(os.path.expanduser(userknownhostsfile))
+            if timeout is None:
+                timeout = config.get("connecttimeout")
+                if timeout:
+                    timeout = int(timeout)
 
         if username is None:
             username = getpass.getuser()
 
         if sock_fd is None:
-            if config.get("proxycommand"):
-                sock = paramiko.proxy.ProxyCommand(config.get("proxycommand"))
+            proxycommand = config.get("proxycommand")
+            if proxycommand:
+                self.logger.debug("Configuring Proxy. %s", proxycommand)
+                if not isinstance(proxycommand, six.string_types):
+                  proxycommand = [os.path.expanduser(elem) for elem in proxycommand]
+                else:
+                  proxycommand = os.path.expanduser(proxycommand)
+                sock = paramiko.proxy.ProxyCommand(proxycommand)
             else:
                 for res in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket.SOCK_STREAM):
                     af, socktype, proto, canonname, sa = res
@@ -374,6 +280,8 @@ class SSHSession(Session):
                     except socket.error:
                         continue
                     try:
+                        if bind_addr:
+                            sock.bind((bind_addr, 0))
                         sock.connect(sa)
                     except socket.error:
                         sock.close()
@@ -410,11 +318,9 @@ class SSHSession(Session):
         elif self._host_keys:
             # Else set preferred host keys to those we possess for the host
             # (avoids situation where known_hosts contains a valid key for the host, but that key type is not selected during negotiation)
-            if port == PORT_SSH_DEFAULT:
-                known_hosts_lookup = host
-            else:
-                known_hosts_lookup = '[%s]:%s' % (host, port)
-            known_host_keys_for_this_host = self._host_keys.lookup(known_hosts_lookup)
+            known_host_keys_for_this_host = self._host_keys.lookup(host) or {}
+            host_port = '[%s]:%s' % (host, port)
+            known_host_keys_for_this_host.update(self._host_keys.lookup(host_port) or {})
             if known_host_keys_for_this_host:
                 self._transport._preferred_keys = [x.key.get_name() for x in known_host_keys_for_this_host._entries]
 
@@ -432,10 +338,7 @@ class SSHSession(Session):
 
             # For looking up entries for nonstandard (22) ssh ports in known_hosts
             # we enclose host in brackets and append port number
-            if port == PORT_SSH_DEFAULT:
-                known_hosts_lookup = host
-            else:
-                known_hosts_lookup = '[%s]:%s' % (host, port)
+            known_hosts_lookups = [host, '[%s]:%s' % (host, port)]
 
             if hostkey_b64:
                 # If hostkey specified, remote host /must/ use that hostkey
@@ -443,10 +346,10 @@ class SSHSession(Session):
                     is_known_host = True
             else:
                 # Check known_hosts
-                is_known_host = self._host_keys.check(known_hosts_lookup, server_key_obj)
+                is_known_host = any(self._host_keys.check(lookup, server_key_obj) for lookup in known_hosts_lookups)
 
             if not is_known_host and not unknown_host_cb(host, fingerprint):
-                raise SSHUnknownHostError(known_hosts_lookup, fingerprint)
+                raise SSHUnknownHostError(known_hosts_lookup[0], fingerprint)
 
         # Authenticating with our private key/identity
         if key_filename is None:
@@ -480,6 +383,9 @@ class SSHSession(Session):
                     continue
             self._channel_name = self._channel.get_name()
             self._post_connect()
+            # for further upcoming RPC responses, vendor can chose their
+            # choice of parser. Say DOM or SAX
+            self.parser = self._device_handler.get_xml_parser(self)
             return
         raise SSHError("Could not open connection, possibly due to unacceptable"
                        " SSH subsystem name.")
@@ -489,7 +395,7 @@ class SSHSession(Session):
         saved_exception = None
 
         for key_filename in key_filenames:
-            for cls in (paramiko.RSAKey, paramiko.DSSKey, paramiko.ECDSAKey):
+            for cls in (paramiko.RSAKey, paramiko.DSSKey, paramiko.ECDSAKey, paramiko.Ed25519Key):
                 try:
                     key = cls.from_private_key_file(key_filename, password)
                     self.logger.debug("Trying key %s from %s",
@@ -578,12 +484,12 @@ class SSHSession(Session):
                 if events:
                     data = chan.recv(BUF_SIZE)
                     if data:
-                        self._buffer.seek(0, os.SEEK_END)
-                        self._buffer.write(data)
-                        if self._base == NetconfBase.BASE_11:
-                            self._parse11()
-                        else:
-                            self._parse10()
+                        try:
+                            self.parser.parse(data)
+                        except SAXFilterXMLNotFoundError:
+                            self.logger.debug('switching from sax to dom parsing')
+                            self.parser = DefaultXMLParser(self)
+                            self.parser.parse(data)
                     elif self._closing.is_set():
                         # End of session, expected
                         break

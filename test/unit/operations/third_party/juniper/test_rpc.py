@@ -48,6 +48,19 @@ class TestRPC(unittest.TestCase):
 
     @patch('ncclient.transport.SSHSession')
     @patch('ncclient.operations.third_party.juniper.rpc.RPC._request')
+    def test_getconf_text_sets_huge_tree(self, mock_request, mock_session):
+        device_handler = manager.make_device_handler({'name': 'junos'})
+        session = ncclient.transport.SSHSession(device_handler)
+        obj = GetConfiguration(
+            session,
+            device_handler,
+            raise_mode=RaiseMode.ALL)
+        obj.huge_tree = False
+        obj.request(format='text')
+        self.assertTrue(obj.huge_tree)
+
+    @patch('ncclient.transport.SSHSession')
+    @patch('ncclient.operations.third_party.juniper.rpc.RPC._request')
     def test_loadconf_xml(self, mock_request, mock_session):
         device_handler = manager.make_device_handler({'name': 'junos'})
         session = ncclient.transport.SSHSession(device_handler)
@@ -147,7 +160,7 @@ class TestRPC(unittest.TestCase):
             raise_mode=RaiseMode.ALL)
         obj.request(rollback=2)
         node = new_ele(
-            'get-configuration', {'compare': 'rollback', 'rollback': str(2)})
+            'get-configuration', {'compare': 'rollback', 'rollback': str(2), 'format': 'text'})
         call = mock_request.call_args_list[0][0][0]
         self.assertEqual(call.tag, node.tag)
         self.assertEqual(call.attrib, node.attrib)

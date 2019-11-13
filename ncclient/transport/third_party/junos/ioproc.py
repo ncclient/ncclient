@@ -1,11 +1,12 @@
 import os
 import sys
 import re
+import six
 
 if sys.version < '3':
     from cStringIO import StringIO
 else:
-    from io import StringIO
+    from io import BytesIO as StringIO
 from select import select
 if sys.version>='2.7':
     from subprocess import Popen, check_output, PIPE, STDOUT
@@ -15,8 +16,8 @@ else:
 from ncclient.transport.errors import SessionCloseError, TransportError, PermissionError
 from ncclient.transport.ssh import SSHSession
 
-MSG_DELIM = "]]>]]>"
-NETCONF_SHELL = 'xml-mode netconf need-trailer'
+MSG_DELIM = six.b("]]>]]>")
+NETCONF_SHELL = 'netconf'
 
 
 class IOProc(SSHSession):
@@ -36,22 +37,22 @@ class IOProc(SSHSession):
         self._device_handler = device_handler
 
     def close(self):
-        self._channel.wait()
+        stdout, stderr = self._channel.communicate()
         self._channel = None
         self._connected = False
 
     def connect(self):
         stdoutdata = check_output(NETCONF_SHELL, shell=True, stdin=PIPE,
                                   stderr=STDOUT)
-        if 'error: Restricted user session' in stdoutdata:
+        if six.b('error: Restricted user session') in stdoutdata:
             obj = re.search(r'<error-message>\n?(.*)\n?</error-message>', stdoutdata, re.M)
             if obj:
                 raise PermissionError(obj.group(1))
             else:
                 raise PermissionError('Restricted user session')
-        elif 'xml-mode: command not found' in stdoutdata:
+        elif six.b('xml-mode: command not found') in stdoutdata:
             raise PermissionError('xml-mode: command not found')
-        self._channel = Popen(NETCONF_SHELL, shell=True,
+        self._channel = Popen([NETCONF_SHELL],
                               stdin=PIPE, stdout=PIPE, stderr=STDOUT)
         self._connected = True
         self._channel_id = self._channel.pid
@@ -65,7 +66,7 @@ class IOProc(SSHSession):
         try:
             while True:
                 # write
-                data = q.get() + MSG_DELIM
+                data = q.get().encode() + MSG_DELIM
                 chan.stdin.write(data)
                 chan.stdin.flush()
                 # read

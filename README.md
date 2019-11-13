@@ -20,6 +20,7 @@
 > Please feel free to submit PRs or get in touch with @einarnn with any problems, queries or suggestions.
 
 
+
 # ncclient: Python library for NETCONF clients
 
 ncclient is a Python library that facilitates client-side scripting
@@ -31,11 +32,32 @@ by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org) and Einar Nilsen-Nygaa
 
 **PyPI**: [https://pypi.python.org/pypi/ncclient](https://pypi.python.org/pypi/ncclient)
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+- [Recent Highlights](#recent-highlights)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Examples:](#examples)
+- [Usage](#usage)
+  - [Get device running config](#get-device-running-config)
+  - [Supported device handlers](#supported-device-handlers)
+- [For Developers](#for-developers)
+  - [Running Unit Tests Locally](#running-unit-tests-locally)
+  - [Making a Release](#making-a-release)
+- [Contributors](#contributors)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## Recent Highlights
 
 |  Date  | Release | Description |
 | :----: | :-----: | :---------- |
-| 08/20/18 | `0.6.2` | Migration to user `selectors` instead of `select`, allowing higher scale operations; improved `netconf:base:1.1` parsing. |
+| 05/27/19 | `0.6.6` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.5) |
+| 05/27/19 | `0.6.5` | Pulled due to bug in PyPi upload |
+| 04/07/19 | `0.6.4` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.4) |
+| 09/26/18 | `0.6.3` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.3) |
+| 08/20/18 | `0.6.2` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.2) |
 | 07/02/18 | `0.6.0` | Minor release reinstating Python 3.7 and greater compatibility, but necessitating a change to client code that uses `async_mode`. |
 | 07/02/18 | `0.5.4` | New release rolling up myriad of small commits since `0.5.3`. Please note that this release is **incompatible wth Python 3.7** due to the use of a new Python 3.7 keyword, `async`, in function signatures. This will be resolved in 0.6.0|
 
@@ -197,6 +219,9 @@ Thus, making a release becomes a simple process:
 
 ## Contributors
 
+* v0.6.5: @sstancu, @hemna, @ishayansheikh
+* v0.6.4: @davidhankins, @mzagozen, @knobix, @markafarrell, @psikala, @moepman, @apt-itude, @yuekyang
+* v0.6.3: @rdkls, @Anthony25, @rsmekala, @vnitinv, @siming85
 * v0.6.2: @einarnn, @glennmatthews, @bryan-stripe, @nickylba
 * v0.6.0: @einarnn
 * v0.5.4: @adamcubel, Joel Teichroeb, @leopoul, Chase Garner, @budhadityabanerjee, @earies, @ganeshrn, @vnitinv, Siming Yuan, @mirceaaulinic, @stacywsmith, Xavier Hardy, @jwwilcox, @QijunPan, @avangel, @marekgr, @hugovk, @felixonmars, @dexteradeus

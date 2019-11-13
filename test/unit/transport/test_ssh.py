@@ -101,8 +101,22 @@ class TestSSH(unittest.TestCase):
 
     @patch('ncclient.transport.ssh.Session._dispatch_message')
     def test_parse11(self, mock_dispatch):
-        self._test_parsemethod(mock_dispatch, SSHSession._parse11, rpc_reply11,
-                               reply_ok_partial_chunk, [reply_data, reply_ok])
+        device_handler = JunosDeviceHandler({'name': 'junos'})
+        obj = SSHSession(device_handler)
+        if sys.version >= "3.0":
+            obj._buffer.write(bytes(rpc_reply11, "utf-8"))
+            remainder = bytes(reply_ok_partial_chunk, "utf-8")
+        else:
+            obj._buffer.write(rpc_reply11)
+            remainder = reply_ok_partial_chunk
+        obj.parser._parse11()
+
+        expected_messages = [reply_data, reply_ok]
+        for i in range(0, len(expected_messages)):
+            call = mock_dispatch.call_args_list[i][0][0]
+            self.assertEqual(call, expected_messages[i])
+
+        self.assertEqual(obj._buffer.getvalue(), remainder)
 
     @patch('ncclient.transport.ssh.Session._dispatch_message')
     def test_parse_incomplete_delimiter(self, mock_dispatch):
