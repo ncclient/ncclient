@@ -18,6 +18,8 @@ from ncclient.operations.rpc import RPC
 
 from ncclient.operations import util
 
+from .errors import OperationError
+
 import logging
 
 logger = logging.getLogger("ncclient.operations.edit")
@@ -147,6 +149,8 @@ class Commit(RPC):
         *persist_id* value must be equal to the value given in the <persist> parameter to the original <commit> operation.
         """
         node = new_ele("commit")
+        if (confirmed or persist) and persist_id:
+            raise OperationError("Invalid operation as confirmed or persist cannot be present with persist-id")
         if confirmed:
             self._assert(":confirmed-commit")
             sub_ele(node, "confirmed")
@@ -154,7 +158,7 @@ class Commit(RPC):
                 sub_ele(node, "confirm-timeout").text = timeout
             if persist is not None:
                 sub_ele(node, "persist").text = persist
-        if not (confirmed and persist) and persist_id:
+        if persist_id:
             sub_ele(node, "persist-id").text = persist_id
 
         return self._request(node)
