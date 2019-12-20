@@ -38,6 +38,7 @@ class RPCTags:
     RPC_REPLY_END_TAG = "</rpc-reply>"
     RPC_REPLY_END_TAG_LEN = len(RPC_REPLY_END_TAG)
     RPC_REPLY_START_TAG = "<rpc-reply"
+    NAMESPACES = {"nc": "urn:ietf:params:xml:ns:netconf:base:1.0"}
 
 
 class JunosXMLParser(DefaultXMLParser):
@@ -221,7 +222,7 @@ class SAXParser(ContentHandler):
         if self._cur == self._root and self._cur.tag == tag:
             node = self._root
         else:
-            node = self._cur.find(tag)
+            node = self._cur.find(tag, namespaces=RPCTags.NAMESPACES)
 
         if self._validate_reply_and_sax_tag:
             if tag != self._root.tag:
@@ -237,7 +238,7 @@ class SAXParser(ContentHandler):
             self._write_buffer(tag, format_str='<{}{}>', **attributes)
             self._cur = node
             self._currenttag = tag
-        elif tag == 'rpc-reply':
+        elif tag in ['rpc-reply', 'nc:rpc-reply']:
             self._write_buffer(tag, format_str='<{}{}>', **attributes)
             self._defaulttags.append(tag)
             self._validate_reply_and_sax_tag = True
@@ -251,7 +252,6 @@ class SAXParser(ContentHandler):
 
         if tag in self._defaulttags:
             self._write_buffer(tag, format_str='</{}>\n')
-
         elif self._cur.tag == tag:
             self._write_buffer(tag, format_str='</{}>\n')
             self._cur = self._cur.getparent()
