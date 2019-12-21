@@ -33,10 +33,12 @@ from ncclient.operations.errors import OperationError
 import logging
 logger = logging.getLogger("ncclient.transport.third_party.junos.parser")
 
-RPC_REPLY_END_TAG = "</rpc-reply>"
-RPC_REPLY_END_TAG_LEN = len(RPC_REPLY_END_TAG)
 
-RPC_REPLY_START_TAG = "<rpc-reply"
+class RPCTags:
+    RPC_REPLY_END_TAG = "</rpc-reply>"
+    RPC_REPLY_END_TAG_LEN = len(RPC_REPLY_END_TAG)
+    RPC_REPLY_START_TAG = "<rpc-reply"
+    NAMESPACES = {"nc": "urn:ietf:params:xml:ns:netconf:base:1.0"}
 
 
 class JunosXMLParser(DefaultXMLParser):
@@ -45,6 +47,7 @@ class JunosXMLParser(DefaultXMLParser):
         self._session = session
         self.sax_parser = make_parser()
         self.sax_parser.setContentHandler(SAXParser(session))
+        self.rpc_tags = RPCTags
 
     def parse(self, data):
         try:
@@ -79,9 +82,9 @@ class JunosXMLParser(DefaultXMLParser):
             # we need to renew parser, as old parser is gone.
             self.sax_parser = make_parser()
             self.sax_parser.setContentHandler(SAXParser(self._session))
-        elif RPC_REPLY_END_TAG in data:
+        elif self.rpc_tags.RPC_REPLY_END_TAG in data:
             logger.warning("Check for rpc reply end tag within data received: %s" % data)
-            msg, delim, remaining = data.partition(RPC_REPLY_END_TAG)
+            msg, delim, remaining = data.partition(self.rpc_tags.RPC_REPLY_END_TAG)
             self._session._buffer.seek(0, os.SEEK_END)
             self._session._buffer.write(remaining.encode())
         else:
@@ -91,9 +94,9 @@ class JunosXMLParser(DefaultXMLParser):
             # if then, wait for next iteration of data and do a recursive call to
             # _delimiter_check for MSG_DELIM check
             buf = self._session._buffer
-            buf.seek(buf.tell() - RPC_REPLY_END_TAG_LEN - MSG_DELIM_LEN)
+            buf.seek(buf.tell() - self.rpc_tags.RPC_REPLY_END_TAG_LEN - MSG_DELIM_LEN)
             rpc_response_last_msg = buf.read().decode('UTF-8').replace('\n', '')
-            if RPC_REPLY_END_TAG in rpc_response_last_msg:
+            if self.rpc_tags.RPC_REPLY_END_TAG in rpc_response_last_msg:
                 # rpc_response_last_msg and data can be overlapping
                 match_obj = difflib.SequenceMatcher(None, rpc_response_last_msg,
                                                     data).get_matching_blocks()
@@ -111,8 +114,9 @@ class JunosXMLParser(DefaultXMLParser):
                             # as first if condition will add full delimiter, so clean
                             # it off
                             clean_up = len(rpc_response_last_msg) - (
-                                    rpc_response_last_msg.find(RPC_REPLY_END_TAG) +
-                                    RPC_REPLY_END_TAG_LEN)
+                                    rpc_response_last_msg.find(
+                                        self.rpc_tags.RPC_REPLY_END_TAG) +
+                                    self.rpc_tags.RPC_REPLY_END_TAG_LEN)
                             self._session._buffer.truncate(buf.tell() - clean_up)
                             self._delimiter_check(data.encode())
                         else:
@@ -191,7 +195,10 @@ class SAXParser(ContentHandler):
         self._lock = Lock()
 
     def startElement(self, tag, attributes):
-        if tag == 'rpc-reply':
+        if tag in ['rpc-reply', 'nc:rpc-reply']:
+            if tag == 'nc:rpc-reply':
+                RPCTags.RPC_REPLY_END_TAG = "</nc:rpc-reply>"
+                RPCTags.RPC_REPLY_START_TAG = "<nc:rpc-reply"
             # in case last rpc called used sax parsing and error'd out
             # without resetting use_filer in endElement rpc-reply check
             with self._lock:
@@ -215,7 +222,7 @@ class SAXParser(ContentHandler):
         if self._cur == self._root and self._cur.tag == tag:
             node = self._root
         else:
-            node = self._cur.find(tag)
+            node = self._cur.find(tag, namespaces=RPCTags.NAMESPACES)
 
         if self._validate_reply_and_sax_tag:
             if tag != self._root.tag:
@@ -231,7 +238,7 @@ class SAXParser(ContentHandler):
             self._write_buffer(tag, format_str='<{}{}>', **attributes)
             self._cur = node
             self._currenttag = tag
-        elif tag == 'rpc-reply':
+        elif tag in ['rpc-reply', 'nc:rpc-reply']:
             self._write_buffer(tag, format_str='<{}{}>', **attributes)
             self._defaulttags.append(tag)
             self._validate_reply_and_sax_tag = True
@@ -245,7 +252,6 @@ class SAXParser(ContentHandler):
 
         if tag in self._defaulttags:
             self._write_buffer(tag, format_str='</{}>\n')
-
         elif self._cur.tag == tag:
             self._write_buffer(tag, format_str='</{}>\n')
             self._cur = self._cur.getparent()
