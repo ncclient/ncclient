@@ -44,7 +44,7 @@ class TestSubscribe(unittest.TestCase):
             raise_mode=RaiseMode.ALL)
         obj.request(filter=None, stream_name="nameofstream")
         node = new_ele_ns("create-subscription", NETCONF_NOTIFICATION_NS)
-        sub_ele(node, "stream").text = "nameofstream"
+        sub_ele_ns(node, "stream", NETCONF_NOTIFICATION_NS).text = "nameofstream"
         xml = ElementTree.tostring(node)
         call = mock_request.call_args_list[0][0][0]
         call = ElementTree.tostring(call)
@@ -60,8 +60,8 @@ class TestSubscribe(unittest.TestCase):
             raise_mode=RaiseMode.ALL)
         obj.request(filter=None, start_time=start_time, stop_time=stop_time)
         node = new_ele_ns("create-subscription", NETCONF_NOTIFICATION_NS)
-        sub_ele(node, "startTime").text = start_time
-        sub_ele(node, "stopTime").text = stop_time
+        sub_ele_ns(node, "startTime", NETCONF_NOTIFICATION_NS).text = start_time
+        sub_ele_ns(node, "stopTime", NETCONF_NOTIFICATION_NS).text = stop_time
         xml = ElementTree.tostring(node)
         call = mock_request.call_args_list[0][0][0]
         call = ElementTree.tostring(call)
