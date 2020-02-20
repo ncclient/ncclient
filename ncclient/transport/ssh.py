@@ -349,7 +349,7 @@ class SSHSession(Session):
                 is_known_host = any(self._host_keys.check(lookup, server_key_obj) for lookup in known_hosts_lookups)
 
             if not is_known_host and not unknown_host_cb(host, fingerprint):
-                raise SSHUnknownHostError(known_hosts_lookup[0], fingerprint)
+                raise SSHUnknownHostError(known_hosts_lookups[0], fingerprint)
 
         # Authenticating with our private key/identity
         if key_filename is None:
