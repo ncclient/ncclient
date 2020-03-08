@@ -322,7 +322,7 @@ class SSHSession(Session):
             host_port = '[%s]:%s' % (host, port)
             known_host_keys_for_this_host.update(self._host_keys.lookup(host_port) or {})
             if known_host_keys_for_this_host:
-                self._transport._preferred_keys = [x.key.get_name() for x in known_host_keys_for_this_host._entries]
+                self._transport._preferred_keys = list(known_host_keys_for_this_host)
 
         # Connect
         try:
