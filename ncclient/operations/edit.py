@@ -149,8 +149,8 @@ class Commit(RPC):
         *persist_id* value must be equal to the value given in the <persist> parameter to the original <commit> operation.
         """
         node = new_ele("commit")
-        if (confirmed or persist) and persist_id:
-            raise OperationError("Invalid operation as confirmed or persist cannot be present with persist-id")
+        if persist and persist_id:
+            raise OperationError("Invalid operation as persist cannot be present with persist-id")
         if confirmed:
             self._assert(":confirmed-commit")
             sub_ele(node, "confirmed")
