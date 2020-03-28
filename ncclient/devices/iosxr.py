@@ -37,6 +37,7 @@ class IosxrDeviceHandler(DefaultDeviceHandler):
     def perform_qualify_check(self):
         return False
 
+   #Added this block to support ExecuteRPC 
     def add_additional_operations(self):
         dict = {}
         dict["rpc"] = ExecuteRpc
