@@ -40,8 +40,5 @@ class IosxrDeviceHandler(DefaultDeviceHandler):
     def add_additional_operations(self):
         dict = {}
         dict["rpc"] = ExecuteRpc
-        # dict["get_configuration"] = GetConfiguration
-        # dict["command"] = Command
-        # dict["commit"] = Commit
         return dict
     
