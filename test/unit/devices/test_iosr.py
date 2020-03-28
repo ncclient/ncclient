@@ -1,5 +1,5 @@
 import unittest
-from ncclient.devices.junos import *
+from ncclient.devices.iosxr import *
 import ncclient.transport
 from mock import patch
 import paramiko
