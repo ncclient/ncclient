@@ -5,30 +5,6 @@ from mock import patch
 import paramiko
 import sys
 
-xml = '''<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-        <xsl:output method="xml" indent="no"/>
-
-        <xsl:template match="/|comment()|processing-instruction()">
-            <xsl:copy>
-                <xsl:apply-templates/>
-            </xsl:copy>
-        </xsl:template>
-
-        <xsl:template match="*">
-            <xsl:element name="{local-name()}">
-                <xsl:apply-templates select="@*|node()"/>
-            </xsl:element>
-        </xsl:template>
-
-        <xsl:template match="@*">
-            <xsl:attribute name="{local-name()}">
-                <xsl:value-of select="."/>
-            </xsl:attribute>
-        </xsl:template>
-        </xsl:stylesheet>
-        '''
-
-
 class TestIOSXRDevice(unittest.TestCase):
 
     def setUp(self):
@@ -46,10 +22,7 @@ class TestIOSXRDevice(unittest.TestCase):
         channel = paramiko.Channel(100)
         mock_open.return_value = channel
         self.obj.handle_connection_exceptions(session)
-        self.assertEqual(channel._name, "netconf-command-100")
-        self.assertEqual(
-            mock_channel.call_args_list[0][0][0],
-            "xml-mode netconf need-trailer")
+        self.assertEqual(channel._name, "100")
 
     def test_additional_operations(self):
         dict = {}
