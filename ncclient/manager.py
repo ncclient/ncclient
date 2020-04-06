@@ -18,10 +18,8 @@ This module is a thin layer of abstraction around the library.
 It exposes all core functionality.
 """
 
-from ncclient import capabilities
 from ncclient import operations
 from ncclient import transport
-import six
 import logging
 import functools
 

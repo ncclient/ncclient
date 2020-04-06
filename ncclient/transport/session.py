@@ -14,8 +14,6 @@
 # limitations under the License.
 
 
-import re
-import sys
 import logging
 from threading import Thread, Lock, Event
 try:

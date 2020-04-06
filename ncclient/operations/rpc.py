@@ -14,7 +14,6 @@
 
 from threading import Event, Lock
 from uuid import uuid4
-import six
 
 from ncclient.xml_ import *
 from ncclient.logging_ import SessionLoggerAdapter

@@ -57,15 +57,11 @@ class EditConfig(RPC):
             if error_option == "rollback-on-error":
                 self._assert(":rollback-on-error")
             sub_ele(node, "error-option").text = error_option
-# <<<<<<< HEAD
-#         node.append(validated_element(config, ("config", qualify("config"))))
-# =======
         if format == 'xml':
             node.append(validated_element(config, ("config", qualify("config"))))
         if format == 'text':
             config_text = sub_ele(node, "config-text")
             sub_ele(config_text, "configuration-text").text = config
-# >>>>>>> juniper
         return self._request(node)
 
 
