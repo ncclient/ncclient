@@ -205,8 +205,6 @@ class Manager(object):
         if device_handler:
             self._vendor_operations.update(device_handler.add_additional_operations())
 
-        #self._vendor_operations = device_handler.add_additional_operations()
-
     def __enter__(self):
         return self
 
