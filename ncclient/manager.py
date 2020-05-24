@@ -55,8 +55,6 @@ subclasses. It is used to lookup operations, e.g. `get_config` is mapped to
 operations to the :class:`Manager` API.
 """
 
-VENDOR_OPERATIONS = {}
-
 
 def make_device_handler(device_params):
     """
@@ -129,8 +127,6 @@ def connect_ssh(*args, **kwds):
 
     device_handler = make_device_handler(device_params)
     device_handler.add_additional_ssh_connect_params(kwds)
-    global VENDOR_OPERATIONS
-    VENDOR_OPERATIONS.update(device_handler.add_additional_operations())
     session = transport.SSHSession(device_handler)
     if "hostkey_verify" not in kwds or kwds["hostkey_verify"]:
         session.load_known_hosts()
@@ -155,8 +151,6 @@ def connect_ioproc(*args, **kwds):
 
     device_handler = make_device_handler(device_params)
 
-    global VENDOR_OPERATIONS
-    VENDOR_OPERATIONS.update(device_handler.add_additional_operations())
     session = third_party_import.IOProc(device_handler)
     session.connect()
 
@@ -207,6 +201,9 @@ class Manager(object):
         self._raise_mode = operations.RaiseMode.ALL
         self._huge_tree = self.HUGE_TREE_DEFAULT
         self._device_handler = device_handler
+        self._vendor_operations = {}
+        if device_handler:
+            self._vendor_operations.update(device_handler.add_additional_operations())
 
     def __enter__(self):
         return self
@@ -257,8 +254,8 @@ class Manager(object):
         raise NotImplementedError
 
     def __getattr__(self, method):
-        if method in VENDOR_OPERATIONS:
-            return functools.partial(self.execute, VENDOR_OPERATIONS[method])
+        if method in self._vendor_operations:
+            return functools.partial(self.execute, self._vendor_operations[method])
         elif method in OPERATIONS:
             return functools.partial(self.execute, OPERATIONS[method])
         else:
