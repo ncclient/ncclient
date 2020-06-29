@@ -267,6 +267,16 @@ class TestSSH(unittest.TestCase):
         obj.load_known_hosts()
         mock_load.assert_called_once_with("file_name")
 
+    @patch('os.path.expanduser')
+    @patch('paramiko.hostkeys.HostKeys.load')
+    def test_load_host_key_IOError(self, mock_load, mock_os):
+        mock_os.return_value = "file_name"
+        mock_load.side_effect = IOError
+        device_handler = JunosDeviceHandler({'name': 'junos'})
+        obj = SSHSession(device_handler)
+        obj.load_known_hosts()
+        mock_load.assert_called_with("file_name")
+
     @unittest.skipIf(sys.version_info.major == 2, "test not supported < Python3")
     @patch('ncclient.transport.ssh.SSHSession.close')
     @patch('paramiko.channel.Channel.recv')
