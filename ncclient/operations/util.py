@@ -56,6 +56,10 @@ def build_filter(spec, capcheck=None):
             rep.append(to_ele(criteria))
         else:
             raise OperationError("Invalid filter type")
+    elif isinstance(spec, list):
+        rep = new_ele("filter", type="subtree")
+        for cri in spec:
+            rep.append(to_ele(cri))
     else:
 
         rep = validated_element(spec, ("filter", qualify("filter"),
