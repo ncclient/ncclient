@@ -5,6 +5,7 @@ ncclient is a Python library that facilitates client-side scripting and
 application development around the NETCONF protocol. ``ncclient`` was
 developed by `Shikar Bhushan <http://schmizz.net>`_. It is now
 maintained by `Leonidas Poulopoulos (@leopoul) <http://ncclient.org>`_
+and `Einar Nilsen-Nygaard (@einarnn)`_
 
 Docs:
 `http://ncclient.readthedocs.org <http://ncclient.readthedocs.org>`_
@@ -86,16 +87,64 @@ Device handlers are easy to implement and prove to be futureproof.
 Supported device handlers
 '''''''''''''''''''''''''
 
-* Juniper: device_params={'name':'junos'}
-* Cisco CSR: device_params={'name':'csr'}
-* Cisco Nexus: device_params={'name':'nexus'}
-* Huawei: device_params={'name':'huawei'}
-* Alcatel Lucent: device_params={'name':'alu'}
-* H3C: device_params={'name':'h3c'}
-* HP Comware: device_params={'name':'hpcomware'}
+* Juniper: `device_params={'name':'junos'}`
+* Cisco:
+    - CSR: `device_params={'name':'csr'}`
+    - Nexus: `device_params={'name':'nexus'}`
+    - IOS XR: `device_params={'name':'iosxr'}`
+    - IOS XE: `device_params={'name':'iosxe'}`
+* Huawei:
+    - `device_params={'name':'huawei'}`
+    - `device_params={'name':'huaweiyang'}`
+* Alcatel Lucent: `device_params={'name':'alu'}`
+* H3C: `device_params={'name':'h3c'}`
+* HP Comware: `device_params={'name':'hpcomware'}`
+* Server or anything not in above: `device_params={'name':'default'}`
 
 Changes \| brief
 ~~~~~~~~~~~~~~~~
+
+**v0.6.7**
+
+- Variety of bugfixes from a variety of contributors since 0.6.6 (see commit history)
+
+**v0.6.6**
+
+- Read ssh timeout from config file if not specified in method call
+- Tox support
+- Huge XML tree parser support
+- Adding optional bind address to connect
+
+**v0.6.5**
+
+- Updated README for 0.6.5 release
+
+**v0.6.4**
+
+- Pin selectors2 to Python versions <= 3.4
+- Fix config examples to actually use the nc namespace
+- Fix: correctly set port for paramiko when using ssh_config file
+- Test: add test to check ProxyCommand uses correct port
+- Update commits for py3
+- Enhance Alcatel-Lucent-support
+- Juniper RPC: allow specifying format in CompareConfiguration
+- Parsing of NETCONF 1.1 frames no longer decodes each chunk of bytes
+- Fix filter in create_subscription
+- Validate 'with-defaults' mode based on supported modes advertised in capability URI
+
+**v0.6.3**
+
+- Fix homepage link registered with PyPi
+- SSH Host Key checking
+- Updated junos.py to resolve RestrictedUser error
+- Close the channel when closing SSH session
+- Invoke self.parse() to ensure errors, if any, have been detected before check in ok()
+
+**v0.6.2**
+
+- Migration to user selectors instead of select, allowing higher scale operations
+- Improved netconf:base:1.1 parsing
+- Graceful exit on session close
 
 **v0.6.0**
 
@@ -180,7 +229,11 @@ Changes \| brief
 
 Acknowledgements
 ~~~~~~~~~~~~~~~~
-
+-  v0.6.7: @vnitinv, @chaitu-tk, @sidhujasminder, @crutcha, @markgoddard, @ganeshrn, @songxl, @doesitblend, @psikala, @xuxiaowei0512, @muffizone
+-  v0.6.6: @sstancu, @hemna, @ishayansheikh
+-  v0.6.4: @davidhankins, @mzagozen, @knobix, @markafarrell, @psikala, @moepman, @apt-itude, @yuekyang
+-  v0.6.3: @rdkls, @Anthony25, @rsmekala, @vnitinv, @siming85
+-  v0.6.2: @einarnn, @glennmatthews, @bryan-stripe, @nickylba
 -  v0.6.0: `Einar Nilsen-Nygaard`_
 -  v0.5.4: Various
 -  v0.5.3: `Justin Wilcox`_, `Stacy W. Smith`_, `Mircea Ulinic`_,
