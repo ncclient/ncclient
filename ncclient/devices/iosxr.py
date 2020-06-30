@@ -28,9 +28,6 @@ class IosxrDeviceHandler(DefaultDeviceHandler):
         super(IosxrDeviceHandler, self).__init__(device_params)
 
     def add_additional_ssh_connect_params(self, kwargs):
-        kwargs['allow_agent']   = False
-        kwargs['look_for_keys'] = False
-        kwargs['hostkey_verify'] = False
         kwargs['unknown_host_cb'] = iosxr_unknown_host_cb
 
     def perform_qualify_check(self):
