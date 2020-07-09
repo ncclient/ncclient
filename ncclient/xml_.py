@@ -223,11 +223,17 @@ class NCElement(object):
                                        parser=self.__parser)
         return self.__root
 
+def parent_ns(node):
+    index1 = node.tag.find('{')
+    index2 = node.tag.find('}')
+    if index1 != -1 and index2 != -1 and index1 < index2:
+        return node.tag[index1+1: index2]
+    return None
 
 new_ele = lambda tag, attrs={}, **extra: etree.Element(qualify(tag), attrs, **extra)
 
 new_ele_ns = lambda tag, ns, attrs={}, **extra: etree.Element(qualify(tag,ns), attrs, **extra)
 
-sub_ele = lambda parent, tag, attrs={}, **extra: etree.SubElement(parent, qualify(tag), attrs, **extra)
+sub_ele = lambda parent, tag, attrs={}, **extra: etree.SubElement(parent, qualify(tag, parent_ns(parent)), attrs, **extra)
 
 sub_ele_ns = lambda parent, tag, ns, attrs={}, **extra: etree.SubElement(parent, qualify(tag, ns), attrs, **extra)
