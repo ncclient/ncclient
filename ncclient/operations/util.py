@@ -49,10 +49,12 @@ def build_filter(spec, capcheck=None):
     type = None
     if isinstance(spec, tuple):
         type, criteria = spec
-        rep = new_ele("filter", type=type)
         if type == "xpath":
-            rep.attrib["select"] = criteria
+            ns, select = criteria
+            rep = new_ele_nsmap("filter", ns, type=type)
+            rep.attrib["select"] = select
         elif type == "subtree":
+            rep = new_ele("filter", type=type)
             rep.append(to_ele(criteria))
         else:
             raise OperationError("Invalid filter type")

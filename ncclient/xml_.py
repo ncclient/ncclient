@@ -224,6 +224,8 @@ class NCElement(object):
         return self.__root
 
 
+new_ele_nsmap = lambda tag, nsmap, attrs={}, **extra: etree.Element(qualify(tag), attrs, nsmap, **extra)
+
 new_ele = lambda tag, attrs={}, **extra: etree.Element(qualify(tag), attrs, **extra)
 
 new_ele_ns = lambda tag, ns, attrs={}, **extra: etree.Element(qualify(tag,ns), attrs, **extra)

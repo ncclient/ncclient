@@ -58,12 +58,14 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(call, ElementTree.tostring(to_ele(xml)))
 
     def test_build_filter_2(self):
-        criteria = "configuration/system"
+        select = "configuration/system"
+        ns = {"ns0": "http://www.xxx.org"}
+        criteria = (ns, select)
         filter = ("xpath", criteria)
         reply = build_filter(filter)
         call = ElementTree.tostring(reply)
-        node = new_ele("filter", type="xpath")
-        node.attrib["select"] = criteria
+        node = new_ele_nsmap("filter", ns, type="xpath")
+        node.attrib["select"] = select
         self.assertEqual(call, ElementTree.tostring(node))
 
     def test_build_filter_3(self):
