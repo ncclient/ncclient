@@ -43,6 +43,7 @@ class RPCError(OperationError):
         self._raw = raw
         if errs is None:
             # Single RPCError
+            self._errlist = None
             for attr in six.itervalues(RPCError.tag_to_attr):
                 setattr(self, attr, None)
             for subele in raw:
@@ -55,6 +56,7 @@ class RPCError(OperationError):
                 OperationError.__init__(self, self.to_dict())
         else:
             # Multiple errors returned. Errors is a list of RPCError objs
+            self._errlist = errs
             errlist = []
             for err in errs:
                 if err.severity:
@@ -119,6 +121,11 @@ class RPCError(OperationError):
     def info(self):
         "XML string or `None`; representing the `error-info` element."
         return self._info
+
+    @property
+    def errlist(self):
+        "List of errors if this represents multiple errors, otherwise None."
+        return self._errlist
 
 
 class RPCReply(object):
