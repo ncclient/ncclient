@@ -32,6 +32,7 @@ class RPCError(OperationError):
     tag_to_attr = {
         qualify("error-type"): "_type",
         qualify("error-tag"): "_tag",
+        qualify("error-app-tag"): "_app_tag",
         qualify("error-severity"): "_severity",
         qualify("error-info"): "_info",
         qualify("error-path"): "_path",
@@ -93,6 +94,11 @@ class RPCError(OperationError):
     def tag(self):
         "The contents of the `error-tag` element."
         return self._tag
+
+    @property
+    def app_tag(self):
+        "The contents of the `error-app-tag` element."
+        return self._app_tag
 
     @property
     def severity(self):

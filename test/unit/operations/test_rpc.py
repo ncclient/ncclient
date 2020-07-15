@@ -89,6 +89,18 @@ xml5_huge = """<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns:
 <configuration-text xmlns="http://xml.juniper.net/xnm/1.1/xnm">%s</configuration-text>
 </rpc-reply>""" % escape(huge_configuration_text)
 
+xml6 = """<rpc-error xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+			<error-type>application</error-type>
+			<error-tag>invalid-value</error-tag>
+			<error-severity>error</error-severity>
+			<error-path>path/to/node</error-path>
+			<error-info>
+				<bad-element>system1</bad-element>
+			</error-info>
+			<error-app-tag>app-tag1</error-app-tag>
+			<error-message>syntax error</error-message>
+	  </rpc-error>
+"""
 
 class TestRPC(unittest.TestCase):
 
@@ -179,6 +191,19 @@ class TestRPC(unittest.TestCase):
         err = RPCError(to_ele(xml2))
         obj.deliver_error(err)
         self.assertRaises(RPCError, obj._request, node)
+
+    def test_rpc_rpcerror_tag_to_attr(self):
+        err = RPCError(to_ele(xml6))
+
+        self.assertEqual(None, err.errlist)
+
+        self.assertEqual("application", err.type)
+        self.assertEqual("invalid-value", err.tag)
+        self.assertEqual("error", err.severity)
+        self.assertEqual("path/to/node", err.path)
+        self.assertEqual("app-tag1", err.app_tag)
+        self.assertEqual("syntax error", err.message)
+        self.assertIn("<bad-element>system1</bad-element>", err.info)
 
     @patch('ncclient.transport.Session.send')
     @patch(patch_str)
