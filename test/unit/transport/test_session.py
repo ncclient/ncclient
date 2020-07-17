@@ -76,6 +76,26 @@ class TestSession(unittest.TestCase):
         self.assertNotEqual(
             mock_log.call_args_list[0][0][0].find("error parsing dispatch message"), -1)
 
+    @patch('ncclient.transport.session.parse_root')
+    @patch('ncclient.devices.junos.JunosDeviceHandler.handle_raw_dispatch')
+    @patch('ncclient.transport.session.HelloHandler.errback')
+    @patch('ncclient.logging_.SessionLoggerAdapter.debug')
+    def test_dispatch_message_error2(self, mock_log, mock_errback,
+                                     mock_handle_raw_dispatch, mock_parse_root):
+        mock_parse_root.side_effect = Exception
+        mock_handle_raw_dispatch.return_value = Exception()
+        mock_errback.side_effect = Exception
+        cap = [':candidate']
+        obj = Session(cap)
+        device_handler = JunosDeviceHandler({'name': 'junos'})
+        obj._device_handler = device_handler
+        listener = HelloHandler(None, None)
+        obj._listeners.add(listener)
+        obj._dispatch_message(rpc_reply)
+        mock_handle_raw_dispatch.assert_called_once_with(rpc_reply)
+        self.assertEqual(
+            mock_log.call_args_list[0][0][0].find("error dispatching to"), -1)
+
     @patch('ncclient.transport.session.HelloHandler.errback')
     def test_dispatch_error(self, mock_handler):
         cap = [':candidate']
@@ -104,6 +124,26 @@ class TestSession(unittest.TestCase):
         self.assertNotEqual(
             log_args[0].find("server_capabilities="), -1)
         self.assertEqual(log_args[2], [':candidate'])
+
+    @patch('ncclient.logging_.SessionLoggerAdapter.info')
+    @patch('ncclient.transport.session.Thread.start')
+    @patch('ncclient.transport.session.Event')
+    def test_post_connect2(self, mock_lock, mock_handler, mock_log):
+        cap = ['urn:ietf:params:netconf:base:1.1']
+        obj = Session(cap)
+        device_handler = JunosDeviceHandler({'name': 'junos'})
+        obj._device_handler = device_handler
+        obj._connected = True
+        obj._id = 100
+        obj._server_capabilities = cap
+        obj._post_connect()
+        log_args = mock_log.call_args_list[0][0]
+        self.assertNotEqual(log_args[0].find("initialized"), -1)
+        self.assertNotEqual(log_args[0].find("session-id="), -1)
+        self.assertEqual(log_args[1], 100)
+        self.assertNotEqual(
+            log_args[0].find("server_capabilities="), -1)
+        self.assertEqual(log_args[2], ['urn:ietf:params:netconf:base:1.1'])
 
     def test_add_listener(self):
         cap = [':candidate']
