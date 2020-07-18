@@ -224,10 +224,8 @@ class NCElement(object):
         return self.__root
 
 def parent_ns(node):
-    index1 = node.tag.find('{')
-    index2 = node.tag.find('}')
-    if index1 != -1 and index2 != -1 and index1 < index2:
-        return node.tag[index1+1: index2]
+    if node.prefix:
+        return node.nsmap[node.prefix]
     return None
 
 new_ele = lambda tag, attrs={}, **extra: etree.Element(qualify(tag), attrs, **extra)
