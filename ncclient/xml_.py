@@ -223,11 +223,15 @@ class NCElement(object):
                                        parser=self.__parser)
         return self.__root
 
+def parent_ns(node):
+    if node.prefix:
+        return node.nsmap[node.prefix]
+    return None
 
 new_ele = lambda tag, attrs={}, **extra: etree.Element(qualify(tag), attrs, **extra)
 
 new_ele_ns = lambda tag, ns, attrs={}, **extra: etree.Element(qualify(tag,ns), attrs, **extra)
 
-sub_ele = lambda parent, tag, attrs={}, **extra: etree.SubElement(parent, qualify(tag), attrs, **extra)
+sub_ele = lambda parent, tag, attrs={}, **extra: etree.SubElement(parent, qualify(tag, parent_ns(parent)), attrs, **extra)
 
 sub_ele_ns = lambda parent, tag, ns, attrs={}, **extra: etree.SubElement(parent, qualify(tag, ns), attrs, **extra)
