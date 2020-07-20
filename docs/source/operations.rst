@@ -48,6 +48,12 @@ Retrieval
 
     .. autoattribute:: REPLY_CLS
 
+.. autoclass:: GetSchema
+    :members: request
+    :show-inheritance:
+
+    .. autoattribute:: REPLY_CLS
+
 Editing
 ........
 
@@ -79,6 +85,17 @@ Editing
     :members: request
     :show-inheritance:
 
+Flowmon
+........
+
+.. autoclass:: PoweroffMachine
+    :members: request
+    :show-inheritance:
+
+.. autoclass:: RebootMachine
+    :members: request
+    :show-inheritance:
+
 Locking
 ........
 
@@ -98,6 +115,13 @@ Session
     :show-inheritance:
 
 .. autoclass:: KillSession
+    :members: request
+    :show-inheritance:
+
+Subscribing
+............
+
+.. autoclass:: CreateSubscription
     :members: request
     :show-inheritance:
 
