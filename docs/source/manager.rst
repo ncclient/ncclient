@@ -40,37 +40,79 @@ Presence of capabilities is verified to the extent possible, and you can expect 
 
     .. autoattribute:: HUGE_TREE_DEFAULT
 
-    .. automethod:: get_config(source, filter=None)
+    .. method:: get_config(source, filter=None, with_defaults=None)
 
-    .. automethod:: edit_config(target, config, default_operation=None, test_option=None, error_option=None)
+       `get_config` is mapped to :class:`~ncclient.operations.GetConfig`
 
-    .. automethod:: copy_config(source, target)
+    .. method:: get_schema(identifier, version=None, format=None)
 
-    .. automethod:: delete_config(target)
+       `get_schema` is mapped to :class:`~ncclient.operations.GetSchema`
 
-    .. automethod:: dispatch(rpc_command, source=None, filter=None)
+    .. method:: edit_config(config, format='xml', target='candidate', default_operation=None, test_option=None, error_option=None)
 
-    .. automethod:: lock(target)
+       `edit_config` is mapped to :class:`~ncclient.operations.EditConfig`
 
-    .. automethod:: unlock(target)
+    .. method:: copy_config(source, target)
+
+       `copy_config` is mapped to :class:`~ncclient.operations.CopyConfig`
+
+    .. method:: delete_config(target)
+
+       `delete_config` is mapped to :class:`~ncclient.operations.DeleteConfig`
+
+    .. method:: dispatch(rpc_command, source=None, filter=None)
+
+       `dispatch` is mapped to :class:`~ncclient.operations.Dispatch`
+
+    .. method:: lock(target="candidate")
+
+       `lock` is mapped to :class:`~ncclient.operations.Lock`
+
+    .. method:: unlock(target="candidate")
+
+       `unlock` is mapped to :class:`~ncclient.operations.Unlock`
+
+    .. method:: get(filter=None, with_defaults=None)
+
+       `get` is mapped to :class:`~ncclient.operations.Get`
+
+    .. method:: close_session()
+
+       `close_session` is mapped to :class:`~ncclient.operations.CloseSession`
+
+    .. method:: kill_session(session_id)
+
+       `kill_session` is mapped to :class:`~ncclient.operations.KillSession`
+
+    .. method:: commit(confirmed=False, timeout=None, persist=None, persist_id=None)
+
+       `commit` is mapped to :class:`~ncclient.operations.Commit`
+
+    .. method:: cancel_commit(persist_id=None)
+
+       `cancel_commit` is mapped to :class:`~ncclient.operations.CancelCommit`
+
+    .. method:: discard_changes()
+
+       `discard_changes` is mapped to :class:`~ncclient.operations.DiscardChanges`
+
+    .. method:: validate(source="candidate")
+
+       `validate` is mapped to :class:`~ncclient.operations.Validate`
+
+    .. method:: create_subscription(filter=None, stream_name=None, start_time=None, stop_time=None)
+
+       `create_subscription` is mapped to :class:`~ncclient.operations.CreateSubscription`
+
+    .. method:: reboot_machine()
+
+       `reboot_machine` is mapped to :class:`~ncclient.operations.RebootMachine`
+
+    .. method:: poweroff_machine()
+
+       `poweroff_machine` is mapped to :class:`~ncclient.operations.PoweroffMachine`
 
     .. automethod:: locked(target)
-
-    .. automethod:: get()
-
-    .. automethod:: close_session()
-
-    .. automethod:: kill_session(session_id)
-
-    .. automethod:: commit(confirmed=False, timeout=None, persist=None)
-
-    .. automethod:: cancel_commit(persist_id=None)
-
-    .. automethod:: discard_changes()
-
-    .. automethod:: validate(source)
-
-    .. automethod:: create_subscription()
 
     .. automethod:: take_notification(block=True, timeout=None)
 
@@ -117,5 +159,11 @@ Where a method takes a *filter* argument, it can take on the following types:
 
     * For `"xpath"` the *criteria* should be a string containing the XPath expression.
     * For `"subtree"` the *criteria* should be an XML string or an :class:`~xml.etree.ElementTree.Element` object containing the criteria.
+
+* A list of *spec*
+
+    Here *type* has to be `"subtree"`.
+
+    * the *spec* should be a list containing multiple XML string or multiple :class:`~xml.etree.ElementTree.Element` objects.
 
 * A `<filter>` element as an XML string or an :class:`~xml.etree.ElementTree.Element` object.
