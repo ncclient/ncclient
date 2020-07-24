@@ -3,7 +3,7 @@ Welcome
 
 `ncclient` is a Python library for NETCONF clients. It aims to offer an intuitive API that sensibly maps the XML-encoded nature of NETCONF to Python constructs and idioms, and make writing network-management scripts easier. Other key features are:
 
-* Supports all operations and capabilities defined in :rfc:`4741`.
+* Supports all operations and capabilities defined in :rfc:`6241`.
 * Request pipelining.
 * Asynchronous RPC requests.
 * Keeping XML out of the way unless really needed.
@@ -39,10 +39,19 @@ The latest pull request merge includes support for Huawei devices with name **hu
 
 Supported device handlers
 -------------------------
-* Juniper: device_params={'name':'junos'}
-* Cisco CSR: device_params={'name':'csr'}
-* Cisco Nexus: device_params={'name':'nexus'}
-* Huawei: device_params={'name':'huawei'}
+* Juniper: `device_params={'name':'junos'}`
+* Cisco:
+    - CSR: `device_params={'name':'csr'}`
+    - Nexus: `device_params={'name':'nexus'}`
+    - IOS XR: `device_params={'name':'iosxr'}`
+    - IOS XE: `device_params={'name':'iosxe'}`
+* Huawei:
+    - `device_params={'name':'huawei'}`
+    - `device_params={'name':'huaweiyang'}`
+* Alcatel Lucent: `device_params={'name':'alu'}`
+* H3C: `device_params={'name':'h3c'}`
+* HP Comware: `device_params={'name':'hpcomware'}`
+* Server or anything not in above: `device_params={'name':'default'}`
 
 
 Contents:
