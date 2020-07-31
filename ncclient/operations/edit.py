@@ -39,7 +39,7 @@ class EditConfig(RPC):
 
         *default_operation* if specified must be one of { `"merge"`, `"replace"`, or `"none"` }
 
-        *test_option* if specified must be one of { `"test_then_set"`, `"set"` }
+        *test_option* if specified must be one of { `"test-then-set"`, `"set"`, `"test-only"` }
 
         *error_option* if specified must be one of { `"stop-on-error"`, `"continue-on-error"`, `"rollback-on-error"` }
 
@@ -47,13 +47,17 @@ class EditConfig(RPC):
         """
         node = new_ele("edit-config")
         node.append(util.datastore_or_url("target", target, self._assert))
-        if default_operation is not None:
-        # TODO: check if it is a valid default-operation
+        if (default_operation is not None
+                and util.validate_args('default_operation', default_operation, ["merge", "replace", "none"]) is True):
             sub_ele(node, "default-operation").text = default_operation
-        if test_option is not None:
+        if (test_option is not None
+                and util.validate_args('test_option', test_option, ["test-then-set", "set", "test-only"]) is True):
             self._assert(':validate')
+            if test_option == 'test-only':
+                self._assert(':validate:1.1')
             sub_ele(node, "test-option").text = test_option
-        if error_option is not None:
+        if (error_option is not None
+                and util.validate_args('error_option', error_option, ["stop-on-error", "continue-on-error", "rollback-on-error"]) is True):
             if error_option == "rollback-on-error":
                 self._assert(":rollback-on-error")
             sub_ele(node, "error-option").text = error_option
