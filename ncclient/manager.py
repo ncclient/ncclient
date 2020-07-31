@@ -172,7 +172,7 @@ class Manager(object):
 
     """
     For details on the expected behavior of the operations and their
-        parameters refer to :rfc:`4741`.
+        parameters refer to :rfc:`6241`.
 
     Manager instances are also context managers so you can use it like this::
 

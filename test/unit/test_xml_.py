@@ -176,3 +176,16 @@ class TestXML(unittest.TestCase):
         result_xml = result.data_xml
         self.assertRaises(XMLError,
             validated_element, result_xml, tags=["rpc"])
+
+    def test_sub_ele_inherit_parent_namespace(self):
+        device_params = {'name': 'junos'}
+        device_handler = manager.make_device_handler(device_params)
+        transform_reply = device_handler.transform_reply()
+        result = NCElement(self.reply, transform_reply)
+        ele = new_ele_ns(result.find("./cli").tag, "http://www.xxx.org")
+        child = sub_ele(ele, "child")
+        sibling = sub_ele(ele, "sibling")
+        grandchild = sub_ele(child, "grandchild")
+        self.assertEqual(child.tag, "{http://www.xxx.org}child")
+        self.assertEqual(sibling.tag, "{http://www.xxx.org}sibling")
+        self.assertEqual(grandchild.tag, "{http://www.xxx.org}grandchild")

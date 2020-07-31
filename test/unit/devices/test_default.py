@@ -37,6 +37,24 @@ class TestDefaultDevice(unittest.TestCase):
     def test_handle_connection_exceptions(self):
         self.assertFalse(self.obj.handle_connection_exceptions(None))
 
+    def test_is_rpc_error_exempt_1(self):
+        self.assertFalse(self.obj.is_rpc_error_exempt(None))
+
+    def test_is_rpc_error_exempt_2(self):
+        self.obj._exempt_errors_exact_match = ["test_exempt"]
+        self.assertTrue(self.obj.is_rpc_error_exempt("  Test_Exempt"))
+
+    def test_is_rpc_error_exempt_3(self):
+        self.obj._exempt_errors_startwith_wildcard_match = ["test_exempt"]
+        self.assertTrue(self.obj.is_rpc_error_exempt("*Test_Exempt"))
+
+    def test_is_rpc_error_exempt_4(self):
+        self.obj._exempt_errors_endwith_wildcard_match = ["test_exempt"]
+        self.assertTrue(self.obj.is_rpc_error_exempt("Test_Exempt*"))
+
+    def test_is_rpc_error_exempt_5(self):
+        self.obj._exempt_errors_full_wildcard_match = ["test_exempt"]
+        self.assertTrue(self.obj.is_rpc_error_exempt("*Test_Exempt*"))
 
 suite = unittest.TestSuite()
 unittest.TextTestRunner().run(suite)
