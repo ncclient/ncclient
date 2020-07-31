@@ -71,3 +71,9 @@ def build_filter(spec, capcheck=None):
     if type == "xpath" and capcheck is not None:
         capcheck(":xpath")
     return rep
+
+def validate_args(arg_name, value, args_list):
+    # this is a common method, which used to check whether a value is in args_list
+    if value not in args_list:
+        raise OperationError('Invalid value "%s" in "%s" element' % (value, arg_name))
+    return True
