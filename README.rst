@@ -104,6 +104,16 @@ Supported device handlers
 Changes \| brief
 ~~~~~~~~~~~~~~~~
 
+**v0.6.8**
+
+* Variety of small updates and bugfixes, but of note:
+    - Support for namespace prefixes for XPath queries
+    - `edit-config` parameter validation
+    - Support for multiple RPC errors
+    - API to get supported device types
+    - Support for subtree filters with multiple top-level tags
+* Thanks to all contributors!
+
 **v0.6.7**
 
 - Variety of bugfixes from a variety of contributors since 0.6.6 (see commit history)
@@ -229,6 +239,7 @@ Changes \| brief
 
 Acknowledgements
 ~~~~~~~~~~~~~~~~
+-  v0.6.8: [Fred Gan](https://github.com/fredgan), @vnitinv, @kbijakowski, @iwanb, @badguy99, @liuyong, Andrew Mallory, William Lvory
 -  v0.6.7: @vnitinv, @chaitu-tk, @sidhujasminder, @crutcha, @markgoddard, @ganeshrn, @songxl, @doesitblend, @psikala, @xuxiaowei0512, @muffizone
 -  v0.6.6: @sstancu, @hemna, @ishayansheikh
 -  v0.6.4: @davidhankins, @mzagozen, @knobix, @markafarrell, @psikala, @moepman, @apt-itude, @yuekyang
