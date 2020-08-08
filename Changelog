@@ -1,3 +1,8 @@
+version 0.6.9
+-------------
+
+* Resiolved breaking API change
+
 version 0.6.8
 -------------
 
@@ -8,6 +13,7 @@ version 0.6.8
   - API to get supported device types
   - Support for subtree filters with multiple top-level tags
 * Thanks to all contributors!
+* Pulled due to avccidental breaking API change
 
 version 0.6.7
 -------------
