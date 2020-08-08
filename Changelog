@@ -1,3 +1,20 @@
+version 0.6.9
+-------------
+
+* Resiolved breaking API change
+
+version 0.6.8
+-------------
+
+* Variety of small updates and bugfixes, but of note:
+  - Support for namespace prefixes for XPath queries
+  - `edit-config` parameter validation
+  - Support for multiple RPC errors
+  - API to get supported device types
+  - Support for subtree filters with multiple top-level tags
+* Thanks to all contributors!
+* Pulled due to avccidental breaking API change
+
 version 0.6.7
 -------------
 
