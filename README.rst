@@ -104,8 +104,13 @@ Supported device handlers
 Changes \| brief
 ~~~~~~~~~~~~~~~~
 
+**v0.6.9**
+
+* Fix for breaking API change
+
 **v0.6.8**
 
+* Pulled due to accidental breaking API change
 * Variety of small updates and bugfixes, but of note:
     - Support for namespace prefixes for XPath queries
     - `edit-config` parameter validation
@@ -239,6 +244,7 @@ Changes \| brief
 
 Acknowledgements
 ~~~~~~~~~~~~~~~~
+-  v0.6.9: [Fred Gan](https://github.com/fredgan)
 -  v0.6.8: [Fred Gan](https://github.com/fredgan), @vnitinv, @kbijakowski, @iwanb, @badguy99, @liuyong, Andrew Mallory, William Lvory
 -  v0.6.7: @vnitinv, @chaitu-tk, @sidhujasminder, @crutcha, @markgoddard, @ganeshrn, @songxl, @doesitblend, @psikala, @xuxiaowei0512, @muffizone
 -  v0.6.6: @sstancu, @hemna, @ishayansheikh
