@@ -19,6 +19,8 @@ by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org) and Einar Nilsen-Nygaa
 
 |  Date  | Release | Description |
 | :----: | :-----: | :---------- |
+| 08/08/20 | `0.6.9` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.9) |
+| 08/01/20 | `0.6.8` | Pulled due to accidental breaking API change |
 | 12/21/19 | `0.6.7` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.7) |
 | 05/27/19 | `0.6.6` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.6) |
 | 05/27/19 | `0.6.5` | Pulled due to bug in PyPi upload |
@@ -186,6 +188,7 @@ Thus, making a release becomes a simple process:
 
 ## Contributors
 
+* v0.6.8: [Fred Gan](https://github.com/fredgan), @vnitinv, @kbijakowski, @iwanb, @badguy99, @liuyong, Andrew Mallory, William Lvory
 * v0.6.7: @vnitinv, @chaitu-tk, @sidhujasminder, @crutcha, @markgoddard, @ganeshrn, @songxl, @doesitblend, @psikala, @xuxiaowei0512, @muffizone
 * v0.6.6: @sstancu, @hemna, @ishayansheikh
 * v0.6.4: @davidhankins, @mzagozen, @knobix, @markafarrell, @psikala, @moepman, @apt-itude, @yuekyang

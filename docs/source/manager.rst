@@ -157,7 +157,7 @@ Where a method takes a *filter* argument, it can take on the following types:
 
     Here *type* has to be one of `"xpath"` or `"subtree"`.
 
-    * For `"xpath"` the *criteria* should be a string containing the XPath expression.
+    * For `"xpath"` the *criteria* should be a string containing the XPath expression or a tuple containing a dict of namespace mapping and the XPath expression.
     * For `"subtree"` the *criteria* should be an XML string or an :class:`~xml.etree.ElementTree.Element` object containing the criteria.
 
 * A list of *spec*
