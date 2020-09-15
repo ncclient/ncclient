@@ -289,6 +289,20 @@ class TestManager(unittest.TestCase):
                                     device_params={'name': 'junos'},
                                     hostkey_verify=False, allow_agent=False)
         return conn
+    
+    @patch('socket.socket')
+    @patch('ncclient.manager.connect_ssh')
+    def test_call_home(self, mock_ssh, mock_socket_open):
+        mock_connected_socket = MagicMock()
+        mock_server_socket = MagicMock()
+        mock_socket_open.return_value = mock_server_socket
+        mock_server_socket.accept.return_value = (mock_connected_socket,
+                                                  'remote.host')
+
+        with manager.call_home(host='0.0.0.0', port=1234) as chm:
+            mock_ssh.assert_called_once_with(host='0.0.0.0',
+                                                port=1234,
+                                                sock=mock_connected_socket)
 
 
 if __name__ == "__main__":
