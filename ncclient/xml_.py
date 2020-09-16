@@ -192,6 +192,10 @@ class NCElement(object):
         self.__expression = expression
         return self.__doc.findtext(self.__expression)
 
+    def findall(self, expression):
+        """return result for a call to lxml ElementPath findall()"""
+        self.__expression = expression
+        return self.__doc.findall(self.__expression)
 
     def __str__(self):
         """syntactic sugar for str() - alias to tostring"""
