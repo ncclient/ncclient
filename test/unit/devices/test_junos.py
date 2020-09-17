@@ -42,6 +42,17 @@ xml3 = """<rpc-reply xmlns:junos="http://xml.juniper.net/junos/12.1X46/junos">
 <ok/>
 </rpc-reply>"""
 
+xml4 = """<rpc-reply>
+<operation>commit</operation>
+<name>reX</name>
+<commit-success/>
+<ok/>
+</rpc-reply>
+<rpc-error>
+<message>commit failure</message>
+</rpc-error>
+<hello>greeting!</hello>"""
+
 
 class TestJunosDevice(unittest.TestCase):
 
@@ -87,3 +98,12 @@ class TestJunosDevice(unittest.TestCase):
 
     def test_perform_quality_check(self):
         self.assertFalse(self.obj.perform_qualify_check())
+
+    def test_handle_raw_dispatch(self):
+        self.assertFalse(self.obj.handle_raw_dispatch(xml))
+
+        expected = re.sub(r'<ok/>', '</routing-engine>\n<ok/>', xml3)
+        self.assertEqual(expected, self.obj.handle_raw_dispatch(xml3))
+
+        expected = 'undefined: not an error message in the reply. Enable debug'
+        self.assertEqual(expected, str(self.obj.handle_raw_dispatch(xml4)))
