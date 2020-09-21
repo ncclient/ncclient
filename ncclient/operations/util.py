@@ -15,8 +15,8 @@
 'Boilerplate ugliness'
 
 from ncclient.xml_ import *
-
 from ncclient.operations.errors import OperationError, MissingCapabilityError
+from urllib.parse import urlparse
 
 def one_of(*args):
     "Verifies that only one of the arguments is not None"
@@ -83,3 +83,10 @@ def validate_args(arg_name, value, args_list):
     if value not in args_list:
         raise OperationError('Invalid value "%s" in "%s" element' % (value, arg_name))
     return True
+
+def url_validator(url):
+    try:
+        result = urlparse(url)
+        return all([result.scheme, result.netloc])
+    except:
+        return False
