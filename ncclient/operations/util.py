@@ -16,7 +16,10 @@
 
 from ncclient.xml_ import *
 from ncclient.operations.errors import OperationError, MissingCapabilityError
-from urllib.parse import urlparse
+try:
+    from urlparse import urlparse
+except:
+    from urllib.parse import urlparse
 
 def one_of(*args):
     "Verifies that only one of the arguments is not None"
