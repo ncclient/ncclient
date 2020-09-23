@@ -165,6 +165,36 @@ class TestRPC(unittest.TestCase):
 
     @patch('ncclient.transport.Session.send')
     @patch(patch_str)
+    def test_generic_rpc_send(self, mock_thread, mock_send):
+        device_handler, session = self._mock_device_handler_and_session()
+        obj = GenericRPC(session, device_handler, raise_mode=RaiseMode.ALL, timeout=0)
+        reply = RPCReply(xml1)
+        obj._reply = reply
+        rpc_command = 'edit-config'
+        filters = ('subtree', '<top xmlns="urn:mod1"/>')
+
+        result = obj.request(rpc_command, source='running', target='candidate', filter=filters)
+        ele = new_ele("rpc",
+                      {"message-id": obj._id},
+                      **device_handler.get_xml_extra_prefix_kwargs())
+        child = new_ele(rpc_command)
+        child.append(util.datastore_or_url('target', 'candidate'))
+        child.append(util.datastore_or_url('source', 'running'))
+        child.append(util.build_filter(filters))
+
+        ele.append(child)
+        node = to_xml(ele)
+        mock_send.assert_called_once_with(node)
+        self.assertEqual(
+            result.data_xml,
+            (NCElement(
+                reply,
+                device_handler.transform_reply())).data_xml)
+        self.assertEqual(obj.session, session)
+        self.assertEqual(reply, obj.reply)
+
+    @patch('ncclient.transport.Session.send')
+    @patch(patch_str)
     def test_rpc_async(self, mock_thread, mock_send):
         device_handler, session = self._mock_device_handler_and_session()
         obj = RPC(
