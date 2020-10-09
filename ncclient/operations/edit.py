@@ -63,9 +63,15 @@ class EditConfig(RPC):
             sub_ele(node, "error-option").text = error_option
         if format == 'xml':
             node.append(validated_element(config, ("config", qualify("config"))))
-        if format == 'text':
+        elif format == 'text':
             config_text = sub_ele(node, "config-text")
             sub_ele(config_text, "configuration-text").text = config
+        elif format == 'url':
+            if util.url_validator(config):
+                self._assert(':url')
+                sub_ele(node, "url").text = config
+            else:
+                raise OperationError("Invalid URL.")
         return self._request(node)
 
 
