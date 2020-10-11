@@ -67,9 +67,9 @@ class TestManager(unittest.TestCase):
                                          allow_agent=False)
 
     @patch('ncclient.transport.SSHSession.connect')
-    @patch('ncclient.operations.third_party.juniper.rpc.GetConfiguration._request')
-    @patch('ncclient.operations.third_party.juniper.rpc.ExecuteRpc._request')
-    def test_manager_getattr2(self, mock_rpc, mock_request, mock_ssh):
+    @patch('ncclient.transport.Session.send')
+    @patch('ncclient.operations.rpc.RPC._request')
+    def test_manager_getattr2(self, mock_request, mock_send, mock_ssh):
         conn = self._mock_manager()
         conn.get_edit('config')
         mock_ssh.assert_called_once_with(host='10.10.10.10',
