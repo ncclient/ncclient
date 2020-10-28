@@ -201,8 +201,8 @@ class Dispatch(RPC):
 
     """Generic retrieving wrapper"""
 
-    REPLY_CLS = GetReply
-    """See :class:`GetReply`."""
+    REPLY_CLS = RPCReply
+    """See :class:`RPCReply`."""
 
     def request(self, rpc_command, source=None, filter=None):
         """

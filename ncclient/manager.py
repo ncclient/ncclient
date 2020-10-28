@@ -283,6 +283,14 @@ class Manager(object):
                 return r
             return _missing
 
+    def rpc(self, *args, **kwds):
+        return operations.GenericRPC(self._session,
+                                     self._device_handler,
+                                     async_mode=self._async_mode,
+                                     timeout=self._timeout,
+                                     raise_mode=self._raise_mode,
+                                     huge_tree=self._huge_tree).request(*args, **kwds)
+
     def take_notification(self, block=True, timeout=None):
         """Attempt to retrieve one notification from the queue of received
         notifications.
