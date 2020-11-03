@@ -14,7 +14,7 @@
 
 "Transport layer"
 
-from ncclient.transport.session import Session, SessionListener
+from ncclient.transport.session import Session, SessionListener, NetconfBase
 from ncclient.transport.ssh import SSHSession
 from ncclient.transport.errors import *
 
@@ -25,6 +25,7 @@ __all__ = [
     'TransportError',
     'AuthenticationError',
     'SessionCloseError',
+    'NetconfBase',
     'SSHError',
     'SSHUnknownHostError'
 
