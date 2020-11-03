@@ -46,9 +46,9 @@ PORT_NETCONF_DEFAULT = 830
 
 BUF_SIZE = 4096
 # v1.0: RFC 4742
-MSG_DELIM = "]]>]]>"
+MSG_DELIM = b"]]>]]>"
 # v1.1: RFC 6242
-END_DELIM = '\n##\n'
+END_DELIM = b'\n##\n'
 
 TICK = 0.1
 
@@ -84,13 +84,6 @@ def _colonify(fp):
         finga += ":" + fp[idx:idx+2]
     return finga
 
-
-if sys.version < '3':
-    def textify(buf):
-        return buf
-else:
-    def textify(buf):
-        return buf.decode('UTF-8')
 
 if sys.version < '3':
     from six import StringIO
@@ -472,7 +465,7 @@ class SSHSession(Session):
         chan = self._channel
         q = self._q
 
-        def start_delim(data_len): return '\n#%s\n' % (data_len)
+        def start_delim(data_len): return b'\n#%i\n' % (data_len)
 
         try:
             s = selectors.DefaultSelector()
@@ -501,11 +494,11 @@ class SSHSession(Session):
                         raise SessionCloseError(self._buffer.getvalue())
                 if not q.empty() and chan.send_ready():
                     self.logger.debug("Sending message")
-                    data = q.get()
+                    data = q.get().encode()
                     if self._base == NetconfBase.BASE_11:
-                        data = "%s%s%s" % (start_delim(len(data)), data, END_DELIM)
+                        data = b"%s%s%s" % (start_delim(len(data)), data, END_DELIM)
                     else:
-                        data = "%s%s" % (data, MSG_DELIM)
+                        data = b"%s%s" % (data, MSG_DELIM)
                     self.logger.info("Sending:\n%s", data)
                     while data:
                         n = chan.send(data)
