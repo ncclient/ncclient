@@ -3,20 +3,24 @@ import unittest
 from ncclient.devices.sros import *
 from ncclient.xml_ import *
 
-
 capabilities = ['urn:ietf:params:netconf:base:1.0',
                 'urn:ietf:params:netconf:base:1.1',
+                'urn:ietf:params:netconf:capability:writable-running:1.0',
                 'urn:ietf:params:netconf:capability:candidate:1.0',
-                'urn:ietf:params:netconf:capability:confirmed-commit:1.1',
+                'urn:ietf:params:netconf:capability:confirmed-commit:1.0',
                 'urn:ietf:params:netconf:capability:rollback-on-error:1.0',
-                'urn:ietf:params:netconf:capability:notification:1.0',
-                'urn:ietf:params:netconf:capability:interleave:1.0',
-                'urn:ietf:params:netconf:capability:validate:1.0',
-                'urn:ietf:params:netconf:capability:validate:1.1',
                 'urn:ietf:params:netconf:capability:startup:1.0',
-                'urn:ietf:params:netconf:capability:url:1.0?scheme=ftp,tftp,file',
-                'urn:ietf:params:netconf:capability:with-defaults:1.0?basic-mode=explicit&amp;also-supported=report-all',
-                'urn:ietf:params:xml:ns:yang:ietf-netconf-monitoring']
+                'urn:ietf:params:netconf:capability:url:1.0?scheme=http,ftp,file,https,sftp',
+                'urn:ietf:params:netconf:capability:validate:1.0',
+                'urn:ietf:params:netconf:capability:xpath:1.0',
+                'urn:ietf:params:netconf:capability:notification:1.0',
+                'urn:liberouter:params:netconf:capability:power-control:1.0',
+                'urn:ietf:params:netconf:capability:interleave:1.0',
+                'urn:ietf:params:netconf:capability:with-defaults:1.0',
+                'urn:ietf:params:xml:ns:netconf:base:1.0',
+                'urn:ietf:params:xml:ns:yang:1',
+                'urn:ietf:params:netconf:capability:confirmed-commit:1.1',
+                'urn:ietf:params:netconf:capability:validate:1.1']
 
 xml = """<?xml version="1.0" encoding="UTF-8"?><rpc-reply xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="urn:uuid:4db8afe2-fbd9-4c13-abaf-f39ef678f63c">
 <results xmlns="urn:nokia.com:sros:ns:yang:sr:oper-global">

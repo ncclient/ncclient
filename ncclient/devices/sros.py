@@ -17,20 +17,21 @@ class SrosDeviceHandler(DefaultDeviceHandler):
         super(SrosDeviceHandler, self).__init__(device_params)
 
     def get_capabilities(self):
-        return [
-            'urn:ietf:params:netconf:base:1.0',
-            'urn:ietf:params:netconf:base:1.1',
-            'urn:ietf:params:netconf:capability:candidate:1.0',
+        """Set SR OS device handler client capabilities
+
+        Set additional capabilities beyond the default device handler.
+
+        Returns:
+            A list of strings representing NETCONF capabilities to be
+            sent to the server.
+        """
+        base = super(SrosDeviceHandler, self).get_capabilities()
+        additional = [
+            'urn:ietf:params:xml:ns:netconf:base:1.0',
+            'urn:ietf:params:xml:ns:yang:1',
             'urn:ietf:params:netconf:capability:confirmed-commit:1.1',
-            'urn:ietf:params:netconf:capability:rollback-on-error:1.0',
-            'urn:ietf:params:netconf:capability:notification:1.0',
-            'urn:ietf:params:netconf:capability:interleave:1.0',
-            'urn:ietf:params:netconf:capability:validate:1.0',
-            'urn:ietf:params:netconf:capability:validate:1.1',
-            'urn:ietf:params:netconf:capability:startup:1.0',
-            'urn:ietf:params:netconf:capability:url:1.0?scheme=ftp,tftp,file',
-            'urn:ietf:params:netconf:capability:with-defaults:1.0?basic-mode=explicit&amp;also-supported=report-all',
-            'urn:ietf:params:xml:ns:yang:ietf-netconf-monitoring']
+            'urn:ietf:params:netconf:capability:validate:1.1']
+        return base + additional
 
     def get_xml_base_namespace_dict(self):
         return {None: BASE_NS_1_0}
