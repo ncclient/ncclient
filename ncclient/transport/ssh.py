@@ -46,9 +46,9 @@ PORT_NETCONF_DEFAULT = 830
 
 BUF_SIZE = 4096
 # v1.0: RFC 4742
-MSG_DELIM = "]]>]]>"
+MSG_DELIM = b"]]>]]>"
 # v1.1: RFC 6242
-END_DELIM = '\n##\n'
+END_DELIM = b'\n##\n'
 
 TICK = 0.1
 
@@ -84,13 +84,6 @@ def _colonify(fp):
         finga += ":" + fp[idx:idx+2]
     return finga
 
-
-if sys.version < '3':
-    def textify(buf):
-        return buf
-else:
-    def textify(buf):
-        return buf.decode('UTF-8')
 
 if sys.version < '3':
     from six import StringIO
@@ -183,7 +176,8 @@ class SSHSession(Session):
             look_for_keys       = True,
             ssh_config          = None,
             sock_fd             = None,
-            bind_addr           = None):
+            bind_addr           = None,
+            sock                = None):
 
         """Connect via SSH and initialize the NETCONF session. First attempts the publickey authentication method and then password authentication.
 
@@ -216,9 +210,11 @@ class SSHSession(Session):
         *sock_fd* is an already open socket which shall be used for this connection. Useful for NETCONF outbound ssh. Use host=None together with a valid sock_fd number
 
         *bind_addr* is a (local) source IP address to use, must be reachable from the remote device.
+        
+        *sock* is an already open Python socket to be used for this connection.
         """
-        if not (host or sock_fd):
-            raise SSHError("Missing host or socket fd")
+        if not (host or sock_fd or sock):
+            raise SSHError("Missing host, socket or socket fd")
 
         self._host = host
 
@@ -262,7 +258,7 @@ class SSHSession(Session):
         if username is None:
             username = getpass.getuser()
 
-        if sock_fd is None:
+        if sock_fd is None and sock is None:
             proxycommand = config.get("proxycommand")
             if proxycommand:
                 self.logger.debug("Configuring Proxy. %s", proxycommand)
@@ -289,7 +285,7 @@ class SSHSession(Session):
                     break
                 else:
                     raise SSHError("Could not open socket to %s:%s" % (host, port))
-        else:
+        elif sock is None:
             if sys.version_info[0] < 3:
                 s = socket.fromfd(int(sock_fd), socket.AF_INET, socket.SOCK_STREAM)
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, _sock=s)
@@ -469,7 +465,7 @@ class SSHSession(Session):
         chan = self._channel
         q = self._q
 
-        def start_delim(data_len): return '\n#%s\n' % (data_len)
+        def start_delim(data_len): return b'\n#%i\n' % (data_len)
 
         try:
             s = selectors.DefaultSelector()
@@ -498,11 +494,11 @@ class SSHSession(Session):
                         raise SessionCloseError(self._buffer.getvalue())
                 if not q.empty() and chan.send_ready():
                     self.logger.debug("Sending message")
-                    data = q.get()
+                    data = q.get().encode()
                     if self._base == NetconfBase.BASE_11:
-                        data = "%s%s%s" % (start_delim(len(data)), data, END_DELIM)
+                        data = b"%s%s%s" % (start_delim(len(data)), data, END_DELIM)
                     else:
-                        data = "%s%s" % (data, MSG_DELIM)
+                        data = b"%s%s" % (data, MSG_DELIM)
                     self.logger.info("Sending:\n%s", data)
                     while data:
                         n = chan.send(data)
