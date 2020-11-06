@@ -8,11 +8,13 @@ import logging
 import sys
 
 from ncclient import manager
+from ncclient.namespaces import IETF
+from ncclient.namespaces import Nokia
 from ncclient.operations.rpc import RPCError
 
 _NS_MAP = {
-    'nc': 'urn:ietf:params:xml:ns:netconf:base:1.0',
-    'nokia-oper': 'urn:nokia.com:sros:ns:yang:sr:oper-global'
+    'nc': IETF.nsmap['nc'],
+    'nokia-oper': Nokia.nsmap['oper-global']
 }
 
 def connect(host, port, user, password):

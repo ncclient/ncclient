@@ -29,6 +29,7 @@ from lxml import etree
 # well as lxml v3.0+
 
 from ncclient import NCClientError
+from ncclient.namespaces import IETF
 
 parser = etree.XMLParser(recover=False)
 huge_parser = etree.XMLParser(recover=False, huge_tree=True)
@@ -79,8 +80,6 @@ NETCONF_NOTIFICATION_NS = "urn:ietf:params:xml:ns:netconf:notification:1.0"
 NETCONF_WITH_DEFAULTS_NS = "urn:ietf:params:xml:ns:yang:ietf-netconf-with-defaults"
 #: Namespace for Alcatel-Lucent SR OS Base r13 YANG models
 ALU_CONFIG = "urn:alcatel-lucent.com:sros:ns:yang:conf-r13"
-#: Namespace for Nokia SR OS global operations
-SROS_GLOBAL_OPS_NS = "urn:nokia.com:sros:ns:yang:sr:oper-global"
 
 
 try:
@@ -259,7 +258,7 @@ def yang_action(name, attrs):
         represents the top-level YANG action element and the second
         represents the caller supplied initial node.
     """
-    node = new_ele('action', attrs={'xmlns': YANG_NS_1_0})
+    node = new_ele('action', attrs={'xmlns': IETF.yang})
     return (node, sub_ele(node, name, attrs))
 
 new_ele_nsmap = lambda tag, nsmap, attrs={}, **extra: etree.Element(qualify(tag), attrs, nsmap, **extra)
@@ -271,3 +270,5 @@ new_ele_ns = lambda tag, ns, attrs={}, **extra: etree.Element(qualify(tag,ns), a
 sub_ele = lambda parent, tag, attrs={}, **extra: etree.SubElement(parent, qualify(tag, parent_ns(parent)), attrs, **extra)
 
 sub_ele_ns = lambda parent, tag, ns, attrs={}, **extra: etree.SubElement(parent, qualify(tag, ns), attrs, **extra)
+
+sub_ele_nsmap = lambda parent, tag, nsmap, attrs={}, **extra: etree.SubElement(parent, qualify(tag), attrs, nsmap, **extra)

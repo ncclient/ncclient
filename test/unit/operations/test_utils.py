@@ -84,7 +84,7 @@ class TestUtils(unittest.TestCase):
             </system>
         </configuration>"""
         filter = ("subtree", criteria)
-        reply = build_filter(filter, capcheck="cap")
+        reply = build_filter(filter)
         call = ElementTree.tostring(reply)
         node = new_ele("filter", type="subtree")
         node.append(to_ele(criteria))
@@ -98,4 +98,4 @@ class TestUtils(unittest.TestCase):
         </configuration>"""
         filter = ("text", criteria)
         self.assertRaises(OperationError,
-            build_filter, filter, capcheck="cap")
+            build_filter, filter)

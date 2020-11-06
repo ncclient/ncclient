@@ -14,6 +14,9 @@
 
 'Boilerplate ugliness'
 
+import enum
+
+from ncclient._types import FilterType
 from ncclient.xml_ import *
 from ncclient.operations.errors import OperationError, MissingCapabilityError
 try:
@@ -48,38 +51,101 @@ def datastore_or_url(wha, loc, capcheck=None):
         sub_ele(node, loc)
     return node
 
-def build_filter(spec, capcheck=None):
-    type = None
-    if isinstance(spec, tuple):
-        type, criteria = spec
-        if type == "xpath":
-            if isinstance(criteria, tuple):
-                ns, select = criteria
-                rep = new_ele_nsmap("filter", ns, type=type)
-                rep.attrib["select"] = select
-            else:
-                rep = new_ele("filter", type=type)
-                rep.attrib["select"]=criteria
-        elif type == "subtree":
-            rep = new_ele("filter", type=type)
-            rep.append(to_ele(criteria))
-        else:
-            raise OperationError("Invalid filter type")
-    elif isinstance(spec, list):
-        rep = new_ele("filter", type="subtree")
-        for cri in spec:
-            rep.append(to_ele(cri))
-    else:
+def build_filter(filter_spec, nmda=False):
+    """Construct an XPath, Subtree or notification event filter
 
-        rep = validated_element(spec, ("filter", qualify("filter"),
-                                       qualify("filter", ns=NETCONF_NOTIFICATION_NS)))
-        # results in XMLError: line 105 ncclient/xml_.py - commented by earies - 5/10/13
-        #rep = validated_element(spec, ("filter", qualify("filter")),
-        #                                attrs=("type",))
-        # TODO set type var here, check if select attr present in case of xpath..
-    if type == "xpath" and capcheck is not None:
-        capcheck(":xpath")
-    return rep
+    A filter_spec can be passed in in the form of a tuple, list or
+    string.
+
+    If the filter_spec is a tuple, the first value must be a filter_type
+    of either a string (e.g. 'xpath' or 'subtree') [preserved for
+    backwards compatibility] or a _types.FilterType enum value.  The
+    second value represents filter_data that can be represented either
+    as a string (XML data or  an XPath expression) or a tuple where the
+    first value indicates a  namespace map (dict of prefix:namespaces).
+
+    If the filter_spec is a list, then the assumption is that it is a
+    list of string XML elements to be constructed into a subtree
+    filter.  This method of filter passing is legacy and preserved for
+    backwards compatibility.
+
+    If the filter_spec is a string, then the assumption is that the
+    filter is solely for a NETCONF notification event stream filter.
+
+    If 'nmda' is set to True from the caller, an NMDA compliant payload
+    that conforms to newer filter styles will be produced.
+
+    Args:
+        filter_spec: A tuple, list or string representing filter data
+        nmda: A boolean value indicating usage of NMDA compliant
+            filters
+    Returns:
+        An lxml.etree._Element representing the filter type and filter
+        data to be utilized among various RPCs.
+    """
+    filter_type = None
+
+    if isinstance(filter_spec, tuple):
+        filter_type, filter_data = filter_spec
+
+        if (filter_type == FilterType.SUBTREE or
+                filter_type == 'subtree'):
+            if nmda:
+                data = new_ele('subtree-filter')
+            else:
+                if isinstance(filter_type, enum.Enum):
+                    filter_type = filter_type.name.lower()
+                data = new_ele('filter', type=filter_type)
+            data.append(to_ele(filter_data))
+
+        elif (filter_type == FilterType.XPATH or
+                filter_type == 'xpath'):
+            # Parse the filter data if passed in as a tuple indicating
+            # a namespace map is included.  The namespace map is the
+            # first tuple item followed by the XPath expression
+            if isinstance(filter_data, tuple):
+                ns, select = filter_data
+                if nmda:
+                    data = new_ele_nsmap('xpath-filter', ns)
+                    data.text = select
+                else:
+                    if isinstance(filter_type, enum.Enum):
+                        filter_type = filter_type.name.lower()
+                    data = new_ele_nsmap('filter', ns, type=filter_type)
+                    data.attrib['select'] = select
+
+            else:
+                if nmda:
+                    data = new_ele('xpath-filter')
+                    data.text = filter_data
+                else:
+                    if isinstance(filter_type, enum.Enum):
+                        filter_type = filter_type.name.lower()
+                    data = new_ele('filter', type=filter_type)
+                    data.attrib['select'] = filter_data
+
+        else:
+            raise OperationError('Invalid filter type')
+
+    # If the filter_spec passed in is a list, then the assumption is
+    # that it is a list of elements to be constructed as a subtree
+    # filter since a filter type is not specified.  This method of
+    # passing a filter is legacy and preserved for backwards
+    # compatibility.
+    elif isinstance(filter_spec, list):
+        if nmda:
+            data = new_ele('subtree-filter')
+        else:
+            data = new_ele('filter', type='subtree')
+
+        for ele in filter_spec:
+            data.append(to_ele(ele))
+
+    else:
+        data = validated_element(filter_spec, ('filter', qualify('filter'),
+            qualify('filter', ns=NETCONF_NOTIFICATION_NS)))
+
+    return data
 
 def validate_args(arg_name, value, args_list):
     # this is a common method, which used to check whether a value is in args_list

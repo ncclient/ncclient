@@ -5,12 +5,14 @@ import logging
 import sys
 
 from ncclient import manager
+from ncclient.namespaces import IETF
+from ncclient.namespaces import Nokia
 from ncclient.xml_ import to_xml
 from ncclient.operations.rpc import RPCError
 
 _NS_MAP = {
-    'nc': 'urn:ietf:params:xml:ns:netconf:base:1.0',
-    'nokia-conf': 'urn:nokia.com:sros:ns:yang:sr:conf'
+    'nc': IETF.nsmap['nc'],
+    'nokia-conf': Nokia.nsmap['conf']
 }
 
 _NOKIA_MGMT_INT_FILTER = '''
