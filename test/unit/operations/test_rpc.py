@@ -118,7 +118,7 @@ xml7 = """<rpc-error xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
 class TestRPC(unittest.TestCase):
 
     def test_rpc_reply(self):
-        obj = RPCReply(xml4)
+        obj = RPCReply(xml4, self._mock_device_handler())
         obj.parse()
         self.assertTrue(obj.ok)
         self.assertFalse(obj.error)
@@ -126,11 +126,11 @@ class TestRPC(unittest.TestCase):
         self.assertTrue(obj._parsed)
 
     def test_rpc_reply_huge_text_node_exception(self):
-        obj = RPCReply(xml5_huge)
+        obj = RPCReply(xml5_huge, self._mock_device_handler())
         self.assertRaises(etree.XMLSyntaxError, obj.parse)
 
     def test_rpc_reply_huge_text_node_workaround(self):
-        obj = RPCReply(xml5_huge, huge_tree=True)
+        obj = RPCReply(xml5_huge, self._mock_device_handler(), huge_tree=True)
         obj.parse()
         self.assertTrue(obj.ok)
         self.assertFalse(obj.error)
@@ -142,7 +142,7 @@ class TestRPC(unittest.TestCase):
     def test_rpc_send(self, mock_thread, mock_send):
         device_handler, session = self._mock_device_handler_and_session()
         obj = RPC(session, device_handler, raise_mode=RaiseMode.ALL, timeout=0)
-        reply = RPCReply(xml1)
+        reply = RPCReply(xml1, device_handler)
         obj._reply = reply
         node = new_ele("commit")
         sub_ele(node, "confirmed")
@@ -168,7 +168,7 @@ class TestRPC(unittest.TestCase):
     def test_generic_rpc_send(self, mock_thread, mock_send):
         device_handler, session = self._mock_device_handler_and_session()
         obj = GenericRPC(session, device_handler, raise_mode=RaiseMode.ALL, timeout=0)
-        reply = RPCReply(xml1)
+        reply = RPCReply(xml1, device_handler)
         obj._reply = reply
         rpc_command = 'edit-config'
         filters = ('subtree', '<top xmlns="urn:mod1"/>')
@@ -203,7 +203,7 @@ class TestRPC(unittest.TestCase):
             raise_mode=RaiseMode.ALL,
             timeout=0,
             async_mode=True)
-        reply = RPCReply(xml1)
+        reply = RPCReply(xml1, device_handler)
         obj._reply = reply
         node = new_ele("commit")
         result = obj._request(node)
@@ -214,7 +214,7 @@ class TestRPC(unittest.TestCase):
     def test_rpc_timeout_error(self, mock_thread, mock_send):
         device_handler, session = self._mock_device_handler_and_session()
         obj = RPC(session, device_handler, raise_mode=RaiseMode.ALL, timeout=0)
-        reply = RPCReply(xml1)
+        reply = RPCReply(xml1, device_handler)
         obj.deliver_reply(reply)
         node = new_ele("commit")
         sub_ele(node, "confirmed")
@@ -226,7 +226,7 @@ class TestRPC(unittest.TestCase):
     def test_rpc_rpcerror(self, mock_thread, mock_send):
         device_handler, session = self._mock_device_handler_and_session()
         obj = RPC(session, device_handler, raise_mode=RaiseMode.ALL, timeout=0)
-        reply = RPCReply(xml1)
+        reply = RPCReply(xml1, device_handler)
         obj._reply = reply
         node = new_ele("commit")
         sub_ele(node, "confirmed")
@@ -311,6 +311,9 @@ class TestRPC(unittest.TestCase):
         self.assertEqual(result.find('configuration-text').text, huge_configuration_text)
         obj.huge_tree = False
         self.assertFalse(obj.huge_tree)
+
+    def _mock_device_handler(self):
+        return manager.make_device_handler({'name': 'default'})
 
     def _mock_device_handler_and_session(self):
         device_handler = manager.make_device_handler({'name': 'junos'})

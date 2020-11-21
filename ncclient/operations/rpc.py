@@ -144,8 +144,9 @@ class RPCReply(object):
     ERROR_CLS = RPCError
     "Subclasses can specify a different error class, but it should be a subclass of `RPCError`."
 
-    def __init__(self, raw, huge_tree=False):
+    def __init__(self, raw, device_handler, huge_tree=False):
         self._raw = raw
+        self._device_handler = device_handler
         self._parsed = False
         self._root = None
         self._errors = []
@@ -167,7 +168,13 @@ class RPCReply(object):
                 for err in root.getiterator(error.tag):
                     # Process a particular <rpc-error>
                     self._errors.append(self.ERROR_CLS(err))
-        self._parsing_hook(root)
+        try:
+            self._parsing_hook(root)
+        except Exception as e:
+            # Apply device specific workaround and try again
+            self._device_handler.handle_reply_parsing_error(root, self)
+            self._parsing_hook(root)
+
         self._parsed = True
 
     def _parsing_hook(self, root):
@@ -380,7 +387,7 @@ class RPC(object):
 
     def deliver_reply(self, raw):
         # internal use
-        self._reply = self.REPLY_CLS(raw, huge_tree=self._huge_tree)
+        self._reply = self.REPLY_CLS(raw, self._device_handler, huge_tree=self._huge_tree)
         self._event.set()
 
     def deliver_error(self, err):
