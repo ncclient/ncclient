@@ -182,6 +182,7 @@ class GetSchema(RPC):
         *format* format of the schema to be retrieved, yang is the default
 
         :seealso: :ref:`filter_params`"""
+        self._huge_tree = True
         node = etree.Element(qualify("get-schema",NETCONF_MONITORING_NS))
         if identifier is not None:
             elem = etree.Element(qualify("identifier",NETCONF_MONITORING_NS))
