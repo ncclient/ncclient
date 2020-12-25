@@ -214,7 +214,7 @@ class SSHSession(Session):
         
         *sock* is an already open Python socket to be used for this connection.
 
-        *keepalive* Turn on/off keepalive packets (default is off). If this is set, after interval seconds without sending any data over the connection, a “keepalive” packet will be sent (and ignored by the remote host). This can be useful to keep connections alive over a NAT.
+        *keepalive* Turn on/off keepalive packets (default is off). If this is set, after interval seconds without sending any data over the connection, a "keepalive" packet will be sent (and ignored by the remote host). This can be useful to keep connections alive over a NAT.
         """
         if not (host or sock_fd or sock):
             raise SSHError("Missing host, socket or socket fd")
