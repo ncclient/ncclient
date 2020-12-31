@@ -33,7 +33,7 @@ class TestManager(unittest.TestCase):
         mock_ssh.assert_called_once_with(host='host')
         mock_load_known_hosts.assert_called_once_with()
 
-    @patch('ncclient.manager.connect_ssh')
+    @patch('ncclient.transport.SSHSession.connect')
     def test_connect_ssh2(self, mock_ssh):
         manager.connect(host='host', keepalive=10)
         mock_ssh.assert_called_once_with(host='host', keepalive=10)
