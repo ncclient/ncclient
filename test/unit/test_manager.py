@@ -33,6 +33,21 @@ class TestManager(unittest.TestCase):
         mock_ssh.assert_called_once_with(host='host')
         mock_load_known_hosts.assert_called_once_with()
 
+    @patch('socket.socket')
+    @patch('paramiko.Transport')
+    @patch('ncclient.transport.ssh.hexlify')
+    @patch('ncclient.transport.ssh.Session._post_connect')
+    def test_connect_ssh2(self, mock_session, mock_hex, mock_trans, mock_socket):
+        conn = manager.connect_ssh(host='10.10.10.10',
+                                    port=22,
+                                    username='user',
+                                    password='password',
+                                    timeout=3,
+                                    hostkey_verify=False,
+                                    allow_agent=False,
+                                    keepalive=10)
+        self.assertEqual(mock_trans.called, 1)
+
     @patch('ncclient.transport.SSHSession.connect')
     @patch('ncclient.transport.SSHSession.transport')
     @patch('ncclient.transport.SSHSession.close')
