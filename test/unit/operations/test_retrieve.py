@@ -220,3 +220,43 @@ class TestRetrieve(unittest.TestCase):
         call = mock_request.call_args_list[0][0][0]
         call = ElementTree.tostring(call)
         self.assertEqual(call, xml)
+
+    @patch('ncclient.operations.retrieve.RPC._request')
+    def test_get_with_multi_subtree_filters(self, mock_request):
+        result = '''
+                <?xml version="1.0" encoding="UTF-8"?>
+                <data xmlns="urn:ietf:params:xml:ns:netconf:base:1.0"
+                      xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+                    <cont1 xmlns="urn:mod1">
+                        <le1>test_mod1_001</le1>
+                        <le2>this is a test-one example</le2>
+                    </cont1>
+                    <cont2 xmlns="urn:mod2">
+                        <le1>test_mod2_002</le1>
+                        <le2>this is a test-two example</le2>
+                        <lst>
+                            <le3>a list of mod2</le3>
+                        </lst>
+                    </cont2>
+                </data>'''
+        mock_request.return_value = result
+        session = ncclient.transport.SSHSession(self.device_handler)
+        obj = Get(session, self.device_handler, raise_mode=RaiseMode.ALL)
+
+        multi_subtree_filters = [
+            '<cont1 xmlns="urn:mod1"> \
+                <le1/> \
+                <le2/> \
+             </cont1>',
+             '<cont2 xmlns="urn:mod2"/>'
+        ]
+
+        ret = obj.request(copy.deepcopy(multi_subtree_filters))
+        node = new_ele("get")
+        node.append(util.build_filter(multi_subtree_filters))
+        xml = ElementTree.tostring(node)
+        call = mock_request.call_args_list[0][0][0]
+        call = ElementTree.tostring(call)
+        self.assertEqual(call, xml)
+        self.assertEqual(ret, result)
+

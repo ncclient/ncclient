@@ -15,8 +15,11 @@
 'Boilerplate ugliness'
 
 from ncclient.xml_ import *
-from ncclient.operations.errors import OperationError
-from ncclient.operations.errors import MissingCapabilityError
+from ncclient.operations.errors import OperationError, MissingCapabilityError
+try:
+    from urlparse import urlparse
+except:
+    from urllib.parse import urlparse
 
 def one_of(*args):
     "Verifies that only one of the arguments is not None"
@@ -49,13 +52,23 @@ def build_filter(spec, capcheck=None):
     type = None
     if isinstance(spec, tuple):
         type, criteria = spec
-        rep = new_ele("filter", type=type)
         if type == "xpath":
-            rep.attrib["select"] = criteria
+            if isinstance(criteria, tuple):
+                ns, select = criteria
+                rep = new_ele_nsmap("filter", ns, type=type)
+                rep.attrib["select"] = select
+            else:
+                rep = new_ele("filter", type=type)
+                rep.attrib["select"]=criteria
         elif type == "subtree":
+            rep = new_ele("filter", type=type)
             rep.append(to_ele(criteria))
         else:
             raise OperationError("Invalid filter type")
+    elif isinstance(spec, list):
+        rep = new_ele("filter", type="subtree")
+        for cri in spec:
+            rep.append(to_ele(cri))
     else:
 
         rep = validated_element(spec, ("filter", qualify("filter"),
@@ -67,3 +80,16 @@ def build_filter(spec, capcheck=None):
     if type == "xpath" and capcheck is not None:
         capcheck(":xpath")
     return rep
+
+def validate_args(arg_name, value, args_list):
+    # this is a common method, which used to check whether a value is in args_list
+    if value not in args_list:
+        raise OperationError('Invalid value "%s" in "%s" element' % (value, arg_name))
+    return True
+
+def url_validator(url):
+    try:
+        result = urlparse(url)
+        return all([result.scheme, result.netloc])
+    except:
+        return False

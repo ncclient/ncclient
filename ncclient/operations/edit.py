@@ -39,7 +39,7 @@ class EditConfig(RPC):
 
         *default_operation* if specified must be one of { `"merge"`, `"replace"`, or `"none"` }
 
-        *test_option* if specified must be one of { `"test_then_set"`, `"set"` }
+        *test_option* if specified must be one of { `"test-then-set"`, `"set"`, `"test-only"` }
 
         *error_option* if specified must be one of { `"stop-on-error"`, `"continue-on-error"`, `"rollback-on-error"` }
 
@@ -47,25 +47,31 @@ class EditConfig(RPC):
         """
         node = new_ele("edit-config")
         node.append(util.datastore_or_url("target", target, self._assert))
-        if default_operation is not None:
-        # TODO: check if it is a valid default-operation
+        if (default_operation is not None
+                and util.validate_args('default_operation', default_operation, ["merge", "replace", "none"]) is True):
             sub_ele(node, "default-operation").text = default_operation
-        if test_option is not None:
+        if (test_option is not None
+                and util.validate_args('test_option', test_option, ["test-then-set", "set", "test-only"]) is True):
             self._assert(':validate')
+            if test_option == 'test-only':
+                self._assert(':validate:1.1')
             sub_ele(node, "test-option").text = test_option
-        if error_option is not None:
+        if (error_option is not None
+                and util.validate_args('error_option', error_option, ["stop-on-error", "continue-on-error", "rollback-on-error"]) is True):
             if error_option == "rollback-on-error":
                 self._assert(":rollback-on-error")
             sub_ele(node, "error-option").text = error_option
-# <<<<<<< HEAD
-#         node.append(validated_element(config, ("config", qualify("config"))))
-# =======
         if format == 'xml':
             node.append(validated_element(config, ("config", qualify("config"))))
-        if format == 'text':
+        elif format == 'text':
             config_text = sub_ele(node, "config-text")
             sub_ele(config_text, "configuration-text").text = config
-# >>>>>>> juniper
+        elif format == 'url':
+            if util.url_validator(config):
+                self._assert(':url')
+                sub_ele(node, "url").text = config
+            else:
+                raise OperationError("Invalid URL.")
         return self._request(node)
 
 
@@ -149,8 +155,8 @@ class Commit(RPC):
         *persist_id* value must be equal to the value given in the <persist> parameter to the original <commit> operation.
         """
         node = new_ele("commit")
-        if (confirmed or persist) and persist_id:
-            raise OperationError("Invalid operation as confirmed or persist cannot be present with persist-id")
+        if persist and persist_id:
+            raise OperationError("Invalid operation as persist cannot be present with persist-id")
         if confirmed:
             self._assert(":confirmed-commit")
             sub_ele(node, "confirmed")

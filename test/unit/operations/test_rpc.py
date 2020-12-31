@@ -89,6 +89,31 @@ xml5_huge = """<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns:
 <configuration-text xmlns="http://xml.juniper.net/xnm/1.1/xnm">%s</configuration-text>
 </rpc-reply>""" % escape(huge_configuration_text)
 
+xml6 = """<rpc-error xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+			<error-type>application</error-type>
+			<error-tag>invalid-value</error-tag>
+			<error-severity>error</error-severity>
+			<error-path>path/to/node</error-path>
+			<error-info>
+				<bad-element>system1</bad-element>
+			</error-info>
+			<error-app-tag>app-tag1</error-app-tag>
+			<error-message>syntax error</error-message>
+	  </rpc-error>
+"""
+
+xml7 = """<rpc-error xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+			<error-type>protocol</error-type>
+			<error-tag>missing-element</error-tag>
+			<error-severity>error</error-severity>
+			<error-path>path/to/different/node</error-path>
+			<error-info>
+				<bad-element>system2</bad-element>
+			</error-info>
+			<error-app-tag>app-tag2</error-app-tag>
+			<error-message>missing element error</error-message>
+	  </rpc-error>
+"""
 
 class TestRPC(unittest.TestCase):
 
@@ -140,6 +165,36 @@ class TestRPC(unittest.TestCase):
 
     @patch('ncclient.transport.Session.send')
     @patch(patch_str)
+    def test_generic_rpc_send(self, mock_thread, mock_send):
+        device_handler, session = self._mock_device_handler_and_session()
+        obj = GenericRPC(session, device_handler, raise_mode=RaiseMode.ALL, timeout=0)
+        reply = RPCReply(xml1)
+        obj._reply = reply
+        rpc_command = 'edit-config'
+        filters = ('subtree', '<top xmlns="urn:mod1"/>')
+
+        result = obj.request(rpc_command, source='running', target='candidate', filter=filters)
+        ele = new_ele("rpc",
+                      {"message-id": obj._id},
+                      **device_handler.get_xml_extra_prefix_kwargs())
+        child = new_ele(rpc_command)
+        child.append(util.datastore_or_url('target', 'candidate'))
+        child.append(util.datastore_or_url('source', 'running'))
+        child.append(util.build_filter(filters))
+
+        ele.append(child)
+        node = to_xml(ele)
+        mock_send.assert_called_once_with(node)
+        self.assertEqual(
+            result.data_xml,
+            (NCElement(
+                reply,
+                device_handler.transform_reply())).data_xml)
+        self.assertEqual(obj.session, session)
+        self.assertEqual(reply, obj.reply)
+
+    @patch('ncclient.transport.Session.send')
+    @patch(patch_str)
     def test_rpc_async(self, mock_thread, mock_send):
         device_handler, session = self._mock_device_handler_and_session()
         obj = RPC(
@@ -179,6 +234,50 @@ class TestRPC(unittest.TestCase):
         err = RPCError(to_ele(xml2))
         obj.deliver_error(err)
         self.assertRaises(RPCError, obj._request, node)
+
+    def test_rpc_rpcerror_tag_to_attr(self):
+        '''All elements in <rpc-error> extracted.'''
+        err = RPCError(to_ele(xml6))
+
+        self.assertEqual(None, err.errlist)
+
+        self.assertEqual("application", err.type)
+        self.assertEqual("invalid-value", err.tag)
+        self.assertEqual("error", err.severity)
+        self.assertEqual("path/to/node", err.path)
+        self.assertEqual("app-tag1", err.app_tag)
+        self.assertEqual("syntax error", err.message)
+        self.assertIn("<bad-element>system1</bad-element>", err.info)
+
+    def test_rpc_rpcerror_multiple_errors(self):
+        '''Multiple errors in <rpc-reply> extracted correctly'''
+        errlist = [RPCError(to_ele(xml6)), RPCError(to_ele(xml7))]
+
+        multiple_xml = (
+        '<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">' +
+        xml6 + xml7 +
+        "</rpc-reply>")
+
+        multiple_err = RPCError(to_ele(multiple_xml), errs=errlist)
+        errs = multiple_err.errlist
+
+        self.assertEqual(2, len(errs))
+
+        self.assertEqual("application", errs[0].type)
+        self.assertEqual("invalid-value", errs[0].tag)
+        self.assertEqual("error", errs[0].severity)
+        self.assertEqual("path/to/node", errs[0].path)
+        self.assertEqual("app-tag1", errs[0].app_tag)
+        self.assertEqual("syntax error", errs[0].message)
+        self.assertIn("<bad-element>system1</bad-element>", errs[0].info)
+
+        self.assertEqual("protocol", errs[1].type)
+        self.assertEqual("missing-element", errs[1].tag)
+        self.assertEqual("error", errs[1].severity)
+        self.assertEqual("path/to/different/node", errs[1].path)
+        self.assertEqual("app-tag2", errs[1].app_tag)
+        self.assertEqual("missing element error", errs[1].message)
+        self.assertIn("<bad-element>system2</bad-element>", errs[1].info)
 
     @patch('ncclient.transport.Session.send')
     @patch(patch_str)

@@ -1,3 +1,74 @@
+version 0.6.9
+-------------
+
+* Resiolved breaking API change
+
+version 0.6.8
+-------------
+
+* Variety of small updates and bugfixes, but of note:
+  - Support for namespace prefixes for XPath queries
+  - `edit-config` parameter validation
+  - Support for multiple RPC errors
+  - API to get supported device types
+  - Support for subtree filters with multiple top-level tags
+* Thanks to all contributors!
+* Pulled due to avccidental breaking API change
+
+version 0.6.7
+-------------
+
+* Variety of bugfixes from a variety of contributors since 0.6.6 (see commit history)
+
+
+version 0.6.6
+-------------
+
+* Read ssh timeout from config file if not specified in method call
+* Tox support
+* Huge XML tree parser support
+* Adding optional bind address to connect
+
+
+version 0.6.5
+-------------
+
+* Updated README for 0.6.5 release
+
+
+version 0.6.4
+-------------
+
+* Pin selectors2 to Python versions <= 3.4
+* Fix config examples to actually use the nc namespace
+* Fix: correctly set port for paramiko when using ssh_config file
+* Test: add test to check ProxyCommand uses correct port
+* Update commits for py3
+* Enhance Alcatel-Lucent-support
+* Juniper RPC: allow specifying format in CompareConfiguration
+* Parsing of NETCONF 1.1 frames no longer decodes each chunk of bytes
+* Fix filter in create_subscription
+* Validate 'with-defaults' mode based on supported modes advertised in capability URI
+
+
+version 0.6.3
+-------------
+
+* Fix homepage link registered with PyPi
+* SSH Host Key checking
+* Updated junos.py to resolve RestrictedUser error
+* Close the channel when closing SSH session
+* Invoke self.parse() to ensure errors, if any, have been detected before check in ok()
+
+
+version 0.6.2
+-------------
+
+* Migration to user selectors instead of select, allowing higher scale operations
+* Improved netconf:base:1.1 parsing
+* Graceful exit on session close
+
+
 version 0.6.0
 -------------
 

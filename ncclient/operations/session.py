@@ -24,10 +24,9 @@ class CloseSession(RPC):
 
     def request(self):
         "Request graceful termination of the NETCONF session, and also close the transport."
-        try:
-            return self._request(new_ele("close-session"))
-        finally:
-            self.session.close()
+        ret = self._request(new_ele("close-session"))
+        self.session.close()
+        return ret
 
 
 class KillSession(RPC):

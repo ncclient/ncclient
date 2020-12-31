@@ -74,7 +74,7 @@ class Get(RPC):
 
         *filter* specifies the portion of the configuration to retrieve (by default entire configuration is retrieved)
 
-        *with_defaults* defines an explicit method of retrieving default values from the configuration (see RFC 6243)
+        *with_defaults* defines an explicit method of retrieving default values from the configuration (see :rfc:`6243`)
 
         :seealso: :ref:`filter_params`
         """
@@ -149,7 +149,7 @@ class GetConfig(RPC):
 
         *filter* specifies the portion of the configuration to retrieve (by default entire configuration is retrieved)
 
-        *with_defaults* defines an explicit method of retrieving default values from the configuration (see RFC 6243)
+        *with_defaults* defines an explicit method of retrieving default values from the configuration (see :rfc:`6243`)
 
         :seealso: :ref:`filter_params`"""
         node = new_ele("get-config")
@@ -182,6 +182,7 @@ class GetSchema(RPC):
         *format* format of the schema to be retrieved, yang is the default
 
         :seealso: :ref:`filter_params`"""
+        self._huge_tree = True
         node = etree.Element(qualify("get-schema",NETCONF_MONITORING_NS))
         if identifier is not None:
             elem = etree.Element(qualify("identifier",NETCONF_MONITORING_NS))
@@ -201,8 +202,8 @@ class Dispatch(RPC):
 
     """Generic retrieving wrapper"""
 
-    REPLY_CLS = GetReply
-    """See :class:`GetReply`."""
+    REPLY_CLS = RPCReply
+    """See :class:`RPCReply`."""
 
     def request(self, rpc_command, source=None, filter=None):
         """

@@ -45,9 +45,11 @@ class XMLError(NCClientError):
 
 #: Base NETCONF namespace
 BASE_NS_1_0 = "urn:ietf:params:xml:ns:netconf:base:1.0"
-# NXOS_1_0
+#: YANG (RFC 6020/RFC 7950) namespace
+YANG_NS_1_0 = "urn:ietf:params:xml:ns:yang:1"
+#: NXOS_1_0
 NXOS_1_0 = "http://www.cisco.com/nxos:1.0"
-# NXOS_IF
+#: NXOS_IF
 NXOS_IF = "http://www.cisco.com/nxos:1.0:if_manager"
 #: Namespace for Tail-f core data model
 TAILF_AAA_1_1 = "http://tail-f.com/ns/aaa/1.1"
@@ -81,9 +83,12 @@ IETF_EVENT_NOTIFICATIONS_NS = "urn:ietf:params:xml:ns:yang:ietf-event-notificati
 IETF_YANG_PUSH_NS = "urn:ietf:params:xml:ns:yang:ietf-yang-push"
 #: Namespace for netconf with-defaults (RFC 6243)
 NETCONF_WITH_DEFAULTS_NS = "urn:ietf:params:xml:ns:yang:ietf-netconf-with-defaults"
-#: Namespace for Alcatel-Lucent
+#: Namespace for Alcatel-Lucent SR OS Base r13 YANG models
 ALU_CONFIG = "urn:alcatel-lucent.com:sros:ns:yang:conf-r13"
-#
+#: Namespace for Nokia SR OS global operations
+SROS_GLOBAL_OPS_NS = "urn:nokia.com:sros:ns:yang:sr:oper-global"
+
+
 try:
     register_namespace = etree.register_namespace
 except AttributeError:
@@ -179,13 +184,22 @@ class NCElement(object):
         else:
             self.__doc = self.remove_namespaces(self.__result)
 
-    def xpath(self, expression):
-        """
-            return result for a call to lxml xpath()
-            output will be a list
+    def xpath(self, expression, namespaces={}):
+        """Perform XPath navigation on an object
+
+        Args:
+            expression: A string representing a compliant XPath
+                expression.
+            namespaces: A dict of caller supplied prefix/xmlns to
+                append to the static dict of XPath namespaces.
+        Returns:
+            A list of 'lxml.etree._Element' should a match on the
+            expression be successful.  Otherwise, an empty list will
+            be returned to the caller.
         """
         self.__expression = expression
         self.__namespaces = XPATH_NAMESPACES
+        self.__namespaces.update(namespaces)
         return self.__doc.xpath(self.__expression, namespaces=self.__namespaces)
 
     def find(self, expression):
@@ -198,10 +212,14 @@ class NCElement(object):
         self.__expression = expression
         return self.__doc.findtext(self.__expression)
 
+    def findall(self, expression):
+        """return result for a call to lxml ElementPath findall()"""
+        self.__expression = expression
+        return self.__doc.findall(self.__expression)
 
     def __str__(self):
         """syntactic sugar for str() - alias to tostring"""
-        if sys.version<'3':
+        if sys.version < '3':
             return self.tostring
         else:
             return self.tostring.decode('UTF-8')
@@ -229,11 +247,33 @@ class NCElement(object):
                                        parser=self.__parser)
         return self.__root
 
+def parent_ns(node):
+    if node.prefix:
+        return node.nsmap[node.prefix]
+    return None
+
+def yang_action(name, attrs):
+    """Instantiate a YANG action element
+
+    Args:
+        name: A string representing the first descendant name of the
+            XML element for the YANG action.
+        attrs: A dict of attributes to apply to the XML element
+            (e.g. namespaces).
+    Returns:
+        A tuple of 'lxml.etree._Element' values.  The first value
+        represents the top-level YANG action element and the second
+        represents the caller supplied initial node.
+    """
+    node = new_ele('action', attrs={'xmlns': YANG_NS_1_0})
+    return (node, sub_ele(node, name, attrs))
+
+new_ele_nsmap = lambda tag, nsmap, attrs={}, **extra: etree.Element(qualify(tag), attrs, nsmap, **extra)
 
 new_ele = lambda tag, attrs={}, **extra: etree.Element(qualify(tag), attrs, **extra)
 
 new_ele_ns = lambda tag, ns, attrs={}, **extra: etree.Element(qualify(tag,ns), attrs, **extra)
 
-sub_ele = lambda parent, tag, attrs={}, **extra: etree.SubElement(parent, qualify(tag), attrs, **extra)
+sub_ele = lambda parent, tag, attrs={}, **extra: etree.SubElement(parent, qualify(tag, parent_ns(parent)), attrs, **extra)
 
 sub_ele_ns = lambda parent, tag, ns, attrs={}, **extra: etree.SubElement(parent, qualify(tag, ns), attrs, **extra)
