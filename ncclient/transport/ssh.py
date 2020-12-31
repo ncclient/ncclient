@@ -177,7 +177,8 @@ class SSHSession(Session):
             ssh_config          = None,
             sock_fd             = None,
             bind_addr           = None,
-            sock                = None):
+            sock                = None,
+            keepalive           = None):
 
         """Connect via SSH and initialize the NETCONF session. First attempts the publickey authentication method and then password authentication.
 
@@ -212,6 +213,8 @@ class SSHSession(Session):
         *bind_addr* is a (local) source IP address to use, must be reachable from the remote device.
         
         *sock* is an already open Python socket to be used for this connection.
+
+        *keepalive* Turn on/off keepalive packets (default is off). If this is set, after interval seconds without sending any data over the connection, a "keepalive" packet will be sent (and ignored by the remote host). This can be useful to keep connections alive over a NAT.
         """
         if not (host or sock_fd or sock):
             raise SSHError("Missing host, socket or socket fd")
@@ -359,6 +362,9 @@ class SSHSession(Session):
 
         self._connected = True      # there was no error authenticating
         self._closing.clear()
+
+        if keepalive:
+            self._transport.set_keepalive(keepalive)
 
         # TODO: leopoul: Review, test, and if needed rewrite this part
         subsystem_names = self._device_handler.get_ssh_subsystem_names()
