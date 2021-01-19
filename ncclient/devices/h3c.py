@@ -1,18 +1,16 @@
 """
-Handler for Huawei device specific information.
+Handler for H3c device specific information.
 
 Note that for proper import, the classname has to be:
 
     "<Devicename>DeviceHandler"
 
-...where <Devicename> is something like "Default", "Huawei", etc.
+...where <Devicename> is something like "Default", "H3c", etc.
 
 All device-specific handlers derive from the DefaultDeviceHandler, which implements the
 generic information needed for interaction with a Netconf server.
 
 """
-
-from ncclient.xml_ import BASE_NS_1_0
 
 from .default import DefaultDeviceHandler
 from ncclient.operations.third_party.h3c.rpc import *

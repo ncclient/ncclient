@@ -322,7 +322,7 @@ class SSHSession(Session):
             host_port = '[%s]:%s' % (host, port)
             known_host_keys_for_this_host.update(self._host_keys.lookup(host_port) or {})
             if known_host_keys_for_this_host:
-                self._transport._preferred_keys = [x.key.get_name() for x in known_host_keys_for_this_host._entries]
+                self._transport._preferred_keys = list(known_host_keys_for_this_host)
 
         # Connect
         try:
@@ -349,7 +349,7 @@ class SSHSession(Session):
                 is_known_host = any(self._host_keys.check(lookup, server_key_obj) for lookup in known_hosts_lookups)
 
             if not is_known_host and not unknown_host_cb(host, fingerprint):
-                raise SSHUnknownHostError(known_hosts_lookup[0], fingerprint)
+                raise SSHUnknownHostError(known_hosts_lookups[0], fingerprint)
 
         # Authenticating with our private key/identity
         if key_filename is None:

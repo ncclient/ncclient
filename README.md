@@ -32,28 +32,15 @@ by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org) and Einar Nilsen-Nygaa
 
 **PyPI**: [https://pypi.python.org/pypi/ncclient](https://pypi.python.org/pypi/ncclient)
 
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
-- [Recent Highlights](#recent-highlights)
-- [Requirements](#requirements)
-- [Installation](#installation)
-- [Examples:](#examples)
-- [Usage](#usage)
-  - [Get device running config](#get-device-running-config)
-  - [Supported device handlers](#supported-device-handlers)
-- [For Developers](#for-developers)
-  - [Running Unit Tests Locally](#running-unit-tests-locally)
-  - [Making a Release](#making-a-release)
-- [Contributors](#contributors)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Recent Highlights
 
 |  Date  | Release | Description |
 | :----: | :-----: | :---------- |
-| 05/27/19 | `0.6.6` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.5) |
+| 08/08/20 | `0.6.9` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.9) |
+| 08/01/20 | `0.6.8` | Pulled due to accidental breaking API change |
+| 12/21/19 | `0.6.7` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.7) |
+| 05/27/19 | `0.6.6` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.6) |
 | 05/27/19 | `0.6.5` | Pulled due to bug in PyPi upload |
 | 04/07/19 | `0.6.4` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.4) |
 | 09/26/18 | `0.6.3` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.3) |
@@ -63,7 +50,7 @@ by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org) and Einar Nilsen-Nygaa
 
 ## Requirements
 
-* Python 2.7 or Python 3.4+
+* Python 2.7 or Python 3.5+
 * setuptools 0.6+
 * Paramiko 1.7+
 * lxml 3.3.0+
@@ -86,7 +73,7 @@ Also locally via pip from within local clone:
 
     pip install -U .
 
-## Examples:
+## Examples
 
     [ncclient] $ python examples/juniper/*.py
 
@@ -219,7 +206,9 @@ Thus, making a release becomes a simple process:
 
 ## Contributors
 
-* v0.6.5: @sstancu, @hemna, @ishayansheikh
+* v0.6.8: [Fred Gan](https://github.com/fredgan), @vnitinv, @kbijakowski, @iwanb, @badguy99, @liuyong, Andrew Mallory, William Lvory
+* v0.6.7: @vnitinv, @chaitu-tk, @sidhujasminder, @crutcha, @markgoddard, @ganeshrn, @songxl, @doesitblend, @psikala, @xuxiaowei0512, @muffizone
+* v0.6.6: @sstancu, @hemna, @ishayansheikh
 * v0.6.4: @davidhankins, @mzagozen, @knobix, @markafarrell, @psikala, @moepman, @apt-itude, @yuekyang
 * v0.6.3: @rdkls, @Anthony25, @rsmekala, @vnitinv, @siming85
 * v0.6.2: @einarnn, @glennmatthews, @bryan-stripe, @nickylba

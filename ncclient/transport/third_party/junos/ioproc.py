@@ -1,4 +1,3 @@
-import os
 import sys
 import re
 import six
@@ -7,7 +6,6 @@ if sys.version < '3':
     from cStringIO import StringIO
 else:
     from io import BytesIO as StringIO
-from select import select
 if sys.version>='2.7':
     from subprocess import Popen, check_output, PIPE, STDOUT
 else:

@@ -57,7 +57,7 @@ class TestUtils(unittest.TestCase):
         call = ElementTree.tostring(reply)
         self.assertEqual(call, ElementTree.tostring(to_ele(xml)))
 
-    def test_build_filter_2(self):
+    def test_build_filter_xpath(self):
         criteria = "configuration/system"
         filter = ("xpath", criteria)
         reply = build_filter(filter)
@@ -66,7 +66,18 @@ class TestUtils(unittest.TestCase):
         node.attrib["select"] = criteria
         self.assertEqual(call, ElementTree.tostring(node))
 
-    def test_build_filter_3(self):
+    def test_build_filter_xpath_ns(self):
+        select = "configuration/system"
+        ns = {"ns0": "http://www.xxx.org"}
+        criteria = (ns, select)
+        filter = ("xpath", criteria)
+        reply = build_filter(filter)
+        call = ElementTree.tostring(reply)
+        node = new_ele_nsmap("filter", ns, type="xpath")
+        node.attrib["select"] = select
+        self.assertEqual(call, ElementTree.tostring(node))
+
+    def test_build_filter_subtree(self):
         criteria =  """<configuration>
             <system>
                 <services/>
@@ -79,7 +90,7 @@ class TestUtils(unittest.TestCase):
         node.append(to_ele(criteria))
         self.assertEqual(call, ElementTree.tostring(node))
 
-    def test_build_filter_4(self):
+    def test_build_filter_other(self):
         criteria =  """<configuration>
             <system>
                 <services/>

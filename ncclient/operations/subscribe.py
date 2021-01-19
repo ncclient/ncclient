@@ -58,15 +58,15 @@ class CreateSubscription(RPC):
         if filter is not None:
             node.append(util.build_filter(filter))
         if stream_name is not None:
-            sub_ele(node, "stream").text = stream_name
+            sub_ele_ns(node, "stream", NETCONF_NOTIFICATION_NS).text = stream_name
 
         if start_time is not None:
-            sub_ele(node, "startTime").text = start_time
+            sub_ele_ns(node, "startTime", NETCONF_NOTIFICATION_NS).text = start_time
 
         if stop_time is not None:
             if start_time is None:
                 raise ValueError("You must provide start_time if you provide stop_time")
-            sub_ele(node, "stopTime").text = stop_time
+            sub_ele_ns(node, "stopTime", NETCONF_NOTIFICATION_NS).text = stop_time
 
         return self._request(node)
 
