@@ -23,7 +23,7 @@ import codecs
 import versioneer
 
 __author__ = "Shikhar Bhushan, Leonidas Poulopoulos, Ebben Aries, Einar Nilsen-Nygaard"
-__author_email__ = "shikhar@schmizz.net, lpoulopoulos@verisign.com, earies@juniper.net, einarnn@gmail.com"
+__author_email__ = "shikhar@schmizz.net, lpoulopoulos@verisign.com, exa@dscp.org, einarnn@gmail.com"
 __licence__ = "Apache 2.0"
 
 if sys.version_info.major == 2 and sys.version_info.minor < 7:
@@ -49,7 +49,7 @@ setup(name='ncclient',
       author=__author__,
       author_email=__author_email__,
       url="https://github.com/ncclient/ncclient",
-      packages=find_packages('.'),
+      packages=find_packages(exclude=['test', 'test.*']),
       install_requires=install_reqs,
       tests_require=test_reqs,
       license=__licence__,

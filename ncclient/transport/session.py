@@ -14,8 +14,6 @@
 # limitations under the License.
 
 
-import re
-import sys
 import logging
 from threading import Thread, Lock, Event
 try:
@@ -72,10 +70,12 @@ class Session(Thread):
             else:
                 self.logger.error('error parsing dispatch message: %s', e)
                 return
+        self.logger.debug('dispatching message to different listeners: %s',
+                          raw)
         with self._lock:
             listeners = list(self._listeners)
         for l in listeners:
-            self.logger.debug('dispatching message to %r: %s', l, raw)
+            self.logger.debug('dispatching message to listener: %r', l)
             l.callback(root, raw) # no try-except; fail loudly if you must!
 
     def _dispatch_error(self, err):

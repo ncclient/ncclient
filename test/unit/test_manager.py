@@ -26,6 +26,75 @@ class TestManager(unittest.TestCase):
         manager.connect(host='host')
         mock_ssh.assert_called_once_with(host='host')
 
+    @patch('ncclient.transport.SSHSession.load_known_hosts')
+    @patch('ncclient.transport.SSHSession.connect')
+    def test_connect_ssh1(self, mock_ssh, mock_load_known_hosts):
+        manager.connect(host='host')
+        mock_ssh.assert_called_once_with(host='host')
+        mock_load_known_hosts.assert_called_once_with()
+
+    @patch('socket.socket')
+    @patch('paramiko.Transport')
+    @patch('ncclient.transport.ssh.hexlify')
+    @patch('ncclient.transport.ssh.Session._post_connect')
+    def test_connect_ssh2(self, mock_session, mock_hex, mock_trans, mock_socket):
+        conn = manager.connect_ssh(host='10.10.10.10',
+                                    port=22,
+                                    username='user',
+                                    password='password',
+                                    timeout=3,
+                                    hostkey_verify=False,
+                                    allow_agent=False,
+                                    keepalive=10)
+        self.assertEqual(mock_trans.called, 1)
+
+    @patch('ncclient.transport.SSHSession.connect')
+    @patch('ncclient.transport.SSHSession.transport')
+    @patch('ncclient.transport.SSHSession.close')
+    def test_connect_exception(self, mock_close, mock_transport, mock_ssh):
+        mock_ssh.side_effect = Exception
+        try:
+            manager.connect(host='host')
+        except Exception:
+            Exception("connect occured exception")
+        mock_ssh.assert_called_once_with(host='host')
+
+    @patch('ncclient.transport.SSHSession.connect')
+    @patch('ncclient.transport.SSHSession.take_notification')
+    def test_manager_take_notification(self, mock_take_notification, mock_ssh):
+        mock_take_notification.return_value = "test_take_notification"
+        conn = self._mock_manager()
+        ret = conn.take_notification()
+        mock_take_notification.assert_called_once_with(True, None)
+        self.assertEqual(ret, "test_take_notification")
+
+    @patch('ncclient.transport.SSHSession.connect')
+    @patch('ncclient.operations.retrieve.GetConfig._request')
+    def test_manager_getattr(self, mock_request, mock_ssh):
+        conn = self._mock_manager()
+        conn.get_config("running")
+        mock_ssh.assert_called_once_with(host='10.10.10.10',
+                                         port=22,
+                                         username='user',
+                                         password='password',
+                                         timeout=3,
+                                         hostkey_verify=False,
+                                         allow_agent=False)
+
+    @patch('ncclient.transport.SSHSession.connect')
+    @patch('ncclient.transport.Session.send')
+    @patch('ncclient.operations.rpc.RPC._request')
+    def test_manager_getattr2(self, mock_request, mock_send, mock_ssh):
+        conn = self._mock_manager()
+        conn.get_edit('config')
+        mock_ssh.assert_called_once_with(host='10.10.10.10',
+                                         port=22,
+                                         username='user',
+                                         password='password',
+                                         timeout=3,
+                                         hostkey_verify=False,
+                                         allow_agent=False)
+
     @patch('ncclient.manager.connect_ssh')
     def test_connect_ssh_with_hostkey_ed25519(self, mock_ssh):
         hostkey = 'AAAAC3NzaC1lZDI1NTE5AAAAIIiHpGSf8fla6tCwLpwshvMGmUK+B/0v5CsRu+5v4uT7'
@@ -235,6 +304,20 @@ class TestManager(unittest.TestCase):
                                     device_params={'name': 'junos'},
                                     hostkey_verify=False, allow_agent=False)
         return conn
+    
+    @patch('socket.socket')
+    @patch('ncclient.manager.connect_ssh')
+    def test_call_home(self, mock_ssh, mock_socket_open):
+        mock_connected_socket = MagicMock()
+        mock_server_socket = MagicMock()
+        mock_socket_open.return_value = mock_server_socket
+        mock_server_socket.accept.return_value = (mock_connected_socket,
+                                                  'remote.host')
+
+        with manager.call_home(host='0.0.0.0', port=1234) as chm:
+            mock_ssh.assert_called_once_with(host='0.0.0.0',
+                                                port=1234,
+                                                sock=mock_connected_socket)
 
 
 if __name__ == "__main__":

@@ -52,12 +52,16 @@ class TestEdit(unittest.TestCase):
                 host-name foo-bar;
             }
             """
-        obj.request(copy.deepcopy(root), format="text", target="running", error_option="rollback-on-error",
-                    default_operation="default", test_option="test")
+        obj.request(copy.deepcopy(root),
+                    format="text",
+                    target="running",
+                    error_option="rollback-on-error",
+                    default_operation="merge",
+                    test_option="test-then-set")
         node = new_ele("edit-config")
         node.append(util.datastore_or_url("target", "running"))
-        sub_ele(node, "default-operation").text = "default"
-        sub_ele(node, "test-option").text = "test"
+        sub_ele(node, "default-operation").text = "merge"
+        sub_ele(node, "test-option").text = "test-then-set"
         sub_ele(node, "error-option").text = "rollback-on-error"
         config_text = sub_ele(node, "config-text")
         sub_ele(config_text, "configuration-text").text = root
@@ -65,6 +69,94 @@ class TestEdit(unittest.TestCase):
         call = mock_request.call_args_list[0][0][0]
         call = ElementTree.tostring(call)
         self.assertEqual(call, xml)
+
+    @patch('ncclient.operations.edit.RPC._request')
+    @patch('ncclient.operations.edit.RPC._assert')
+    def test_edit_config_valid_url(self, mock_assert, mock_request):
+        session = ncclient.transport.SSHSession(self.device_handler)
+        obj = EditConfig(
+            session,
+            self.device_handler,
+            raise_mode=RaiseMode.ALL)
+        config = "https://www.xxx.org/index.html"
+        obj.request(config, format='url')
+        node = new_ele("edit-config")
+        node.append(util.datastore_or_url("target", "candidate"))
+        sub_ele(node, "url").text = config
+
+        xml = ElementTree.tostring(node)
+        call = mock_request.call_args_list[0][0][0]
+        call = ElementTree.tostring(call)
+        self.assertEqual(call, xml)
+
+    @patch('ncclient.operations.edit.RPC._request')
+    @patch('ncclient.operations.edit.RPC._assert')
+    def test_edit_config_invalid_url(self, mock_assert, mock_request):
+        session = ncclient.transport.SSHSession(self.device_handler)
+        obj = EditConfig(
+            session,
+            self.device_handler,
+            raise_mode=RaiseMode.ALL)
+        config = "Invalid URL"
+        self.assertRaises(OperationError, obj.request,
+                          config, format='url')
+
+    def test_edit_config_invalid_arguments_exception(self):
+        session = ncclient.transport.SSHSession(self.device_handler)
+        session._server_capabilities = [":rollback-on-error", ":validate", ":validate:1.1"]
+        obj = EditConfig(
+            session,
+            self.device_handler,
+            raise_mode=RaiseMode.ALL)
+        root = """
+            system {
+                host-name foo-bar;
+            }
+            """
+        #invalid argument "default_operation"
+        self.assertRaises(OperationError, obj.request,
+                          copy.deepcopy(root),
+                          format="xml",
+                          target="running",
+                          error_option="stop-on-error",
+                          default_operation="create",
+                          test_option="test-then-set")
+        #invalid argument "error_option"
+        self.assertRaises(OperationError, obj.request,
+                          copy.deepcopy(root),
+                          format="xml",
+                          target="running",
+                          error_option="commit-on-error",
+                          default_operation="merge",
+                          test_option="test-then-set")
+        #invalid argument "test_option"
+        self.assertRaises(OperationError, obj.request,
+                          copy.deepcopy(root),
+                          format="xml",
+                          target="running",
+                          error_option="stop-on-error",
+                          default_operation="merge",
+                          test_option="test")
+
+    def test_edit_config_validate_capability_exception(self):
+        session = ncclient.transport.SSHSession(self.device_handler)
+        session._server_capabilities = [":validate"]
+        obj = EditConfig(
+            session,
+            self.device_handler,
+            raise_mode=RaiseMode.ALL)
+        root = """
+            system {
+                host-name foo-bar;
+            }
+            """
+        self.assertRaises(MissingCapabilityError, obj.request,
+                          copy.deepcopy(root),
+                          format="xml",
+                          target="running",
+                          error_option="stop-on-error",
+                          default_operation="merge",
+                          test_option="test-only")
 
     @patch('ncclient.operations.RPC._request')
     def test_delete_config(self, mock_request):

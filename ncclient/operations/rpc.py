@@ -14,12 +14,11 @@
 
 from threading import Event, Lock
 from uuid import uuid4
-import six
 
 from ncclient.xml_ import *
 from ncclient.logging_ import SessionLoggerAdapter
 from ncclient.transport import SessionListener
-
+from ncclient.operations import util
 from ncclient.operations.errors import OperationError, TimeoutExpiredError, MissingCapabilityError
 
 import logging
@@ -33,6 +32,7 @@ class RPCError(OperationError):
     tag_to_attr = {
         qualify("error-type"): "_type",
         qualify("error-tag"): "_tag",
+        qualify("error-app-tag"): "_app_tag",
         qualify("error-severity"): "_severity",
         qualify("error-info"): "_info",
         qualify("error-path"): "_path",
@@ -43,6 +43,7 @@ class RPCError(OperationError):
         self._raw = raw
         if errs is None:
             # Single RPCError
+            self._errlist = None
             for attr in six.itervalues(RPCError.tag_to_attr):
                 setattr(self, attr, None)
             for subele in raw:
@@ -55,6 +56,7 @@ class RPCError(OperationError):
                 OperationError.__init__(self, self.to_dict())
         else:
             # Multiple errors returned. Errors is a list of RPCError objs
+            self._errlist = errs
             errlist = []
             for err in errs:
                 if err.severity:
@@ -96,6 +98,11 @@ class RPCError(OperationError):
         return self._tag
 
     @property
+    def app_tag(self):
+        "The contents of the `error-app-tag` element."
+        return self._app_tag
+
+    @property
     def severity(self):
         "The contents of the `error-severity` element."
         return self._severity
@@ -115,6 +122,11 @@ class RPCError(OperationError):
         "XML string or `None`; representing the `error-info` element."
         return self._info
 
+    @property
+    def errlist(self):
+        "List of errors if this represents multiple errors, otherwise None."
+        return self._errlist
+
 
 class RPCReply(object):
 
@@ -132,8 +144,9 @@ class RPCReply(object):
     ERROR_CLS = RPCError
     "Subclasses can specify a different error class, but it should be a subclass of `RPCError`."
 
-    def __init__(self, raw, huge_tree=False):
+    def __init__(self, raw, device_handler, huge_tree=False):
         self._raw = raw
+        self._device_handler = device_handler
         self._parsed = False
         self._root = None
         self._errors = []
@@ -155,7 +168,13 @@ class RPCReply(object):
                 for err in root.getiterator(error.tag):
                     # Process a particular <rpc-error>
                     self._errors.append(self.ERROR_CLS(err))
-        self._parsing_hook(root)
+        try:
+            self._parsing_hook(root)
+        except Exception as e:
+            # Apply device specific workaround and try again
+            self._device_handler.handle_reply_parsing_error(root, self)
+            self._parsing_hook(root)
+
         self._parsed = True
 
     def _parsing_hook(self, root):
@@ -389,7 +408,7 @@ class RPC(object):
 
     def deliver_reply(self, raw):
         # internal use
-        self._reply = self.REPLY_CLS(raw, huge_tree=self._huge_tree)
+        self._reply = self.REPLY_CLS(raw, self._device_handler, huge_tree=self._huge_tree)
         self._event.set()
 
     def deliver_error(self, err):
@@ -461,3 +480,48 @@ class RPC(object):
     @huge_tree.setter
     def huge_tree(self, x):
         self._huge_tree = x
+
+class GenericRPC(RPC):
+    """Generic rpc commands wrapper"""
+    REPLY_CLS = RPCReply
+    """See :class:`RPCReply`."""
+
+    def request(self, rpc_command, source=None, filter=None, config=None, target=None, format=None):
+        """
+        *rpc_command* specifies rpc command to be dispatched either in plain text or in xml element format (depending on command)
+
+        *target* name of the configuration datastore being edited
+
+        *source* name of the configuration datastore being queried
+
+        *config* is the configuration, which must be rooted in the `config` element. It can be specified either as a string or an :class:`~xml.etree.ElementTree.Element`.
+
+        *filter* specifies the portion of the configuration to retrieve (by default entire configuration is retrieved)
+
+        :seealso: :ref:`filter_params`
+
+        Examples of usage::
+
+            m.rpc('rpc_command')
+
+        or dispatch element like ::
+
+            rpc_command = new_ele('get-xnm-information')
+            sub_ele(rpc_command, 'type').text = "xml-schema"
+            m.rpc(rpc_command)
+        """
+
+        if etree.iselement(rpc_command):
+            node = rpc_command
+        else:
+            node = new_ele(rpc_command)
+        if target is not None:
+            node.append(util.datastore_or_url("target", target, self._assert))
+        if source is not None:
+            node.append(util.datastore_or_url("source", source, self._assert))
+        if filter is not None:
+            node.append(util.build_filter(filter))
+        if config is not None:
+            node.append(validated_element(config, ("config", qualify("config"))))
+
+        return self._request(node)

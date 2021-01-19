@@ -28,6 +28,4 @@ class CsrDeviceHandler(DefaultDeviceHandler):
         super(CsrDeviceHandler, self).__init__(device_params)
 
     def add_additional_ssh_connect_params(self, kwargs):
-        kwargs['allow_agent']   = False
-        kwargs['look_for_keys'] = False
         kwargs['unknown_host_cb'] = csr_unknown_host_cb
