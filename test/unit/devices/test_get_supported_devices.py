@@ -15,6 +15,7 @@ class  TestGetSupportedDevices(unittest.TestCase):
                                                             'alu',
                                                             'h3c',
                                                             'hpcomware',
+                                                            'sros',
                                                             'default')))
 
     def test_get_supported_device_labels(self):
@@ -29,5 +30,6 @@ class  TestGetSupportedDevices(unittest.TestCase):
                                                    'alu':'Alcatel Lucent',
                                                    'h3c':'H3C',
                                                    'hpcomware':'HP Comware',
+                                                   'sros':'Nokia SR OS',
                                                    'default':'Server or anything not in above'})
 

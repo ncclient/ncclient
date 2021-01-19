@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from ncclient.operations.errors import OperationError, TimeoutExpiredError, MissingCapabilityError
-from ncclient.operations.rpc import RPC, RPCReply, RPCError, RaiseMode
+from ncclient.operations.rpc import RPC, RPCReply, RPCError, RaiseMode, GenericRPC
 
 # rfc4741 ops
 
@@ -34,6 +34,7 @@ __all__ = [
     'RPCReply',
     'RPCError',
     'RaiseMode',
+    'GenericRPC',
     'Get',
     'GetConfig',
     'GetSchema',

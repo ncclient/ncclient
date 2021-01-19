@@ -56,6 +56,8 @@ class Test_NCElement(object):
         # find
         assert_equal(result.findtext(".//host-name"), "R1")
         assert_equal(result.find(".//host-name").tag, "host-name")
+        assert_equal(result.find(".//host-name"), result.findall(".//host-name")[0])
+        assert_equal(result.findall(".//host-name")[0].tag, "host-name")
 
 
 class TestXML(unittest.TestCase):
@@ -90,6 +92,14 @@ class TestXML(unittest.TestCase):
         transform_reply = device_handler.transform_reply()
         result = NCElement(self.reply, transform_reply)
         self.assertEqual(result.findtext(".//name"), "junos")
+
+    def test_ncelement_findall(self):
+        device_params = {'name': 'junos'}
+        device_handler = manager.make_device_handler(device_params)
+        transform_reply = device_handler.transform_reply()
+        result = NCElement(self.reply, transform_reply)
+        self.assertEqual(result.findall(".//name")[0].tag, "name")
+        self.assertEqual(result.findall(".//name")[0].text, "junos")
 
     def test_ncelement_remove_namespace(self):
         device_params = {'name': 'junos'}

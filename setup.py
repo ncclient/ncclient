@@ -23,7 +23,7 @@ import codecs
 import versioneer
 
 __author__ = "Shikhar Bhushan, Leonidas Poulopoulos, Ebben Aries, Einar Nilsen-Nygaard"
-__author_email__ = "shikhar@schmizz.net, lpoulopoulos@verisign.com, earies@juniper.net, einarnn@gmail.com"
+__author_email__ = "shikhar@schmizz.net, lpoulopoulos@verisign.com, exa@dscp.org, einarnn@gmail.com"
 __licence__ = "Apache 2.0"
 
 if sys.version_info.major == 2 and sys.version_info.minor < 7:

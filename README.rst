@@ -97,6 +97,7 @@ Supported device handlers
     - `device_params={'name':'huawei'}`
     - `device_params={'name':'huaweiyang'}`
 * Alcatel Lucent: `device_params={'name':'alu'}`
+* Nokia SR OS: `device_params={'name':'sros'}`
 * H3C: `device_params={'name':'h3c'}`
 * HP Comware: `device_params={'name':'hpcomware'}`
 * Server or anything not in above: `device_params={'name':'default'}`
