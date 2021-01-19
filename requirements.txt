@@ -1,5 +1,5 @@
 setuptools>=40.6.3
-paramiko==2.4.1
+paramiko>=2.5.0
 lxml>=3.3.0
 selectors2>=2.0.1; python_version <= '3.4'
 six
