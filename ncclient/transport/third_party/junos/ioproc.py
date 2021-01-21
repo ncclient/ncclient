@@ -41,7 +41,7 @@ class IOProc(SSHSession):
 
     def connect(self):
         stdoutdata = check_output(NETCONF_SHELL, shell=True, stdin=PIPE,
-                                  stderr=STDOUT).decode("latin-1")
+                                  stderr=STDOUT).decode(encoding="utf8")
         if 'error: Restricted user session' in stdoutdata:
             obj = re.search(r'<error-message>\n?(.*)\n?</error-message>', stdoutdata, re.M)
             if obj:
