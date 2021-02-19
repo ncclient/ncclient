@@ -96,7 +96,6 @@ Supported device handlers
 * Huawei:
     - `device_params={'name':'huawei'}`
     - `device_params={'name':'huaweiyang'}`
-* Alcatel Lucent: `device_params={'name':'alu'}`
 * Nokia SR OS: `device_params={'name':'sros'}`
 * H3C: `device_params={'name':'h3c'}`
 * HP Comware: `device_params={'name':'hpcomware'}`
@@ -104,6 +103,16 @@ Supported device handlers
 
 Changes \| brief
 ~~~~~~~~~~~~~~~~
+
+**v0.6.10**
+
+* NETCONF call-home (RFC8071) support
+* YANG 1.1 `action` support
+* Nokia SR OS device handler support
+* Removal of old ALU base-r13 API documentation
+* Increased test coverage
+* Variety of bugfixes and minor enhancements from a variety of contributors since 0.6.9 (see commit history)
+* Thanks to all contributors!
 
 **v0.6.9**
 
@@ -245,6 +254,7 @@ Changes \| brief
 
 Acknowledgements
 ~~~~~~~~~~~~~~~~
+-  v0.6.10: @vnitinv, @omaxx, @einarnn, @musicinmybrain, @tonynii, @sstancu, Martin Volf, @fredgan, @avisom, Viktor Velichkin, @ogenstad, @earies
 -  v0.6.9: [Fred Gan](https://github.com/fredgan)
 -  v0.6.8: [Fred Gan](https://github.com/fredgan), @vnitinv, @kbijakowski, @iwanb, @badguy99, @liuyong, Andrew Mallory, William Lvory
 -  v0.6.7: @vnitinv, @chaitu-tk, @sidhujasminder, @crutcha, @markgoddard, @ganeshrn, @songxl, @doesitblend, @psikala, @xuxiaowei0512, @muffizone
