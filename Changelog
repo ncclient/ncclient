@@ -1,3 +1,14 @@
+version 0.6.10
+-------------
+
+* NETCONF call-home (RFC8071) support
+* YANG 1.1 `action` support
+* Nokia SR OS device handler support
+* Removal of old ALU base-r13 API documentation
+* Increased test coverage
+* Variety of bugfixes and minor enhancements from a variety of contributors since 0.6.9 (see commit history)
+* Thanks to all contributors!
+
 version 0.6.9
 -------------
 
