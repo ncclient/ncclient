@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from ncclient._types import Datastore
+from ncclient._types import Origin
+from ncclient.namespaces import IETF
 from ncclient.operations.errors import OperationError
 from ncclient.operations.rpc import RPC, RPCReply
 
@@ -20,6 +23,9 @@ from lxml import etree
 
 from ncclient.operations import util
 
+
+class GetDataError(OperationError):
+    """Generic error class returned from invalid GetData requests"""
 
 class WithDefaultsError(OperationError):
 
@@ -164,6 +170,141 @@ class GetConfig(RPC):
                 self._session.server_capabilities,
             )
         return self._request(node)
+
+
+class GetData(RPC):
+    """RFC8526 implementation of <get-data> RPC"""
+
+    REPLY_CLS = GetReply
+    """See :class:`GetReply`."""
+
+    def request(self, datastore, filter=None, config_filter=False,
+            origin_filters=[], negated_origin_filters=[], max_depth=None,
+            with_origin=None, with_defaults=None, strip_ns=False):
+        """Construct the request for the get-data RPC
+
+        See RFC8526 for detailed explanations of all posssible input
+        parameters as is a 1:1 relationship in most cases.
+
+        Outside of the specification, if the caller specifies
+        strip_ns=True, then the 'datastore' element will not contain a
+        prefix xmlns declaration in addition the text content will not
+        contain a prepended prefix.  This is necessary for some
+        implementations that do not handle the namespace/prefix
+        declaration properly.
+
+        Args:
+            datastore: A valid _types.Datastore enum value representing
+                a datastore to query [mandatory]
+            filter: A tuple, list or string representing filter data
+            config_filter: A boolean value representing to only return
+                config=true (r/w) nodes from the requested datastore
+            origin_filters: A list of _types.Origin values
+            negated_origin_filters: A list of _types.Origin values
+            max_depth: None for 'unbounded', otherwise an integer value
+                between 1-65535
+            with_origin: A boolean value representing to return origin
+                metadata in responses
+            with_defaults: A _types.WithDefaults enum value
+                representing to return default data according to
+                RFC6243
+            strip_ns: A boolean value to indicate skipping namespace
+                qualification of the datastore node
+        Returns:
+            An ncclient.xml_.NCElement representing the serialized
+            NETCONF RPC request.
+        """
+
+        if not isinstance(datastore, Datastore):
+            datastores = [str(x) for x in Datastore]
+            raise GetDataError(
+                    "Invalid 'datastore' definition; must be one of "
+                    "[{datastores}]".format(
+                        datastores=', '.join(datastores)))
+
+        node = new_ele('get-data', attrs={'xmlns': IETF.nsmap['ncds']})
+
+        # Some implementations do not correctly support the namespace
+        # and prefixing associated with ietf-datastores.  If the caller
+        # sets strip_ns=True then skip the addition of the namespace
+        # and prefix for the <datastore> element + value.
+        if strip_ns:
+            ds = sub_ele(node, 'datastore')
+            ds.text = datastore.name.lower()
+        else:
+            ds = sub_ele(node, 'datastore',
+                    nsmap={'ds': IETF.nsmap['ds']})
+            ds.text = 'ds:' + datastore.name.lower()
+
+        if config_filter:
+            sub_ele(node, 'config-filter').text = 'true'
+
+        if max_depth is not None:
+            if type(max_depth) is int:
+                if 1 <= max_depth <= 65535:
+                    sub_ele(node, 'max-depth').text = str(max_depth)
+                else:
+                    raise GetDataError(
+                            "Invalid 'max-depth' '{provided}'; value must "
+                            "be between 1-65535".format(provided=max_depth))
+
+            else:
+                raise GetDataError(
+                        "Invalid 'max-depth' '{provided}'; value must "
+                        "be between 1-65535".format(provided=max_depth))
+
+        if filter is not None:
+            node.append(util.build_filter(filter, nmda=True))
+
+        if with_origin:
+            sub_ele(node, 'with-origin')
+
+        if isinstance(origin_filters, list):
+            if len(origin_filters) > 0:
+                for origin in origin_filters:
+                    if isinstance(origin, Origin):
+                        of = sub_ele(node, 'origin-filter',
+                                nsmap={'or': IETF.nsmap['or']})
+                        of.text = 'or:' + origin.name.lower()
+                    else:
+                        origins = [str(x) for x in Origin]
+                        raise GetDataError(
+                                "Invalid 'origin-filter' definition; "
+                                "must be one of [{origins}]".format(
+                                    origins=', '.join(origins)))
+
+        else:
+            raise GetDataError("'origin-filter' must be a list")
+
+        if isinstance(negated_origin_filters, list):
+            if len(negated_origin_filters) > 0:
+                for origin in negated_origin_filters:
+                    if isinstance(origin, Origin):
+                        of = sub_ele(node, 'negated-origin-filter',
+                                nsmap={'or': IETF.nsmap['or']})
+                        of.text = 'or:' + origin.name.lower()
+                    else:
+                        origins = [str(x) for x in Origin]
+                        raise GetDataError(
+                                "Invalid 'negated-origin-filter' "
+                                "definition; must be one of "
+                                "[{origins}]".format(
+                                    origins=', '.join(origins)))
+
+        else:
+            raise GetDataError("'negated-origin-filter' must be a list")
+
+
+        if with_defaults is not None:
+            self._assert(":with-defaults")
+            _append_with_defaults_mode(
+                node,
+                with_defaults.name.lower().replace('_', '-'),
+                self._session.server_capabilities,
+            )
+
+        return self._request(node)
+
 
 class GetSchema(RPC):
 

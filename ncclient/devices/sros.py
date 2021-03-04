@@ -1,6 +1,7 @@
 from lxml import etree
 
 from .default import DefaultDeviceHandler
+from ncclient.operations.third_party.sros.rpc import SrosGetData
 from ncclient.operations.third_party.sros.rpc import MdCliRawCommand
 from ncclient.xml_ import BASE_NS_1_0
 
@@ -43,6 +44,7 @@ class SrosDeviceHandler(DefaultDeviceHandler):
 
     def add_additional_operations(self):
         operations = {
+            'get_data': SrosGetData,
             'md_cli_raw_command': MdCliRawCommand
         }
         return operations

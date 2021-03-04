@@ -17,7 +17,7 @@ from ncclient.operations.rpc import RPC, RPCReply, RPCError, RaiseMode, GenericR
 
 # rfc4741 ops
 
-from ncclient.operations.retrieve import Get, GetConfig, GetSchema, GetReply, Dispatch
+from ncclient.operations.retrieve import Get, GetConfig, GetData, GetSchema, GetReply, Dispatch
 from ncclient.operations.edit import EditConfig, CopyConfig, DeleteConfig, Validate, Commit, DiscardChanges, CancelCommit
 from ncclient.operations.session import CloseSession, KillSession
 from ncclient.operations.lock import Lock, Unlock, LockContext
@@ -34,6 +34,7 @@ __all__ = [
     'GenericRPC',
     'Get',
     'GetConfig',
+    'GetData',
     'GetSchema',
     'Dispatch',
     'GetReply',

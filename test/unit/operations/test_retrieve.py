@@ -1,17 +1,22 @@
-from ncclient.operations.retrieve import *
+import copy
 import unittest
-from mock import patch
-from ncclient import manager
+
 import ncclient.manager
 import ncclient.transport
+
+from lxml import etree
+from mock import patch
+from ncclient import manager
+from ncclient._types import Datastore
+from ncclient._types import FilterType
+from ncclient._types import WithDefaults
 from ncclient.capabilities import Capabilities
-from ncclient.xml_ import *
+from ncclient.namespaces import IETF
 from ncclient.operations import RaiseMode
 from ncclient.operations.errors import MissingCapabilityError
+from ncclient.operations.retrieve import *
+from ncclient.xml_ import *
 from xml.etree import ElementTree
-from lxml import etree
-import copy
-
 
 class TestRetrieve(unittest.TestCase):
     def setUp(self):
@@ -109,6 +114,235 @@ class TestRetrieve(unittest.TestCase):
             obj.request,
             with_defaults='report-all'
         )
+
+    @patch('ncclient.operations.retrieve.RPC._request')
+    def test_get_data(self, mock_request):
+        session = ncclient.transport.SSHSession(self.device_handler)
+        obj = GetData(session, self.device_handler, raise_mode=RaiseMode.ALL)
+        datastore = Datastore.CANDIDATE
+        obj.request(datastore=datastore)
+        node = new_ele('get-data', attrs={'xmlns': IETF.nsmap['ncds']})
+        ds_node = sub_ele(node, 'datastore',
+                nsmap={'ds': IETF.nsmap['ds']})
+        ds_node.text = 'ds:' + datastore.name.lower()
+        xml = ElementTree.tostring(node)
+        call = mock_request.call_args_list[0][0][0]
+        call = ElementTree.tostring(call)
+        self.assertEqual(call, xml)
+
+    @patch('ncclient.operations.retrieve.RPC._request')
+    def test_get_data_config_filter(self, mock_request):
+        session = ncclient.transport.SSHSession(self.device_handler)
+        obj = GetData(session, self.device_handler, raise_mode=RaiseMode.ALL)
+        datastore = Datastore.CANDIDATE
+        obj.request(datastore=datastore, config_filter=True)
+        node = new_ele('get-data', attrs={'xmlns': IETF.nsmap['ncds']})
+        ds_node = sub_ele(node, 'datastore',
+                nsmap={'ds': IETF.nsmap['ds']})
+        ds_node.text = 'ds:' + datastore.name.lower()
+        sub_ele(node, 'config-filter').text = 'true'
+        xml = ElementTree.tostring(node)
+        call = mock_request.call_args_list[0][0][0]
+        call = ElementTree.tostring(call)
+        self.assertEqual(call, xml)
+
+    @patch('ncclient.operations.retrieve.RPC._request')
+    def test_get_data_subtree_filter(self, mock_request):
+        filter_data = '''
+        <netconf-state xmlns="%s">
+          <schemas/>
+        </netconf-state>''' % (IETF.nsmap['ncm'])
+        session = ncclient.transport.SSHSession(self.device_handler)
+        obj = GetData(session, self.device_handler, raise_mode=RaiseMode.ALL)
+        datastore = Datastore.CANDIDATE
+        filter_type = FilterType.SUBTREE
+        obj.request(datastore=datastore, filter=(filter_type, filter_data))
+        node = new_ele('get-data', attrs={'xmlns': IETF.nsmap['ncds']})
+        ds_node = sub_ele(node, 'datastore',
+                nsmap={'ds': IETF.nsmap['ds']})
+        ds_node.text = 'ds:' + datastore.name.lower()
+        subtree_filter = sub_ele(node, 'subtree-filter')
+        subtree_filter.append(to_ele(filter_data))
+        xml = ElementTree.tostring(node)
+        call = mock_request.call_args_list[0][0][0]
+        call = ElementTree.tostring(call)
+        self.assertEqual(call, xml)
+
+    @patch('ncclient.operations.retrieve.RPC._request')
+    def test_get_data_xpath_filter(self, mock_request):
+        filter_data = '/interfaces/interface/state'
+        session = ncclient.transport.SSHSession(self.device_handler)
+        obj = GetData(session, self.device_handler, raise_mode=RaiseMode.ALL)
+        datastore = Datastore.CANDIDATE
+        filter_type = FilterType.XPATH
+        obj.request(datastore=datastore, filter=(filter_type, filter_data))
+        node = new_ele('get-data', attrs={'xmlns': IETF.nsmap['ncds']})
+        ds_node = sub_ele(node, 'datastore',
+                nsmap={'ds': IETF.nsmap['ds']})
+        ds_node.text = 'ds:' + datastore.name.lower()
+        xpath_filter = sub_ele(node, 'xpath-filter')
+        xpath_filter.text = filter_data
+        xml = ElementTree.tostring(node)
+        call = mock_request.call_args_list[0][0][0]
+        call = ElementTree.tostring(call)
+        self.assertEqual(call, xml)
+
+    @patch('ncclient.operations.retrieve.RPC._request')
+    def test_get_data_xpath_filter_with_ns(self, mock_request):
+        filter_data = '/ncm:netconf-state/ncm:schemas'
+        nsmap = {'ncm': IETF.nsmap['ncm']}
+        session = ncclient.transport.SSHSession(self.device_handler)
+        obj = GetData(session, self.device_handler, raise_mode=RaiseMode.ALL)
+        datastore = Datastore.CANDIDATE
+        filter_type = FilterType.XPATH
+        obj.request(datastore=datastore, filter=(filter_type, (nsmap, filter_data)))
+        node = new_ele('get-data', attrs={'xmlns': IETF.nsmap['ncds']})
+        ds_node = sub_ele(node, 'datastore',
+                nsmap={'ds': IETF.nsmap['ds']})
+        ds_node.text = 'ds:' + datastore.name.lower()
+        xpath_filter = sub_ele_nsmap(node, 'xpath-filter', nsmap)
+        xpath_filter.text = filter_data
+        xml = ElementTree.tostring(node)
+        call = mock_request.call_args_list[0][0][0]
+        call = ElementTree.tostring(call)
+        self.assertEqual(call, xml)
+
+    @patch('ncclient.operations.retrieve.RPC._request')
+    def test_get_data_origin_filters(self, mock_request):
+        session = ncclient.transport.SSHSession(self.device_handler)
+        obj = GetData(session, self.device_handler, raise_mode=RaiseMode.ALL)
+        datastore = Datastore.CANDIDATE
+        origin_filters = [Origin.INTENDED]
+        obj.request(datastore=datastore, origin_filters=origin_filters)
+        node = new_ele('get-data', attrs={'xmlns': IETF.nsmap['ncds']})
+        ds_node = sub_ele(node, 'datastore',
+                nsmap={'ds': IETF.nsmap['ds']})
+        ds_node.text = 'ds:' + datastore.name.lower()
+        for origin_filter in origin_filters:
+            of = sub_ele(node, 'origin-filter')
+            of.text = 'or:' + origin_filter.name.lower()
+        xml = ElementTree.tostring(node)
+        call = mock_request.call_args_list[0][0][0]
+        call = ElementTree.tostring(call)
+        self.assertEqual(call, xml)
+
+    @patch('ncclient.operations.retrieve.RPC._request')
+    def test_get_data_multi_origin_filters(self, mock_request):
+        session = ncclient.transport.SSHSession(self.device_handler)
+        obj = GetData(session, self.device_handler, raise_mode=RaiseMode.ALL)
+        datastore = Datastore.CANDIDATE
+        origin_filters = [Origin.INTENDED, Origin.SYSTEM]
+        obj.request(datastore=datastore, origin_filters=origin_filters)
+        node = new_ele('get-data', attrs={'xmlns': IETF.nsmap['ncds']})
+        ds_node = sub_ele(node, 'datastore',
+                nsmap={'ds': IETF.nsmap['ds']})
+        ds_node.text = 'ds:' + datastore.name.lower()
+        for origin_filter in origin_filters:
+            of = sub_ele(node, 'origin-filter')
+            of.text = 'or:' + origin_filter.name.lower()
+        xml = ElementTree.tostring(node)
+        call = mock_request.call_args_list[0][0][0]
+        call = ElementTree.tostring(call)
+        self.assertEqual(call, xml)
+
+    @patch('ncclient.operations.retrieve.RPC._request')
+    def test_get_data_negated_origin_filters(self, mock_request):
+        session = ncclient.transport.SSHSession(self.device_handler)
+        obj = GetData(session, self.device_handler, raise_mode=RaiseMode.ALL)
+        datastore = Datastore.CANDIDATE
+        origin_filters = [Origin.INTENDED]
+        obj.request(datastore=datastore,
+                negated_origin_filters=origin_filters)
+        node = new_ele('get-data', attrs={'xmlns': IETF.nsmap['ncds']})
+        ds_node = sub_ele(node, 'datastore',
+                nsmap={'ds': IETF.nsmap['ds']})
+        ds_node.text = 'ds:' + datastore.name.lower()
+        for origin_filter in origin_filters:
+            of = sub_ele(node, 'negated-origin-filter')
+            of.text = 'or:' + origin_filter.name.lower()
+        xml = ElementTree.tostring(node)
+        call = mock_request.call_args_list[0][0][0]
+        call = ElementTree.tostring(call)
+        self.assertEqual(call, xml)
+
+    @patch('ncclient.operations.retrieve.RPC._request')
+    def test_get_data_multi_negated_origin_filters(self, mock_request):
+        session = ncclient.transport.SSHSession(self.device_handler)
+        obj = GetData(session, self.device_handler, raise_mode=RaiseMode.ALL)
+        datastore = Datastore.CANDIDATE
+        origin_filters = [Origin.INTENDED, Origin.SYSTEM]
+        obj.request(datastore=datastore,
+                negated_origin_filters=origin_filters)
+        node = new_ele('get-data', attrs={'xmlns': IETF.nsmap['ncds']})
+        ds_node = sub_ele(node, 'datastore',
+                nsmap={'ds': IETF.nsmap['ds']})
+        ds_node.text = 'ds:' + datastore.name.lower()
+        for origin_filter in origin_filters:
+            of = sub_ele(node, 'negated-origin-filter')
+            of.text = 'or:' + origin_filter.name.lower()
+        xml = ElementTree.tostring(node)
+        call = mock_request.call_args_list[0][0][0]
+        call = ElementTree.tostring(call)
+        self.assertEqual(call, xml)
+
+    @patch('ncclient.operations.retrieve.RPC._request')
+    def test_get_data_max_depth(self, mock_request):
+        session = ncclient.transport.SSHSession(self.device_handler)
+        obj = GetData(session, self.device_handler, raise_mode=RaiseMode.ALL)
+        datastore = Datastore.CANDIDATE
+        obj.request(datastore=datastore, max_depth=5)
+        node = new_ele('get-data', attrs={'xmlns': IETF.nsmap['ncds']})
+        ds_node = sub_ele(node, 'datastore',
+                nsmap={'ds': IETF.nsmap['ds']})
+        ds_node.text = 'ds:' + datastore.name.lower()
+        sub_ele(node, 'max-depth').text = '5'
+        xml = ElementTree.tostring(node)
+        call = mock_request.call_args_list[0][0][0]
+        call = ElementTree.tostring(call)
+        self.assertEqual(call, xml)
+
+    @patch('ncclient.operations.retrieve.RPC._request')
+    def test_get_data_with_origin(self, mock_request):
+        session = ncclient.transport.SSHSession(self.device_handler)
+        obj = GetData(session, self.device_handler, raise_mode=RaiseMode.ALL)
+        datastore = Datastore.CANDIDATE
+        obj.request(datastore=datastore, with_origin=True)
+        node = new_ele('get-data', attrs={'xmlns': IETF.nsmap['ncds']})
+        ds_node = sub_ele(node, 'datastore',
+                nsmap={'ds': IETF.nsmap['ds']})
+        ds_node.text = 'ds:' + datastore.name.lower()
+        sub_ele(node, 'with-origin')
+        xml = ElementTree.tostring(node)
+        call = mock_request.call_args_list[0][0][0]
+        call = ElementTree.tostring(call)
+        self.assertEqual(call, xml)
+
+    @patch('ncclient.operations.retrieve.RPC._request')
+    def test_get_data_with_defaults(self, mock_request):
+        session = ncclient.transport.SSHSession(self.device_handler)
+        session._server_capabilities = Capabilities([
+            "urn:ietf:params:netconf:capability:with-defaults:1.0"
+            "?basic-mode=explicit"
+            "&also-supported=report-all,trim"
+        ])
+        obj = GetData(session, self.device_handler, raise_mode=RaiseMode.ALL)
+        datastore = Datastore.CANDIDATE
+        with_defaults = WithDefaults.REPORT_ALL
+        obj.request(datastore=datastore, with_defaults=with_defaults)
+
+        expected_xml = etree.fromstring(
+            '<ns0:get-data xmlns:ns0="{}" xmlns:ns1="{}" xmlns="{}">'
+            '<ns0:datastore>ds:candidate</ns0:datastore>'
+            '<ns1:with-defaults>report-all</ns1:with-defaults>'
+            '</ns0:get-data>'.format(
+                IETF.nsmap['nc'], IETF.nsmap['ncwd'], IETF.nsmap['ncds']
+            )
+        )
+
+        call = mock_request.call_args_list[0][0][0]
+        call = ElementTree.tostring(call)
+        xml = etree.tostring(expected_xml)
+        self.assertEqual(call, xml)
 
     @patch('ncclient.operations.retrieve.RPC._request')
     def test_get_config(self, mock_request):

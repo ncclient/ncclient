@@ -41,6 +41,7 @@ class TestSrosDevice(unittest.TestCase):
 
     def test_add_additional_operations(self):
         expected = dict()
+        expected['get_data'] = SrosGetData
         expected['md_cli_raw_command'] = MdCliRawCommand
         self.assertDictEqual(expected, self.obj.add_additional_operations())
 

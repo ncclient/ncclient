@@ -31,6 +31,7 @@ logger = logging.getLogger('ncclient.manager')
 OPERATIONS = {
     "get": operations.Get,
     "get_config": operations.GetConfig,
+    "get_data": operations.GetData,
     "get_schema": operations.GetSchema,
     "dispatch": operations.Dispatch,
     "edit_config": operations.EditConfig,
