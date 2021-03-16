@@ -2,5 +2,5 @@ pytest-runner
 pytest-cov
 sphinx
 flake8
-mock; python_version < '3.4'
+mock; python_version < '3.6'
 nose
