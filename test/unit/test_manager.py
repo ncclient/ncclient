@@ -1,5 +1,8 @@
 import unittest
-from mock import patch, MagicMock
+try:
+    from unittest.mock import patch, MagicMock  # Python 3.4 and later
+except ImportError:
+    from mock import patch, MagicMock
 from ncclient import manager
 from ncclient.devices.junos import JunosDeviceHandler
 import logging
