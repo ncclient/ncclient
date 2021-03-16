@@ -222,16 +222,16 @@ class DefaultDeviceHandler(object):
     def handle_connection_exceptions(self, sshsession):
         return False
 
-    def handle_reply_parsing_error(self, root, reply):
+    def reply_parsing_error_transform(self, reply_cls):
         """
-        Hook for working around bugs in replies from devices (the root emelent can be "fixed")
+        Hook for working around bugs in replies from devices (the root element can be "fixed")
 
-        :param root: the rpc reply root element
-        :param reply: the RPCReply object that is parsing 'root'
+        :param reply_cls: the RPCReply class that is parsing the reply 'root' xml element
 
-        :return:
+        :return: transform function for the 'root' xml element of the RPC reply in case the normal parsing fails
         """
-        pass
+        # No transformation by default
+        return None
 
     def transform_reply(self):
         return False

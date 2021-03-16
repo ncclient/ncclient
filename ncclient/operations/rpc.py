@@ -144,9 +144,9 @@ class RPCReply(object):
     ERROR_CLS = RPCError
     "Subclasses can specify a different error class, but it should be a subclass of `RPCError`."
 
-    def __init__(self, raw, device_handler, huge_tree=False):
+    def __init__(self, raw, huge_tree=False, parsing_error_transform=None):
         self._raw = raw
-        self._device_handler = device_handler
+        self._parsing_error_transform = parsing_error_transform
         self._parsed = False
         self._root = None
         self._errors = []
@@ -171,8 +171,13 @@ class RPCReply(object):
         try:
             self._parsing_hook(root)
         except Exception as e:
+            if self._parsing_error_transform is None:
+                # re-raise as we have no workaround
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                six.reraise(exc_type, exc_value, exc_traceback)
+
             # Apply device specific workaround and try again
-            self._device_handler.handle_reply_parsing_error(root, self)
+            self._parsing_error_transform(root)
             self._parsing_hook(root)
 
         self._parsed = True
@@ -180,6 +185,9 @@ class RPCReply(object):
     def _parsing_hook(self, root):
         "No-op by default. Gets passed the *root* element for the reply."
         pass
+
+    def set_parsing_error_transform(self, transform_function):
+        self._parsing_error_transform = transform_function
 
     @property
     def xml(self):
@@ -387,7 +395,14 @@ class RPC(object):
 
     def deliver_reply(self, raw):
         # internal use
-        self._reply = self.REPLY_CLS(raw, self._device_handler, huge_tree=self._huge_tree)
+        self._reply = self.REPLY_CLS(raw, huge_tree=self._huge_tree)
+
+        # Set the reply_parsing_error transform outside the constructor, to keep compatibility for
+        # third party reply classes outside of ncclient
+        self._reply.set_parsing_error_transform(
+            self._device_handler.reply_parsing_error_transform(self.REPLY_CLS)
+        )
+
         self._event.set()
 
     def deliver_error(self, err):
