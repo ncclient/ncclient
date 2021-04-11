@@ -1,5 +1,8 @@
 import unittest
-from mock import patch
+try:
+    from unittest.mock import patch  # Python 3.4 and later
+except ImportError:
+    from mock import patch
 from ncclient import manager
 import ncclient.transport
 from ncclient.operations.third_party.alu.rpc import *
