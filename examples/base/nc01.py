@@ -15,7 +15,7 @@ from ncclient import manager
 def demo(host, user):
     with manager.connect(host=host, port=22, username=user) as m:
         for c in m.server_capabilities:
-            print c
+            print(c)
 
 if __name__ == '__main__':
     demo(sys.argv[1], os.getenv("USER"))
