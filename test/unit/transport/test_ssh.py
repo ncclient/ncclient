@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 import unittest
-from mock import MagicMock, patch
+try:
+    from unittest.mock import MagicMock, patch  # Python 3.4 and later
+except ImportError:
+    from mock import MagicMock, patch
 from ncclient.transport.ssh import SSHSession
 from ncclient.transport import AuthenticationError, SessionCloseError, NetconfBase
 import paramiko
