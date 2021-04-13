@@ -32,7 +32,7 @@ In synchronous mode replies are awaited and the corresponding :class:`~ncclient.
 
 However in asynchronous mode, operations return immediately with the corresponding :class:`~ncclient.operations.RPC` object. Error handling and checking for whether a reply has been received must be dealt with manually. See the :class:`~ncclient.operations.RPC` documentation for details.
 
-Note that in case of the :meth:`~Manager.get` and :meth:`~Manager.get_config` operations, the reply is an instance of :class:`~ncclient.operations.GetReply` which exposes the additional attributes :attr:`~ncclient.operations.GetReply.data` (as :class:`~xml.etree.ElementTree.Element`) and :attr:`~ncclient.operations.GetReply.data_xml` (as a string), which are of primary interest in case of these operations.
+Note that in case of the :meth:`~Manager.get` and :meth:`~Manager.get_config` operations, the reply is an instance of :class:`~ncclient.operations.GetReply` which exposes the additional attributes :attr:`~ncclient.operations.GetReply.data` (as :class:`~lxml.etree._Element`) and :attr:`~ncclient.operations.GetReply.data_xml` (as a string), which are of primary interest in case of these operations.
 
 Presence of capabilities is verified to the extent possible, and you can expect a :exc:`~ncclient.operations.MissingCapabilityError` if something is amiss. In case of transport-layer errors, e.g. unexpected session close, :exc:`~ncclient.transport.TransportError` will be raised.
 
