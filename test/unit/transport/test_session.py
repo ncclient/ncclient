@@ -1,5 +1,8 @@
 import unittest
-from mock import patch
+try:
+    from unittest.mock import patch  # Python 3.4 and later
+except ImportError:
+    from mock import patch
 from ncclient.transport.session import *
 from ncclient.devices.junos import JunosDeviceHandler
 try:
