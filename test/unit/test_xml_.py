@@ -1,14 +1,12 @@
 from ncclient import manager
 from ncclient.xml_ import *
 import unittest
-from nose.tools import assert_equal
-from nose.tools import assert_not_equal
 import os
 import sys
 file_path = os.path.join(os.getcwd(), "test", "unit", "reply1")
 
 
-class Test_NCElement(object):
+class Test_NCElement(unittest.TestCase):
 
     def test_ncelement_reply_001(self):
         """test parse rpc_reply and string/data_xml"""
@@ -22,9 +20,9 @@ class Test_NCElement(object):
         result_str = result.tostring
         if sys.version >= '3':
             result_str = result_str.decode('UTF-8')
-        assert_equal(str(result), result_str)
+        self.assertEqual(str(result), result_str)
         #data_xml != tostring
-        assert_not_equal(result_str, result.data_xml)
+        self.assertNotEqual(result_str, result.data_xml)
 
     def test_ncelement_reply_002(self):
         """test parse rpc_reply and xpath"""
@@ -36,11 +34,11 @@ class Test_NCElement(object):
         transform_reply = device_handler.transform_reply()
         result = NCElement(reply, transform_reply)
         # XPATH checks work
-        assert_equal(result.xpath("//host-name")[0].text, "R1")
-        assert_equal(
+        self.assertEqual(result.xpath("//host-name")[0].text, "R1")
+        self.assertEqual(
             result.xpath("/rpc-reply/software-information/host-name")[0].text,
             "R1")
-        assert_equal(
+        self.assertEqual(
             result.xpath("software-information/host-name")[0].text,
             "R1")
 
@@ -54,10 +52,10 @@ class Test_NCElement(object):
         transform_reply = device_handler.transform_reply()
         result = NCElement(reply, transform_reply)
         # find
-        assert_equal(result.findtext(".//host-name"), "R1")
-        assert_equal(result.find(".//host-name").tag, "host-name")
-        assert_equal(result.find(".//host-name"), result.findall(".//host-name")[0])
-        assert_equal(result.findall(".//host-name")[0].tag, "host-name")
+        self.assertEqual(result.findtext(".//host-name"), "R1")
+        self.assertEqual(result.find(".//host-name").tag, "host-name")
+        self.assertEqual(result.find(".//host-name"), result.findall(".//host-name")[0])
+        self.assertEqual(result.findall(".//host-name")[0].tag, "host-name")
 
 
 class TestXML(unittest.TestCase):
