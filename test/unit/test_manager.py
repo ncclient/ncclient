@@ -7,7 +7,10 @@ except (ImportError, AttributeError):
 from ncclient import manager
 from ncclient.devices.junos import JunosDeviceHandler
 import logging
+import sys
 
+if sys.version_info.major > 2:
+    from test.asyncio_example import *
 
 class TestManager(unittest.TestCase):
 
@@ -24,6 +27,23 @@ class TestManager(unittest.TestCase):
                                           timeout=3)
         self.assertEqual(conn._session, m)
         self.assertEqual(conn._timeout, 10)
+
+    @unittest.skipIf(sys.version_info.major == 2, "test not supported < python3")
+    @patch('ncclient.manager.connect_ssh')
+    def test_async_connect(self, mock_ssh):
+        expected = [
+            '<rpc-reply><data><root>This is `get` operations</root></data></rpc-reply>',
+            '<rpc-reply><data><root>This is `get-config` operations</root></data></rpc-reply>',
+            '<rpc-reply><ok/></rpc-reply>',
+            '<rpc-reply><ok/></rpc-reply>',
+            '<rpc-reply><rpc-error><error-message>Request resource already locked</error-message></rpc-error></rpc-reply>'
+           ]
+
+        obj = TestAsyncioManager()
+        res = obj.test_async_mode()
+
+        for i in range(len(expected)):
+            assert res[i] == expected[i]
 
     @patch('ncclient.manager.connect_ssh')
     def test_connect_ssh(self, mock_ssh):
@@ -127,7 +147,7 @@ class TestManager(unittest.TestCase):
         manager.connect(host='localhost', device_params={'name': 'junos', 
                                                         'local': True})
         mock_ssh.assert_called_once_with(host='localhost', 
-                            device_params={'local': True, 'name': 'junos'})
+                                         device_params={'local': True, 'name': 'junos'})
 
     @patch('paramiko.proxy.ProxyCommand')
     @patch('paramiko.Transport')
@@ -138,12 +158,12 @@ class TestManager(unittest.TestCase):
         ssh_config_path = 'test/unit/ssh_config'
 
         conn = manager.connect(host='fake_host',
-                                    port=830,
-                                    username='user',
-                                    password='password',
-                                    hostkey_verify=False,
-                                    allow_agent=False,
-                                    ssh_config=ssh_config_path)
+                               port=830,
+                               username='user',
+                               password='password',
+                               hostkey_verify=False,
+                               allow_agent=False,
+                               ssh_config=ssh_config_path)
 
         log.debug(mock_proxy.call_args[0][0])
         self.assertEqual(mock_proxy.called, 1)
@@ -166,13 +186,12 @@ class TestManager(unittest.TestCase):
     @patch('ncclient.transport.third_party.junos.ioproc.IOProc.connect')
     def test_ioproc(self, mock_connect, mock_ioproc):
         conn = manager.connect(host='localhost',
-                                    port=22,
-                                    username='user',
-                                    password='password',
-                                    timeout=3,
-                                    hostkey_verify=False,
-                                    device_params={'local': True, 'name': 'junos'},
-                                    manager_params={'timeout': 10})
+                               port=22,
+                               username='user',
+                               password='password',
+                               hostkey_verify=False,
+                               device_params={'local': True, 'name': 'junos'},
+                               manager_params={'timeout': 10})
         self.assertEqual(mock_connect.called, 1)
         self.assertEqual(conn._timeout, 10)
         self.assertEqual(conn._device_handler.device_params, {'local': True, 'name': 'junos'}) 
@@ -282,13 +301,13 @@ class TestManager(unittest.TestCase):
 
     def _mock_manager(self):
         conn = manager.connect(host='10.10.10.10',
-                                    port=22,
-                                    username='user',
-                                    password='password',
-                                    timeout=3,
-                                    hostkey_verify=False, allow_agent=False,
-                                    device_params={'name': 'junos'},
-                                    manager_params={'timeout': 10})
+                               port=22,
+                               username='user',
+                               password='password',
+                               timeout=3,
+                               hostkey_verify=False, allow_agent=False,
+                               device_params={'name': 'junos'},
+                               manager_params={'timeout': 10})
         return conn
 
     @patch('socket.fromfd')
@@ -302,11 +321,11 @@ class TestManager(unittest.TestCase):
 
     def _mock_outbound_manager(self):
         conn = manager.connect(host=None,
-                                    sock_fd=6,
-                                    username='user',
-                                    password='password',
-                                    device_params={'name': 'junos'},
-                                    hostkey_verify=False, allow_agent=False)
+                               sock_fd=6,
+                               username='user',
+                               password='password',
+                               device_params={'name': 'junos'},
+                               hostkey_verify=False, allow_agent=False)
         return conn
     
     @patch('socket.socket')
