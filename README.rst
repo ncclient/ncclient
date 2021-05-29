@@ -104,6 +104,10 @@ Supported device handlers
 Changes \| brief
 ~~~~~~~~~~~~~~~~
 
+**v0.6.12**
+
+* Fix for accidental breakage of Juniper ExecuteRPC support
+
 **v0.6.11**
 
 * Support for custom client capabilities
