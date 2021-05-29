@@ -104,6 +104,13 @@ Supported device handlers
 Changes \| brief
 ~~~~~~~~~~~~~~~~
 
+**v0.6.11**
+
+* Support for custom client capabilities
+* Restructuring/refactoring of example scripts
+* Minor bugfixes
+* Minor unit test refactoring
+
 **v0.6.10**
 
 * NETCONF call-home (RFC8071) support
@@ -254,6 +261,7 @@ Changes \| brief
 
 Acknowledgements
 ~~~~~~~~~~~~~~~~
+-  v0.6.11: @musicinmybrain, @sstancu, @earies
 -  v0.6.10: @vnitinv, @omaxx, @einarnn, @musicinmybrain, @tonynii, @sstancu, Martin Volf, @fredgan, @avisom, Viktor Velichkin, @ogenstad, @earies
 -  v0.6.9: [Fred Gan](https://github.com/fredgan)
 -  v0.6.8: [Fred Gan](https://github.com/fredgan), @vnitinv, @kbijakowski, @iwanb, @badguy99, @liuyong, Andrew Mallory, William Lvory

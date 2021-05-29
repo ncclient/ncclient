@@ -1,3 +1,11 @@
+version 0.6.11
+-------------
+
+* Support for custom client capabilities
+* Restructuring/refactoring of example scripts
+* Minor bugfixes
+* Minor unit test refactoring
+
 version 0.6.10
 -------------
 
