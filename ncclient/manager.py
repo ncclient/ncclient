@@ -49,6 +49,7 @@ OPERATIONS = {
     "kill_session": operations.KillSession,
     "poweroff_machine": operations.PoweroffMachine,
     "reboot_machine": operations.RebootMachine,
+    "rpc": operations.GenericRPC,
 }
 
 """
@@ -101,6 +102,10 @@ def _extract_manager_params(kwds):
         manager_params['timeout'] = kwds['timeout']
     return manager_params
 
+def _extract_nc_params(kwds):
+    nc_params = kwds.pop("nc_params", {})
+
+    return nc_params
 
 def connect_ssh(*args, **kwds):
     """
@@ -123,13 +128,15 @@ def connect_ssh(*args, **kwds):
     A custom device handler can be provided with
     `device_params={'handler':<handler class>}` in connection parameters.
     """
-    # Extract device parameter and manager parameter dictionaries, if they were passed into this function.
+    # Extract device/manager/netconf parameter dictionaries, if they were passed into this function.
     # Remove them from kwds (which should keep only session.connect() parameters).
     device_params = _extract_device_params(kwds)
     manager_params = _extract_manager_params(kwds)
+    nc_params = _extract_nc_params(kwds)
 
     device_handler = make_device_handler(device_params)
     device_handler.add_additional_ssh_connect_params(kwds)
+    device_handler.add_additional_netconf_params(nc_params)
     session = transport.SSHSession(device_handler)
     if "hostkey_verify" not in kwds or kwds["hostkey_verify"]:
         session.load_known_hosts()
@@ -177,7 +184,7 @@ def call_home(*args, **kwds):
     srv_socket.bind((host, port))
     srv_socket.settimeout(10)
     srv_socket.listen()
-    
+
     sock, remote_host = srv_socket.accept()
     logger.info('Callhome connection initiated from remote host {0}'.format(remote_host))
     kwds['sock'] = sock
@@ -284,14 +291,6 @@ class Manager(object):
                 r = self.rpc(root)
                 return r
             return _missing
-
-    def rpc(self, *args, **kwds):
-        return operations.GenericRPC(self._session,
-                                     self._device_handler,
-                                     async_mode=self._async_mode,
-                                     timeout=self._timeout,
-                                     raise_mode=self._raise_mode,
-                                     huge_tree=self._huge_tree).request(*args, **kwds)
 
     def take_notification(self, block=True, timeout=None):
         """Attempt to retrieve one notification from the queue of received

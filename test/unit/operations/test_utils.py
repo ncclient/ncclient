@@ -1,7 +1,10 @@
 import unittest
 from xml.etree import ElementTree
 from ncclient.operations.util import *
-from mock import MagicMock
+try:
+    from unittest.mock import MagicMock  # Python 3.4 and later
+except ImportError:
+    from mock import MagicMock
 
 xml = """<filter type="xpath">
         <configuration>

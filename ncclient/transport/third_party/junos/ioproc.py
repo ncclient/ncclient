@@ -41,14 +41,14 @@ class IOProc(SSHSession):
 
     def connect(self):
         stdoutdata = check_output(NETCONF_SHELL, shell=True, stdin=PIPE,
-                                  stderr=STDOUT)
-        if six.b('error: Restricted user session') in stdoutdata:
+                                  stderr=STDOUT).decode(encoding="utf8")
+        if 'error: Restricted user session' in stdoutdata:
             obj = re.search(r'<error-message>\n?(.*)\n?</error-message>', stdoutdata, re.M)
             if obj:
                 raise PermissionError(obj.group(1))
             else:
                 raise PermissionError('Restricted user session')
-        elif six.b('xml-mode: command not found') in stdoutdata:
+        elif 'xml-mode: command not found' in stdoutdata:
             raise PermissionError('xml-mode: command not found')
         self._channel = Popen([NETCONF_SHELL],
                               stdin=PIPE, stdout=PIPE, stderr=STDOUT)

@@ -1,5 +1,9 @@
 import unittest
-from mock import patch, MagicMock
+try:
+    from unittest.mock import patch, MagicMock  # Python 3.4 and later
+    getattr(MagicMock, 'assert_called_once')  # Python 3.6 and later
+except (ImportError, AttributeError):
+    from mock import patch, MagicMock
 from ncclient import manager
 from ncclient.devices.junos import JunosDeviceHandler
 import logging
@@ -120,9 +124,9 @@ class TestManager(unittest.TestCase):
 
     @patch('ncclient.manager.connect_ioproc')
     def test_connect_ioproc(self, mock_ssh):
-        manager.connect(host='localhost', device_params={'name': 'junos', 
+        manager.connect(host='localhost', device_params={'name': 'junos',
                                                         'local': True})
-        mock_ssh.assert_called_once_with(host='localhost', 
+        mock_ssh.assert_called_once_with(host='localhost',
                             device_params={'local': True, 'name': 'junos'})
 
     @patch('paramiko.proxy.ProxyCommand')
@@ -171,7 +175,7 @@ class TestManager(unittest.TestCase):
                                     manager_params={'timeout': 10})
         self.assertEqual(mock_connect.called, 1)
         self.assertEqual(conn._timeout, 10)
-        self.assertEqual(conn._device_handler.device_params, {'local': True, 'name': 'junos'}) 
+        self.assertEqual(conn._device_handler.device_params, {'local': True, 'name': 'junos'})
         self.assertEqual(
             conn._device_handler.__class__.__name__,
             "JunosDeviceHandler")
@@ -202,6 +206,21 @@ class TestManager(unittest.TestCase):
     def test_manager_client_capability(
             self, mock_session, mock_hex, mock_trans, mock_socket):
         conn = self._mock_manager()
+        self.assertEqual(
+            conn.client_capabilities,
+            conn._session.client_capabilities)
+
+    @patch('socket.socket')
+    @patch('paramiko.Transport')
+    @patch('ncclient.transport.ssh.hexlify')
+    @patch('ncclient.transport.ssh.Session._post_connect')
+    def test_manager_custom_client_capability(
+            self, mock_session, mock_hex, mock_trans, mock_socket):
+        custom_capabilities = [
+                'urn:custom:capability:1.0',
+                'urn:custom:capability:2.0'
+        ]
+        conn = self._mock_manager(nc_params={'capabilities': custom_capabilities})
         self.assertEqual(
             conn.client_capabilities,
             conn._session.client_capabilities)
@@ -276,7 +295,7 @@ class TestManager(unittest.TestCase):
         mock_rpc.assert_called_once()
         self.assertFalse(mock_rpc.call_args[1]['huge_tree'])
 
-    def _mock_manager(self):
+    def _mock_manager(self, nc_params={}):
         conn = manager.connect(host='10.10.10.10',
                                     port=22,
                                     username='user',
@@ -284,7 +303,8 @@ class TestManager(unittest.TestCase):
                                     timeout=3,
                                     hostkey_verify=False, allow_agent=False,
                                     device_params={'name': 'junos'},
-                                    manager_params={'timeout': 10})
+                                    manager_params={'timeout': 10},
+                                    nc_params=nc_params)
         return conn
 
     @patch('socket.fromfd')
@@ -304,7 +324,7 @@ class TestManager(unittest.TestCase):
                                     device_params={'name': 'junos'},
                                     hostkey_verify=False, allow_agent=False)
         return conn
-    
+
     @patch('socket.socket')
     @patch('ncclient.manager.connect_ssh')
     def test_call_home(self, mock_ssh, mock_socket_open):

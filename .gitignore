@@ -25,3 +25,4 @@ ENV/
 .coverage
 docs/html
 .tox
+cover/

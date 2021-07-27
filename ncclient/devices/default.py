@@ -41,8 +41,26 @@ class DefaultDeviceHandler(object):
     # match. All comparisons are case insensitive.
     _EXEMPT_ERRORS = []
 
+    _BASE_CAPABILITIES = [
+            "urn:ietf:params:netconf:base:1.0",
+            "urn:ietf:params:netconf:base:1.1",
+            "urn:ietf:params:netconf:capability:writable-running:1.0",
+            "urn:ietf:params:netconf:capability:candidate:1.0",
+            "urn:ietf:params:netconf:capability:confirmed-commit:1.0",
+            "urn:ietf:params:netconf:capability:rollback-on-error:1.0",
+            "urn:ietf:params:netconf:capability:startup:1.0",
+            "urn:ietf:params:netconf:capability:url:1.0?scheme=http,ftp,file,https,sftp",
+            "urn:ietf:params:netconf:capability:validate:1.0",
+            "urn:ietf:params:netconf:capability:xpath:1.0",
+            "urn:ietf:params:netconf:capability:notification:1.0",
+            "urn:liberouter:params:netconf:capability:power-control:1.0",
+            "urn:ietf:params:netconf:capability:interleave:1.0",
+            "urn:ietf:params:netconf:capability:with-defaults:1.0"
+    ]
+
     def __init__(self, device_params=None):
         self.device_params = device_params
+        self.capabilities = []
         # Turn all exempt errors into lower case, since we don't want those comparisons
         # to be case sensitive later on. Sort them into exact match, wildcard start,
         # wildcard end, and full wildcard categories, depending on whether they start
@@ -74,6 +92,23 @@ class DefaultDeviceHandler(object):
         """
         pass
 
+    def add_additional_netconf_params(self, kwargs):
+        """Add additional NETCONF parameters
+
+        Accept a keyword-argument dictionary to add additional NETCONF
+        parameters that may be in addition to those specified by the
+        default and device specific handlers.
+
+        Currently, only additional client specified capabilities are
+        supported and will be appended to default and device specific
+        capabilities.
+
+        Args:
+            kwargs: A dictionary of specific NETCONF parameters to
+                apply in addition to those derived by default and
+                device specific handlers.
+        """
+        self.capabilities = kwargs.pop("capabilities", [])
 
     def get_capabilities(self):
         """
@@ -84,23 +119,7 @@ class DefaultDeviceHandler(object):
         as needed.
 
         """
-        return [
-            "urn:ietf:params:netconf:base:1.0",
-            "urn:ietf:params:netconf:base:1.1",
-            "urn:ietf:params:netconf:capability:writable-running:1.0",
-            "urn:ietf:params:netconf:capability:candidate:1.0",
-            "urn:ietf:params:netconf:capability:confirmed-commit:1.0",
-            "urn:ietf:params:netconf:capability:rollback-on-error:1.0",
-            "urn:ietf:params:netconf:capability:startup:1.0",
-            "urn:ietf:params:netconf:capability:url:1.0?scheme=http,ftp,file,https,sftp",
-            "urn:ietf:params:netconf:capability:validate:1.0",
-            "urn:ietf:params:netconf:capability:xpath:1.0",
-            "urn:ietf:params:netconf:capability:notification:1.0",
-            "urn:ietf:params:netconf:capability:notification:1.1",
-            "urn:liberouter:params:netconf:capability:power-control:1.0",
-            "urn:ietf:params:netconf:capability:interleave:1.0",
-            "urn:ietf:params:netconf:capability:with-defaults:1.0"
-        ]
+        return self._BASE_CAPABILITIES + self.capabilities
 
     def get_xml_base_namespace_dict(self):
         """
@@ -223,16 +242,16 @@ class DefaultDeviceHandler(object):
     def handle_connection_exceptions(self, sshsession):
         return False
 
-    def handle_reply_parsing_error(self, root, reply):
+    def reply_parsing_error_transform(self, reply_cls):
         """
-        Hook for working around bugs in replies from devices (the root emelent can be "fixed")
+        Hook for working around bugs in replies from devices (the root element can be "fixed")
 
-        :param root: the rpc reply root element
-        :param reply: the RPCReply object that is parsing 'root'
+        :param reply_cls: the RPCReply class that is parsing the reply 'root' xml element
 
-        :return:
+        :return: transform function for the 'root' xml element of the RPC reply in case the normal parsing fails
         """
-        pass
+        # No transformation by default
+        return None
 
     def transform_reply(self):
         return False

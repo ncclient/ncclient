@@ -39,7 +39,7 @@ class JunosDeviceHandler(DefaultDeviceHandler):
 
     def __init__(self, device_params):
         super(JunosDeviceHandler, self).__init__(device_params)
-        self.__reply_parsing_error_handler_by_cls = {
+        self.__reply_parsing_error_transform_by_cls = {
             GetSchemaReply: fix_get_schema_reply
         }
 
@@ -95,13 +95,9 @@ class JunosDeviceHandler(DefaultDeviceHandler):
         c.exec_command("xml-mode netconf need-trailer")
         return True
 
-    def handle_reply_parsing_error(self, root, reply):
-        reply_class = type(reply)
-
-        # Apply transform if found
-        transform_handler = self.__reply_parsing_error_handler_by_cls.get(reply_class)
-        if transform_handler is not None:
-            transform_handler(root)
+    def reply_parsing_error_transform(self, reply_cls):
+        # return transform function if found, else None
+        return self.__reply_parsing_error_transform_by_cls.get(reply_cls)
 
     def transform_reply(self):
         reply = '''<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
