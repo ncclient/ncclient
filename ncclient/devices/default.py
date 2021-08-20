@@ -52,7 +52,7 @@ class DefaultDeviceHandler(object):
             "urn:ietf:params:netconf:capability:url:1.0?scheme=http,ftp,file,https,sftp",
             "urn:ietf:params:netconf:capability:validate:1.0",
             "urn:ietf:params:netconf:capability:xpath:1.0",
-            "urn:ietf:params:netconf:capability:notification:1.0",,
+            "urn:ietf:params:netconf:capability:notification:1.0",
             "urn:ietf:params:netconf:capability:interleave:1.0",
             "urn:ietf:params:netconf:capability:with-defaults:1.0"
     ]
