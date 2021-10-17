@@ -14,6 +14,7 @@ from ncclient.operations.errors import MissingCapabilityError
 from xml.etree import ElementTree
 from lxml import etree
 import copy
+import six
 
 
 class TestRetrieve(unittest.TestCase):
@@ -95,7 +96,8 @@ class TestRetrieve(unittest.TestCase):
             "Invalid 'with-defaults' mode 'report-all-tagged'; the server "
             "only supports the following: explicit, report-all, trim"
         )
-        self.assertRaisesRegexp(
+        six.assertRaisesRegex(
+            self,
             WithDefaultsError,
             expected_error,
             obj.request,
