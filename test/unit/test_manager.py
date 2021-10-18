@@ -315,7 +315,10 @@ class TestManager(unittest.TestCase):
     @patch('paramiko.Transport.open_session')
     @patch('ncclient.transport.ssh.Session._post_connect')
     def test_manager_environment(
-             self, mock_session_post_connect, mock_transport_open_session, mock_ssh_session_auth, mock_hex, mock_transport_get_remote_server_key, mock_transport_start_client, mock_socket):
+             self, mock_session_post_connect, mock_transport_open_session,
+             mock_ssh_session_auth, mock_hex,
+             mock_transport_get_remote_server_key, mock_transport_start_client,
+             mock_socket):
         m = MagicMock()
         mock_transport_open_session.return_value = m
         env={"VAR1":"VALUE1"}
