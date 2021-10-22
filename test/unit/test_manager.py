@@ -307,6 +307,27 @@ class TestManager(unittest.TestCase):
                                     nc_params=nc_params)
         return conn
 
+    @patch('socket.socket')
+    @patch('paramiko.Transport.start_client')
+    @patch('paramiko.Transport.get_remote_server_key')
+    @patch('ncclient.transport.ssh.hexlify')
+    @patch('ncclient.transport.SSHSession._auth')
+    @patch('paramiko.Transport.open_session')
+    @patch('ncclient.transport.ssh.Session._post_connect')
+    def test_manager_environment(
+             self, mock_session_post_connect, mock_transport_open_session,
+             mock_ssh_session_auth, mock_hex,
+             mock_transport_get_remote_server_key, mock_transport_start_client,
+             mock_socket):
+        m = MagicMock()
+        mock_transport_open_session.return_value = m
+        env={"VAR1":"VALUE1"}
+        conn = manager.connect(host='10.10.10.10',
+                                    hostkey_verify=False, allow_agent=False,
+                                    environment=env)
+        self.assertEqual(conn.connected, True)
+        m.update_environment.assert_called_once_with(env)
+
     @patch('socket.fromfd')
     @patch('paramiko.Transport')
     @patch('ncclient.transport.ssh.hexlify')

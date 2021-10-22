@@ -178,7 +178,8 @@ class SSHSession(Session):
             sock_fd             = None,
             bind_addr           = None,
             sock                = None,
-            keepalive           = None):
+            keepalive           = None,
+            environment         = None):
 
         """Connect via SSH and initialize the NETCONF session. First attempts the publickey authentication method and then password authentication.
 
@@ -215,6 +216,8 @@ class SSHSession(Session):
         *sock* is an already open Python socket to be used for this connection.
 
         *keepalive* Turn on/off keepalive packets (default is off). If this is set, after interval seconds without sending any data over the connection, a "keepalive" packet will be sent (and ignored by the remote host). This can be useful to keep connections alive over a NAT.
+
+        *environment* a dictionary containing the name and respective values to set
         """
         if not (host or sock_fd or sock):
             raise SSHError("Missing host, socket or socket fd")
@@ -373,6 +376,17 @@ class SSHSession(Session):
             self._channel_id = self._channel.get_id()
             channel_name = "%s-subsystem-%s" % (subname, str(self._channel_id))
             self._channel.set_name(channel_name)
+            if environment:
+                try:
+                    self._channel.update_environment(environment)
+                except paramiko.SSHException as e:
+                    self.logger.info("%s (environment update rejected)", e)
+                    handle_exception = self._device_handler.handle_connection_exceptions(self)
+                    # Ignore the exception, since we continue to try the different
+                    # subsystem names until we find one that can connect.
+                    # have to handle exception for each vendor here
+                    if not handle_exception:
+                        continue
             try:
                 self._channel.invoke_subsystem(subname)
             except paramiko.SSHException as e:
