@@ -1,0 +1,47 @@
+name: Run Tests and Coverage
+
+on: [push, pull_request]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['2.7', '3.5', '3.6', '3.7', '3.8', '3.9']
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - name: Setup Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install rednose coverage coveralls
+          pip install -r requirements.txt
+          pip install -r test-requirements.txt
+
+      - name: Run Check Scripts
+        run: |
+          nosetests test --rednose --verbosity=3 --with-coverage --cover-package ncclient
+
+      - name: Upload Coverage
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+        run: |
+          coveralls
+
+  # coveralls_finish:
+  #   needs: check
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Coveralls Finished
+  #       uses: coverallsapp/github-action@master
+  #       with:
+  #         path-to-lcov: .coverage
+  #         github-token: ${{ secrets.GITHUB_TOKEN }}
+  
