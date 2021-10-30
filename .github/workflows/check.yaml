@@ -35,9 +35,6 @@ jobs:
     needs: check
     runs-on: ubuntu-latest
     steps:
-      - name: Coveralls Setup Env
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
       - name: Coveralls Finished
         uses: coverallsapp/github-action@master
         with:
