@@ -186,7 +186,22 @@ def call_home(*args, **kwds):
     sock, remote_host = srv_socket.accept()
     logger.info('Callhome connection initiated from remote host {0}'.format(remote_host))
     kwds['sock'] = sock
+    srv_socket.close()
     return connect_ssh(*args, **kwds)
+
+def call_home_many(*args, **kwds):
+    host = kwds["host"]
+    port = kwds.get("port",4334)
+    srv_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    srv_socket.bind((host, port))
+    srv_socket.settimeout(10)
+    srv_socket.listen()
+
+    while True:
+        sock, remote_host = srv_socket.accept()
+        logger.info('Callhome connection initiated from remote host {0}'.format(remote_host))
+        kwds['sock'] = sock
+        yield connect_ssh(*args, **kwds)
 
 class Manager(object):
 
