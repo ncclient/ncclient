@@ -424,7 +424,29 @@ class SSHSession(Session):
                     self.logger.debug(e)
 
         if allow_agent:
-            for key in paramiko.Agent().get_keys():
+            agent_keys = paramiko.Agent().get_keys()
+            for key_filename in key_filenames:
+                try:
+                    pubkey_filename = key_filename + ".pub"
+                    pubkey_blob=paramiko.PublicBlob.from_file(pubkey_filename)
+                    pubkey_fingerprint  = hexlify(md5(pubkey_blob.key_blob).digest())
+                    self.logger.debug("Looking for key in SSH agent with fingerprint %s found in filename %s",
+                                      pubkey_fingerprint,
+                                      key_filename)
+                    for key in agent_keys:
+                        if key.blob == pubkey_blob.key_blob:
+                            self.logger.debug("Trying SSH agent key %s matched against public key from keyfile %s",
+                                      hexlify(key.get_fingerprint()), pubkey_filename)
+                            self._transport.auth_publickey(username, key)
+                            return
+                except Exception as e:
+                    saved_exception = e
+                    self.logger.debug(e)
+                    # we have tried this key from the agent and it didn't work 
+                    # no point trying it again later
+                    agent_keys.pop(key)
+
+            for key in agent_keys:
                 try:
                     self.logger.debug("Trying SSH agent key %s",
                                       hexlify(key.get_fingerprint()))
@@ -433,6 +455,7 @@ class SSHSession(Session):
                 except Exception as e:
                     saved_exception = e
                     self.logger.debug(e)
+
 
         keyfiles = []
         if look_for_keys:
