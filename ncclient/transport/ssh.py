@@ -427,7 +427,11 @@ class SSHSession(Session):
             agent_keys = paramiko.Agent().get_keys()
             for key_filename in key_filenames:
                 try:
-                    pubkey_filename = key_filename + ".pub"
+                    if key_filename.endswith(".pub"):
+                        pubkey_filename = pukey_filename
+                    else:
+                        pubkey_filename = key_filename + ".pub"
+
                     pubkey_blob=paramiko.PublicBlob.from_file(pubkey_filename)
                     pubkey_fingerprint  = hexlify(md5(pubkey_blob.key_blob).digest())
                     self.logger.debug("Looking for key in SSH agent with fingerprint %s found in filename %s",
