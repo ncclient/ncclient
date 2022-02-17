@@ -424,31 +424,24 @@ class SSHSession(Session):
                     self.logger.debug(e)
 
         if allow_agent:
-            agent_keys = paramiko.Agent().get_keys()
-            for key_filename in key_filenames:
-                try:
-                    if key_filename.endswith(".pub"):
-                        pubkey_filename = pukey_filename
-                    else:
-                        pubkey_filename = key_filename + ".pub"
+            # resequence keys from agent using private key names
+            prepend_agent_keys=[]
+            append_agent_keys=list(paramiko.Agent().get_keys())
 
-                    pubkey_blob=paramiko.PublicBlob.from_file(pubkey_filename)
-                    pubkey_fingerprint  = hexlify(md5(pubkey_blob.key_blob).digest())
-                    self.logger.debug("Looking for key in SSH agent with fingerprint %s found in filename %s",
-                                      pubkey_fingerprint,
-                                      key_filename)
-                    for key in agent_keys:
-                        if key.blob == pubkey_blob.key_blob:
-                            self.logger.debug("Trying SSH agent key %s matched against public key from keyfile %s",
-                                      hexlify(key.get_fingerprint()), pubkey_filename)
-                            self._transport.auth_publickey(username, key)
-                            return
-                except Exception as e:
-                    saved_exception = e
-                    self.logger.debug(e)
-                    # we have tried this key from the agent and it didn't work 
-                    # no point trying it again later
-                    agent_keys.pop(key)
+            for key_filename in key_filenames:
+                pubkey_filename=key_filename.strip(".pub")+".pub"
+                try:
+                    file_key=paramiko.PublicBlob.from_file(pubkey_filename).key_blob
+                except (FileNotFoundError, ValueError):
+                    continue
+
+                for idx, agent_key in enumerate(append_agent_keys):
+                    if agent_key.asbytes() == file_key:
+                        self.logger.debug("Prioritising SSH agent key found in %s",key_filename )
+                        prepend_agent_keys.append(append_agent_keys.pop(idx))
+                        break
+
+            agent_keys=tuple(prepend_agent_keys+append_agent_keys)
 
             for key in agent_keys:
                 try:
