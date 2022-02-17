@@ -453,7 +453,6 @@ class SSHSession(Session):
                     saved_exception = e
                     self.logger.debug(e)
 
-
         keyfiles = []
         if look_for_keys:
             rsa_key = os.path.expanduser("~/.ssh/id_rsa")
