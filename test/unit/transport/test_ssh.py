@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import unittest
 try:
-    from unittest.mock import MagicMock, patch  # Python 3.4 and later
+    from unittest.mock import MagicMock, patch, call  # Python 3.4 and later
 except ImportError:
-    from mock import MagicMock, patch
+    from mock import MagicMock, patch, call
 from ncclient.transport.ssh import SSHSession
 from ncclient.transport import AuthenticationError, SessionCloseError, NetconfBase
 import paramiko
@@ -280,6 +280,46 @@ class TestSSH(unittest.TestCase):
         obj = SSHSession(device_handler)
         obj.load_known_hosts()
         mock_load.assert_called_with("file_name")
+
+    @patch('ncclient.transport.ssh.hexlify')
+    @patch('os.path.expanduser')
+    @patch('paramiko.HostKeys')
+    @patch('paramiko.Transport')
+    @patch('ncclient.transport.ssh.SSHSession._post_connect')
+    @patch('ncclient.transport.ssh.SSHSession._auth')
+    def test_ssh_known_hosts(self, mock_auth, mock_pc,
+                             mock_transport, mock_hk,
+                             mock_os, mock_hex):
+        mock_os.return_value = "file_name"
+        hk_inst = MagicMock(check=MagicMock(return_value=True))
+        mock_hk.return_value = hk_inst
+        device_handler = JunosDeviceHandler({'name': 'junos'})
+        obj = SSHSession(device_handler)
+        obj.connect(host='h', sock=MagicMock())
+        hk_inst.load.assert_called_once_with('file_name')
+        mock_os.assert_called_once_with('~/.ssh/known_hosts')
+
+    @patch('ncclient.transport.ssh.hexlify')
+    @patch('ncclient.transport.ssh.open')
+    @patch('os.path.expanduser')
+    @patch('paramiko.HostKeys')
+    @patch('paramiko.Transport')
+    @patch('paramiko.SSHConfig')
+    @patch('ncclient.transport.ssh.SSHSession._post_connect')
+    @patch('ncclient.transport.ssh.SSHSession._auth')
+    def test_ssh_known_hosts_2(self, mock_auth, mock_pc,
+                               mock_sshc, mock_transport, mock_hk,
+                               mock_os, mock_open, mock_hex):
+        mock_os.return_value = "file_name"
+        hk_inst = MagicMock(check=MagicMock(return_value=True))
+        mock_hk.return_value = hk_inst
+        config = {'userknownhostsfile': 'known_hosts_file'}
+        mock_sshc.return_value = MagicMock(lookup=lambda _h: config)
+        device_handler = JunosDeviceHandler({'name': 'junos'})
+        obj = SSHSession(device_handler)
+        obj.connect(host='h', sock=MagicMock(), ssh_config=True)
+        hk_inst.load.assert_called_once_with('file_name')
+        mock_os.mock_calls == [call('~/.ssh/config'), call('known_hosts_file')]
 
     @unittest.skipIf(sys.version_info.major == 2, "test not supported < Python3")
     @patch('ncclient.transport.ssh.SSHSession.close')
