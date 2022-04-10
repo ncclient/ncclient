@@ -20,7 +20,11 @@ class TestIosxeDevice(unittest.TestCase):
         self.obj = IosxeDeviceHandler({'name': 'iosxe'})
 
     def test_add_additional_operations(self):
-        expected = {'save_config': SaveConfig}
+        expected = {
+            'save_config': SaveConfig,
+            'establish_subscription': EstablishSubscription, 
+            'delete_subscription': DeleteSubscription,
+        }
         self.assertDictEqual(expected, self.obj.add_additional_operations())
 
     def test_add_additional_ssh_connect_params(self):
