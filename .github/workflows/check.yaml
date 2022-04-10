@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['2.7', '3.5', '3.6', '3.7', '3.8', '3.9']
+        python-version: ['3.5', '3.6', '3.7', '3.8', '3.9']
     steps:
       - uses: actions/checkout@v2
         with:
@@ -31,17 +31,21 @@ jobs:
 
       - name: Upload Coverage
         env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_FLAG_NAME: ${{ matrix.python-version }}
+          COVERALLS_PARALLEL: true
         run: |
-          coveralls
+          coveralls --service=github
 
-  # coveralls_finish:
-  #   needs: check
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Coveralls Finished
-  #       uses: coverallsapp/github-action@master
-  #       with:
-  #         path-to-lcov: .coverage
-  #         github-token: ${{ secrets.GITHUB_TOKEN }}
-  
+  coveralls:
+    name: Indicate completion to coveralls.io
+    needs: check
+    runs-on: ubuntu-latest
+    container: python:3-slim
+    steps:
+    - name: Finished
+      run: |
+        pip3 install --upgrade coveralls
+        coveralls --service=github --finish
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
