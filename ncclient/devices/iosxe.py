@@ -43,7 +43,7 @@ class IosxeDeviceHandler(DefaultDeviceHandler):
 
     def transform_edit_config(self, node):
         # find the first node that has the tag "config" with no namespace
-        nodes = node.findall(".//config")
+        nodes = node.findall("./config")
         if len(nodes) == 1:
             logger.debug('IOS XE handler: patching namespace of config element')
             nodes[0].tag = '{%s}%s' % (BASE_NS_1_0, 'config')
