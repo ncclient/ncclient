@@ -255,6 +255,19 @@ class DefaultDeviceHandler(object):
     def transform_reply(self):
         return False
 
+    def transform_edit_config(self, node):
+        """
+        Hook for working around bugs in devices that cannot deal with
+        standard config payloads for edits. This will be called
+        in EditConfig.request just before the request is submitted,
+        meaning it will get an XML tree rooted at edit-config.
+
+        :param node: the XML tree for edit-config
+
+        :return: either the original XML tree if no changes made or a modified XML tree
+        """
+        return node
+
     def get_xml_parser(self, session):
         """
         vendor can chose which parser to use for RPC reply response.
