@@ -252,14 +252,17 @@ class SSHSession(Session):
                 username = config.get("user")
             if key_filename is None:
                 key_filename = config.get("identityfile")
-            if hostkey_verify:
-                userknownhostsfile = config.get("userknownhostsfile")
-                if userknownhostsfile:
-                    self.load_known_hosts(os.path.expanduser(userknownhostsfile))
             if timeout is None:
                 timeout = config.get("connecttimeout")
                 if timeout:
                     timeout = int(timeout)
+
+        if hostkey_verify:
+            userknownhostsfile = config.get("userknownhostsfile")
+            if userknownhostsfile:
+                self.load_known_hosts(os.path.expanduser(userknownhostsfile))
+            else:
+                self.load_known_hosts()
 
         if username is None:
             username = getpass.getuser()
@@ -332,10 +335,10 @@ class SSHSession(Session):
         except paramiko.SSHException as e:
             raise SSHError('Negotiation failed: %s' % e)
 
-        server_key_obj = self._transport.get_remote_server_key()
-        fingerprint = _colonify(hexlify(server_key_obj.get_fingerprint()))
-
         if hostkey_verify:
+            server_key_obj = self._transport.get_remote_server_key()
+            fingerprint = _colonify(hexlify(server_key_obj.get_fingerprint()))
+
             is_known_host = False
 
             # For looking up entries for nonstandard (22) ssh ports in known_hosts
