@@ -1,6 +1,9 @@
 from ncclient.operations.retrieve import *
 import unittest
-from mock import patch
+try:
+    from unittest.mock import patch  # Python 3.4 and later
+except ImportError:
+    from mock import patch
 from ncclient import manager
 import ncclient.manager
 import ncclient.transport
@@ -11,6 +14,7 @@ from ncclient.operations.errors import MissingCapabilityError
 from xml.etree import ElementTree
 from lxml import etree
 import copy
+import six
 
 
 class TestRetrieve(unittest.TestCase):
@@ -92,7 +96,8 @@ class TestRetrieve(unittest.TestCase):
             "Invalid 'with-defaults' mode 'report-all-tagged'; the server "
             "only supports the following: explicit, report-all, trim"
         )
-        self.assertRaisesRegexp(
+        six.assertRaisesRegex(
+            self,
             WithDefaultsError,
             expected_error,
             obj.request,

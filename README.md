@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/ncclient/ncclient.svg?branch=master)](https://travis-ci.org/ncclient/ncclient)
+![Build Status](https://github.com/ncclient/ncclient/actions/workflows/check.yaml/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/ncclient/ncclient/badge.svg?branch=master)](https://coveralls.io/github/ncclient/ncclient?branch=master)
 [![Documentation Status](https://readthedocs.org/projects/ncclient/badge/?version=latest)](https://readthedocs.org/projects/ncclient/?badge=latest)
 
@@ -19,6 +19,10 @@ by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org) and Einar Nilsen-Nygaa
 
 |  Date  | Release | Description |
 | :----: | :-----: | :---------- |
+| 04/10/22 | `0.6.13` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.13)|
+| 05/29/21 | `0.6.12` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.12)|
+| 05/27/21 | `0.6.11` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.11)|
+| 02/18/21 | `0.6.10` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.10)|
 | 08/08/20 | `0.6.9` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.9) |
 | 08/01/20 | `0.6.8` | Pulled due to accidental breaking API change |
 | 12/21/19 | `0.6.7` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.7) |
@@ -101,7 +105,6 @@ When instantiating a connection to a known type of NETCONF server:
 * Huawei:
     - `device_params={'name':'huawei'}`
     - `device_params={'name':'huaweiyang'}`
-* Alcatel Lucent: `device_params={'name':'alu'}`
 * Nokia SR OS: `device_params={'name':'sros'}`
 * H3C: `device_params={'name':'h3c'}`
 * HP Comware: `device_params={'name':'hpcomware'}`
@@ -189,6 +192,9 @@ Thus, making a release becomes a simple process:
 
 ## Contributors
 
+* v0.6.12: @einarnn
+* v0.6.11: @musicinmybrain, @sstancu, @earies
+* v0.6.10: @vnitinv, @omaxx, @einarnn, @musicinmybrain, @tonynii, @sstancu, Martin Volf, @fredgan, @avisom, Viktor Velichkin, @ogenstad, @earies
 * v0.6.8: [Fred Gan](https://github.com/fredgan), @vnitinv, @kbijakowski, @iwanb, @badguy99, @liuyong, Andrew Mallory, William Lvory
 * v0.6.7: @vnitinv, @chaitu-tk, @sidhujasminder, @crutcha, @markgoddard, @ganeshrn, @songxl, @doesitblend, @psikala, @xuxiaowei0512, @muffizone
 * v0.6.6: @sstancu, @hemna, @ishayansheikh

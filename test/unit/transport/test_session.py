@@ -1,5 +1,8 @@
 import unittest
-from mock import patch
+try:
+    from unittest.mock import patch  # Python 3.4 and later
+except ImportError:
+    from mock import patch
 from ncclient.transport.session import *
 from ncclient.devices.junos import JunosDeviceHandler
 try:
@@ -270,7 +273,7 @@ class TestSession(unittest.TestCase):
         listener = NotificationHandler(q)
         listener.callback(parse_root(notification), notification)
         notif = q.get_nowait()
-        self.assertEquals(notif.notification_xml, notification)
+        self.assertEqual(notif.notification_xml, notification)
         self.assertRaises(Empty, q.get_nowait)
 
     def test_notification_handler_non_notification(self):

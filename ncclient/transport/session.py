@@ -34,7 +34,7 @@ class NetconfBase(object):
     BASE_10 = 1
     BASE_11 = 2
 
-    
+
 class Session(Thread):
 
     "Base class for use by transport protocol implementations."

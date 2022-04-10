@@ -144,8 +144,9 @@ class RPCReply(object):
     ERROR_CLS = RPCError
     "Subclasses can specify a different error class, but it should be a subclass of `RPCError`."
 
-    def __init__(self, raw, huge_tree=False):
+    def __init__(self, raw, huge_tree=False, parsing_error_transform=None):
         self._raw = raw
+        self._parsing_error_transform = parsing_error_transform
         self._parsed = False
         self._root = None
         self._errors = []
@@ -167,7 +168,18 @@ class RPCReply(object):
                 for err in root.getiterator(error.tag):
                     # Process a particular <rpc-error>
                     self._errors.append(self.ERROR_CLS(err))
-        self._parsing_hook(root)
+        try:
+            self._parsing_hook(root)
+        except Exception as e:
+            if self._parsing_error_transform is None:
+                # re-raise as we have no workaround
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                six.reraise(exc_type, exc_value, exc_traceback)
+
+            # Apply device specific workaround and try again
+            self._parsing_error_transform(root)
+            self._parsing_hook(root)
+
         self._parsed = True
 
     def _parsing_hook(self, root):
@@ -177,6 +189,9 @@ class RPCReply(object):
     def _post_process(self, original_rpc):
         '''No-op by default. Gets passed the original RPC we got a reply to.'''
         pass
+
+    def set_parsing_error_transform(self, transform_function):
+        self._parsing_error_transform = transform_function
 
     @property
     def xml(self):
@@ -401,6 +416,13 @@ class RPC(object):
     def deliver_reply(self, raw):
         # internal use
         self._reply = self.REPLY_CLS(raw, huge_tree=self._huge_tree)
+
+        # Set the reply_parsing_error transform outside the constructor, to keep compatibility for
+        # third party reply classes outside of ncclient
+        self._reply.set_parsing_error_transform(
+            self._device_handler.reply_parsing_error_transform(self.REPLY_CLS)
+        )
+
         self._event.set()
 
     def deliver_error(self, err):

@@ -268,6 +268,31 @@ def yang_action(name, attrs):
     node = new_ele('action', attrs={'xmlns': YANG_NS_1_0})
     return (node, sub_ele(node, name, attrs))
 
+
+def replace_namespace(root, old_ns, new_ns):
+    """
+    Substitute old_ns with new_ns for all the xml elements including and below root
+    :param root: top element (root for this change)
+    :param old_ns: old namespace
+    :param new_ns: new namespace
+    :return:
+    """
+    for elem in root.getiterator():
+        # Comments don't have a namespace
+        if elem.tag is not etree.Comment:
+            # handle tag
+            qtag = etree.QName(elem)
+            if qtag.namespace == old_ns:
+                elem.tag = etree.QName(new_ns, qtag.localname)
+
+            # handle attributes
+            attribs_dict = elem.attrib
+            for attr in attribs_dict.keys():
+                qattr = etree.QName(attr)
+                if qattr.namespace == old_ns:
+                    attribs_dict[etree.QName(new_ns, qattr.localname)] = attribs_dict.pop(attr)
+
+
 new_ele_nsmap = lambda tag, nsmap, attrs={}, **extra: etree.Element(qualify(tag), attrs, nsmap, **extra)
 
 new_ele = lambda tag, attrs={}, **extra: etree.Element(qualify(tag), attrs, **extra)
