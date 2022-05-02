@@ -252,14 +252,17 @@ class SSHSession(Session):
                 username = config.get("user")
             if key_filename is None:
                 key_filename = config.get("identityfile")
-            if hostkey_verify:
-                userknownhostsfile = config.get("userknownhostsfile")
-                if userknownhostsfile:
-                    self.load_known_hosts(os.path.expanduser(userknownhostsfile))
             if timeout is None:
                 timeout = config.get("connecttimeout")
                 if timeout:
                     timeout = int(timeout)
+
+        if hostkey_verify:
+            userknownhostsfile = config.get("userknownhostsfile")
+            if userknownhostsfile:
+                self.load_known_hosts(os.path.expanduser(userknownhostsfile))
+            else:
+                self.load_known_hosts()
 
         if username is None:
             username = getpass.getuser()
@@ -332,10 +335,10 @@ class SSHSession(Session):
         except paramiko.SSHException as e:
             raise SSHError('Negotiation failed: %s' % e)
 
-        server_key_obj = self._transport.get_remote_server_key()
-        fingerprint = _colonify(hexlify(server_key_obj.get_fingerprint()))
-
         if hostkey_verify:
+            server_key_obj = self._transport.get_remote_server_key()
+            fingerprint = _colonify(hexlify(server_key_obj.get_fingerprint()))
+
             is_known_host = False
 
             # For looking up entries for nonstandard (22) ssh ports in known_hosts
@@ -424,7 +427,26 @@ class SSHSession(Session):
                     self.logger.debug(e)
 
         if allow_agent:
-            for key in paramiko.Agent().get_keys():
+            # resequence keys from agent using private key names
+            prepend_agent_keys=[]
+            append_agent_keys=list(paramiko.Agent().get_keys())
+
+            for key_filename in key_filenames:
+                pubkey_filename=key_filename.strip(".pub")+".pub"
+                try:
+                    file_key=paramiko.PublicBlob.from_file(pubkey_filename).key_blob
+                except (FileNotFoundError, ValueError):
+                    continue
+
+                for idx, agent_key in enumerate(append_agent_keys):
+                    if agent_key.asbytes() == file_key:
+                        self.logger.debug("Prioritising SSH agent key found in %s",key_filename )
+                        prepend_agent_keys.append(append_agent_keys.pop(idx))
+                        break
+
+            agent_keys=tuple(prepend_agent_keys+append_agent_keys)
+
+            for key in agent_keys:
                 try:
                     self.logger.debug("Trying SSH agent key %s",
                                       hexlify(key.get_fingerprint()))

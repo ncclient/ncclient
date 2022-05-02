@@ -106,15 +106,12 @@ def _extract_nc_params(kwds):
     return nc_params
 
 def connect_ssh(*args, **kwds):
-    """
-    Initialize a :class:`Manager` over the SSH transport.
+    """Initialize a :class:`Manager` over the SSH transport.
     For documentation of arguments see :meth:`ncclient.transport.SSHSession.connect`.
 
     The underlying :class:`ncclient.transport.SSHSession` is created with
-    :data:`CAPABILITIES`. It is first instructed to
-    :meth:`~ncclient.transport.SSHSession.load_known_hosts` and then
-    all the provided arguments are passed directly to its implementation
-    of :meth:`~ncclient.transport.SSHSession.connect`.
+    :data:`CAPABILITIES`. All the provided arguments are passed directly to its
+    implementation of :meth:`~ncclient.transport.SSHSession.connect`.
 
     To customize the :class:`Manager`, add a `manager_params` dictionary in connection
     parameters (e.g. `manager_params={'timeout': 60}` for a bigger RPC timeout parameter)
@@ -125,6 +122,7 @@ def connect_ssh(*args, **kwds):
 
     A custom device handler can be provided with
     `device_params={'handler':<handler class>}` in connection parameters.
+
     """
     # Extract device/manager/netconf parameter dictionaries, if they were passed into this function.
     # Remove them from kwds (which should keep only session.connect() parameters).
@@ -136,8 +134,6 @@ def connect_ssh(*args, **kwds):
     device_handler.add_additional_ssh_connect_params(kwds)
     device_handler.add_additional_netconf_params(nc_params)
     session = transport.SSHSession(device_handler)
-    if "hostkey_verify" not in kwds or kwds["hostkey_verify"]:
-        session.load_known_hosts()
 
     try:
        session.connect(*args, **kwds)

@@ -72,6 +72,7 @@ class EditConfig(RPC):
                 sub_ele(node, "url").text = config
             else:
                 raise OperationError("Invalid URL.")
+        node = self._device_handler.transform_edit_config(node)
         return self._request(node)
 
 

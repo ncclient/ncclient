@@ -35,7 +35,7 @@ class TestManager(unittest.TestCase):
     def test_connect_ssh1(self, mock_ssh, mock_load_known_hosts):
         manager.connect(host='host')
         mock_ssh.assert_called_once_with(host='host')
-        mock_load_known_hosts.assert_called_once_with()
+        mock_load_known_hosts.assert_not_called()
 
     @patch('socket.socket')
     @patch('paramiko.Transport')
