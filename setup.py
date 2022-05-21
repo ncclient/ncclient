@@ -18,7 +18,6 @@ from setuptools import setup, find_packages
 from distutils.command.install import install as _install
 
 import sys
-import platform
 import codecs
 import versioneer
 
@@ -27,34 +26,41 @@ __author_email__ = "shikhar@schmizz.net, lpoulopoulos@verisign.com, exa@dscp.org
 __licence__ = "Apache 2.0"
 
 if sys.version_info.major == 2 and sys.version_info.minor < 7:
-    print ("Sorry, Python < 2.7 is not supported")
+    print("Sorry, Python < 2.7 is not supported")
     exit()
 
 #parse requirements
 req_lines = [line.strip() for line in open("requirements.txt").readlines()]
 install_reqs = list(filter(None, req_lines))
 
-test_req_lines = [line.strip() for line in open("test-requirements.txt").readlines()]
+test_req_lines = [line.strip()
+                  for line in open("test-requirements.txt").readlines()]
 test_reqs = list(filter(None, test_req_lines))
 
 with codecs.open('README.rst', 'r', encoding='utf8') as file:
     long_description = file.read()
 
-
 setup(name='ncclient',
       version=versioneer.get_version(),
       cmdclass=versioneer.get_cmdclass(),
       description="Python library for NETCONF clients",
-      long_description = long_description,
+      long_description=long_description,
       author=__author__,
       author_email=__author_email__,
       url="https://github.com/ncclient/ncclient",
-      packages=find_packages(exclude=['test', 'test.*']),
+      packages=find_packages(exclude=['test']),
       install_requires=install_reqs,
       tests_require=test_reqs,
       license=__licence__,
       platforms=["Posix; OS X; Windows"],
-      keywords=['NETCONF', 'NETCONF Python client', 'Juniper Optimization', 'Cisco NXOS Optimization'],
+      keywords=[
+          'NETCONF',
+          'NETCONF Python Client',
+          'Juniper Optimization',
+          'Cisco NXOS Optimization',
+          'Cisco IOS XE Optimization',
+          'Cisco IOS XR Optimization',
+      ],
       python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*',
       classifiers=[
           'Development Status :: 5 - Production/Stable',
@@ -62,15 +68,11 @@ setup(name='ncclient',
           'Programming Language :: Python :: 3.5',
           'Programming Language :: Python :: 3.6',
           'Programming Language :: Python :: 3.7',
+          'Programming Language :: Python :: 3.8',
+          'Programming Language :: Python :: 3.9',
+          'Programming Language :: Python :: 3.10',
           'Topic :: System :: Networking',
           'Intended Audience :: Developers',
           'Operating System :: OS Independent',
           'Topic :: Software Development :: Libraries :: Python Modules',
       ])
-
-
-
-
-
-
-

@@ -1,7 +1,6 @@
 include *.rst requirements.txt LICENSE
-graft docs
-graft examples
 include versioneer.py
 include ncclient/_version.py
-include test
-include test-requirements.txt
+graft docs
+prune test*
+prune examples*
