@@ -1,4 +1,4 @@
-include *.rst requirements.txt LICENSE
+include *.rst requirements.txt test-requirements.txt LICENSE
 include versioneer.py
 include ncclient/_version.py
 graft docs
