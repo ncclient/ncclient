@@ -14,9 +14,9 @@ from xml.sax.saxutils import escape
 import sys
 
 if sys.version >= '3':
-    patch_str = 'ncclient.operations.rpc.Event.isSet'
+    patch_str = 'ncclient.operations.rpc.Event.is_set'
 else:
-    patch_str = 'threading._Event.isSet'
+    patch_str = 'threading._Event.is_set'
 
 xml1 = """<rpc-reply xmlns:junos="http://xml.juniper.net/junos/12.1X46/junos">
     <ok/>
