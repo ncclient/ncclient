@@ -16,12 +16,14 @@
 
 from ncclient.transport.session import Session, SessionListener, NetconfBase
 from ncclient.transport.ssh import SSHSession
+from ncclient.transport.tls import TLSSession
 from ncclient.transport.errors import *
 
 __all__ = [
     'Session',
     'SessionListener',
     'SSHSession',
+    'TLSSession',
     'TransportError',
     'AuthenticationError',
     'SessionCloseError',
