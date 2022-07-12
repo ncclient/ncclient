@@ -88,7 +88,7 @@ class Session(Thread):
             except Exception as e:
                 self.logger.warning('error dispatching to %r: %r', l, e)
 
-    def _post_connect(self):
+    def _post_connect(self, timeout=60):
         "Greeting stuff"
         init_event = Event()
         error = [None] # so that err_cb can bind error[0]. just how it is.
@@ -107,7 +107,7 @@ class Session(Thread):
         self.logger.debug('starting main loop')
         self.start()
         # we expect server's hello message, if server doesn't responds in 60 seconds raise exception
-        init_event.wait(60)
+        init_event.wait(timeout)
         if not init_event.is_set():
             raise SessionError("Capability exchange timed out")
         # received hello message or an error happened
