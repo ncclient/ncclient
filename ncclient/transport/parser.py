@@ -206,7 +206,7 @@ class DefaultXMLParser(object):
                 break
 
             elif re_result.group(1):
-                # we've found a chunk delimiter, and group(2) is the digit
+                # we've found a chunk delimiter, and group(1) is the digit
                 # string that will tell us how many bytes past the end of
                 # where it was found that we need to have available to
                 # save the next chunk off
