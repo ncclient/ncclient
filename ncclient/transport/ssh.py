@@ -401,7 +401,7 @@ class SSHSession(Session):
                 if not handle_exception:
                     continue
             self._channel_name = self._channel.get_name()
-            self._post_connect()
+            self._post_connect(timeout)
             # for further upcoming RPC responses, vendor can chose their
             # choice of parser. Say DOM or SAX
             self.parser = self._device_handler.get_xml_parser(self)
