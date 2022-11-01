@@ -40,11 +40,9 @@ class Session(Thread):
     "Base class for use by transport protocol implementations."
 
     def __init__(self, capabilities):
-        Thread.__init__(self)
-        self.daemon = True
+        Thread.__init__(self, daemon=True, name='session')
         self._listeners = set()
         self._lock = Lock()
-        self.name = 'session'
         self._q = Queue()
         self._notification_q = Queue()
         self._client_capabilities = capabilities
