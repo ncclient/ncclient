@@ -358,7 +358,7 @@ class RPC(object):
         else:
             self.logger.debug('Sync request, will wait for timeout=%r', self._timeout)
             self._event.wait(self._timeout)
-            if self._event.isSet():
+            if self._event.is_set():
                 if self._error:
                     # Error that prevented reply delivery
                     raise self._error
