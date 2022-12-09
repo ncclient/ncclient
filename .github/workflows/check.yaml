@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         python-version: ['3.5.10', '3.6.15', '3.7.15', '3.8.15', '3.9.16', '3.10.9', '3.11.1']
@@ -40,7 +40,7 @@ jobs:
   coveralls:
     name: Indicate completion to coveralls.io
     needs: check
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     container: python:3-slim
     steps:
     - name: Finished
