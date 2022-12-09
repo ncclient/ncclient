@@ -9,12 +9,12 @@ jobs:
       matrix:
         python-version: ['3.5.10', '3.6.15', '3.7.15', '3.8.15', '3.9.16', '3.10.9', '3.11.1']
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: 'recursive'
 
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
 
