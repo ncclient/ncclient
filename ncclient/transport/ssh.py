@@ -33,11 +33,9 @@ from ncclient.logging_ import SessionLoggerAdapter
 
 import paramiko
 
-from ncclient.transport.errors import AuthenticationError, SessionCloseError, SSHError, SSHUnknownHostError, NetconfFramingError
+from ncclient.transport.errors import AuthenticationError, SSHError, SSHUnknownHostError
 from ncclient.transport.session import Session
-from ncclient.transport.session import NetconfBase
 from ncclient.transport.parser import DefaultXMLParser
-from ncclient.transport.parser import SAXFilterXMLNotFoundError
 
 import logging
 logger = logging.getLogger("ncclient.transport.ssh")
@@ -45,12 +43,6 @@ logger = logging.getLogger("ncclient.transport.ssh")
 PORT_NETCONF_DEFAULT = 830
 
 BUF_SIZE = 4096
-# v1.0: RFC 4742
-MSG_DELIM = b"]]>]]>"
-# v1.1: RFC 6242
-END_DELIM = b'\n##\n'
-
-TICK = 0.1
 
 #
 # Define delimiters for chunks and messages for netconf 1.1 chunk enoding.
@@ -503,54 +495,17 @@ class SSHSession(Session):
 
         raise AuthenticationError("No authentication methods available")
 
-    def run(self):
-        chan = self._channel
-        q = self._q
+    def _transport_read(self):
+        return self._channel.recv(BUF_SIZE)
 
-        def start_delim(data_len): return b'\n#%i\n' % (data_len)
+    def _transport_write(self, data):
+        return self._channel.send(data)
 
-        try:
-            s = selectors.DefaultSelector()
-            s.register(chan, selectors.EVENT_READ)
-            self.logger.debug('selector type = %s', s.__class__.__name__)
-            while True:
+    def _transport_register(self, selector, event):
+        selector.register(self._channel, event)
 
-                # Will wakeup evey TICK seconds to check if something
-                # to send, more quickly if something to read (due to
-                # select returning chan in readable list).
-                events = s.select(timeout=TICK)
-                if events:
-                    data = chan.recv(BUF_SIZE)
-                    if data:
-                        try:
-                            self.parser.parse(data)
-                        except SAXFilterXMLNotFoundError:
-                            self.logger.debug('switching from sax to dom parsing')
-                            self.parser = DefaultXMLParser(self)
-                            self.parser.parse(data)
-                    elif self._closing.is_set():
-                        # End of session, expected
-                        break
-                    else:
-                        # End of session, unexpected
-                        raise SessionCloseError(self._buffer.getvalue())
-                if not q.empty() and chan.send_ready():
-                    self.logger.debug("Sending message")
-                    data = q.get().encode()
-                    if self._base == NetconfBase.BASE_11:
-                        data = b"%s%s%s" % (start_delim(len(data)), data, END_DELIM)
-                    else:
-                        data = b"%s%s" % (data, MSG_DELIM)
-                    self.logger.info("Sending:\n%s", data)
-                    while data:
-                        n = chan.send(data)
-                        if n <= 0:
-                            raise SessionCloseError(self._buffer.getvalue(), data)
-                        data = data[n:]
-        except Exception as e:
-            self.logger.debug("Broke out of main loop, error=%r", e)
-            self._dispatch_error(e)
-            self.close()
+    def _send_ready(self):
+        return self._channel.send_ready()
 
     @property
     def host(self):
