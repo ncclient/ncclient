@@ -21,6 +21,7 @@ import six
 import sys
 import socket
 import threading
+import subprocess
 from binascii import hexlify
 
 try:
