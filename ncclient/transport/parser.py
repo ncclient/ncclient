@@ -175,7 +175,7 @@ class DefaultXMLParser(object):
         while True and start < data_len:
             # match to see if we found at least some kind of delimiter
             self.logger.debug('_parse11: matching from %d bytes from start of buffer', start)
-            re_result = RE_NC11_DELIM.match(data[start:].decode('utf-8'))
+            re_result = RE_NC11_DELIM.match(data[start:].decode('utf-8', errors='ignore'))
             if not re_result:
 
                 # not found any kind of delimiter just break; this should only
