@@ -3,11 +3,64 @@ name: Run Tests and Check Coverage
 on: [push, pull_request]
 
 jobs:
-  check:
+  check_legacy:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: ['3.5.10', '3.6.15', '3.7.15', '3.8.15', '3.9.16', '3.10.9', '3.11.1']
+        python-version: ['3.6.15']
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install coverage coveralls
+          pip install -r requirements.txt
+          pip install -r test-requirements.txt
+
+      - name: Run Check Scripts
+        run: |
+          pytest test --verbosity=3 --cov=ncclient
+
+  # check_beta:
+  #   runs-on: ubuntu-22.04
+  #   strategy:
+  #     matrix:
+  #       python-version: ['3.12.0-beta.3']
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #       with:
+  #         submodules: 'recursive'
+
+  #     - name: Setup Python
+  #       uses: actions/setup-python@v4
+  #       with:
+  #         python-version: ${{ matrix.python-version }}
+
+  #     - name: Install Dependencies
+  #       run: |
+  #         sudo apt install -y python3-dev libxml2-dev libxslt1-dev
+  #         python -m pip install --upgrade pip
+  #         pip install coverage coveralls
+  #         pip install -r requirements.txt
+  #         pip install -r test-requirements.txt
+
+  #     - name: Run Check Scripts
+  #       run: |
+  #         pytest test --verbosity=3 --cov=ncclient
+
+  check:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        python-version: ['3.7.17', '3.8.17', '3.9.17', '3.10.12', '3.11.4']
     steps:
       - uses: actions/checkout@v3
         with:
