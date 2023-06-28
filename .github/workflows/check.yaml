@@ -46,6 +46,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
+          apt install -y libxml2 libxslt
           python -m pip install --upgrade pip
           pip install coverage coveralls
           pip install -r requirements.txt
