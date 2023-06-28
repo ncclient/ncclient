@@ -54,12 +54,9 @@ def get_config():
 class NotThisMethod(Exception):
     """Exception raised if a method is not valid for the current scenario."""
 
-if sys.version_info < (3, 6):
-    LONG_VERSION_PY = {}
-    HANDLERS = {}
-else:
-    LONG_VERSION_PY: Dict[str, str] = {}
-    HANDLERS: Dict[str, Dict[str, Callable]] = {}
+
+LONG_VERSION_PY: Dict[str, str] = {}
+HANDLERS: Dict[str, Dict[str, Callable]] = {}
 
 
 def register_vcs_handler(vcs, method):  # decorator
