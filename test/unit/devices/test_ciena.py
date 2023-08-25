@@ -3,10 +3,10 @@ from ncclient.devices.ciena import *
 from ncclient.xml_ import *
 
 
-class TestAluDevice(unittest.TestCase):
+class TestCienaDevice(unittest.TestCase):
     
     def setUp(self):
-        self.obj = AluDeviceHandler({'name': 'alu'})
+        self.obj = CienaDeviceHandler({'name': 'ciena'})
 
     def test_get_xml_base_namespace_dict(self):
         expected = {None: BASE_NS_1_0}
