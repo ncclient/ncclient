@@ -10,11 +10,6 @@ class CienaDeviceHandler(DefaultDeviceHandler):
     def __init__(self, device_params):
         super(CienaDeviceHandler, self).__init__(device_params)
 
-    def get_capabilities(self):
-        return [
-            "urn:ietf:params:netconf:base:1.0",
-        ]
-
     def get_xml_base_namespace_dict(self):
         return {None: BASE_NS_1_0}
 
