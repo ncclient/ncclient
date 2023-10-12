@@ -39,8 +39,10 @@ class TestSrosDevice(unittest.TestCase):
         self.obj = SrosDeviceHandler({'name': 'sros'})
 
     def test_add_additional_operations(self):
-        expected = dict()
-        expected['md_cli_raw_command'] = MdCliRawCommand
+        expected = {
+            'md_cli_raw_command': MdCliRawCommand,
+            'commit': Commit,
+        }
         self.assertDictEqual(expected, self.obj.add_additional_operations())
 
     def test_transform_reply(self):
