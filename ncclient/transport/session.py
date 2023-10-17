@@ -218,6 +218,27 @@ class Session(Thread):
             self._transport_register(s, selectors.EVENT_READ)
             self.logger.debug('selector type = %s', s.__class__.__name__)
             while True:
+                
+                # for huawei fireworks, you need change NetconfBase.BASE_11, when you received device return.
+                # in gevent , the function _post_connect's init_event.wait(timeout) can not work.
+                # you can add gevent.sleep(0.1) before(or replace) init_event.wait(timeout) .
+                # or change the order of the send and receive.
+                # when you send first, the self._base woun't change NetconfBase.BASE_11.
+                
+                if not q.empty() and self._send_ready():
+                    self.logger.debug("Sending message")
+                    data = q.get().encode()
+                    if self._base == NetconfBase.BASE_11:
+                        data = b"%s%s%s" % (start_delim(len(data)), data, END_DELIM)
+                    else:
+                        data = b"%s%s" % (data, MSG_DELIM)
+                    self.logger.info("Sending:\n%s", data)
+                    while data:
+                        n = self._transport_write(data)
+                        if n <= 0:
+                            raise SessionCloseError(self._buffer.getvalue(), data)
+                        data = data[n:]
+                        
                 events = s.select(timeout=TICK)
                 if events:
                     data = self._transport_read()
@@ -234,19 +255,6 @@ class Session(Thread):
                     else:
                         # End of session, unexpected
                         raise SessionCloseError(self._buffer.getvalue())
-                if not q.empty() and self._send_ready():
-                    self.logger.debug("Sending message")
-                    data = q.get().encode()
-                    if self._base == NetconfBase.BASE_11:
-                        data = b"%s%s%s" % (start_delim(len(data)), data, END_DELIM)
-                    else:
-                        data = b"%s%s" % (data, MSG_DELIM)
-                    self.logger.info("Sending:\n%s", data)
-                    while data:
-                        n = self._transport_write(data)
-                        if n <= 0:
-                            raise SessionCloseError(self._buffer.getvalue(), data)
-                        data = data[n:]
         except Exception as e:
             self.logger.debug("Broke out of main loop, error=%r", e)
             self._dispatch_error(e)
