@@ -219,12 +219,6 @@ class Session(Thread):
             self.logger.debug('selector type = %s', s.__class__.__name__)
             while True:
                 
-                # for huawei fireworks, you need change NetconfBase.BASE_11, when you received device return.
-                # in gevent , the function _post_connect's init_event.wait(timeout) can not work.
-                # you can add gevent.sleep(0.1) before(or replace) init_event.wait(timeout) .
-                # or change the order of the send and receive.
-                # when you send first, the self._base woun't change NetconfBase.BASE_11.
-                
                 if not q.empty() and self._send_ready():
                     self.logger.debug("Sending message")
                     data = q.get().encode()
