@@ -191,7 +191,7 @@ def call_home(*args, **kwds):
     port = kwds.get("port",4334)
     srv_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     srv_socket.bind((host, port))
-    srv_socket.settimeout(10)
+    srv_socket.settimeout(kwds.get("timeout", 10))
     srv_socket.listen()
 
     sock, remote_host = srv_socket.accept()
