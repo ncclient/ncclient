@@ -63,6 +63,7 @@ class Session(Thread):
         self._base = NetconfBase.BASE_10
         self._id = None # session-id
         self._connected = False # to be set/cleared by subclass implementation
+        self.has_event_listener = False
         self.logger = SessionLoggerAdapter(logger, {'session': self})
         self.logger.debug('%r created: client_capabilities=%r',
                           self, self._client_capabilities)
@@ -111,7 +112,8 @@ class Session(Thread):
         def err_cb(err):
             error[0] = err
             init_event.set()
-        self.add_listener(NotificationHandler(self._notification_q))
+        # commented out in favor of conditional addition of listener
+        # self.add_listener(NotificationHandler(self._notification_q))
         listener = HelloHandler(ok_cb, err_cb)
         self.add_listener(listener)
         self.send(HelloHandler.build(self._client_capabilities, self._device_handler))
@@ -367,7 +369,7 @@ class HelloHandler(SessionListener):
             elif child.tag == qualify("capabilities") or child.tag == "capabilities" :
                 for cap in child.getchildren():
                     if cap.tag == qualify("capability") or cap.tag == "capability":
-                        capabilities.append(cap.text)
+                        capabilities.append(cap.text.strip())
         return sid, Capabilities(capabilities)
 
 
