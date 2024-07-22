@@ -12,15 +12,10 @@
 
 import logging
 import socket
-import sys
 import threading
+from io import BytesIO as StringIO
 
 from socket import AF_UNIX, SOCK_STREAM
-
-if sys.version < '3':
-    from six import StringIO
-else:
-    from io import BytesIO as StringIO
 
 from ncclient.capabilities import Capabilities
 from ncclient.logging_ import SessionLoggerAdapter
@@ -30,7 +25,6 @@ from ncclient.transport.parser import DefaultXMLParser
 
 logger = logging.getLogger("ncclient.transport.unix")
 
-DEFAULT_SOCKET_PATH = "/tmp/socket.sock"
 DEFAULT_TIMEOUT = 120
 
 BUF_SIZE = 4096
@@ -61,7 +55,7 @@ class UnixSocketSession(Session):
         self._socket.close()
         self._connected = False
 
-    def connect(self, path=DEFAULT_SOCKET_PATH, timeout=DEFAULT_TIMEOUT):
+    def connect(self, path=None, timeout=DEFAULT_TIMEOUT):
         sock = socket.socket(AF_UNIX, SOCK_STREAM)
         sock.settimeout(timeout)
 
