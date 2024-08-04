@@ -53,3 +53,6 @@ class NetconfFramingError(TransportError):
 
 class TLSError(TransportError):
     pass
+
+class UnixSocketError (TransportError):
+    pass
