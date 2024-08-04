@@ -158,7 +158,7 @@ def connect_tls(*args, **kwargs):
 
     return Manager(session, device_handler, **manager_params)
 
-def connect_UnixSocket(*args, **kwargs):
+def connect_uds(*args, **kwargs):
     """Initialize a :class:`Manager` over the Unix Socket transport."""
     device_params = _extract_device_params(kwargs)
     manager_params = _extract_manager_params(kwargs)

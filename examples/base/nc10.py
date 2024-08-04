@@ -16,7 +16,7 @@ warnings.simplefilter("ignore", DeprecationWarning)
 from ncclient import manager
 
 def demo(path):
-    with manager.connect_UnixSocket(path) as m:
+    with manager.connect_uds(path) as m:
         for c in m.server_capabilities:
             print(c)
 
