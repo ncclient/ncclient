@@ -5,8 +5,8 @@ import time
 from ncclient import manager
 
 # Device connection details
-DEVICE_HOST = '62.40.111.58'
-DEVICE_PORT = 3830
+DEVICE_HOST = 'localhost'
+DEVICE_PORT = 830
 DEVICE_USER = 'admin'
 DEVICE_PASS = 'admin'
 
