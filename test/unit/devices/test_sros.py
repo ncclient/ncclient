@@ -1,7 +1,8 @@
 import unittest
 
-from ncclient.devices.sros import *
-from ncclient.xml_ import *
+from ncclient.devices.sros import SrosDeviceHandler, ConfigMode
+from ncclient.xml_ import to_ele, to_xml, BASE_NS_1_0
+from ncclient.operations.third_party.sros.rpc import MdCliRawCommand, Commit
 
 capabilities = ['urn:ietf:params:netconf:base:1.0',
                 'urn:ietf:params:netconf:base:1.1',
@@ -36,32 +37,39 @@ Built on Fri Oct 2 18:11:20 PDT 2020 by builder in /builds/c/2010B/B1-5/panos/ma
 class TestSrosDevice(unittest.TestCase):
 
     def setUp(self):
-        self.obj = SrosDeviceHandler({'name': 'sros'})
+        self.device_handler = SrosDeviceHandler({'name': 'sros'})
 
     def test_add_additional_operations(self):
         expected = {
             'md_cli_raw_command': MdCliRawCommand,
             'commit': Commit,
         }
-        self.assertDictEqual(expected, self.obj.add_additional_operations())
+        self.assertDictEqual(expected, self.device_handler.add_additional_operations())
 
     def test_transform_reply(self):
         expected = xml
-        actual = self.obj.transform_reply()
+        actual = self.device_handler.transform_reply()
         ele = to_ele(xml)
         self.assertEqual(expected, to_xml(actual(ele)))
 
-    def test_get_capabilities(self):
-        self.assertListEqual(capabilities, self.obj.get_capabilities())
+    def test_get_capabilities_without_config_mode(self):
+        """Test capabilities without 'config_mode' set"""
+        self.assertListEqual(capabilities, self.device_handler.get_capabilities())
+
+    def test_get_capabilities_with_config_mode_private(self):
+        """Test capabilities when 'config_mode' is set to 'private'"""
+        device_handler = SrosDeviceHandler({'name': 'sros', 'config_mode': ConfigMode.PRIVATE})
+        expected_capabilities = capabilities + ['urn:nokia.com:nc:pc']
+        self.assertListEqual(expected_capabilities, device_handler.get_capabilities())
 
     def test_get_xml_base_namespace_dict(self):
         expected = {None: BASE_NS_1_0}
-        self.assertDictEqual(expected, self.obj.get_xml_base_namespace_dict())
+        self.assertDictEqual(expected, self.device_handler.get_xml_base_namespace_dict())
 
     def test_get_xml_extra_prefix_kwargs(self):
         expected = dict()
-        expected['nsmap'] = self.obj.get_xml_base_namespace_dict()
-        self.assertDictEqual(expected, self.obj.get_xml_extra_prefix_kwargs())
+        expected['nsmap'] = self.device_handler.get_xml_base_namespace_dict()
+        self.assertDictEqual(expected, self.device_handler.get_xml_extra_prefix_kwargs())
 
     def test_perform_qualify_check(self):
-        self.assertFalse(self.obj.perform_qualify_check())
+        self.assertFalse(self.device_handler.perform_qualify_check())
