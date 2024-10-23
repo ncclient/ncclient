@@ -406,17 +406,16 @@ class SSHSession(Session):
         saved_exception = None
 
         for key_filename in key_filenames:
-            for cls in (paramiko.RSAKey, paramiko.DSSKey, paramiko.ECDSAKey, paramiko.Ed25519Key):
-                try:
-                    key = cls.from_private_key_file(key_filename, password)
-                    self.logger.debug("Trying key %s from %s",
-                                      hexlify(key.get_fingerprint()),
-                                      key_filename)
-                    self._transport.auth_publickey(username, key)
-                    return
-                except Exception as e:
-                    saved_exception = e
-                    self.logger.debug(e)
+            try:
+                key = paramiko.PKey.from_path(key_filename, password.encode("utf-8"))
+                self.logger.debug("Trying key %s from %s",
+                                  hexlify(key.get_fingerprint()),
+                                  key_filename)
+                self._transport.auth_publickey(username, key)
+                return
+            except Exception as e:
+                saved_exception = e
+                self.logger.debug(e)
 
         if allow_agent:
             # resequence keys from agent using private key names
