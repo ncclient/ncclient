@@ -14,8 +14,8 @@ class SrosDeviceHandler(DefaultDeviceHandler):
     Nokia SR OS handler for device specific information.
     """
 
-    def __init__(self, device_params):
-        super(SrosDeviceHandler, self).__init__(device_params)
+    def __init__(self, device_params, ignore_errors=None):
+        super(SrosDeviceHandler, self).__init__(device_params, ignore_errors)
 
     def get_capabilities(self):
         """Set SR OS device handler client capabilities

@@ -58,7 +58,7 @@ operations to the :class:`Manager` API.
 """
 
 
-def make_device_handler(device_params):
+def make_device_handler(device_params, ignore_errors=None):
     """
     Create a device handler object that provides device specific parameters and
     functions, which are called in various places throughout our code.
@@ -72,7 +72,7 @@ def make_device_handler(device_params):
 
     handler = device_params.get('handler', None)
     if handler:
-        return handler(device_params)
+        return handler(device_params, ignore_errors)
 
     device_name = device_params.get("name", "default")
     # Attempt to import device handler class. All device handlers are
@@ -83,7 +83,7 @@ def make_device_handler(device_params):
     dev_module_obj      = __import__(devices_module_name)
     handler_module_obj  = getattr(getattr(dev_module_obj, "devices"), device_name)
     class_obj           = getattr(handler_module_obj, class_name)
-    handler_obj         = class_obj(device_params)
+    handler_obj         = class_obj(device_params, ignore_errors)
     return handler_obj
 
 
@@ -91,6 +91,13 @@ def _extract_device_params(kwds):
     device_params = kwds.pop("device_params", None)
 
     return device_params
+
+def _extract_errors_params(kwds):
+    errors_params = kwds.pop("errors_params", {})
+    return (
+        errors_params.get("ignore_errors", []),
+        errors_params.get("raise_mode", operations.RaiseMode.ALL)
+    )
 
 def _extract_manager_params(kwds):
     manager_params = kwds.pop("manager_params", {})
@@ -123,14 +130,23 @@ def connect_ssh(*args, **kwds):
     A custom device handler can be provided with
     `device_params={'handler':<handler class>}` in connection parameters.
 
+    To specify errors to be be ignored in the RPC reply add
+    `errors_params={'ignore_errors': ['error pattern to ignore']}` in connection parameters.
+
+    To control the error raising mode add `raise_mode` in the `errors_params`
+    (e.g. `errors_params={'raise_mode': 0}` for ignoring all RPC errors)
+    See :class:`ncclient.operations.rpc.RaiseMode` for valid values of `raise_mode`
+
     """
     # Extract device/manager/netconf parameter dictionaries, if they were passed into this function.
     # Remove them from kwds (which should keep only session.connect() parameters).
     device_params = _extract_device_params(kwds)
     manager_params = _extract_manager_params(kwds)
     nc_params = _extract_nc_params(kwds)
+    ignore_errors, raise_mode = _extract_errors_params(kwds)
+    manager_params["raise_mode"] = raise_mode
 
-    device_handler = make_device_handler(device_params)
+    device_handler = make_device_handler(device_params, ignore_errors)
     device_handler.add_additional_ssh_connect_params(kwds)
     device_handler.add_additional_netconf_params(nc_params)
     session = transport.SSHSession(device_handler)
@@ -149,8 +165,10 @@ def connect_tls(*args, **kwargs):
     device_params = _extract_device_params(kwargs)
     manager_params = _extract_manager_params(kwargs)
     nc_params = _extract_nc_params(kwargs)
+    ignore_errors, raise_mode = _extract_errors_params(kwargs)
+    manager_params["raise_mode"] = raise_mode
 
-    device_handler = make_device_handler(device_params)
+    device_handler = make_device_handler(device_params, ignore_errors)
     device_handler.add_additional_netconf_params(nc_params)
     session = transport.TLSSession(device_handler)
 
@@ -163,8 +181,10 @@ def connect_uds(*args, **kwargs):
     device_params = _extract_device_params(kwargs)
     manager_params = _extract_manager_params(kwargs)
     nc_params = _extract_nc_params(kwargs)
+    ignore_errors, raise_mode = _extract_errors_params(kwargs)
+    manager_params["raise_mode"] = raise_mode
 
-    device_handler = make_device_handler(device_params)
+    device_handler = make_device_handler(device_params, ignore_errors)
     device_handler.add_additional_netconf_params(nc_params)
     session = transport.UnixSocketSession(device_handler)
 
@@ -175,13 +195,15 @@ def connect_uds(*args, **kwargs):
 def connect_ioproc(*args, **kwds):
     device_params = _extract_device_params(kwds)
     manager_params = _extract_manager_params(kwds)
+    ignore_errors, raise_mode = _extract_errors_params(kwds)
+    manager_params["raise_mode"] = raise_mode
 
     if device_params:
         import_string = 'ncclient.transport.third_party.'
         import_string += device_params['name'] + '.ioproc'
         third_party_import = __import__(import_string, fromlist=['IOProc'])
 
-    device_handler = make_device_handler(device_params)
+    device_handler = make_device_handler(device_params, ignore_errors)
 
     session = third_party_import.IOProc(device_handler)
     session.connect()
@@ -238,11 +260,11 @@ class Manager(object):
     HUGE_TREE_DEFAULT = False
     """Default for `huge_tree` support for XML parsing of RPC replies (defaults to False)"""
 
-    def __init__(self, session, device_handler, timeout=30):
+    def __init__(self, session, device_handler, timeout=30, raise_mode=operations.RaiseMode.ALL):
         self._session = session
         self._async_mode = False
         self._timeout = timeout
-        self._raise_mode = operations.RaiseMode.ALL
+        self._raise_mode = raise_mode
         self._huge_tree = self.HUGE_TREE_DEFAULT
         self._device_handler = device_handler
         self._vendor_operations = {}
