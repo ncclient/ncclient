@@ -454,30 +454,30 @@ class SSHSession(Session):
             ecdsa_key = os.path.expanduser("~/.ssh/id_ecdsa")
             ed25519_key = os.path.expanduser("~/.ssh/id_ed25519")
             if os.path.isfile(rsa_key):
-                keyfiles.append((paramiko.RSAKey, rsa_key))
+                keyfiles.append(rsa_key)
             if os.path.isfile(dsa_key):
-                keyfiles.append((paramiko.DSSKey, dsa_key))
+                keyfiles.append(dsa_key)
             if os.path.isfile(ecdsa_key):
-                keyfiles.append((paramiko.ECDSAKey, ecdsa_key))
+                keyfiles.append(ecdsa_key)
             if os.path.isfile(ed25519_key):
-                keyfiles.append((paramiko.Ed25519Key, ed25519_key))
+                keyfiles.append(ed25519_key)
             # look in ~/ssh/ for windows users:
             rsa_key = os.path.expanduser("~/ssh/id_rsa")
             dsa_key = os.path.expanduser("~/ssh/id_dsa")
             ecdsa_key = os.path.expanduser("~/ssh/id_ecdsa")
             ed25519_key = os.path.expanduser("~/ssh/id_ed25519")
             if os.path.isfile(rsa_key):
-                keyfiles.append((paramiko.RSAKey, rsa_key))
+                keyfiles.append(rsa_key)
             if os.path.isfile(dsa_key):
-                keyfiles.append((paramiko.DSSKey, dsa_key))
+                keyfiles.append(dsa_key)
             if os.path.isfile(ecdsa_key):
-                keyfiles.append((paramiko.ECDSAKey, ecdsa_key))
+                keyfiles.append(ecdsa_key)
             if os.path.isfile(ed25519_key):
-                keyfiles.append((paramiko.Ed25519Key, ed25519_key))
+                keyfiles.append(ed25519_key)
 
-        for cls, filename in keyfiles:
+        for filename in keyfiles:
             try:
-                key = cls.from_private_key_file(filename, password)
+                key = paramiko.PKey.from_path(filename, password.encode("utf-8"))
                 self.logger.debug("Trying discovered key %s in %s",
                                   hexlify(key.get_fingerprint()), filename)
                 self._transport.auth_publickey(username, key)
