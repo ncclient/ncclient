@@ -116,13 +116,13 @@ def enable_vlan(mgr, vlanid, vlanname):
 def enable_vlan_on_trunk_int(mgr, interface, vlanid):
     confstr = cmd_vlan_int_snippet % (interface, vlanid)
     confstr = exec_conf_prefix + confstr + exec_conf_postfix
-    print confstr
+    print(confstr)
     mgr.edit_config(target='running', config=confstr)
 
 
 def disable_vlan_on_trunk_int(mgr, interface, vlanid):
     confstr = cmd_no_vlan_int_snippet % (interface, vlanid)
-    print confstr
+    print(confstr)
     mgr.edit_config(target='running', config=confstr)
 
 

@@ -17,11 +17,11 @@ import base64
 import getpass
 import os
 import re
-import six
 import sys
 import socket
 import threading
 from binascii import hexlify
+from io import BytesIO as StringIO
 
 try:
     import selectors
@@ -75,12 +75,6 @@ def _colonify(fp):
     for idx in range(2, len(fp), 2):
         finga += ":" + fp[idx:idx+2]
     return finga
-
-
-if sys.version < '3':
-    from six import StringIO
-else:
-    from io import BytesIO as StringIO
 
 
 class SSHSession(Session):
@@ -263,7 +257,7 @@ class SSHSession(Session):
             proxycommand = config.get("proxycommand")
             if proxycommand:
                 self.logger.debug("Configuring Proxy. %s", proxycommand)
-                if not isinstance(proxycommand, six.string_types):
+                if not isinstance(proxycommand, str):
                   proxycommand = [os.path.expanduser(elem) for elem in proxycommand]
                 else:
                   proxycommand = os.path.expanduser(proxycommand)
@@ -287,11 +281,7 @@ class SSHSession(Session):
                 else:
                     raise SSHError("Could not open socket to %s:%s" % (host, port))
         elif sock is None:
-            if sys.version_info[0] < 3:
-                s = socket.fromfd(int(sock_fd), socket.AF_INET, socket.SOCK_STREAM)
-                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, _sock=s)
-            else:
-                sock = socket.fromfd(int(sock_fd), socket.AF_INET, socket.SOCK_STREAM)
+            sock = socket.fromfd(int(sock_fd), socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(timeout)
 
         self._transport = paramiko.Transport(sock)

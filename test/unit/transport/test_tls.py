@@ -16,11 +16,7 @@ import ssl
 import sys
 import unittest
 import socket
-
-try:
-    from unittest.mock import MagicMock, patch, call
-except ImportError:
-    from mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch, call
 
 try:
     from ssl import PROTOCOL_TLS_CLIENT

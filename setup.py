@@ -18,7 +18,6 @@ from setuptools import setup, find_packages
 from distutils.command.install import install as _install
 
 import sys
-import platform
 import codecs
 import versioneer
 
@@ -26,8 +25,8 @@ __author__ = "Shikhar Bhushan, Leonidas Poulopoulos, Ebben Aries, Einar Nilsen-N
 __author_email__ = "shikhar@schmizz.net, lpoulopoulos@verisign.com, exa@dscp.org, einarnn@gmail.com"
 __licence__ = "Apache 2.0"
 
-if sys.version_info.major == 2 and sys.version_info.minor < 7:
-    print ("Sorry, Python < 2.7 is not supported")
+if sys.version_info.major == 2 or sys.version_info.minor < 5:
+    print ("Sorry, Python < 3.5 is not supported")
     exit()
 
 #parse requirements
@@ -55,10 +54,9 @@ setup(name='ncclient',
       license=__licence__,
       platforms=["Posix; OS X; Windows"],
       keywords=['NETCONF', 'NETCONF Python client', 'Juniper Optimization', 'Cisco NXOS Optimization'],
-      python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*',
+      python_requires='>=3.5',
       classifiers=[
           'Development Status :: 5 - Production/Stable',
-          'Programming Language :: Python :: 2.7',
           'Programming Language :: Python :: 3.5',
           'Programming Language :: Python :: 3.6',
           'Programming Language :: Python :: 3.7',

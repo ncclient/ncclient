@@ -1,10 +1,7 @@
 import os
-
 import unittest
-try:
-    from unittest.mock import patch  # Python 3.4 and later
-except ImportError:
-    from mock import patch
+from unittest.mock import patch
+
 import paramiko
 
 from ncclient import manager
@@ -21,7 +18,6 @@ except ImportError:
 
 class TestSession(unittest.TestCase):
 
-    @unittest.skipIf(sys.version_info.major == 2, "test not supported < Python3")
     @patch('ncclient.transport.SSHSession.connected')
     @patch('paramiko.channel.Channel.send_ready')
     @patch('paramiko.channel.Channel.send')
@@ -50,7 +46,6 @@ class TestSession(unittest.TestCase):
         # as filter_xml is not having software-information, response wont contain it
         self.assertEqual(len(resp.xpath('multi-routing-engine-item/software-information')), 0)
 
-    @unittest.skipIf(sys.version_info.major == 2, "test not supported < Python3")
     @patch('ncclient.transport.SSHSession.connected')
     @patch('paramiko.channel.Channel.send_ready')
     @patch('paramiko.channel.Channel.send')
@@ -81,7 +76,6 @@ class TestSession(unittest.TestCase):
         # as filter_xml is not having software-information, response wont contain it
         self.assertEqual(len(resp.xpath('multi-routing-engine-item/software-information')), 0)
         
-    @unittest.skipIf(sys.version_info.major == 2, "test not supported < Python3")
     @patch('ncclient.transport.SSHSession.connected')
     @patch('paramiko.channel.Channel.send_ready')
     @patch('paramiko.channel.Channel.send')
@@ -111,7 +105,6 @@ class TestSession(unittest.TestCase):
         self.assertEqual(len(resp.xpath('multi-routing-engine-item/re-name')), 2)
         self.assertEqual(len(resp.xpath('multi-routing-engine-item/software-information')), 0)
 
-    @unittest.skipIf(sys.version_info.major == 2, "test not supported < Python3")
     @patch('ncclient.transport.SSHSession.connected')
     @patch('paramiko.channel.Channel.send_ready')
     @patch('paramiko.channel.Channel.send')
@@ -143,7 +136,6 @@ class TestSession(unittest.TestCase):
         self.assertEqual(len(resp.xpath('multi-routing-engine-item/re-name')), 2)
         self.assertEqual(len(resp.xpath('multi-routing-engine-item/software-information')), 0)
 
-        @unittest.skipIf(sys.version_info.major == 2, "test not supported < Python3")
         @patch('ncclient.transport.SSHSession.connected')
         @patch('paramiko.channel.Channel.send_ready')
         @patch('paramiko.channel.Channel.send')
@@ -229,7 +221,6 @@ class TestSession(unittest.TestCase):
             resp = obj.request(rpc)._NCElement__doc[0]
             self.assertEqual(len(resp.xpath('pfe-traffic-statistics')), 1)
 
-    @unittest.skipIf(sys.version_info.major == 2, "test not supported < Python3")
     @patch('ncclient.transport.SSHSession.connected')
     @patch('paramiko.channel.Channel.send_ready')
     @patch('paramiko.channel.Channel.send')
@@ -261,7 +252,6 @@ class TestSession(unittest.TestCase):
         self.assertEqual(len(resp.xpath('multi-routing-engine-item/re-name')), 2)
         self.assertEqual(len(resp.xpath('multi-routing-engine-item/software-information')), 0)
 
-    @unittest.skipIf(sys.version_info.major == 2, "test not supported < Python3")
     @patch('ncclient.transport.SSHSession.connected')
     @patch('paramiko.channel.Channel.send_ready')
     @patch('paramiko.channel.Channel.send')
@@ -292,7 +282,6 @@ class TestSession(unittest.TestCase):
         self.assertEqual(len(resp.xpath('multi-routing-engine-item/re-name')), 2)
         self.assertEqual(len(resp.xpath('multi-routing-engine-item/software-information')), 2)
 
-    @unittest.skipIf(sys.version_info.major == 2, "test not supported < Python3")
     @patch('ncclient.transport.SSHSession.connected')
     @patch('paramiko.channel.Channel.send_ready')
     @patch('paramiko.channel.Channel.send')

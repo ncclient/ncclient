@@ -1,9 +1,7 @@
-from ncclient.operations.rpc import *
 import unittest
-try:
-    from unittest.mock import patch  # Python 3.4 and later
-except ImportError:
-    from mock import patch
+from unittest.mock import patch
+
+from ncclient.operations.rpc import *
 from ncclient import manager
 import ncclient.manager
 import ncclient.transport
@@ -11,12 +9,8 @@ from ncclient.xml_ import *
 from ncclient.operations import RaiseMode
 from ncclient.capabilities import Capabilities
 from xml.sax.saxutils import escape
-import sys
 
-if sys.version >= '3':
-    patch_str = 'ncclient.operations.rpc.Event.is_set'
-else:
-    patch_str = 'threading._Event.is_set'
+patch_str = 'ncclient.operations.rpc.Event.is_set'
 
 xml1 = """<rpc-reply xmlns:junos="http://xml.juniper.net/junos/12.1X46/junos">
     <ok/>

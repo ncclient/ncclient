@@ -49,7 +49,7 @@ class Unlock(RPC):
         return self._request(node)
 
 
-class LockContext(object):
+class LockContext:
 
     """A context manager for the :class:`Lock` / :class:`Unlock` pair of RPC's.
 

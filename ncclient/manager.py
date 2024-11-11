@@ -212,7 +212,7 @@ def call_home(*args, **kwds):
     kwds['sock'] = sock
     return connect_ssh(*args, **kwds)
 
-class Manager(object):
+class Manager:
 
     """
     For details on the expected behavior of the operations and their
