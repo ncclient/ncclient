@@ -95,7 +95,6 @@ class TestRetrieve(unittest.TestCase):
             "only supports the following: explicit, report-all, trim"
         )
         self.assertRaisesRegex(
-            self,
             WithDefaultsError,
             expected_error,
             obj.request,
