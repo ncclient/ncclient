@@ -26,7 +26,7 @@ __author__ = "Shikhar Bhushan, Leonidas Poulopoulos, Ebben Aries, Einar Nilsen-N
 __author_email__ = "shikhar@schmizz.net, lpoulopoulos@verisign.com, exa@dscp.org, einarnn@gmail.com"
 __licence__ = "Apache 2.0"
 
-if sys.version_info.major == 3 and sys.version_info.minor < 3:
+if sys.version_info.major == 3 and sys.version_info.minor < 5:
     print ("Sorry, Python < 3.5 is not supported")
     exit()
 
