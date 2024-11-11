@@ -35,8 +35,8 @@ class NexusDeviceHandler(DefaultDeviceHandler):
                                             # name for VLAN)
     ]
 
-    def __init__(self, device_params):
-        super(NexusDeviceHandler, self).__init__(device_params)
+    def __init__(self, device_params, ignore_errors=None):
+        super(NexusDeviceHandler, self).__init__(device_params, ignore_errors)
 
     def add_additional_operations(self):
         dict = {}

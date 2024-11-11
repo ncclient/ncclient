@@ -30,8 +30,8 @@ class IosxeDeviceHandler(DefaultDeviceHandler):
     Cisco IOS-XE handler for device specific information.
 
     """
-    def __init__(self, device_params):
-        super(IosxeDeviceHandler, self).__init__(device_params)
+    def __init__(self, device_params, ignore_errors=None):
+        super(IosxeDeviceHandler, self).__init__(device_params, ignore_errors)
 
     def add_additional_operations(self):
         dict = {}

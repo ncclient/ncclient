@@ -37,8 +37,8 @@ class JunosDeviceHandler(DefaultDeviceHandler):
 
     """
 
-    def __init__(self, device_params):
-        super(JunosDeviceHandler, self).__init__(device_params)
+    def __init__(self, device_params, ignore_errors=None):
+        super(JunosDeviceHandler, self).__init__(device_params, ignore_errors)
         self.__reply_parsing_error_transform_by_cls = {
             GetSchemaReply: fix_get_schema_reply
         }
