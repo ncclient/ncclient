@@ -164,7 +164,7 @@ class TestSSH(unittest.TestCase):
             obj._auth,'user', None, [], True, False)
 
     @patch('paramiko.transport.Transport.auth_publickey')
-    @patch('paramiko.pkey.PKey.from_private_key_file')
+    @patch('paramiko.PKey.from_path')
     def test_auth_keyfiles(self, mock_get_key, mock_auth_public_key):
         key = paramiko.PKey()
         mock_get_key.return_value = key
@@ -177,7 +177,7 @@ class TestSSH(unittest.TestCase):
             key.__repr__())
 
     @patch('paramiko.transport.Transport.auth_publickey')
-    @patch('paramiko.pkey.PKey.from_private_key_file')
+    @patch('paramiko.PKey.from_path')
     def test_auth_keyfiles_exception(self, mock_get_key, mock_auth_public_key):
         key = paramiko.PKey()
         mock_get_key.side_effect = paramiko.ssh_exception.PasswordRequiredException
@@ -189,7 +189,7 @@ class TestSSH(unittest.TestCase):
 
     @patch('os.path.isfile')
     @patch('paramiko.transport.Transport.auth_publickey')
-    @patch('paramiko.pkey.PKey.from_private_key_file')
+    @patch('paramiko.PKey.from_path')
     def test_auth_default_keyfiles(self, mock_get_key, mock_auth_public_key,
                                    mock_is_file):
         key = paramiko.PKey()
@@ -205,7 +205,7 @@ class TestSSH(unittest.TestCase):
 
     @patch('os.path.isfile')
     @patch('paramiko.transport.Transport.auth_publickey')
-    @patch('paramiko.pkey.PKey.from_private_key_file')
+    @patch('paramiko.PKey.from_path')
     def test_auth_default_keyfiles_exception(self, mock_get_key,
                                              mock_auth_public_key, mock_is_file):
         key = paramiko.PKey()
