@@ -44,7 +44,7 @@ class RPCError(OperationError):
         if errs is None:
             # Single RPCError
             self._errlist = None
-            for attr in six.itervalues(RPCError.tag_to_attr):
+            for attr in RPCError.tag_to_attr.values():
                 setattr(self, attr, None)
             for subele in raw:
                 attr = RPCError.tag_to_attr.get(subele.tag, None)
@@ -79,7 +79,7 @@ class RPCError(OperationError):
             OperationError.__init__(self, self.message)
 
     def to_dict(self):
-        return dict([ (attr[1:], getattr(self, attr)) for attr in six.itervalues(RPCError.tag_to_attr) ])
+        return dict([ (attr[1:], getattr(self, attr)) for attr in RPCError.tag_to_attr.values() ])
 
     @property
     def xml(self):
@@ -128,7 +128,7 @@ class RPCError(OperationError):
         return self._errlist
 
 
-class RPCReply(object):
+class RPCReply:
 
     """Represents an *rpc-reply*. Only concerns itself with whether the operation was successful.
 
@@ -173,8 +173,7 @@ class RPCReply(object):
         except Exception as e:
             if self._parsing_error_transform is None:
                 # re-raise as we have no workaround
-                exc_type, exc_value, exc_traceback = sys.exc_info()
-                six.reraise(exc_type, exc_value, exc_traceback)
+                raise e
 
             # Apply device specific workaround and try again
             self._parsing_error_transform(root)
@@ -263,13 +262,13 @@ class RPCReplyListener(SessionListener): # internal use
 
     def errback(self, err):
         try:
-            for rpc in six.itervalues(self._id2rpc):
+            for rpc in self._id2rpc.values():
                 rpc.deliver_error(err)
         finally:
             self._id2rpc.clear()
 
 
-class RaiseMode(object):
+class RaiseMode:
     """
     Define how errors indicated by RPC should be handled.
 
@@ -288,7 +287,7 @@ class RaiseMode(object):
     "Don't look at the `error-type`, always raise."
 
 
-class RPC(object):
+class RPC:
 
     """Base class for all operations, directly corresponding to *rpc* requests. Handles making the request, and taking delivery of the reply."""
 

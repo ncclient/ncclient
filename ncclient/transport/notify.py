@@ -14,7 +14,7 @@
 
 from ncclient.xml_ import to_ele
 
-class Notification(object):
+class Notification:
     def __init__(self, raw):
         self._raw = raw
         self._root_ele = to_ele(raw)

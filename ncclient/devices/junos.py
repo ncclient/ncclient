@@ -122,11 +122,7 @@ class JunosDeviceHandler(DefaultDeviceHandler):
         </xsl:template>
         </xsl:stylesheet>
         '''
-        import sys
-        if sys.version < '3':
-            return reply
-        else:
-            return reply.encode('UTF-8')
+        return reply.encode('UTF-8')
 
     def get_xml_parser(self, session):
         # use_filter in device_params can be used to enabled using SAX parsing

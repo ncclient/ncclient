@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
 import unittest
-try:
-    from unittest.mock import MagicMock, patch, call  # Python 3.4 and later
-except ImportError:
-    from mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch, call
+
 from ncclient.transport.ssh import SSHSession
 from ncclient.transport import AuthenticationError, SessionCloseError, NetconfBase
 import paramiko
 from ncclient.devices.junos import JunosDeviceHandler
-import sys
 
 try:
     import selectors
@@ -79,12 +76,8 @@ class TestSSH(unittest.TestCase):
                           expected_messages):
         device_handler = JunosDeviceHandler({'name': 'junos'})
         obj = SSHSession(device_handler)
-        if sys.version >= "3.0":
-            obj._buffer.write(bytes(reply, "utf-8"))
-            remainder = bytes(ok_chunk, "utf-8")
-        else:
-            obj._buffer.write(reply)
-            remainder = ok_chunk
+        obj._buffer.write(bytes(reply, "utf-8"))
+        remainder = bytes(ok_chunk, "utf-8")
         parsemethod(obj)
 
         for i in range(0, len(expected_messages)):
@@ -102,12 +95,8 @@ class TestSSH(unittest.TestCase):
     def test_parse11(self, mock_dispatch):
         device_handler = JunosDeviceHandler({'name': 'junos'})
         obj = SSHSession(device_handler)
-        if sys.version >= "3.0":
-            obj._buffer.write(bytes(rpc_reply11, "utf-8"))
-            remainder = bytes(reply_ok_partial_chunk, "utf-8")
-        else:
-            obj._buffer.write(rpc_reply11)
-            remainder = reply_ok_partial_chunk
+        obj._buffer.write(bytes(rpc_reply11, "utf-8"))
+        remainder = bytes(reply_ok_partial_chunk, "utf-8")
         obj.parser._parse11()
 
         expected_messages = [reply_data, reply_ok]
@@ -121,22 +110,14 @@ class TestSSH(unittest.TestCase):
     def test_parse_incomplete_delimiter(self, mock_dispatch):
         device_handler = JunosDeviceHandler({'name': 'junos'})
         obj = SSHSession(device_handler)
-        if sys.version >= "3.0":
-            b = bytes(rpc_reply_part_1, "utf-8")
-            obj._buffer.write(b)
-            obj._parse()
-            self.assertFalse(mock_dispatch.called)
-            b = bytes(rpc_reply_part_2, "utf-8")
-            obj._buffer.write(b)
-            obj._parse()
-            self.assertTrue(mock_dispatch.called)
-        else:
-            obj._buffer.write(rpc_reply_part_1)
-            obj._parse()
-            self.assertFalse(mock_dispatch.called)
-            obj._buffer.write(rpc_reply_part_2)
-            obj._parse()
-            self.assertTrue(mock_dispatch.called)
+        b = bytes(rpc_reply_part_1, "utf-8")
+        obj._buffer.write(b)
+        obj._parse()
+        self.assertFalse(mock_dispatch.called)
+        b = bytes(rpc_reply_part_2, "utf-8")
+        obj._buffer.write(b)
+        obj._parse()
+        self.assertTrue(mock_dispatch.called)
 
     @patch('paramiko.transport.Transport.auth_publickey')
     @patch('paramiko.agent.AgentSSH.get_keys')
@@ -321,7 +302,6 @@ class TestSSH(unittest.TestCase):
         hk_inst.load.assert_called_once_with('file_name')
         mock_os.mock_calls == [call('~/.ssh/config'), call('known_hosts_file')]
 
-    @unittest.skipIf(sys.version_info.major == 2, "test not supported < Python3")
     @patch('ncclient.transport.ssh.SSHSession.close')
     @patch('paramiko.channel.Channel.recv')
     @patch('selectors.DefaultSelector.select')
@@ -338,12 +318,10 @@ class TestSSH(unittest.TestCase):
                 mock_error.call_args_list[0][0][0],
                 SessionCloseError))
 
-    @unittest.skipIf(sys.version_info.major == 2, "test not supported < Python3")
     def test_run_send_py3_10(self):
         self._test_run_send_py3(NetconfBase.BASE_10,
                                 lambda msg: msg.encode() + b"]]>]]>")
 
-    @unittest.skipIf(sys.version_info.major == 2, "test not supported < Python3")
     def test_run_send_py3_11(self):
         def chunker(msg):
             encmsg = msg.encode()
@@ -369,23 +347,6 @@ class TestSSH(unittest.TestCase):
         obj._base = base
         obj.run()
         self.assertEqual(mock_send.call_args_list[0][0][0], chunker(msg))
-        self.assertTrue(
-            isinstance(
-                mock_error.call_args_list[0][0][0],
-                SessionCloseError))
-
-    @unittest.skipIf(sys.version_info.major >= 3, "test not supported >= Python3")
-    @patch('ncclient.transport.ssh.SSHSession.close')
-    @patch('paramiko.channel.Channel.recv')
-    @patch('selectors2.DefaultSelector')
-    @patch('ncclient.transport.ssh.Session._dispatch_error')
-    def test_run_receive_py2(self, mock_error, mock_selector, mock_recv, mock_close):
-        mock_selector.select.return_value = True
-        mock_recv.return_value = 0
-        device_handler = JunosDeviceHandler({'name': 'junos'})
-        obj = SSHSession(device_handler)
-        obj._channel = paramiko.Channel("c100")
-        obj.run()
         self.assertTrue(
             isinstance(
                 mock_error.call_args_list[0][0][0],

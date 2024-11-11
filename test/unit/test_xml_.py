@@ -1,8 +1,9 @@
-from ncclient import manager
-from ncclient.xml_ import *
 import unittest
 import os
 import sys
+
+from ncclient import manager
+from ncclient.xml_ import *
 file_path = os.path.join(os.getcwd(), "test", "unit", "reply1")
 
 
@@ -18,8 +19,7 @@ class Test_NCElement(unittest.TestCase):
         transform_reply = device_handler.transform_reply()
         result = NCElement(reply, transform_reply)
         result_str = result.tostring
-        if sys.version >= '3':
-            result_str = result_str.decode('UTF-8')
+        result_str = result_str.decode('UTF-8')
         self.assertEqual(str(result), result_str)
         #data_xml != tostring
         self.assertNotEqual(result_str, result.data_xml)
