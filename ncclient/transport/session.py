@@ -16,10 +16,8 @@
 
 import logging
 from threading import Thread, Lock, Event
-try:
-    from Queue import Queue, Empty
-except ImportError:
-    from queue import Queue, Empty
+from queue import Queue, Empty
+
 try:
     import selectors
 except ImportError:
@@ -42,7 +40,7 @@ END_DELIM = b'\n##\n'
 TICK = 0.1
 
 
-class NetconfBase(object):
+class NetconfBase:
     '''Netconf Base protocol version'''
     BASE_10 = 1
     BASE_11 = 2
@@ -292,7 +290,7 @@ class Session(Thread):
         return self._id
 
 
-class SessionListener(object):
+class SessionListener:
 
     """Base class for :class:`Session` listeners, which are notified when a new
     NETCONF message is received or an error occurs.
@@ -349,11 +347,7 @@ class HelloHandler(SessionListener):
         hello = new_ele("hello", **xml_namespace_kwargs)
         caps = sub_ele(hello, "capabilities")
         def fun(uri): sub_ele(caps, "capability").text = uri
-        #python3 changes
-        if sys.version < '3':
-            map(fun, capabilities)
-        else:
-            list(map(fun, capabilities))
+        list(map(fun, capabilities))
         return to_xml(hello)
 
     @staticmethod

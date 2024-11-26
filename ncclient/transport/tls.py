@@ -17,13 +17,9 @@ import socket
 import sys
 import threading
 
+from io import BytesIO as StringIO
 from socket import AF_INET, SOCK_STREAM
 from ssl import CERT_REQUIRED, SSLContext, SSLError
-
-if sys.version < '3':
-    from six import StringIO
-else:
-    from io import BytesIO as StringIO
 
 from ncclient.capabilities import Capabilities
 from ncclient.logging_ import SessionLoggerAdapter

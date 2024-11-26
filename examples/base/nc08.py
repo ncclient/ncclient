@@ -5,7 +5,7 @@
 # 
 # $ ./nc08.py Paulo Seguel
 
-import sys, os, warnings
+import sys, warnings
 warnings.simplefilter("ignore", DeprecationWarning)
 import datetime
 from ncclient import manager

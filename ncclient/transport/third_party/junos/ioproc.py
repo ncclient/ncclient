@@ -1,20 +1,12 @@
 import sys
 import re
-import six
-
-if sys.version < '3':
-    from cStringIO import StringIO
-else:
-    from io import BytesIO as StringIO
-if sys.version>='2.7':
-    from subprocess import Popen, check_output, PIPE, STDOUT
-else:
-    from subprocess import Popen, PIPE, STDOUT
+from io import BytesIO as StringIO
+from subprocess import Popen, check_output, PIPE, STDOUT
 
 from ncclient.transport.errors import SessionCloseError, TransportError, PermissionError
 from ncclient.transport.ssh import SSHSession
 
-MSG_DELIM = six.b("]]>]]>")
+MSG_DELIM = b"]]>]]>"
 NETCONF_SHELL = 'netconf'
 
 
