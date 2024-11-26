@@ -16,6 +16,7 @@ PATH = '/tmp/test_socket.sock'
 
 class TestUnixSocket(unittest.TestCase):
 
+    @unittest.skipIf(sys.platform.startswith('win'), "Skipping on Windows")
     @patch('socket.socket.close')
     def test_close_UnixSocket(self, mock_sock_close_fn):
         session = UnixSocketSession(MagicMock())
@@ -25,6 +26,7 @@ class TestUnixSocket(unittest.TestCase):
         mock_sock_close_fn.assert_called_once_with()
         self.assertFalse(session.connected)
 
+    @unittest.skipIf(sys.platform.startswith('win'), "Skipping on Windows")
     @patch('socket.socket')
     @patch('ncclient.transport.Session._post_connect')
     def test_connect_UnixSocket(self, mock_post_connect, mock_socket):
