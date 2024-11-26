@@ -14,10 +14,11 @@
 
 "Transport layer"
 
+import sys
+
 from ncclient.transport.session import Session, SessionListener, NetconfBase
 from ncclient.transport.ssh import SSHSession
 from ncclient.transport.tls import TLSSession
-from ncclient.transport.unixSocket import UnixSocketSession
 from ncclient.transport.errors import *
 
 __all__ = [
@@ -25,12 +26,20 @@ __all__ = [
     'SessionListener',
     'SSHSession',
     'TLSSession',
-    'UnixSocketSession',
     'TransportError',
     'AuthenticationError',
     'SessionCloseError',
     'NetconfBase',
     'SSHError',
-    'SSHUnknownHostError'
-
+    'SSHUnknownHostError',
 ]
+
+#
+# Windows does not support Unix domain sockets; assume all other platforms do
+#
+if sys.platform != 'win32':
+    try:
+        from ncclient.transport.unixSocket import UnixSocketSession
+        __all__.append('UnixSocketSession')
+    except Exception:
+        pass
