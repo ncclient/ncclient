@@ -23,8 +23,8 @@ class EricssonDeviceHandler(DefaultDeviceHandler):
     """
     _EXEMPT_ERRORS = []
 
-    def __init__(self, device_params):
-        super(EricssonDeviceHandler, self).__init__(device_params)
+    def __init__(self, device_params, ignore_errors=None):
+        super(EricssonDeviceHandler, self).__init__(device_params, ignore_errors)
 
     def get_xml_base_namespace_dict(self):
         return {None: BASE_NS_1_0}

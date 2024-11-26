@@ -4,8 +4,8 @@ from ncclient.operations.third_party.hpcomware.rpc import DisplayCommand, Config
 
 class HpcomwareDeviceHandler(DefaultDeviceHandler):
 
-    def __init__(self, device_params):
-        super(HpcomwareDeviceHandler, self).__init__(device_params)
+    def __init__(self, device_params, ignore_errors=None):
+        super(HpcomwareDeviceHandler, self).__init__(device_params, ignore_errors)
 
     def get_xml_base_namespace_dict(self):
         """

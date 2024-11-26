@@ -23,8 +23,8 @@ class AluDeviceHandler(DefaultDeviceHandler):
     Alcatel-Lucent 7x50 handler for device specific information.
     """
 
-    def __init__(self, device_params):
-        super(AluDeviceHandler, self).__init__(device_params)
+    def __init__(self, device_params, ignore_errors=None):
+        super(AluDeviceHandler, self).__init__(device_params, ignore_errors)
 
     def get_capabilities(self):
         return [

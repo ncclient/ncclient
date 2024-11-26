@@ -53,9 +53,10 @@ class DefaultDeviceHandler:
             "urn:ietf:params:netconf:capability:with-defaults:1.0"
     ]
 
-    def __init__(self, device_params=None):
+    def __init__(self, device_params=None, ignore_errors=None):
         self.device_params = device_params
         self.capabilities = []
+        self._EXEMPT_ERRORS = ignore_errors or self._EXEMPT_ERRORS
         # Turn all exempt errors into lower case, since we don't want those comparisons
         # to be case sensitive later on. Sort them into exact match, wildcard start,
         # wildcard end, and full wildcard categories, depending on whether they start
