@@ -9,8 +9,10 @@ try:
 except ImportError:
     from mock import MagicMock, patch, call
 
-from ncclient.transport.errors import UnixSocketError
-from ncclient.transport.unixSocket import UnixSocketSession
+# only import on non-Windows platforms
+if sys.platform != 'win32':
+    from ncclient.transport.errors import UnixSocketError
+    from ncclient.transport.unixSocket import UnixSocketSession
 
 PATH = '/tmp/test_socket.sock'
 
