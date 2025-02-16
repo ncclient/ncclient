@@ -1,4 +1,4 @@
-pytest-runner
+pytest
 pytest-cov
 sphinx
 flake8
