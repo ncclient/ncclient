@@ -69,7 +69,7 @@ class Capabilities:
         return len(self._dict)
 
     def __iter__(self):
-        return self._dict.keys()
+        return iter(self._dict.keys())
 
     def __repr__(self):
         return repr(self._dict.keys())
