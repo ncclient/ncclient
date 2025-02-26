@@ -397,7 +397,9 @@ class SSHSession(Session):
 
         for key_filename in key_filenames:
             try:
-                key = paramiko.PKey.from_path(key_filename, password.encode("utf-8"))
+                if password:
+                    password = password.encode("utf-8")
+                key = paramiko.PKey.from_path(key_filename, password)
                 self.logger.debug("Trying key %s from %s",
                                   hexlify(key.get_fingerprint()),
                                   key_filename)
@@ -467,7 +469,9 @@ class SSHSession(Session):
 
         for filename in keyfiles:
             try:
-                key = paramiko.PKey.from_path(filename, password.encode("utf-8"))
+                if password:
+                    password = password.encode("utf-8")
+                key = paramiko.PKey.from_path(filename, password)
                 self.logger.debug("Trying discovered key %s in %s",
                                   hexlify(key.get_fingerprint()), filename)
                 self._transport.auth_publickey(username, key)
