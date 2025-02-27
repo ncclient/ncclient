@@ -397,7 +397,8 @@ class SSHSession(Session):
 
         for key_filename in key_filenames:
             try:
-                key = paramiko.PKey.from_path(key_filename, password.encode("utf-8"))
+                encoded_password = None if password is None else password.encode('utf-8')
+                key = paramiko.PKey.from_path(key_filename, encoded_password)
                 self.logger.debug("Trying key %s from %s",
                                   hexlify(key.get_fingerprint()),
                                   key_filename)
