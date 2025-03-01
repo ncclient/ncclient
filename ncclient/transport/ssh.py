@@ -394,10 +394,10 @@ class SSHSession(Session):
     def _auth(self, username, password, key_filenames, allow_agent,
               look_for_keys):
         saved_exception = None
-
+        encoded_password = None if password is None else password.encode('utf-8')
+        
         for key_filename in key_filenames:
             try:
-                encoded_password = None if password is None else password.encode('utf-8')
                 key = paramiko.PKey.from_path(key_filename, encoded_password)
                 self.logger.debug("Trying key %s from %s",
                                   hexlify(key.get_fingerprint()),
@@ -468,7 +468,6 @@ class SSHSession(Session):
 
         for filename in keyfiles:
             try:
-                encoded_password = None if password is None else password.encode('utf-8')
                 key = paramiko.PKey.from_path(filename, encoded_password)
                 self.logger.debug("Trying discovered key %s in %s",
                                   hexlify(key.get_fingerprint()), filename)
