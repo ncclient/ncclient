@@ -51,7 +51,7 @@ If you are on Debian/Ubuntu install the following libs (via aptitude or apt-get)
 ## Installation
 
     [ncclient] $ sudo python setup.py install
-    
+
 or via pip:
 
     pip install ncclient
@@ -142,7 +142,7 @@ To run the same tests locally as are run via GitHub's CI/CD integration with Tra
     ```
     pytest test --verbosity=3
     ```
-    
+
     For coverage, showing missing lines do:
     ```
     coverage run -m pytest test --verbosity=3 && coverage report -m
@@ -173,10 +173,10 @@ Thus, making a release becomes a simple process:
 
 1. Ensure all tests run clean (ideally both locally and via Travis) and that `README.md` (yes, this file!!) has been updated appropriately.
 2. Apply appropriate version tag, e.g. `git tag v0.6.1`
-3. Build packages:
+3. After ensuring `build` is installed, build packages:
 
     ```
-    python setup.py bdist sdist
+    python -m build
     ```
 
 4. After ensuring twine is installed, test twine upload:
@@ -185,7 +185,7 @@ Thus, making a release becomes a simple process:
     twine upload \
         --repository-url https://test.pypi.org/legacy/ \
         -u ******* -p ******* \
-        dist/ncclient-0.6.1.tar.gz
+        dist/*
     ````
 
 5. Push git tags back to origin, `git push --tags`
@@ -194,7 +194,7 @@ Thus, making a release becomes a simple process:
     ```
     twine upload \
         -u ******* -p ******* \
-        dist/ncclient-0.6.1.tar.gz
+        dist/*
     ```
 
 ## Contributors
@@ -212,10 +212,9 @@ Thus, making a release becomes a simple process:
 * v0.5.4: @adamcubel, Joel Teichroeb, @leopoul, Chase Garner, @budhadityabanerjee, @earies, @ganeshrn, @vnitinv, Siming Yuan, @mirceaaulinic, @stacywsmith, Xavier Hardy, @jwwilcox, @QijunPan, @avangel, @marekgr, @hugovk, @felixonmars, @dexteradeus
 * v0.5.3: [Justin Wilcox](https://github.com/jwwilcox), [Stacy W. Smith](https://github.com/stacywsmith), [Mircea Ulinic](https://github.com/mirceaulinic), [Ebben Aries](https://github.com/earies), [Einar Nilsen-Nygaard](https://github.com/einarnn), [QijunPan](https://github.com/QijunPan)
 * v0.5.2: [Nitin Kumar](https://github.com/vnitinv), [Kristian Larsson](https://github.com/plajjan), [palashgupta](https://github.com/palashgupta), [Jonathan Provost](https://github.com/JoProvost), [Jainpriyal](https://github.com/Jainpriyal), [sharang](https://github.com/sharang), [pseguel](https://github.com/pseguel), [nnakamot](https://github.com/nnakamot), [Алексей Пастухов](https://github.com/p-alik), [Christian Giese](https://github.com/GIC-de), [Peipei Guo](https://github.com/peipeiguo), [Time Warner Cable Openstack Team](https://github.com/twc-openstack)
-* v0.4.7: [Einar Nilsen-Nygaard](https://github.com/einarnn), [Vaibhav Bajpai](https://github.com/vbajpai), Norio Nakamoto 
-* v0.4.6: [Nitin Kumar](https://github.com/vnitinv), [Carl Moberg](https://github.com/cmoberg), [Stavros Kroustouris](https://github.com/kroustou) 
+* v0.4.7: [Einar Nilsen-Nygaard](https://github.com/einarnn), [Vaibhav Bajpai](https://github.com/vbajpai), Norio Nakamoto
+* v0.4.6: [Nitin Kumar](https://github.com/vnitinv), [Carl Moberg](https://github.com/cmoberg), [Stavros Kroustouris](https://github.com/kroustou)
 * v0.4.5: [Sebastian Wiesinger](https://github.com/sebastianw), [Vincent Bernat](https://github.com/vincentbernat), [Matthew Stone](https://github.com/bigmstone), [Nitin Kumar](https://github.com/vnitinv)
 * v0.4.3: [Jeremy Schulman](https://github.com/jeremyschulman), [Ray Solomon](https://github.com/rsolomo), [Rick Sherman](https://github.com/shermdog), [subhak186](https://github.com/subhak186)
-* v0.4.2: [katharh](https://github.com/katharh), [Francis Luong (Franco)](https://github.com/francisluong), [Vincent Bernat](https://github.com/vincentbernat), [Juergen Brendel](https://github.com/juergenbrendel), [Quentin Loos](https://github.com/Kent1), [Ray Solomon](https://github.com/rsolomo), [Sebastian Wiesinger](https://github.com/sebastianw), [Ebben Aries](https://github.com/earies) 
+* v0.4.2: [katharh](https://github.com/katharh), [Francis Luong (Franco)](https://github.com/francisluong), [Vincent Bernat](https://github.com/vincentbernat), [Juergen Brendel](https://github.com/juergenbrendel), [Quentin Loos](https://github.com/Kent1), [Ray Solomon](https://github.com/rsolomo), [Sebastian Wiesinger](https://github.com/sebastianw), [Ebben Aries](https://github.com/earies)
 * v0.4.1: [Jeremy Schulman](https://github.com/jeremyschulman), [Ebben Aries](https://github.com/earies), Juergen Brendel
-
