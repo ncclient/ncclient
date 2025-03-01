@@ -3,36 +3,13 @@ name: Run Tests and Check Coverage
 on: [push, pull_request]
 
 jobs:
-  check_legacy:
-    runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        python-version: ['3.6.15']
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: 'recursive'
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install -r requirements-test.txt
-
-      - name: Run Check Scripts
-        run: |
-          pytest test --verbosity=3
 
   check_linux:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        python-version: ['3.7.17', '3.8.18', '3.9.20', '3.10.15', '3.11.10', '3.12.9']
+        python-version: ['3.7.17', '3.8.18', '3.9.20', '3.10.15', '3.11.10', '3.12.9', '3.13.2']
     steps:
       - uses: actions/checkout@v3
         with:
@@ -48,7 +25,33 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
           python -m pip install -r requirements-test.txt
-          python -m pip install -U coverage coveralls
+
+      - name: Run Check Scripts
+        run: |
+          pytest test --verbosity=3
+
+
+  check_linux_coverage:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        python-version: ['3.12.9']
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install -r requirements-test.txt
+          python -m pip install -U coverage==7.6.12 coveralls==4.0.1
 
       - name: Run Check Scripts
         run: |
@@ -61,6 +64,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COVERALLS_FLAG_NAME: ${{ matrix.python-version }}
           COVERALLS_PARALLEL: true
+        
 
   check_windows:
     runs-on: windows-latest
@@ -80,23 +84,23 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install coverage coveralls
           python -m pip install -r requirements.txt
           python -m pip install -r requirements-test.txt
   
       - name: Run Check Scripts
         run: |
-          pytest test --verbosity=3 --cov=ncclient
-    
+          pytest test --verbosity=3
+  
+
   coveralls:
     name: Indicate completion to coveralls.io
-    needs: check_linux
+    needs: check_linux_coverage
     runs-on: ubuntu-latest
     container: python:3-slim
     steps:
     - name: Finished
       run: |
-        pip3 install --upgrade coveralls
+        pip3 install coveralls
         coveralls --service=github --finish
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
