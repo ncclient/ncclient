@@ -29,7 +29,7 @@ jobs:
         run: |
           pytest test --verbosity=3 --cov=ncclient
 
-  check-linux:
+  check_linux:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
@@ -63,7 +63,7 @@ jobs:
         run: |
           coveralls --service=github
 
-  check-windows:
+  check_windows:
     runs-on: windows-latest
     strategy:
       matrix:
@@ -91,8 +91,8 @@ jobs:
     
   coveralls:
     name: Indicate completion to coveralls.io
-    needs: check
-    runs-on: ubuntu-20.04
+    needs: check_linux
+    runs-on: ubuntu-22.04
     container: python:3-slim
     steps:
     - name: Finished
