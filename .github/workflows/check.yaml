@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        python-version: ['3.7.17', '3.8.18', '3.9.20', '3.10.15', '3.11.10', '3.12.9']
+        python-version: ['3.7.17', '3.8.18', '3.9.20', '3.10.15', '3.11.10', '3.12.9', '3.13.2']
     steps:
       - uses: actions/checkout@v3
         with:
@@ -46,9 +46,9 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install coverage coveralls
           python -m pip install -r requirements.txt
           python -m pip install -r requirements-test.txt
+          python -m pip install -U coverage coveralls
 
       - name: Run Check Scripts
         run: |
@@ -94,11 +94,9 @@ jobs:
     runs-on: ubuntu-latest
     container: python:3-slim
     steps:
-    - name: Install coveralls
-      run: |
-        pip3 install --upgrade coverall
     - name: Finished
       run: |
+        pip3 install --upgrade coveralls
         coveralls --service=github --finish
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
