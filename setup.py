@@ -33,7 +33,7 @@ if sys.version_info.major == 2 or sys.version_info.minor < 5:
 req_lines = [line.strip() for line in open("requirements.txt").readlines()]
 install_reqs = list(filter(None, req_lines))
 
-test_req_lines = [line.strip() for line in open("test-requirements.txt").readlines()]
+test_req_lines = [line.strip() for line in open("requirements-test.txt").readlines()]
 test_reqs = list(filter(None, test_req_lines))
 
 with codecs.open('README.rst', 'r', encoding='utf8') as file:
