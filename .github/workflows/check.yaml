@@ -100,7 +100,7 @@ jobs:
     steps:
     - name: Finished
       run: |
-        pip3 install coverage==7.6.12 coveralls==4.0.1
+        pip3 install coveralls
         coveralls --service=github --finish
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
