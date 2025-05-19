@@ -2,10 +2,10 @@ name: Run Tests and Check Coverage
 
 on: [push, pull_request]
 
-jobs:
-
 # Declare default permissions as read only.
 permissions: read-all
+
+jobs:
 
   check_linux:
     runs-on: ubuntu-22.04
