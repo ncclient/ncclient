@@ -39,18 +39,19 @@ The latest pull request merge includes support for Huawei devices with name **hu
 
 Supported device handlers
 -------------------------
-* Juniper: `device_params={'name':'junos'}`
+* Alcatel Lucent: `device_params={'name':'alu'}`
+* Ciena: `device_params={'name':'ciena'}`
 * Cisco:
     - CSR: `device_params={'name':'csr'}`
     - Nexus: `device_params={'name':'nexus'}`
     - IOS XR: `device_params={'name':'iosxr'}`
     - IOS XE: `device_params={'name':'iosxe'}`
+* H3C: `device_params={'name':'h3c'}`
+* HP Comware: `device_params={'name':'hpcomware'}`
 * Huawei:
     - `device_params={'name':'huawei'}`
     - `device_params={'name':'huaweiyang'}`
-* Alcatel Lucent: `device_params={'name':'alu'}`
-* H3C: `device_params={'name':'h3c'}`
-* HP Comware: `device_params={'name':'hpcomware'}`
+* Juniper: `device_params={'name':'junos'}`
 * Server or anything not in above: `device_params={'name':'default'}`
 
 

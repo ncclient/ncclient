@@ -273,7 +273,7 @@ class TestSession(unittest.TestCase):
         listener = NotificationHandler(q)
         listener.callback(parse_root(notification), notification)
         notif = q.get_nowait()
-        self.assertEquals(notif.notification_xml, notification)
+        self.assertEqual(notif.notification_xml, notification)
         self.assertRaises(Empty, q.get_nowait)
 
     def test_notification_handler_non_notification(self):

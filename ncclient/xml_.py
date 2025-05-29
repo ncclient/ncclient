@@ -166,7 +166,7 @@ XPATH_NAMESPACES = {
 }
 
 
-class NCElement(object):
+class NCElement:
     def __init__(self, result, transform_reply, huge_tree=False):
         self.__result = result
         self.__transform_reply = transform_reply

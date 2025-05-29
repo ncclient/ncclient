@@ -49,3 +49,10 @@ class SSHUnknownHostError(SSHError):
 
 class NetconfFramingError(TransportError):
     pass
+
+
+class TLSError(TransportError):
+    pass
+
+class UnixSocketError (TransportError):
+    pass
