@@ -80,22 +80,14 @@ class TestSSH(unittest.TestCase):
                           expected_messages):
         device_handler = JunosDeviceHandler({'name': 'junos'})
         obj = SSHSession(device_handler)
-        if sys.version >= "3.0":
-            obj._buffer.write(bytes(reply, "utf-8"))
-            remainder = bytes(ok_chunk, "utf-8")
-        else:
-            obj._buffer.write(reply)
-            remainder = ok_chunk
-
-        # parse the main reply
-        parsemethod(obj)
-
-        # parse the ok
+        obj._buffer.write(bytes(reply, "utf-8"))
+        remainder = bytes(ok_chunk, "utf-8")
         parsemethod(obj)
 
         for i in range(0, len(expected_messages)):
             call = mock_dispatch.call_args_list[i][0][0]
             self.assertEqual(call, expected_messages[i])
+
         self.assertEqual(obj._buffer.getvalue(), remainder)
 
     @patch('ncclient.transport.ssh.Session._dispatch_message')
