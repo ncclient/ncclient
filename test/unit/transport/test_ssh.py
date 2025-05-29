@@ -6,8 +6,6 @@ from ncclient.transport.ssh import SSHSession
 from ncclient.transport import AuthenticationError, SessionCloseError, NetconfBase
 import paramiko
 from ncclient.devices.junos import JunosDeviceHandler
-import sys
-import socket
 
 try:
     import selectors
