@@ -7,6 +7,7 @@ class  TestGetSupportedDevices(unittest.TestCase):
         supported_devices = devices.get_supported_devices()
         self.assertEqual(sorted(supported_devices), sorted(('junos',
                                                             'csr',
+                                                            'ciena',
                                                             'nexus',
                                                             'iosxr',
                                                             'iosxe',
@@ -22,6 +23,7 @@ class  TestGetSupportedDevices(unittest.TestCase):
         supported_device_labels = devices.get_supported_device_labels()
         self.assertEqual(supported_device_labels, {'junos':'Juniper',
                                                    'csr':'Cisco CSR1000v',
+                                                   'ciena': 'Ciena',
                                                    'nexus':'Cisco Nexus',
                                                    'iosxr':'Cisco IOS XR',
                                                    'iosxe':'Cisco IOS XE',

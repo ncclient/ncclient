@@ -14,6 +14,7 @@ generic information needed for interaction with a Netconf server.
 
 
 from .default import DefaultDeviceHandler
+from warnings import warn
 
 def csr_unknown_host_cb(host, fingerprint):
         #This will ignore the unknown host check when connecting to CSR devices
@@ -24,8 +25,16 @@ class CsrDeviceHandler(DefaultDeviceHandler):
     Cisco CSR handler for device specific information.
 
     """
-    def __init__(self, device_params):
-        super(CsrDeviceHandler, self).__init__(device_params)
+    def __init__(self, device_params, ignore_errors=None):
+        warn(
+            'CsrDeviceHandler is deprecated, please use IosxeDeviceHandler',
+            DeprecationWarning,
+            stacklevel=2)
+        super(CsrDeviceHandler, self).__init__(device_params, ignore_errors)
 
     def add_additional_ssh_connect_params(self, kwargs):
+        warn(
+            'CsrDeviceHandler is deprecated, please use IosxeDeviceHandler',
+            DeprecationWarning,
+            stacklevel=2)
         kwargs['unknown_host_cb'] = csr_unknown_host_cb

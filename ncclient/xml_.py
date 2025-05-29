@@ -17,11 +17,9 @@
 
 
 import io
-import sys
-import six
 import types
-from six import StringIO
-from io import BytesIO
+from io import BytesIO, StringIO
+
 from lxml import etree
 
 # In case issues come up with XML generation/parsing
@@ -120,11 +118,8 @@ qualify = lambda tag, ns=BASE_NS_1_0: tag if ns is None else "{%s}%s" % (ns, tag
 def to_xml(ele, encoding="UTF-8", pretty_print=False):
     "Convert and return the XML for an *ele* (:class:`~xml.etree.ElementTree.Element`) with specified *encoding*."
     xml = etree.tostring(ele, encoding=encoding, pretty_print=pretty_print)
-    if sys.version < '3':
-        return xml if xml.startswith('<?xml') else '<?xml version="1.0" encoding="%s"?>%s' % (encoding, xml)
-    else:
-        return xml.decode('UTF-8') if xml.startswith(b'<?xml') \
-            else '<?xml version="1.0" encoding="%s"?>%s' % (encoding, xml.decode('UTF-8'))
+    return xml.decode('UTF-8') if xml.startswith(b'<?xml') \
+        else '<?xml version="1.0" encoding="%s"?>%s' % (encoding, xml.decode('UTF-8'))
 
 
 def to_ele(x, huge_tree=False):
@@ -132,18 +127,12 @@ def to_ele(x, huge_tree=False):
 
     *huge_tree*: parse XML with very deep trees and very long text content
     """
-    if sys.version < '3':
-        return x if etree.iselement(x) else etree.fromstring(x, parser=_get_parser(huge_tree))
-    else:
-        return x if etree.iselement(x) else etree.fromstring(x.encode('UTF-8'), parser=_get_parser(huge_tree))
+    return x if etree.iselement(x) else etree.fromstring(x.encode('UTF-8'), parser=_get_parser(huge_tree))
 
 
 def parse_root(raw):
     "Efficiently parses the root element of a *raw* XML document, returning a tuple of its qualified name and attribute dictionary."
-    if sys.version < '3':
-        fp = StringIO(raw)
-    else:
-        fp = BytesIO(raw.encode('UTF-8'))
+    fp = BytesIO(raw.encode('UTF-8'))
     for event, element in etree.iterparse(fp, events=('start',)):
         return (element.tag, element.attrib)
 
@@ -177,7 +166,7 @@ XPATH_NAMESPACES = {
 }
 
 
-class NCElement(object):
+class NCElement:
     def __init__(self, result, transform_reply, huge_tree=False):
         self.__result = result
         self.__transform_reply = transform_reply
@@ -222,10 +211,7 @@ class NCElement(object):
 
     def __str__(self):
         """syntactic sugar for str() - alias to tostring"""
-        if sys.version < '3':
-            return self.tostring
-        else:
-            return self.tostring.decode('UTF-8')
+        return self.tostring.decode('UTF-8')
 
     @property
     def tostring(self):

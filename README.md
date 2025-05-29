@@ -1,7 +1,5 @@
 [![Build Status](https://travis-ci.org/CiscoDevNet/ncclient.svg?branch=master)](https://travis-ci.org/CiscoDevNet/ncclient)
 [![Coverage Status](https://coveralls.io/repos/github/CiscoDevNet/ncclient/badge.svg?branch=master)](https://coveralls.io/github/CiscoDevNet/ncclient?branch=master)
-[![Documentation Status](https://readthedocs.org/projects/ncclient/badge/?version=latest)](https://readthedocs.org/projects/ncclient/?badge=latest)
-![Community](https://img.shields.io/badge/support-community-blue.svg?style=flat "Community")
 
 
 > **DO NOT COMMIT THIS TEXT BLOCK UPSTREAM**
@@ -35,21 +33,23 @@ by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org) and Einar Nilsen-Nygaa
 
 ## Recent Highlights
 
-|  Date  | Release | Description |
-| :----: | :-----: | :---------- |
-| 05/29/21 | `0.6.12` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.12)|
-| 05/27/21 | `0.6.11` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.11)|
-| 02/18/21 | `0.6.10` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.10)|
-| 08/08/20 | `0.6.9` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.9) |
-| 08/01/20 | `0.6.8` | Pulled due to accidental breaking API change |
-| 12/21/19 | `0.6.7` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.7) |
-| 05/27/19 | `0.6.6` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.6) |
-| 05/27/19 | `0.6.5` | Pulled due to bug in PyPi upload |
-| 04/07/19 | `0.6.4` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.4) |
-| 09/26/18 | `0.6.3` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.3) |
-| 08/20/18 | `0.6.2` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.2) |
-| 07/02/18 | `0.6.0` | Minor release reinstating Python 3.7 and greater compatibility, but necessitating a change to client code that uses `async_mode`. |
-| 07/02/18 | `0.5.4` | New release rolling up myriad of small commits since `0.5.3`. Please note that this release is **incompatible wth Python 3.7** due to the use of a new Python 3.7 keyword, `async`, in function signatures. This will be resolved in 0.6.0|
+|   Date   | Release  | Description                                                                                                                                                                                                                                |
+| :------: | :------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 10/18/23 | `0.6.15` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.15)                                                                                                                                                              |
+| 04/10/22 | `0.6.13` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.13)                                                                                                                                                              |
+| 05/29/21 | `0.6.12` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.12)                                                                                                                                                              |
+| 05/27/21 | `0.6.11` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.11)                                                                                                                                                              |
+| 02/18/21 | `0.6.10` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.10)                                                                                                                                                              |
+| 08/08/20 | `0.6.9`  | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.9)                                                                                                                                                               |
+| 08/01/20 | `0.6.8`  | Pulled due to accidental breaking API change                                                                                                                                                                                               |
+| 12/21/19 | `0.6.7`  | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.7)                                                                                                                                                               |
+| 05/27/19 | `0.6.6`  | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.6)                                                                                                                                                               |
+| 05/27/19 | `0.6.5`  | Pulled due to bug in PyPi upload                                                                                                                                                                                                           |
+| 04/07/19 | `0.6.4`  | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.4)                                                                                                                                                               |
+| 09/26/18 | `0.6.3`  | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.3)                                                                                                                                                               |
+| 08/20/18 | `0.6.2`  | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.2)                                                                                                                                                               |
+| 07/02/18 | `0.6.0`  | Minor release reinstating Python 3.7 and greater compatibility, but necessitating a change to client code that uses `async_mode`.                                                                                                          |
+| 07/02/18 | `0.5.4`  | New release rolling up myriad of small commits since `0.5.3`. Please note that this release is **incompatible wth Python 3.7** due to the use of a new Python 3.7 keyword, `async`, in function signatures. This will be resolved in 0.6.0 |
 
 ## Requirements
 
@@ -67,7 +67,7 @@ If you are on Debian/Ubuntu install the following libs (via aptitude or apt-get)
 ## Installation
 
     [ncclient] $ sudo python setup.py install
-    
+
 or via pip:
 
     pip install ncclient
@@ -113,18 +113,19 @@ Device handlers are easy to implement and prove to be futureproof.
 
 When instantiating a connection to a known type of NETCONF server:
 
-* Juniper: `device_params={'name':'junos'}`
+* Alcatel Lucent: `device_params={'name':'alu'}`
+* Ciena: `device_params={'name':'ciena'}`
 * Cisco:
     - CSR: `device_params={'name':'csr'}`
     - Nexus: `device_params={'name':'nexus'}`
     - IOS XR: `device_params={'name':'iosxr'}`
     - IOS XE: `device_params={'name':'iosxe'}`
+* H3C: `device_params={'name':'h3c'}`
+* HP Comware: `device_params={'name':'hpcomware'}`
 * Huawei:
     - `device_params={'name':'huawei'}`
     - `device_params={'name':'huaweiyang'}`
-* Nokia SR OS: `device_params={'name':'sros'}`
-* H3C: `device_params={'name':'h3c'}`
-* HP Comware: `device_params={'name':'hpcomware'}`
+* Juniper: `device_params={'name':'junos'}`
 * Server or anything not in above: `device_params={'name':'default'}`
 
 
@@ -149,13 +150,18 @@ To run the same tests locally as are run via GitHub's CI/CD integration with Tra
 1. Install testing dependencies:
 
     ```
-    pip install nose rednose coverage coveralls mock
+    pip install pytest coverage coveralls mock
     ```
 
 1. Finally, run the tests:
 
     ```
-    nosetests test --rednose --verbosity=3
+    pytest test --verbosity=3
+    ```
+
+    For coverage, showing missing lines do:
+    ```
+    coverage run -m pytest test --verbosity=3 && coverage report -m
     ```
 
 ### Making a Release
@@ -183,10 +189,10 @@ Thus, making a release becomes a simple process:
 
 1. Ensure all tests run clean (ideally both locally and via Travis) and that `README.md` (yes, this file!!) has been updated appropriately.
 2. Apply appropriate version tag, e.g. `git tag v0.6.1`
-3. Build packages:
+3. After ensuring `build` is installed, build packages:
 
     ```
-    python setup.py bdist sdist
+    python -m build
     ```
 
 4. After ensuring twine is installed, test twine upload:
@@ -195,7 +201,7 @@ Thus, making a release becomes a simple process:
     twine upload \
         --repository-url https://test.pypi.org/legacy/ \
         -u ******* -p ******* \
-        dist/ncclient-0.6.1.tar.gz
+        dist/*
     ````
 
 5. Push git tags back to origin, `git push --tags`
@@ -204,7 +210,7 @@ Thus, making a release becomes a simple process:
     ```
     twine upload \
         -u ******* -p ******* \
-        dist/ncclient-0.6.1.tar.gz
+        dist/*
     ```
 
 ## Contributors
@@ -222,10 +228,9 @@ Thus, making a release becomes a simple process:
 * v0.5.4: @adamcubel, Joel Teichroeb, @leopoul, Chase Garner, @budhadityabanerjee, @earies, @ganeshrn, @vnitinv, Siming Yuan, @mirceaaulinic, @stacywsmith, Xavier Hardy, @jwwilcox, @QijunPan, @avangel, @marekgr, @hugovk, @felixonmars, @dexteradeus
 * v0.5.3: [Justin Wilcox](https://github.com/jwwilcox), [Stacy W. Smith](https://github.com/stacywsmith), [Mircea Ulinic](https://github.com/mirceaulinic), [Ebben Aries](https://github.com/earies), [Einar Nilsen-Nygaard](https://github.com/einarnn), [QijunPan](https://github.com/QijunPan)
 * v0.5.2: [Nitin Kumar](https://github.com/vnitinv), [Kristian Larsson](https://github.com/plajjan), [palashgupta](https://github.com/palashgupta), [Jonathan Provost](https://github.com/JoProvost), [Jainpriyal](https://github.com/Jainpriyal), [sharang](https://github.com/sharang), [pseguel](https://github.com/pseguel), [nnakamot](https://github.com/nnakamot), [Алексей Пастухов](https://github.com/p-alik), [Christian Giese](https://github.com/GIC-de), [Peipei Guo](https://github.com/peipeiguo), [Time Warner Cable Openstack Team](https://github.com/twc-openstack)
-* v0.4.7: [Einar Nilsen-Nygaard](https://github.com/einarnn), [Vaibhav Bajpai](https://github.com/vbajpai), Norio Nakamoto 
-* v0.4.6: [Nitin Kumar](https://github.com/vnitinv), [Carl Moberg](https://github.com/cmoberg), [Stavros Kroustouris](https://github.com/kroustou) 
+* v0.4.7: [Einar Nilsen-Nygaard](https://github.com/einarnn), [Vaibhav Bajpai](https://github.com/vbajpai), Norio Nakamoto
+* v0.4.6: [Nitin Kumar](https://github.com/vnitinv), [Carl Moberg](https://github.com/cmoberg), [Stavros Kroustouris](https://github.com/kroustou)
 * v0.4.5: [Sebastian Wiesinger](https://github.com/sebastianw), [Vincent Bernat](https://github.com/vincentbernat), [Matthew Stone](https://github.com/bigmstone), [Nitin Kumar](https://github.com/vnitinv)
 * v0.4.3: [Jeremy Schulman](https://github.com/jeremyschulman), [Ray Solomon](https://github.com/rsolomo), [Rick Sherman](https://github.com/shermdog), [subhak186](https://github.com/subhak186)
-* v0.4.2: [katharh](https://github.com/katharh), [Francis Luong (Franco)](https://github.com/francisluong), [Vincent Bernat](https://github.com/vincentbernat), [Juergen Brendel](https://github.com/juergenbrendel), [Quentin Loos](https://github.com/Kent1), [Ray Solomon](https://github.com/rsolomo), [Sebastian Wiesinger](https://github.com/sebastianw), [Ebben Aries](https://github.com/earies) 
+* v0.4.2: [katharh](https://github.com/katharh), [Francis Luong (Franco)](https://github.com/francisluong), [Vincent Bernat](https://github.com/vincentbernat), [Juergen Brendel](https://github.com/juergenbrendel), [Quentin Loos](https://github.com/Kent1), [Ray Solomon](https://github.com/rsolomo), [Sebastian Wiesinger](https://github.com/sebastianw), [Ebben Aries](https://github.com/earies)
 * v0.4.1: [Jeremy Schulman](https://github.com/jeremyschulman), [Ebben Aries](https://github.com/earies), Juergen Brendel
-
