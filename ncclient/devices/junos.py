@@ -37,8 +37,8 @@ class JunosDeviceHandler(DefaultDeviceHandler):
 
     """
 
-    def __init__(self, device_params):
-        super(JunosDeviceHandler, self).__init__(device_params)
+    def __init__(self, device_params, ignore_errors=None):
+        super(JunosDeviceHandler, self).__init__(device_params, ignore_errors)
         self.__reply_parsing_error_transform_by_cls = {
             GetSchemaReply: fix_get_schema_reply
         }
@@ -122,11 +122,7 @@ class JunosDeviceHandler(DefaultDeviceHandler):
         </xsl:template>
         </xsl:stylesheet>
         '''
-        import sys
-        if sys.version < '3':
-            return reply
-        else:
-            return reply.encode('UTF-8')
+        return reply.encode('UTF-8')
 
     def get_xml_parser(self, session):
         # use_filter in device_params can be used to enabled using SAX parsing

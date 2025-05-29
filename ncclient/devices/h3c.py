@@ -29,8 +29,8 @@ class H3cDeviceHandler(DefaultDeviceHandler):
     """
     _EXEMPT_ERRORS = []
 
-    def __init__(self, device_params):
-        super(H3cDeviceHandler, self).__init__(device_params)
+    def __init__(self, device_params, ignore_errors=None):
+        super(H3cDeviceHandler, self).__init__(device_params, ignore_errors)
 
     def add_additional_operations(self):
         dict = {}

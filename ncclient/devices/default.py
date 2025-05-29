@@ -25,12 +25,8 @@ generic information needed for interaction with a Netconf server.
 
 from ncclient.transport.parser import DefaultXMLParser
 
-import sys
-if sys.version >= '3':
-    xrange = range
 
-
-class DefaultDeviceHandler(object):
+class DefaultDeviceHandler:
     """
     Default handler for device specific information.
 
@@ -53,14 +49,14 @@ class DefaultDeviceHandler(object):
             "urn:ietf:params:netconf:capability:validate:1.0",
             "urn:ietf:params:netconf:capability:xpath:1.0",
             "urn:ietf:params:netconf:capability:notification:1.0",
-            "urn:liberouter:params:netconf:capability:power-control:1.0",
             "urn:ietf:params:netconf:capability:interleave:1.0",
             "urn:ietf:params:netconf:capability:with-defaults:1.0"
     ]
 
-    def __init__(self, device_params=None):
+    def __init__(self, device_params=None, ignore_errors=None):
         self.device_params = device_params
         self.capabilities = []
+        self._EXEMPT_ERRORS = ignore_errors or self._EXEMPT_ERRORS
         # Turn all exempt errors into lower case, since we don't want those comparisons
         # to be case sensitive later on. Sort them into exact match, wildcard start,
         # wildcard end, and full wildcard categories, depending on whether they start
@@ -69,7 +65,7 @@ class DefaultDeviceHandler(object):
         self._exempt_errors_startwith_wildcard_match = []
         self._exempt_errors_endwith_wildcard_match = []
         self._exempt_errors_full_wildcard_match = []
-        for i in xrange(len(self._EXEMPT_ERRORS)):
+        for i in range(len(self._EXEMPT_ERRORS)):
             e = self._EXEMPT_ERRORS[i].lower()
             if e.startswith("*"):
                 if e.endswith("*"):
@@ -255,6 +251,19 @@ class DefaultDeviceHandler(object):
 
     def transform_reply(self):
         return False
+
+    def transform_edit_config(self, node):
+        """
+        Hook for working around bugs in devices that cannot deal with
+        standard config payloads for edits. This will be called
+        in EditConfig.request just before the request is submitted,
+        meaning it will get an XML tree rooted at edit-config.
+
+        :param node: the XML tree for edit-config
+
+        :return: either the original XML tree if no changes made or a modified XML tree
+        """
+        return node
 
     def get_xml_parser(self, session):
         """

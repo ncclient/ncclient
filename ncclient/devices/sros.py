@@ -1,9 +1,10 @@
-from lxml import etree
-
 from .default import DefaultDeviceHandler
-from ncclient.operations.third_party.sros.rpc import MdCliRawCommand
+from ncclient.operations.third_party.sros.rpc import MdCliRawCommand, Commit
 from ncclient.xml_ import BASE_NS_1_0
 
+
+class ConfigMode:
+    PRIVATE = 'private'
 
 def passthrough(xml):
     return xml
@@ -13,8 +14,8 @@ class SrosDeviceHandler(DefaultDeviceHandler):
     Nokia SR OS handler for device specific information.
     """
 
-    def __init__(self, device_params):
-        super(SrosDeviceHandler, self).__init__(device_params)
+    def __init__(self, device_params, ignore_errors=None):
+        super(SrosDeviceHandler, self).__init__(device_params, ignore_errors)
 
     def get_capabilities(self):
         """Set SR OS device handler client capabilities
@@ -30,7 +31,11 @@ class SrosDeviceHandler(DefaultDeviceHandler):
             'urn:ietf:params:xml:ns:netconf:base:1.0',
             'urn:ietf:params:xml:ns:yang:1',
             'urn:ietf:params:netconf:capability:confirmed-commit:1.1',
-            'urn:ietf:params:netconf:capability:validate:1.1']
+            'urn:ietf:params:netconf:capability:validate:1.1',
+        ]
+        if self.device_params.get('config_mode') == ConfigMode.PRIVATE:
+            additional.append('urn:nokia.com:nc:pc')
+
         return base + additional
 
     def get_xml_base_namespace_dict(self):
@@ -43,7 +48,8 @@ class SrosDeviceHandler(DefaultDeviceHandler):
 
     def add_additional_operations(self):
         operations = {
-            'md_cli_raw_command': MdCliRawCommand
+            'md_cli_raw_command': MdCliRawCommand,
+            'commit': Commit,
         }
         return operations
 

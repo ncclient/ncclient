@@ -22,6 +22,7 @@ try:
 except ImportError:
     import selectors2 as selectors
 
+from io import BytesIO as StringIO
 from xml.sax.handler import ContentHandler
 
 from ncclient.transport.errors import NetconfFramingError
@@ -32,11 +33,6 @@ from ncclient.transport import SessionListener
 
 import logging
 logger = logging.getLogger("ncclient.transport.parser")
-
-if sys.version < '3':
-    from six import StringIO
-else:
-    from io import BytesIO as StringIO
 
 
 PORT_NETCONF_DEFAULT = 830
@@ -61,12 +57,8 @@ TICK = 0.1
 #
 RE_NC11_DELIM = re.compile(r'\n(?:#([0-9]+)|(##))\n')
 
-if sys.version < '3':
-    def textify(buf):
-        return buf
-else:
-    def textify(buf):
-        return buf.decode('UTF-8')
+def textify(buf):
+    return buf.decode('UTF-8')
 
 
 class SAXParserHandler(SessionListener):
@@ -90,7 +82,7 @@ class SAXFilterXMLNotFoundError(OperationError):
         return "SAX filter input xml not provided for listener: %s" % self._listener
 
 
-class DefaultXMLParser(object):
+class DefaultXMLParser:
 
     def __init__(self, session):
         """
@@ -131,10 +123,7 @@ class DefaultXMLParser(object):
             buf.seek(0)
             msg, _, remaining = buf.read().decode('UTF-8').partition(MSG_DELIM)
             msg = msg.strip()
-            if sys.version < '3':
-                self._session._dispatch_message(msg.encode())
-            else:
-                self._session._dispatch_message(msg)
+            self._session._dispatch_message(msg)
             self._session._buffer = StringIO()
             self._parsing_pos10 = 0
             if len(remaining.strip()) > 0:
@@ -175,7 +164,7 @@ class DefaultXMLParser(object):
         while True and start < data_len:
             # match to see if we found at least some kind of delimiter
             self.logger.debug('_parse11: matching from %d bytes from start of buffer', start)
-            re_result = RE_NC11_DELIM.match(data[start:].decode('utf-8'))
+            re_result = RE_NC11_DELIM.match(data[start:].decode('utf-8', errors='ignore'))
             if not re_result:
 
                 # not found any kind of delimiter just break; this should only
@@ -206,7 +195,7 @@ class DefaultXMLParser(object):
                 break
 
             elif re_result.group(1):
-                # we've found a chunk delimiter, and group(2) is the digit
+                # we've found a chunk delimiter, and group(1) is the digit
                 # string that will tell us how many bytes past the end of
                 # where it was found that we need to have available to
                 # save the next chunk off

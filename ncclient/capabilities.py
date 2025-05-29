@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import logging
-import six
 
 
 logger = logging.getLogger("ncclient.capabilities")
@@ -39,7 +38,7 @@ def schemes(url_uri):
     "Given a URI that has a *scheme* query string (i.e. `:url` capability URI), will return a list of supported schemes."
     return url_uri.partition("?scheme=")[2].split(",")
 
-class Capabilities(object):
+class Capabilities:
 
     "Represents the set of capabilities available to a NETCONF client or server. It is initialized with a list of capability URI's."
 
@@ -60,7 +59,7 @@ class Capabilities(object):
         try:
             return self._dict[key]
         except KeyError:
-            for capability in six.itervalues(self._dict):
+            for capability in self._dict.values():
                 if key in capability.get_abbreviations():
                     return capability
 
@@ -69,12 +68,11 @@ class Capabilities(object):
     def __len__(self):
         return len(self._dict)
 
-    # python 2 and 3 compatible
     def __iter__(self):
-        return six.iterkeys(self._dict)
+        return iter(self._dict.keys())
 
     def __repr__(self):
-        return repr(six.iterkeys(self._dict))
+        return repr(self._dict.keys())
 
     def add(self, uri):
         "Add a capability."
@@ -86,7 +84,7 @@ class Capabilities(object):
             del self._dict[uri]
 
 
-class Capability(object):
+class Capability:
 
     """Represents a single capability"""
 
@@ -135,7 +133,7 @@ def _parse_parameter_string(string, uri):
             )
 
 
-class _Parameter(object):
+class _Parameter:
 
     """Represents a parameter to a capability"""
 

@@ -17,11 +17,11 @@ import base64
 import getpass
 import os
 import re
-import six
 import sys
 import socket
 import threading
 from binascii import hexlify
+from io import BytesIO as StringIO
 
 try:
     import selectors
@@ -33,11 +33,9 @@ from ncclient.logging_ import SessionLoggerAdapter
 
 import paramiko
 
-from ncclient.transport.errors import AuthenticationError, SessionCloseError, SSHError, SSHUnknownHostError, NetconfFramingError
+from ncclient.transport.errors import AuthenticationError, SSHError, SSHUnknownHostError
 from ncclient.transport.session import Session
-from ncclient.transport.session import NetconfBase
 from ncclient.transport.parser import DefaultXMLParser
-from ncclient.transport.parser import SAXFilterXMLNotFoundError
 
 import logging
 logger = logging.getLogger("ncclient.transport.ssh")
@@ -45,12 +43,6 @@ logger = logging.getLogger("ncclient.transport.ssh")
 PORT_NETCONF_DEFAULT = 830
 
 BUF_SIZE = 4096
-# v1.0: RFC 4742
-MSG_DELIM = b"]]>]]>"
-# v1.1: RFC 6242
-END_DELIM = b'\n##\n'
-
-TICK = 0.1
 
 #
 # Define delimiters for chunks and messages for netconf 1.1 chunk enoding.
@@ -83,12 +75,6 @@ def _colonify(fp):
     for idx in range(2, len(fp), 2):
         finga += ":" + fp[idx:idx+2]
     return finga
-
-
-if sys.version < '3':
-    from six import StringIO
-else:
-    from io import BytesIO as StringIO
 
 
 class SSHSession(Session):
@@ -178,7 +164,8 @@ class SSHSession(Session):
             sock_fd             = None,
             bind_addr           = None,
             sock                = None,
-            keepalive           = None):
+            keepalive           = None,
+            environment         = None):
 
         """Connect via SSH and initialize the NETCONF session. First attempts the publickey authentication method and then password authentication.
 
@@ -215,6 +202,8 @@ class SSHSession(Session):
         *sock* is an already open Python socket to be used for this connection.
 
         *keepalive* Turn on/off keepalive packets (default is off). If this is set, after interval seconds without sending any data over the connection, a "keepalive" packet will be sent (and ignored by the remote host). This can be useful to keep connections alive over a NAT.
+
+        *environment* a dictionary containing the name and respective values to set
         """
         if not (host or sock_fd or sock):
             raise SSHError("Missing host, socket or socket fd")
@@ -249,14 +238,17 @@ class SSHSession(Session):
                 username = config.get("user")
             if key_filename is None:
                 key_filename = config.get("identityfile")
-            if hostkey_verify:
-                userknownhostsfile = config.get("userknownhostsfile")
-                if userknownhostsfile:
-                    self.load_known_hosts(os.path.expanduser(userknownhostsfile))
             if timeout is None:
                 timeout = config.get("connecttimeout")
                 if timeout:
                     timeout = int(timeout)
+
+        if hostkey_verify:
+            userknownhostsfile = config.get("userknownhostsfile")
+            if userknownhostsfile:
+                self.load_known_hosts(os.path.expanduser(userknownhostsfile))
+            else:
+                self.load_known_hosts()
 
         if username is None:
             username = getpass.getuser()
@@ -265,7 +257,7 @@ class SSHSession(Session):
             proxycommand = config.get("proxycommand")
             if proxycommand:
                 self.logger.debug("Configuring Proxy. %s", proxycommand)
-                if not isinstance(proxycommand, six.string_types):
+                if not isinstance(proxycommand, str):
                   proxycommand = [os.path.expanduser(elem) for elem in proxycommand]
                 else:
                   proxycommand = os.path.expanduser(proxycommand)
@@ -289,11 +281,7 @@ class SSHSession(Session):
                 else:
                     raise SSHError("Could not open socket to %s:%s" % (host, port))
         elif sock is None:
-            if sys.version_info[0] < 3:
-                s = socket.fromfd(int(sock_fd), socket.AF_INET, socket.SOCK_STREAM)
-                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, _sock=s)
-            else:
-                sock = socket.fromfd(int(sock_fd), socket.AF_INET, socket.SOCK_STREAM)
+            sock = socket.fromfd(int(sock_fd), socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(timeout)
 
         self._transport = paramiko.Transport(sock)
@@ -329,10 +317,10 @@ class SSHSession(Session):
         except paramiko.SSHException as e:
             raise SSHError('Negotiation failed: %s' % e)
 
-        server_key_obj = self._transport.get_remote_server_key()
-        fingerprint = _colonify(hexlify(server_key_obj.get_fingerprint()))
-
         if hostkey_verify:
+            server_key_obj = self._transport.get_remote_server_key()
+            fingerprint = _colonify(hexlify(server_key_obj.get_fingerprint()))
+
             is_known_host = False
 
             # For looking up entries for nonstandard (22) ssh ports in known_hosts
@@ -373,6 +361,17 @@ class SSHSession(Session):
             self._channel_id = self._channel.get_id()
             channel_name = "%s-subsystem-%s" % (subname, str(self._channel_id))
             self._channel.set_name(channel_name)
+            if environment:
+                try:
+                    self._channel.update_environment(environment)
+                except paramiko.SSHException as e:
+                    self.logger.info("%s (environment update rejected)", e)
+                    handle_exception = self._device_handler.handle_connection_exceptions(self)
+                    # Ignore the exception, since we continue to try the different
+                    # subsystem names until we find one that can connect.
+                    # have to handle exception for each vendor here
+                    if not handle_exception:
+                        continue
             try:
                 self._channel.invoke_subsystem(subname)
             except paramiko.SSHException as e:
@@ -384,7 +383,7 @@ class SSHSession(Session):
                 if not handle_exception:
                     continue
             self._channel_name = self._channel.get_name()
-            self._post_connect()
+            self._post_connect(timeout)
             # for further upcoming RPC responses, vendor can chose their
             # choice of parser. Say DOM or SAX
             self.parser = self._device_handler.get_xml_parser(self)
@@ -395,22 +394,41 @@ class SSHSession(Session):
     def _auth(self, username, password, key_filenames, allow_agent,
               look_for_keys):
         saved_exception = None
-
+        encoded_password = None if password is None else password.encode('utf-8')
+        
         for key_filename in key_filenames:
-            for cls in (paramiko.RSAKey, paramiko.DSSKey, paramiko.ECDSAKey, paramiko.Ed25519Key):
-                try:
-                    key = cls.from_private_key_file(key_filename, password)
-                    self.logger.debug("Trying key %s from %s",
-                                      hexlify(key.get_fingerprint()),
-                                      key_filename)
-                    self._transport.auth_publickey(username, key)
-                    return
-                except Exception as e:
-                    saved_exception = e
-                    self.logger.debug(e)
+            try:
+                key = paramiko.PKey.from_path(key_filename, encoded_password)
+                self.logger.debug("Trying key %s from %s",
+                                  hexlify(key.get_fingerprint()),
+                                  key_filename)
+                self._transport.auth_publickey(username, key)
+                return
+            except Exception as e:
+                saved_exception = e
+                self.logger.debug(e)
 
         if allow_agent:
-            for key in paramiko.Agent().get_keys():
+            # resequence keys from agent using private key names
+            prepend_agent_keys=[]
+            append_agent_keys=list(paramiko.Agent().get_keys())
+
+            for key_filename in key_filenames:
+                pubkey_filename=key_filename.strip(".pub")+".pub"
+                try:
+                    file_key=paramiko.PublicBlob.from_file(pubkey_filename).key_blob
+                except (FileNotFoundError, ValueError):
+                    continue
+
+                for idx, agent_key in enumerate(append_agent_keys):
+                    if agent_key.asbytes() == file_key:
+                        self.logger.debug("Prioritising SSH agent key found in %s",key_filename )
+                        prepend_agent_keys.append(append_agent_keys.pop(idx))
+                        break
+
+            agent_keys=tuple(prepend_agent_keys+append_agent_keys)
+
+            for key in agent_keys:
                 try:
                     self.logger.debug("Trying SSH agent key %s",
                                       hexlify(key.get_fingerprint()))
@@ -425,26 +443,32 @@ class SSHSession(Session):
             rsa_key = os.path.expanduser("~/.ssh/id_rsa")
             dsa_key = os.path.expanduser("~/.ssh/id_dsa")
             ecdsa_key = os.path.expanduser("~/.ssh/id_ecdsa")
+            ed25519_key = os.path.expanduser("~/.ssh/id_ed25519")
             if os.path.isfile(rsa_key):
-                keyfiles.append((paramiko.RSAKey, rsa_key))
+                keyfiles.append(rsa_key)
             if os.path.isfile(dsa_key):
-                keyfiles.append((paramiko.DSSKey, dsa_key))
+                keyfiles.append(dsa_key)
             if os.path.isfile(ecdsa_key):
-                keyfiles.append((paramiko.ECDSAKey, ecdsa_key))
+                keyfiles.append(ecdsa_key)
+            if os.path.isfile(ed25519_key):
+                keyfiles.append(ed25519_key)
             # look in ~/ssh/ for windows users:
             rsa_key = os.path.expanduser("~/ssh/id_rsa")
             dsa_key = os.path.expanduser("~/ssh/id_dsa")
             ecdsa_key = os.path.expanduser("~/ssh/id_ecdsa")
+            ed25519_key = os.path.expanduser("~/ssh/id_ed25519")
             if os.path.isfile(rsa_key):
-                keyfiles.append((paramiko.RSAKey, rsa_key))
+                keyfiles.append(rsa_key)
             if os.path.isfile(dsa_key):
-                keyfiles.append((paramiko.DSSKey, dsa_key))
+                keyfiles.append(dsa_key)
             if os.path.isfile(ecdsa_key):
-                keyfiles.append((paramiko.ECDSAKey, ecdsa_key))
+                keyfiles.append(ecdsa_key)
+            if os.path.isfile(ed25519_key):
+                keyfiles.append(ed25519_key)
 
-        for cls, filename in keyfiles:
+        for filename in keyfiles:
             try:
-                key = cls.from_private_key_file(filename, password)
+                key = paramiko.PKey.from_path(filename, encoded_password)
                 self.logger.debug("Trying discovered key %s in %s",
                                   hexlify(key.get_fingerprint()), filename)
                 self._transport.auth_publickey(username, key)
@@ -467,54 +491,17 @@ class SSHSession(Session):
 
         raise AuthenticationError("No authentication methods available")
 
-    def run(self):
-        chan = self._channel
-        q = self._q
+    def _transport_read(self):
+        return self._channel.recv(BUF_SIZE)
 
-        def start_delim(data_len): return b'\n#%i\n' % (data_len)
+    def _transport_write(self, data):
+        return self._channel.send(data)
 
-        try:
-            s = selectors.DefaultSelector()
-            s.register(chan, selectors.EVENT_READ)
-            self.logger.debug('selector type = %s', s.__class__.__name__)
-            while True:
+    def _transport_register(self, selector, event):
+        selector.register(self._channel, event)
 
-                # Will wakeup evey TICK seconds to check if something
-                # to send, more quickly if something to read (due to
-                # select returning chan in readable list).
-                events = s.select(timeout=TICK)
-                if events:
-                    data = chan.recv(BUF_SIZE)
-                    if data:
-                        try:
-                            self.parser.parse(data)
-                        except SAXFilterXMLNotFoundError:
-                            self.logger.debug('switching from sax to dom parsing')
-                            self.parser = DefaultXMLParser(self)
-                            self.parser.parse(data)
-                    elif self._closing.is_set():
-                        # End of session, expected
-                        break
-                    else:
-                        # End of session, unexpected
-                        raise SessionCloseError(self._buffer.getvalue())
-                if not q.empty() and chan.send_ready():
-                    self.logger.debug("Sending message")
-                    data = q.get().encode()
-                    if self._base == NetconfBase.BASE_11:
-                        data = b"%s%s%s" % (start_delim(len(data)), data, END_DELIM)
-                    else:
-                        data = b"%s%s" % (data, MSG_DELIM)
-                    self.logger.info("Sending:\n%s", data)
-                    while data:
-                        n = chan.send(data)
-                        if n <= 0:
-                            raise SessionCloseError(self._buffer.getvalue(), data)
-                        data = data[n:]
-        except Exception as e:
-            self.logger.debug("Broke out of main loop, error=%r", e)
-            self._dispatch_error(e)
-            self.close()
+    def _send_ready(self):
+        return self._channel.send_ready()
 
     @property
     def host(self):

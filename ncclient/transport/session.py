@@ -16,20 +16,31 @@
 
 import logging
 from threading import Thread, Lock, Event
+from queue import Queue, Empty
+
 try:
-    from Queue import Queue, Empty
+    import selectors
 except ImportError:
-    from queue import Queue, Empty
+    import selectors2 as selectors
+
+import ncclient.transport
 from ncclient.xml_ import *
 from ncclient.capabilities import Capabilities
 from ncclient.logging_ import SessionLoggerAdapter
-from ncclient.transport.errors import TransportError, SessionError
+from ncclient.transport.errors import TransportError, SessionError, SessionCloseError
 from ncclient.transport.notify import Notification
 
 logger = logging.getLogger('ncclient.transport.session')
 
+# v1.0: RFC 4742
+MSG_DELIM = b"]]>]]>"
+# v1.1: RFC 6242
+END_DELIM = b'\n##\n'
 
-class NetconfBase(object):
+TICK = 0.1
+
+
+class NetconfBase:
     '''Netconf Base protocol version'''
     BASE_10 = 1
     BASE_11 = 2
@@ -40,11 +51,9 @@ class Session(Thread):
     "Base class for use by transport protocol implementations."
 
     def __init__(self, capabilities):
-        Thread.__init__(self)
-        self.setDaemon(True)
+        Thread.__init__(self, daemon=True, name='session')
         self._listeners = set()
         self._lock = Lock()
-        self.setName('session')
         self._q = Queue()
         self._notification_q = Queue()
         self._client_capabilities = capabilities
@@ -88,7 +97,7 @@ class Session(Thread):
             except Exception as e:
                 self.logger.warning('error dispatching to %r: %r', l, e)
 
-    def _post_connect(self):
+    def _post_connect(self, timeout=60):
         "Greeting stuff"
         init_event = Event()
         error = [None] # so that err_cb can bind error[0]. just how it is.
@@ -107,7 +116,7 @@ class Session(Thread):
         self.logger.debug('starting main loop')
         self.start()
         # we expect server's hello message, if server doesn't responds in 60 seconds raise exception
-        init_event.wait(60)
+        init_event.wait(timeout)
         if not init_event.is_set():
             raise SessionError("Capability exchange timed out")
         # received hello message or an error happened
@@ -158,8 +167,90 @@ class Session(Thread):
     def connect(self, *args, **kwds): # subclass implements
         raise NotImplementedError
 
-    def run(self): # subclass implements
+    def _transport_read(self):
+        """
+        Read data from underlying Transport layer, either SSH or TLS, as
+        implemented in subclass.
+
+        :return: Byte string read from Transport, or None if nothing was read.
+        """
         raise NotImplementedError
+
+    def _transport_write(self, data):
+        """
+        Write data into underlying Transport layer, either SSH or TLS, as
+        implemented in subclass.
+
+        :param data: Byte string to write.
+        :return: Number of bytes sent, or 0 if the stream is closed.
+        """
+        raise NotImplementedError
+
+    def _transport_register(self, selector, event):
+        """
+        Register the channel/socket of Transport layer for selection.
+        Implemented in a subclass.
+
+        :param selector: Selector to register with.
+        :param event: Type of event for selection.
+        """
+        raise NotImplementedError
+
+    def _send_ready(self):
+        """
+        Check if Transport layer is ready to send the data. Implemented
+        in a subclass.
+
+        :return: True if the layer is ready, False otherwise.
+        """
+        raise NotImplementedError
+
+    def run(self):
+        q = self._q
+
+        def start_delim(data_len):
+            return b'\n#%i\n' % data_len
+
+        try:
+            s = selectors.DefaultSelector()
+            self._transport_register(s, selectors.EVENT_READ)
+            self.logger.debug('selector type = %s', s.__class__.__name__)
+            while True:
+                
+                if not q.empty() and self._send_ready():
+                    self.logger.debug("Sending message")
+                    data = q.get().encode()
+                    if self._base == NetconfBase.BASE_11:
+                        data = b"%s%s%s" % (start_delim(len(data)), data, END_DELIM)
+                    else:
+                        data = b"%s%s" % (data, MSG_DELIM)
+                    self.logger.info("Sending:\n%s", data)
+                    while data:
+                        n = self._transport_write(data)
+                        if n <= 0:
+                            raise SessionCloseError(self._buffer.getvalue(), data)
+                        data = data[n:]
+                        
+                events = s.select(timeout=TICK)
+                if events:
+                    data = self._transport_read()
+                    if data:
+                        try:
+                            self.parser.parse(data)
+                        except ncclient.transport.parser.SAXFilterXMLNotFoundError:
+                            self.logger.debug('switching from sax to dom parsing')
+                            self.parser = ncclient.transport.parser.DefaultXMLParser(self)
+                            self.parser.parse(data)
+                    elif self._closing.is_set():
+                        # End of session, expected
+                        break
+                    else:
+                        # End of session, unexpected
+                        raise SessionCloseError(self._buffer.getvalue())
+        except Exception as e:
+            self.logger.debug("Broke out of main loop, error=%r", e)
+            self._dispatch_error(e)
+            self.close()
 
     def send(self, message):
         """Send the supplied *message* (xml string) to NETCONF server."""
@@ -199,7 +290,7 @@ class Session(Thread):
         return self._id
 
 
-class SessionListener(object):
+class SessionListener:
 
     """Base class for :class:`Session` listeners, which are notified when a new
     NETCONF message is received or an error occurs.
@@ -256,11 +347,7 @@ class HelloHandler(SessionListener):
         hello = new_ele("hello", **xml_namespace_kwargs)
         caps = sub_ele(hello, "capabilities")
         def fun(uri): sub_ele(caps, "capability").text = uri
-        #python3 changes
-        if sys.version < '3':
-            map(fun, capabilities)
-        else:
-            list(map(fun, capabilities))
+        list(map(fun, capabilities))
         return to_xml(hello)
 
     @staticmethod
