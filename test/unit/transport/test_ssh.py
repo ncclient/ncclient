@@ -13,6 +13,10 @@ except ImportError:
     import selectors2 as selectors
 
 
+SSH_KEYTYPE = 'ssh-ed25519'
+SSH_PUBKEY = 'test/unit/transport/certs/id_ed25519_test.pub'
+SSH_CERT = 'test/unit/transport/certs/id_ed25519_test-cert.pub'
+
 reply_data = """<rpc-reply xmlns:junos="http://xml.juniper.net/junos/12.1X46/junos" attrib1 = "test">
     <software-information>
         <host-name>R1</host-name>
@@ -131,6 +135,50 @@ class TestSSH(unittest.TestCase):
         self.assertEqual(
             (mock_auth_public_key.call_args_list[0][0][1]).__repr__(),
             key.__repr__())
+
+    @patch('paramiko.transport.Transport.auth_publickey')
+    @patch('paramiko.agent.AgentSSH.get_keys')
+    def test_auth_agent_with_key(self, mock_get_key, mock_auth_public_key):
+        expected_blob = paramiko.PublicBlob.from_file(SSH_PUBKEY).key_blob
+        expected = paramiko.PKey.from_type_string(SSH_KEYTYPE, expected_blob)
+        expected.load_certificate(SSH_PUBKEY)
+
+        agentkey_blob = paramiko.PublicBlob.from_file(SSH_PUBKEY).key_blob
+        agentkey = paramiko.PKey.from_type_string(SSH_KEYTYPE, agentkey_blob)
+        mock_get_key.return_value = [agentkey]
+
+        device_handler = JunosDeviceHandler({'name': 'junos'})
+        obj = SSHSession(device_handler)
+        obj._transport = paramiko.Transport(MagicMock())
+        obj._auth('user', 'password', [SSH_PUBKEY], True, True)
+        self.assertEqual(
+            (mock_auth_public_key.call_args_list[0][0][1]).__repr__(),
+            expected.__repr__())
+        self.assertEqual(
+            (mock_auth_public_key.call_args_list[0][0][1]).public_blob,
+            expected.public_blob)
+
+    @patch('paramiko.transport.Transport.auth_publickey')
+    @patch('paramiko.agent.AgentSSH.get_keys')
+    def test_auth_agent_with_cert(self, mock_get_key, mock_auth_public_key):
+        expected_blob = paramiko.PublicBlob.from_file(SSH_PUBKEY).key_blob
+        expected = paramiko.PKey.from_type_string(SSH_KEYTYPE, expected_blob)
+        expected.load_certificate(SSH_CERT)
+
+        agentkey_blob = paramiko.PublicBlob.from_file(SSH_PUBKEY).key_blob
+        agentkey = paramiko.PKey.from_type_string(SSH_KEYTYPE, agentkey_blob)
+        mock_get_key.return_value = [agentkey]
+
+        device_handler = JunosDeviceHandler({'name': 'junos'})
+        obj = SSHSession(device_handler)
+        obj._transport = paramiko.Transport(MagicMock())
+        obj._auth('user', 'password', [SSH_CERT], True, True)
+        self.assertEqual(
+            (mock_auth_public_key.call_args_list[0][0][1]).__repr__(),
+            expected.__repr__())
+        self.assertEqual(
+            (mock_auth_public_key.call_args_list[0][0][1]).public_blob,
+            expected.public_blob)
 
     @patch('paramiko.transport.Transport.auth_publickey')
     @patch('paramiko.agent.AgentSSH.get_keys')
