@@ -33,19 +33,22 @@ def one_of(*args):
     raise OperationError("Insufficient parameters")
 
 def datastore_or_url(wha, loc, capcheck=None):
-    node = new_ele(wha)
-    if "://" in loc: # e.g. http://, file://, ftp://
-        if capcheck is not None:
-            capcheck(":url") # url schema check at some point!
-            sub_ele(node, "url").text = loc
-    else:
-        #if loc == 'candidate':
-        #    capcheck(':candidate')
-        #elif loc == 'startup':
-        #    capcheck(':startup')
-        #elif loc == 'running' and wha == 'target':
-        #    capcheck(':writable-running')
-        sub_ele(node, loc)
+    try:
+        node = validated_element(loc)
+    except (XMLError, etree.XMLSyntaxError):
+        node = new_ele(wha)
+        if "://" in loc:  # e.g. http://, file://, ftp://
+            if capcheck is not None:
+                capcheck(":url")  # url schema check at some point!
+                sub_ele(node, "url").text = loc
+        else:
+            # if loc == 'candidate':
+            #    capcheck(':candidate')
+            # elif loc == 'startup':
+            #    capcheck(':startup')
+            # elif loc == 'running' and wha == 'target':
+            #    capcheck(':writable-running')
+            sub_ele(node, loc)
     return node
 
 def build_filter(spec, capcheck=None):
