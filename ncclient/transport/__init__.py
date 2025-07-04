@@ -43,3 +43,14 @@ if sys.platform != 'win32':
         __all__.append('UnixSocketSession')
     except Exception:
         pass
+
+#
+# check if ssh-python is installed
+#
+try:
+    import ssh
+except ImportError:
+    pass
+else:
+    from ncclient.transport.libssh import LibSSHSession
+    __all__.append('LibSSHSession')

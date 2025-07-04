@@ -159,6 +159,24 @@ def connect_ssh(*args, **kwds):
         raise
     return Manager(session, device_handler, **manager_params)
 
+def connect_libssh(*args, **kwargs):
+    """Initialize a :class:`Manager` over the LibSSH transport."""
+    if not hasattr(transport, 'libssh'):
+        raise ValueError("LibSSH transport is not available, install 'ssh-python' package.")
+
+    device_params = _extract_device_params(kwargs)
+    manager_params = _extract_manager_params(kwargs)
+    nc_params = _extract_nc_params(kwargs)
+    ignore_errors, raise_mode = _extract_errors_params(kwargs)
+    manager_params["raise_mode"] = raise_mode
+
+    device_handler = make_device_handler(device_params, ignore_errors)
+    device_handler.add_additional_ssh_connect_params(kwargs)
+    device_handler.add_additional_netconf_params(nc_params)
+    session = transport.libssh.LibSSHSession(device_handler)
+
+    session.connect(*args, **kwargs)
+    return Manager(session, device_handler, **manager_params)
 
 def connect_tls(*args, **kwargs):
     """Initialize a :class:`Manager` over the TLS transport."""
@@ -218,6 +236,8 @@ def connect(*args, **kwds):
         if host == 'localhost' and device_params.get('name') == 'junos' \
                 and device_params.get('local'):
             return connect_ioproc(*args, **kwds)
+        elif kwds.pop("use_libssh", False):
+            return connect_libssh(*args, **kwds)
         else:
             return connect_ssh(*args, **kwds)
 
