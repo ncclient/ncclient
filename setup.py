@@ -33,6 +33,8 @@ if sys.version_info.major == 2 or sys.version_info.minor < 5:
 req_lines = [line.strip() for line in open("requirements.txt").readlines()]
 install_reqs = list(filter(None, req_lines))
 
+extras_reqs = {"libssh": ["ssh-python >= 1.1.1"]}
+
 test_req_lines = [line.strip() for line in open("requirements-test.txt").readlines()]
 test_reqs = list(filter(None, test_req_lines))
 
@@ -50,6 +52,7 @@ setup(name='ncclient',
       url="https://github.com/ncclient/ncclient",
       packages=find_packages(exclude=['test', 'test.*']),
       install_requires=install_reqs,
+      extras_require=extras_reqs,
       tests_require=test_reqs,
       license=__licence__,
       platforms=["Posix; OS X; Windows"],

@@ -53,3 +53,24 @@ __all__ = [
     'TLSSession',
     'UnixSocketSession',
 ]
+
+#
+# Windows does not support Unix domain sockets; assume all other platforms do
+#
+if sys.platform != 'win32':
+    try:
+        from ncclient.transport.unixSocket import UnixSocketSession
+        __all__.append('UnixSocketSession')
+    except Exception:
+        pass
+
+#
+# check if ssh-python is installed
+#
+try:
+    import ssh
+except ImportError:
+    pass
+else:
+    from ncclient.transport.libssh import LibSSHSession
+    __all__.append('LibSSHSession')
