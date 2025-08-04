@@ -22,7 +22,8 @@ logger = logging.getLogger("ncclient.devices.iosxe")
 
 
 def iosxe_unknown_host_cb(host, fingerprint):
-        # This will ignore the unknown host check when connecting to CSR devices
+        # This will ignore the unknown host check when connecting to
+        # IOS-XE devices
         return True
 
 class IosxeDeviceHandler(DefaultDeviceHandler):
