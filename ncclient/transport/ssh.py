@@ -292,7 +292,7 @@ class SSHSession(Session):
         if hostkey_b64:
             # If we need to connect with a specific hostkey, negotiate for only its type
             hostkey_obj = None
-            for key_cls in [paramiko.DSSKey, paramiko.Ed25519Key, paramiko.RSAKey, paramiko.ECDSAKey]:
+            for key_cls in [paramiko.Ed25519Key, paramiko.RSAKey, paramiko.ECDSAKey]:
                 try:
                     hostkey_obj = key_cls(data=base64.b64decode(hostkey_b64))
                 except paramiko.SSHException:
