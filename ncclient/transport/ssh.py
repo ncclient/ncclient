@@ -292,7 +292,7 @@ class SSHSession(Session):
         if hostkey_b64:
             # If we need to connect with a specific hostkey, negotiate for only its type
             hostkey_obj = None
-            for key_cls in [paramiko.DSSKey, paramiko.Ed25519Key, paramiko.RSAKey, paramiko.ECDSAKey]:
+            for key_cls in [paramiko.Ed25519Key, paramiko.RSAKey, paramiko.ECDSAKey]:
                 try:
                     hostkey_obj = key_cls(data=base64.b64decode(hostkey_b64))
                 except paramiko.SSHException:
@@ -451,26 +451,20 @@ class SSHSession(Session):
         keyfiles = []
         if look_for_keys:
             rsa_key = os.path.expanduser("~/.ssh/id_rsa")
-            dsa_key = os.path.expanduser("~/.ssh/id_dsa")
             ecdsa_key = os.path.expanduser("~/.ssh/id_ecdsa")
             ed25519_key = os.path.expanduser("~/.ssh/id_ed25519")
             if os.path.isfile(rsa_key):
                 keyfiles.append(rsa_key)
-            if os.path.isfile(dsa_key):
-                keyfiles.append(dsa_key)
             if os.path.isfile(ecdsa_key):
                 keyfiles.append(ecdsa_key)
             if os.path.isfile(ed25519_key):
                 keyfiles.append(ed25519_key)
             # look in ~/ssh/ for windows users:
             rsa_key = os.path.expanduser("~/ssh/id_rsa")
-            dsa_key = os.path.expanduser("~/ssh/id_dsa")
             ecdsa_key = os.path.expanduser("~/ssh/id_ecdsa")
             ed25519_key = os.path.expanduser("~/ssh/id_ed25519")
             if os.path.isfile(rsa_key):
                 keyfiles.append(rsa_key)
-            if os.path.isfile(dsa_key):
-                keyfiles.append(dsa_key)
             if os.path.isfile(ecdsa_key):
                 keyfiles.append(ecdsa_key)
             if os.path.isfile(ed25519_key):
