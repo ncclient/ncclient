@@ -451,26 +451,20 @@ class SSHSession(Session):
         keyfiles = []
         if look_for_keys:
             rsa_key = os.path.expanduser("~/.ssh/id_rsa")
-            dsa_key = os.path.expanduser("~/.ssh/id_dsa")
             ecdsa_key = os.path.expanduser("~/.ssh/id_ecdsa")
             ed25519_key = os.path.expanduser("~/.ssh/id_ed25519")
             if os.path.isfile(rsa_key):
                 keyfiles.append(rsa_key)
-            if os.path.isfile(dsa_key):
-                keyfiles.append(dsa_key)
             if os.path.isfile(ecdsa_key):
                 keyfiles.append(ecdsa_key)
             if os.path.isfile(ed25519_key):
                 keyfiles.append(ed25519_key)
             # look in ~/ssh/ for windows users:
             rsa_key = os.path.expanduser("~/ssh/id_rsa")
-            dsa_key = os.path.expanduser("~/ssh/id_dsa")
             ecdsa_key = os.path.expanduser("~/ssh/id_ecdsa")
             ed25519_key = os.path.expanduser("~/ssh/id_ed25519")
             if os.path.isfile(rsa_key):
                 keyfiles.append(rsa_key)
-            if os.path.isfile(dsa_key):
-                keyfiles.append(dsa_key)
             if os.path.isfile(ecdsa_key):
                 keyfiles.append(ecdsa_key)
             if os.path.isfile(ed25519_key):
