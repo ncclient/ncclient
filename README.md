@@ -17,23 +17,23 @@ by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org) and Einar Nilsen-Nygaa
 
 ## Recent Highlights
 
-|  Date  | Release | Description |
-| :----: | :-----: | :---------- |
-| 10/18/23 | `0.6.15` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.15)|
-| 04/10/22 | `0.6.13` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.13)|
-| 05/29/21 | `0.6.12` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.12)|
-| 05/27/21 | `0.6.11` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.11)|
-| 02/18/21 | `0.6.10` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.10)|
-| 08/08/20 | `0.6.9` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.9) |
-| 08/01/20 | `0.6.8` | Pulled due to accidental breaking API change |
-| 12/21/19 | `0.6.7` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.7) |
-| 05/27/19 | `0.6.6` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.6) |
-| 05/27/19 | `0.6.5` | Pulled due to bug in PyPi upload |
-| 04/07/19 | `0.6.4` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.4) |
-| 09/26/18 | `0.6.3` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.3) |
-| 08/20/18 | `0.6.2` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.2) |
-| 07/02/18 | `0.6.0` | Minor release reinstating Python 3.7 and greater compatibility, but necessitating a change to client code that uses `async_mode`. |
-| 07/02/18 | `0.5.4` | New release rolling up myriad of small commits since `0.5.3`. Please note that this release is **incompatible wth Python 3.7** due to the use of a new Python 3.7 keyword, `async`, in function signatures. This will be resolved in 0.6.0|
+|   Date   | Release  | Description                                                                                                                                                                                                                                |
+| :------: | :------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 10/18/23 | `0.6.15` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.15)                                                                                                                                                              |
+| 04/10/22 | `0.6.13` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.13)                                                                                                                                                              |
+| 05/29/21 | `0.6.12` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.12)                                                                                                                                                              |
+| 05/27/21 | `0.6.11` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.11)                                                                                                                                                              |
+| 02/18/21 | `0.6.10` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.10)                                                                                                                                                              |
+| 08/08/20 | `0.6.9`  | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.9)                                                                                                                                                               |
+| 08/01/20 | `0.6.8`  | Pulled due to accidental breaking API change                                                                                                                                                                                               |
+| 12/21/19 | `0.6.7`  | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.7)                                                                                                                                                               |
+| 05/27/19 | `0.6.6`  | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.6)                                                                                                                                                               |
+| 05/27/19 | `0.6.5`  | Pulled due to bug in PyPi upload                                                                                                                                                                                                           |
+| 04/07/19 | `0.6.4`  | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.4)                                                                                                                                                               |
+| 09/26/18 | `0.6.3`  | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.3)                                                                                                                                                               |
+| 08/20/18 | `0.6.2`  | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.2)                                                                                                                                                               |
+| 07/02/18 | `0.6.0`  | Minor release reinstating Python 3.7 and greater compatibility, but necessitating a change to client code that uses `async_mode`.                                                                                                          |
+| 07/02/18 | `0.5.4`  | New release rolling up myriad of small commits since `0.5.3`. Please note that this release is **incompatible wth Python 3.7** due to the use of a new Python 3.7 keyword, `async`, in function signatures. This will be resolved in 0.6.0 |
 
 ## Requirements
 
