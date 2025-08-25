@@ -18,7 +18,7 @@ def demo(host, user, password):
     with manager.connect(
             host=host, port=830,
             username=user, password=password,
-            # use_libssh=True,
+            use_libssh=True,
             hostkey_verify=False) as m:
 
         for c in m.client_capabilities:

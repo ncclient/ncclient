@@ -19,6 +19,7 @@ by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org) and Einar Nilsen-Nygaa
 
 |  Date  | Release | Description |
 | :----: | :-----: | :---------- |
+| 08/25/25 | `0.7.0` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.7.0)|
 | 10/18/23 | `0.6.15` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.15)|
 | 04/10/22 | `0.6.13` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.13)|
 | 05/29/21 | `0.6.12` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.12)|
@@ -56,13 +57,19 @@ or via pip:
 
     pip install ncclient
 
+    # to install dependencies to use ssh-python instead of Paramiko
+    pip install ncclient[libssh]
+
 Also locally via pip from within local clone:
 
     pip install -U .
 
 ## Examples
 
-    [ncclient] $ python examples/juniper/*.py
+    [ncclient] $ python examples/base/*.py
+
+As of `0.7.0` it is possible to use `ssh-python` instead of `Paramiko`. For a
+simple example of how to use `ssh-python` see [nc11.py](examples/base/nc11.py)
 
 ## Usage
 
