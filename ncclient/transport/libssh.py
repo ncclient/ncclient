@@ -46,12 +46,13 @@ class LibSSHSession(Session):
     _connected: bool
     _device_handler: Any
     _host: str | None
-    _logger: SessionLoggerAdapter
+    _message_list: list
     _receiver_thread: threading.Thread | None
     _session: LSession | None
     _socket: socket.socket | None
     _socket_r: socket.socket
     _socket_w: socket.socket
+    logger: SessionLoggerAdapter
     parser: DefaultXMLParser
 
     def __init__(self, device_handler):
@@ -101,15 +102,21 @@ class LibSSHSession(Session):
         key_filename: str | None = None,
         key_base64: bytes | None = None,
         key_passphrase: bytes | None = None,
-        allow_agent: bool = False,
+        allow_agent: bool = True,
         hostkey_verify: bool = True,
         hostkey_b64: str | None = None,
         timeout: int | None = None,
         unknown_host_cb: Callable = default_unknown_host_cb,
         bind_addr: str | None = None,
+        sock: socket.socket | None = None,
+        sock_fd: int | None = None,
+        **kwargs,
     ):
         """
         Connect to the SSH server and establish a NETCONF session.
+
+        Note: Some arguments are not implemented due to limitations in the underlying libssh library
+        in comparison to original paramiko library. These arguments are ignored.
 
         ### Parameters:
         - host: The hostname or IP address of the SSH server.
@@ -125,25 +132,42 @@ class LibSSHSession(Session):
         - timeout: Timeout for the connection attempt.
         - unknown_host_cb: Callback function for handling unknown hosts.
         - bind_addr: Local address to bind the socket to.
+        - sock: An existing socket object to use for the connection.
+        - sock_fd: An existing socket file descriptor to use for the connection.
         """
-        for i in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket.SOCK_STREAM):
-            af, socktype, proto, _, sa = i
-            try:
-                sock = socket.socket(af, socktype, proto)
-            except socket.error:
-                continue
-            try:
-                if bind_addr:
-                    sock.bind((bind_addr, 0))
-                sock.settimeout(timeout)
-                sock.connect(sa)
-            except socket.error:
-                sock.close()
-                continue
-            break
+        # not supported warnings
+        for arg in kwargs.keys():
+            self.logger.warning(f"Argument '{arg} is not supported.")
 
-        else:
-            raise SSHError(f"Could not open socket to {host}:{port}")
+        if not (host or sock_fd or sock):
+            raise SSHError("Missing host, socket or socket fd")
+
+        if sock_fd is None and sock is None:
+            for i in socket.getaddrinfo(
+                host, port, socket.AF_UNSPEC, socket.SOCK_STREAM
+            ):
+                af, socktype, proto, _, sa = i
+                try:
+                    sock = socket.socket(af, socktype, proto)
+                except socket.error:
+                    continue
+                try:
+                    if bind_addr:
+                        sock.bind((bind_addr, 0))
+                    sock.settimeout(timeout)
+                    sock.connect(sa)
+                except socket.error:
+                    sock.close()
+                    continue
+                break
+
+            else:
+                raise SSHError(f"Could not open socket to {host}:{port}")
+
+        elif sock_fd is not None:
+            print(sock_fd)
+            sock = socket.fromfd(int(sock_fd), socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(timeout)
 
         if not username:
             username = os.getenv("USER") or os.getenv("LOGNAME") or "root"
@@ -216,6 +240,8 @@ class LibSSHSession(Session):
             - passwd: Password.
             - keyfile: Path to the private key file.
             - agent: Whether to use the SSH agent for authentication.
+            - keybase64: Base64-encoded private key.
+            - passphrase: Passphrase for the private key, if required.
             """
             if passphrase is None:
                 passphrase = b""
