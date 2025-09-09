@@ -1,8 +1,8 @@
 import unittest
 try:
-    from unittest.mock import patch  # Python 3.4 and later
+    from unittest.mock import Mock, patch  # Python 3.4 and later
 except ImportError:
-    from mock import patch
+    from mock import Mock, patch
 from ncclient.transport.session import *
 from ncclient.devices.junos import JunosDeviceHandler
 try:
@@ -49,6 +49,15 @@ notification="""
          </reportingEntity>
          <severity>major</severity>
        </event>
+   </notification>
+"""
+
+yang_push_notification = """
+   <notification xmlns="urn:ietf:params:xml:ns:netconf:notification:1.0">
+      <eventTime>2020-01-01T00:00:00Z</eventTime>
+      <push-update xmlns="urn:ietf:params:xml:ns:yang:ietf-yang-push">
+         <id>1</id>
+      </push-update>
    </notification>
 """
 
@@ -291,3 +300,19 @@ class TestSession(unittest.TestCase):
                          'Test object')
         self.assertEqual(obj.take_notification(block=False, timeout=None),
                          None)
+
+    def test_notification_handler_yang_push_without_listener_queues(self):
+        q = Queue()
+        listener = NotificationHandler(q, session=None)
+        listener.callback(parse_root(yang_push_notification), yang_push_notification)
+        notif = q.get_nowait()
+        self.assertEqual(notif.notification_xml, yang_push_notification)
+        self.assertRaises(Empty, q.get_nowait)
+
+    def test_notification_handler_yang_push_with_listener_skips(self):
+        q = Queue()
+        session_mock = Mock()
+        session_mock.has_yang_push_listener.return_value = True
+        listener = NotificationHandler(q, session=session_mock)
+        listener.callback(parse_root(yang_push_notification), yang_push_notification)
+        self.assertRaises(Empty, q.get_nowait)

@@ -39,21 +39,6 @@ END_DELIM = b'\n##\n'
 
 TICK = 0.1
 
-
-def _is_yang_push_notification(raw):
-    """Check if a notification is a YANG Push notification."""
-    try:
-        root = to_ele(raw)
-
-        # Look for YANG Push notification types
-        push_update = root.find(qualify("push-update", IETF_YANG_PUSH_NS))
-        push_change_update = root.find(qualify("push-change-update",
-                                               IETF_YANG_PUSH_NS))
-        return push_update is not None or push_change_update is not None
-    except Exception:
-        return False
-
-
 class NetconfBase:
     '''Netconf Base protocol version'''
     BASE_10 = 1
@@ -401,12 +386,23 @@ class NotificationHandler(SessionListener):
         if tag == qualify('notification', NETCONF_NOTIFICATION_NS):
             # Check if this is a YANG Push notification and if we have
             # a YANG Push listener, skipping queuing if so
-            if all([_is_yang_push_notification(raw),
-                    self._session,
-                    self._session.has_yang_push_listener()]):
+            if (self._session and
+                self._session.has_yang_push_listener() and
+                NotificationHandler._is_yang_push_notification(raw)):
                 return
 
             self._notification_q.put(Notification(raw))
 
     def errback(self, _):
         pass
+
+    @staticmethod
+    def _is_yang_push_notification(raw):
+        """Check if a notification is a YANG Push notification."""
+        try:
+            root = to_ele(raw)
+            push_update = root.find(qualify("push-update", IETF_YANG_PUSH_NS))
+            push_change_update = root.find(qualify("push-change-update", IETF_YANG_PUSH_NS))
+            return push_update is not None or push_change_update is not None
+        except Exception:
+            return False
