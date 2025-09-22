@@ -39,7 +39,6 @@ END_DELIM = b'\n##\n'
 
 TICK = 0.1
 
-
 class NetconfBase:
     '''Netconf Base protocol version'''
     BASE_10 = 1
@@ -109,7 +108,7 @@ class Session(Thread):
         def err_cb(err):
             error[0] = err
             init_event.set()
-        self.add_listener(NotificationHandler(self._notification_q))
+        self.add_listener(NotificationHandler(self._notification_q, self))
         listener = HelloHandler(ok_cb, err_cb)
         self.add_listener(listener)
         self.send(HelloHandler.build(self._client_capabilities, self._device_handler))
@@ -163,6 +162,18 @@ class Session(Thread):
             for listener in self._listeners:
                 if isinstance(listener, cls):
                     return listener
+
+    def has_yang_push_listener(self):
+        """
+        Check if session has a YANG Push listener registered.
+
+        :return: True if YANG Push listener is registered, False otherwise.
+        """
+        with self._lock:
+            for listener in self._listeners:
+                if hasattr(listener, 'subscription_listeners'):
+                    return True
+        return False
 
     def connect(self, *args, **kwds): # subclass implements
         raise NotImplementedError
@@ -366,13 +377,32 @@ class HelloHandler(SessionListener):
 
 
 class NotificationHandler(SessionListener):
-    def __init__(self, notification_q):
+    def __init__(self, notification_q, session=None):
         self._notification_q = notification_q
+        self._session = session
 
     def callback(self, root, raw):
         tag, _ = root
         if tag == qualify('notification', NETCONF_NOTIFICATION_NS):
+            # Check if this is a YANG Push notification and if we have
+            # a YANG Push listener, skipping queuing if so
+            if (self._session and
+                self._session.has_yang_push_listener() and
+                NotificationHandler._is_yang_push_notification(raw)):
+                return
+
             self._notification_q.put(Notification(raw))
 
     def errback(self, _):
         pass
+
+    @staticmethod
+    def _is_yang_push_notification(raw):
+        """Check if a notification is a YANG Push notification."""
+        try:
+            root = to_ele(raw)
+            push_update = root.find(qualify("push-update", IETF_YANG_PUSH_NS))
+            push_change_update = root.find(qualify("push-change-update", IETF_YANG_PUSH_NS))
+            return push_update is not None or push_change_update is not None
+        except Exception:
+            return False
