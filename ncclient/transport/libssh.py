@@ -328,9 +328,11 @@ class LibSSHSession(Session):
             self._channel.open_session()
             self._channel.request_subsystem("netconf")
         except LibSSHError as e:
-            raise SSHError(
-                f"Could not open NETCONF session on channel to {host}:{port}"
-            ) from e
+            handle_exception = self._device_handler.handle_connection_exceptions(self)
+            if not handle_exception:
+                raise SSHError(
+                    f"Could not open NETCONF session on channel to {host}:{port}"
+                ) from e
 
         self._receiver_thread = threading.Thread(
             target=self._receiver_loop,
