@@ -65,7 +65,7 @@ class TestUtils(unittest.TestCase):
         filter = ("xpath", criteria)
         reply = build_filter(filter)
         call = ElementTree.tostring(reply)
-        node = new_ele("filter", type="xpath")
+        node = new_ele_ns("filter", NETCONF_NOTIFICATION_NS, type="xpath")
         node.attrib["select"] = criteria
         self.assertEqual(call, ElementTree.tostring(node))
 
@@ -89,7 +89,7 @@ class TestUtils(unittest.TestCase):
         filter = ("subtree", criteria)
         reply = build_filter(filter, capcheck="cap")
         call = ElementTree.tostring(reply)
-        node = new_ele("filter", type="subtree")
+        node = new_ele_ns("filter", NETCONF_NOTIFICATION_NS, type="subtree")
         node.append(to_ele(criteria))
         self.assertEqual(call, ElementTree.tostring(node))
 

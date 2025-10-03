@@ -54,6 +54,29 @@ class TestSubscribe(unittest.TestCase):
         self.assertEqual(call, xml)
 
     @patch('ncclient.operations.edit.RPC._request')
+    def test_subscribe_filter(self, mock_request):
+        session = ncclient.transport.SSHSession(self.device_handler)
+        session._server_capabilities = [":notification"]
+        obj = CreateSubscription(
+            session,
+            self.device_handler,
+            raise_mode=RaiseMode.ALL)
+
+        criteria = new_ele_ns(
+                "fake-notif", YANG_NS_1_0
+        )
+        sub_ele(criteria, "fake-field").text = "MAJOR"
+        filter = ("subtree", criteria)
+        obj.request(filter=filter, stream_name=None)
+        node = new_ele_ns("create-subscription", NETCONF_NOTIFICATION_NS)
+        filter = sub_ele_ns(node, "filter", NETCONF_NOTIFICATION_NS, type="subtree")
+        sub_ele(sub_ele_ns(filter, "fake-notif", YANG_NS_1_0), "fake-field").text = "MAJOR"
+        xml = ElementTree.tostring(node)
+        call = mock_request.call_args_list[0][0][0]
+        call = ElementTree.tostring(call)
+        self.assertEqual(call, xml)
+
+    @patch('ncclient.operations.edit.RPC._request')
     def test_subscribe_times(self, mock_request):
         session = ncclient.transport.SSHSession(self.device_handler)
         session._server_capabilities = [":notification"]

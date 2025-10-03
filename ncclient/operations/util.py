@@ -58,15 +58,15 @@ def build_filter(spec, capcheck=None):
                 rep = new_ele_nsmap("filter", ns, type=type)
                 rep.attrib["select"] = select
             else:
-                rep = new_ele("filter", type=type)
+                rep = new_ele_ns("filter", NETCONF_NOTIFICATION_NS, type=type)
                 rep.attrib["select"]=criteria
         elif type == "subtree":
-            rep = new_ele("filter", type=type)
+            rep = new_ele_ns("filter", NETCONF_NOTIFICATION_NS, type=type)
             rep.append(to_ele(criteria))
         else:
             raise OperationError("Invalid filter type")
     elif isinstance(spec, list):
-        rep = new_ele("filter", type="subtree")
+        rep = new_ele_ns("filter", NETCONF_NOTIFICATION_NS, type="subtree")
         for cri in spec:
             rep.append(to_ele(cri))
     else:
