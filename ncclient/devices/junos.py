@@ -89,10 +89,13 @@ class JunosDeviceHandler(DefaultDeviceHandler):
             return False
 
     def handle_connection_exceptions(self, sshsession):
-        c = sshsession._channel = sshsession._transport.open_channel(
-            kind="session")
-        c.set_name("netconf-command-" + str(sshsession._channel_id))
-        c.exec_command("xml-mode netconf need-trailer")
+        if sshsession.__class__.__name__ == 'SSHSession':
+            c = sshsession._channel = sshsession._transport.open_channel(
+                kind="session")
+            c.set_name("netconf-command-" + str(sshsession._channel_id))
+            c.exec_command("xml-mode netconf need-trailer")
+        elif sshsession.__class__.__name__ == 'LibSSHSession':
+            sshsession._channel.request_exec("xml-mode netconf need-trailer")
         return True
 
     def reply_parsing_error_transform(self, reply_cls):
