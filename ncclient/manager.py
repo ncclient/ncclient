@@ -55,6 +55,10 @@ Dictionary of base method names and corresponding :class:`~ncclient.operations.R
 subclasses. It is used to lookup operations, e.g. `get_config` is mapped to
 :class:`~ncclient.operations.GetConfig`. It is thus possible to add additional
 operations to the :class:`Manager` API.
+
+Note: To add readability to the ncclient, you can create new method under
+:class:`Manager`. To keep the initial functionality of the module __getitem__ method
+is operational.
 """
 
 
@@ -332,6 +336,194 @@ class Manager:
                 m.unlock("running")
         """
         return operations.LockContext(self._session, self._device_handler, target)
+    
+    def get(self, *args, **kwargs):
+        """Retrieve running configuration and device state information.
+
+        *filter* specifies the portion of the configuration to retrieve (by default entire configuration is retrieved)
+
+        *with_defaults* defines an explicit method of retrieving default values from the configuration (see :rfc:`6243`)
+        """
+        return self.execute(operations.Get, *args, **kwargs)
+    
+    def get_config(self, *args, **kwargs):
+        """Retrieve all or part of a specified configuration.
+
+        *source* name of the configuration datastore being queried. e.g. 'running'
+
+        *filter* specifies the portion of the configuration to retrieve (by default entire configuration is retrieved)
+
+        *with_defaults* defines an explicit method of retrieving default values from the configuration (see :rfc:`6243`)
+        """
+        return self.execute(operations.GetConfig, *args, **kwargs)
+
+    def dispatch(self, *args, **kwargs):
+        """
+        *rpc_command* specifies rpc command to be dispatched either in plain text or in xml element format (depending on command)
+
+        *source* name of the configuration datastore being queried
+
+        *filter* specifies the portion of the configuration to retrieve (by default entire configuration is retrieved)
+
+        Examples of usage::
+
+            dispatch('clear-arp-table')
+
+        or dispatch element like ::
+
+            xsd_fetch = new_ele('get-xnm-information')
+            sub_ele(xsd_fetch, 'type').text="xml-schema"
+            sub_ele(xsd_fetch, 'namespace').text="junos-configuration"
+            dispatch(xsd_fetch)
+        """
+        return self.execute(operations.Dispatch, *args, **kwargs)
+    
+    def get_schema(self, *args, **kwargs):
+        """Retrieve a named schema, with optional revision and type.
+
+        *identifier* name of the schema to be retrieved
+
+        *version* version of schema to get
+
+        *format* format of the schema to be retrieved, yang is the default
+        """
+        return self.execute(operations.GetSchema, *args, **kwargs)
+    
+    def edit_config(self, *args, **kwargs):
+        """Loads all or part of the specified *config* to the *target* configuration datastore.
+
+        *target* is the name of the configuration datastore being edited. e.g. 'running'
+
+        *config* is the configuration, which must be rooted in the `config` element. It can be specified either as a string or an :class:`~xml.etree.ElementTree.Element`.
+
+        *default_operation* if specified must be one of { `"merge"`, `"replace"`, or `"none"` }
+
+        *test_option* if specified must be one of { `"test-then-set"`, `"set"`, `"test-only"` }
+
+        *error_option* if specified must be one of { `"stop-on-error"`, `"continue-on-error"`, `"rollback-on-error"` }
+
+        The `"rollback-on-error"` *error_option* depends on the `:rollback-on-error` capability.
+        """
+        return self.execute(operations.EditConfig, *args, **kwargs)
+
+    def copy_config(self, *args, **kwargs):
+        """Create or replace an entire configuration datastore with the contents of another complete
+        configuration datastore.
+
+        *source* is the name of the configuration datastore to use as the source of the copy operation or `config` element containing the configuration subtree to copy
+
+        *target* is the name of the configuration datastore to use as the destination of the copy operation
+        """
+        return self.execute(operations.CopyConfig, *args, **kwargs)
+
+    def validate(self, *args, **kwargs):
+        """Validate the contents of the specified configuration.
+
+        *source* is the name of the configuration datastore being validated or `config` element containing the configuration subtree to be validated
+        """
+        return self.execute(operations.Validate, *args, **kwargs)
+
+    def commit(self, *args, **kwargs):
+        """Commit the candidate configuration as the device's new current configuration. Depends on the `:candidate` capability.
+
+        A confirmed commit (i.e. if *confirmed* is `True`) is reverted if there is no followup commit within the *timeout* interval. If no timeout is specified the confirm timeout defaults to 600 seconds (10 minutes). A confirming commit may have the *confirmed* parameter but this is not required. Depends on the `:confirmed-commit` capability.
+
+        *confirmed* whether this is a confirmed commit
+
+        *timeout* specifies the confirm timeout in seconds
+
+        *persist* make the confirmed commit survive a session termination, and set a token on the ongoing confirmed commit
+
+        *persist_id* value must be equal to the value given in the <persist> parameter to the original <commit> operation.
+        """
+        return self.execute(operations.Commit, *args, **kwargs)
+
+    def discard_changes(self, *args, **kwargs):
+        """Revert the candidate configuration to the currently running configuration. Any uncommitted changes are discarded."""
+        return self.execute(operations.DiscardChanges, *args, **kwargs)
+
+    def cancel_commit(self, *args, **kwargs):
+        """Cancel an ongoing confirmed commit. Depends on the `:candidate` and `:confirmed-commit` capabilities.
+
+        *persist-id* value must be equal to the value given in the <persist> parameter to the previous <commit> operation.
+        """
+        return self.execute(operations.CancelCommit, *args, **kwargs)
+
+    def delete_config(self, *args, **kwargs):
+        """Delete a configuration datastore.
+
+        *target* specifies the  name or URL of configuration datastore to delete"""
+        return self.execute(operations.DeleteConfig, *args, **kwargs)
+
+    def create_subscription(self, *args, **kwargs):
+        """Creates a subscription for notifications from the server.
+
+        *filter* specifies the subset of notifications to receive (by
+        default all notificaitons are received)
+
+        :seealso: :ref:`filter_params`
+
+        *stream_name* specifies the notification stream name. The
+        default is None meaning all streams.
+
+        *start_time* triggers the notification replay feature to
+        replay notifications from the given time. The default is None,
+        meaning that this is not a replay subscription. The format is
+        an RFC 3339/ISO 8601 date and time.
+
+        *stop_time* indicates the end of the notifications of
+        interest. This parameter must be used with *start_time*. The
+        default is None, meaning that (if *start_time* is present) the
+        notifications will continue until the subscription is
+        terminated. The format is an RFC 3339/ISO 8601 date and time.
+
+        """
+        return self.execute(operations.CreateSubscription, *args, **kwargs)
+
+    def close_session(self, *args, **kwargs):
+        "Request graceful termination of the NETCONF session, and also close the transport."
+        return self.execute(operations.CloseSession, *args, **kwargs)
+
+    def kill_session(self, *args, **kwargs):
+        """Force the termination of a NETCONF session (not the current one!)
+
+        *session_id* is the session identifier of the NETCONF session to be terminated as a string
+        """
+        return self.execute(operations.KillSession, *args, **kwargs)
+
+    def poweroff_machine(self, *args, **kwargs):
+        """Flowmon rfc. Power off the machine"""
+        return self.execute(operations.PoweroffMachine, *args, **kwargs)
+
+    def reboot_machine(self, *args, **kwargs):
+        """Flowmon rfc. Reboot the machine"""
+        return self.execute(operations.RebootMachine, *args, **kwargs)
+
+    def rpc(self, *args, **kwargs):
+        """
+        *rpc_command* specifies rpc command to be dispatched either in plain text or in xml element format (depending on command)
+
+        *target* name of the configuration datastore being edited
+
+        *source* name of the configuration datastore being queried
+
+        *config* is the configuration, which must be rooted in the `config` element. It can be specified either as a string or an :class:`~xml.etree.ElementTree.Element`.
+
+        *filter* specifies the portion of the configuration to retrieve (by default entire configuration is retrieved)
+
+        :seealso: :ref:`filter_params`
+
+        Examples of usage::
+
+            m.rpc('rpc_command')
+
+        or dispatch element like ::
+
+            rpc_command = new_ele('get-xnm-information')
+            sub_ele(rpc_command, 'type').text = "xml-schema"
+            m.rpc(rpc_command)
+        """
+        return self.execute(operations.GenericRPC, *args, **kwargs)
 
     def scp(self):
         return self._session.scp()
