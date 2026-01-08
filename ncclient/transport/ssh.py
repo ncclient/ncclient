@@ -20,6 +20,7 @@ import re
 import sys
 import socket
 import threading
+import subprocess
 from binascii import hexlify
 from io import BytesIO as StringIO
 
@@ -261,6 +262,8 @@ class SSHSession(Session):
                   proxycommand = [os.path.expanduser(elem) for elem in proxycommand]
                 else:
                   proxycommand = os.path.expanduser(proxycommand)
+                # Allow unix commands like awk, sed in ssh_config files. 
+                proxycommand = subprocess.check_output([os.environ['SHELL'], '-c', 'echo %s' % proxycommand]).strip().decode()
                 sock = paramiko.proxy.ProxyCommand(proxycommand)
             else:
                 for res in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket.SOCK_STREAM):
