@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from threading import Event, Lock
+from threading import Event, Lock, RLock
 from uuid import uuid4
 
 from ncclient.xml_ import *
@@ -217,7 +217,9 @@ class RPCReply:
 
 class RPCReplyListener(SessionListener): # internal use
 
-    creation_lock = Lock()
+    # Use a re-entrant lock so nested/recursive attempts to create the listener
+    # (e.g. during teardown while another RPC is in flight) do not deadlock.
+    creation_lock = RLock()
 
     # one instance per session -- maybe there is a better way??
     def __new__(cls, session, device_handler):
