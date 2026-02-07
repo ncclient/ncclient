@@ -34,12 +34,6 @@ Installation:
 
 ::
 
-    [ncclient] $ sudo python setup.py install
-
-or via pip:
-
-::
-
     pip install ncclient
 
 Examples:

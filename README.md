@@ -51,9 +51,7 @@ If you are on Debian/Ubuntu install the following libs (via aptitude or apt-get)
 
 ## Installation
 
-    [ncclient] $ sudo python setup.py install
-
-or via pip:
+Install via pip:
 
     pip install ncclient
 
@@ -157,52 +155,24 @@ To run the same tests locally as are run via GitHub's CI/CD integration with Tra
 
 ### Making a Release
 
-As of `0.6.1`, `versioneer` has been integrated into the `ncclient` codebase. This simplifies the creation of a new release, by ensuring that version numbers are automatically generated from the git tag used for the release, which **must** be in the form `v0.1.2`. Versioneer also allows for the clean install of development versions locally using pip. For example:
+Releases are built with `hatchling` and versioned from Git tags using `hatch-vcs`.
+Tags must use the `vX.Y.Z` format (for example `v0.7.1`).
 
-```
-$ pip install -U .
-Processing /opt/git-repos/versioneer-ncclient
-
-[...intermediate ouput elided...]
-
-Building wheels for collected packages: ncclient
-  Running setup.py bdist_wheel for ncclient ... done
-  Stored in directory: /Users/einarnn/Library/Caches/pip/wheels/fb/48/a8/5c781ebcfff7f091e18950e125c0ff638a5a2dc006610aa1e5
-Successfully built ncclient
-Installing collected packages: ncclient
-  Found existing installation: ncclient 0.6.1
-    Uninstalling ncclient-0.6.1:
-      Successfully uninstalled ncclient-0.6.1
-Successfully installed ncclient-0.6.0+23.g0d9ccd6.dirty
-```
-
-Thus, making a release becomes a simple process:
-
-1. Ensure all tests run clean (ideally both locally and via Travis) and that `README.md` (yes, this file!!) has been updated appropriately.
-2. Apply appropriate version tag, e.g. `git tag v0.6.1`
-3. After ensuring `build` is installed, build packages:
-
+1. Ensure tests pass and docs/changelog are updated.
+2. Create and push a release tag:
     ```
-    python -m build
+    git tag v0.7.1
+    git push origin v0.7.1
     ```
-
-4. After ensuring twine is installed, test twine upload:
-
+3. Build distributions locally (optional preflight):
     ```
-    twine upload \
-        --repository-url https://test.pypi.org/legacy/ \
-        -u ******* -p ******* \
-        dist/*
-    ````
-
-5. Push git tags back to origin, `git push --tags`
-6. Do real twine upload:
-
+    hatch build
     ```
-    twine upload \
-        -u ******* -p ******* \
-        dist/*
+4. Validate artifacts (optional preflight):
     ```
+    python -m twine check dist/*
+    ```
+5. GitHub Actions handles PyPI publishing on pushed `v*` tags.
 
 ## Contributors
 

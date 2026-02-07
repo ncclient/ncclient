@@ -1,0 +1,90 @@
+[build-system]
+requires = ["hatchling>=1.27", "hatch-vcs>=0.4"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ncclient"
+dynamic = ["version"]
+description = "Python library for NETCONF clients"
+readme = "README.rst"
+license = "Apache-2.0"
+authors = [
+  { name = "Shikhar Bhushan" },
+  { name = "Leonidas Poulopoulos" },
+  { name = "Ebben Aries" },
+  { name = "Einar Nilsen-Nygaard" },
+]
+maintainers = [
+  { name = "ncclient maintainers" },
+]
+keywords = ["NETCONF", "NETCONF Python client", "Juniper Optimization", "Cisco NXOS Optimization"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: System :: Networking",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+requires-python = ">=3.7"
+dependencies = [
+  "paramiko>=3.2.0",
+  "lxml>=3.3.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/ncclient/ncclient"
+Documentation = "https://ncclient.readthedocs.io/"
+Repository = "https://github.com/ncclient/ncclient"
+Issues = "https://github.com/ncclient/ncclient/issues"
+
+[project.optional-dependencies]
+libssh = ["ssh-python>=1.1.1"]
+test = [
+  "pytest",
+  "pytest-cov",
+  "mock; python_version < '3.6'",
+]
+docs = [
+  "sphinx",
+]
+release = [
+  "twine",
+]
+
+[tool.hatch.version]
+source = "vcs"
+tag-pattern = "^v(?P<version>.+)$"
+
+[tool.hatch.build.targets.wheel]
+packages = ["ncclient"]
+
+[tool.hatch.envs.default]
+features = ["test"]
+
+[tool.hatch.envs.default.scripts]
+test = "pytest test --verbosity=3"
+coverage = "pytest test --verbosity=3 --cov=ncclient"
+
+[tool.hatch.envs.docs]
+features = ["docs"]
+
+[tool.hatch.envs.docs.scripts]
+build = "sphinx-build -b html docs/source docs/html"
+
+[tool.hatch.envs.release]
+features = ["release"]
+
+[tool.hatch.envs.release.scripts]
+build = "hatch build"
+publish = "hatch publish"
+
+[tool.pytest.ini_options]
+addopts = "--verbose"
