@@ -1,9 +1,8 @@
+# ncclient: Python library for NETCONF clients
+
 ![Build Status](https://github.com/ncclient/ncclient/actions/workflows/check.yaml/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/ncclient/ncclient/badge.svg?branch=master)](https://coveralls.io/github/ncclient/ncclient?branch=master)
 [![Documentation Status](https://readthedocs.org/projects/ncclient/badge/?version=latest)](https://readthedocs.org/projects/ncclient/?badge=latest)
-
-
-# ncclient: Python library for NETCONF clients
 
 ncclient is a Python library that facilitates client-side scripting
 and application development around the NETCONF protocol. `ncclient` was
@@ -14,17 +13,16 @@ by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org) and Einar Nilsen-Nygaa
 
 **PyPI**: [https://pypi.python.org/pypi/ncclient](https://pypi.python.org/pypi/ncclient)
 
-
 ## Recent Highlights
 
-|  Date  | Release | Description |
+| Date | Release | Description |
 | :----: | :-----: | :---------- |
-| 08/25/25 | `0.7.0` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.7.0)|
-| 10/18/23 | `0.6.15` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.15)|
-| 04/10/22 | `0.6.13` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.13)|
-| 05/29/21 | `0.6.12` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.12)|
-| 05/27/21 | `0.6.11` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.11)|
-| 02/18/21 | `0.6.10` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.10)|
+| 08/25/25 | `0.7.0` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.7.0) |
+| 10/18/23 | `0.6.15` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.15) |
+| 04/10/22 | `0.6.13` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.13) |
+| 05/29/21 | `0.6.12` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.12) |
+| 05/27/21 | `0.6.11` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.11) |
+| 02/18/21 | `0.6.10` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.10) |
 | 08/08/20 | `0.6.9` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.9) |
 | 08/01/20 | `0.6.8` | Pulled due to accidental breaking API change |
 | 12/21/19 | `0.6.7` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.7) |
@@ -34,7 +32,7 @@ by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org) and Einar Nilsen-Nygaa
 | 09/26/18 | `0.6.3` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.3) |
 | 08/20/18 | `0.6.2` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.2) |
 | 07/02/18 | `0.6.0` | Minor release reinstating Python 3.7 and greater compatibility, but necessitating a change to client code that uses `async_mode`. |
-| 07/02/18 | `0.5.4` | New release rolling up myriad of small commits since `0.5.3`. Please note that this release is **incompatible wth Python 3.7** due to the use of a new Python 3.7 keyword, `async`, in function signatures. This will be resolved in 0.6.0|
+| 07/02/18 | `0.5.4` | New release rolling up myriad of small commits since `0.5.3`. Please note that this release is **incompatible wth Python 3.7** due to the use of a new Python 3.7 keyword, `async`, in function signatures. This will be resolved in 0.6.0 |
 
 ## Requirements
 
@@ -46,6 +44,7 @@ by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org) and Einar Nilsen-Nygaa
 * libxslt
 
 If you are on Debian/Ubuntu install the following libs (via aptitude or apt-get):
+
 * libxml2-dev
 * libxslt1-dev
 
@@ -72,8 +71,8 @@ simple example of how to use `ssh-python` see [nc11.py](examples/base/nc11.py)
 ## Usage
 
 ### Get device running config
-Use either an interactive Python console (ipython)
-or integrate the following in your code:
+
+Use either an interactive Python console (ipython) or integrate the following in your code:
 
     from ncclient import manager
 
@@ -105,18 +104,17 @@ When instantiating a connection to a known type of NETCONF server:
 * Alcatel Lucent: `device_params={'name':'alu'}`
 * Ciena: `device_params={'name':'ciena'}`
 * Cisco:
-    - CSR: `device_params={'name':'csr'}`
-    - Nexus: `device_params={'name':'nexus'}`
-    - IOS XR: `device_params={'name':'iosxr'}`
-    - IOS XE: `device_params={'name':'iosxe'}`
+  * CSR: `device_params={'name':'csr'}`
+  * Nexus: `device_params={'name':'nexus'}`
+  * IOS XR: `device_params={'name':'iosxr'}`
+  * IOS XE: `device_params={'name':'iosxe'}`
 * H3C: `device_params={'name':'h3c'}`
 * HP Comware: `device_params={'name':'hpcomware'}`
 * Huawei:
-    - `device_params={'name':'huawei'}`
-    - `device_params={'name':'huaweiyang'}`
+  * `device_params={'name':'huawei'}`
+  * `device_params={'name':'huaweiyang'}`
 * Juniper: `device_params={'name':'junos'}`
 * Server or anything not in above: `device_params={'name':'default'}`
-
 
 ## For Developers
 
@@ -126,32 +124,23 @@ To run the same tests locally as are run via GitHub's CI/CD integration with Tra
 
 1. Create a virtual environment, in this case using `virtualenvwrapper`:
 
-    ```
-    mkvirtualenv ncclient-testing
-    ```
+       mkvirtualenv ncclient-testing
 
-1. Install your local `ncclient` package (ensuring you are in your virtual environment):
+2. Install your local `ncclient` package (ensuring you are in your virtual environment):
 
-    ```
-    pip install -U .
-    ```
+       pip install -U .
 
-1. Install testing dependencies:
+3. Install testing dependencies:
 
-    ```
-    pip install pytest coverage coveralls mock
-    ```
+       pip install pytest coverage coveralls mock
 
-1. Finally, run the tests:
+4. Finally, run the tests:
 
-    ```
-    pytest test --verbosity=3
-    ```
+       pytest test --verbosity=3
 
     For coverage, showing missing lines do:
-    ```
-    coverage run -m pytest test --verbosity=3 && coverage report -m
-    ```
+
+       coverage run -m pytest test --verbosity=3 && coverage report -m
 
 ### Making a Release
 
@@ -160,18 +149,18 @@ Tags must use the `vX.Y.Z` format (for example `v0.7.1`).
 
 1. Ensure tests pass and docs/changelog are updated.
 2. Create and push a release tag:
-    ```
-    git tag v0.7.1
-    git push origin v0.7.1
-    ```
+
+       git tag v0.7.1
+       git push origin v0.7.1
+
 3. Build distributions locally (optional preflight):
-    ```
-    hatch build
-    ```
+
+       hatchling build
+
 4. Validate artifacts (optional preflight):
-    ```
-    python -m twine check dist/*
-    ```
+
+       python -m twine check dist/*
+
 5. GitHub Actions handles PyPI publishing on pushed `v*` tags.
 
 ## Contributors
