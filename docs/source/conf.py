@@ -12,6 +12,7 @@
 # serve to show the default.
 
 import sys, os
+import sphinx
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -196,6 +197,9 @@ latex_logo = "_static/logo.png"
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'http://docs.python.org/': None}
+if sphinx.version_info[0] < 8:
+  intersphinx_mapping = {"http://docs.python.org/": None}
+else:
+  intersphinx_mapping = {'python': ('https://docs.python.org/', None)}
 
 autoclass_content = 'both'
