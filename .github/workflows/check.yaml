@@ -13,12 +13,12 @@ jobs:
       matrix:
         python-version: ['3.8.18', '3.9.20', '3.10.15', '3.11.10', '3.12.9', '3.13.2']
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+      - uses: actions/checkout@v6
         with:
           submodules: 'recursive'
 
       - name: Setup Python
-        uses: actions/setup-python@7f4fc3e22c37d6ff65e88745f38bd3157c663f7c # v4
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -43,7 +43,7 @@ jobs:
           submodules: 'recursive'
 
       - name: Setup Python
-        uses: actions/setup-python@7f4fc3e22c37d6ff65e88745f38bd3157c663f7c # v4
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -72,12 +72,12 @@ jobs:
       matrix:
         python-version: ['3.11.9', '3.12.9', '3.13.2']
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+      - uses: actions/checkout@v6
         with:
           submodules: 'recursive'
 
       - name: Set up Python
-        uses: actions/setup-python@7f4fc3e22c37d6ff65e88745f38bd3157c663f7c # v4
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -107,12 +107,12 @@ jobs:
   build_distributions:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+      - uses: actions/checkout@v6
         with:
           submodules: 'recursive'
 
       - name: Setup Python
-        uses: actions/setup-python@7f4fc3e22c37d6ff65e88745f38bd3157c663f7c # v4
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12.9'
 
