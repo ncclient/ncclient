@@ -17,6 +17,7 @@ by [Leonidas Poulopoulos (@leopoul)](http://ncclient.org) and Einar Nilsen-Nygaa
 
 | Date | Release | Description |
 | :----: | :-----: | :---------- |
+| 03/15/26 | `0.7.1` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.7.1) |
 | 08/25/25 | `0.7.0` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.7.0) |
 | 10/18/23 | `0.6.15` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.15) |
 | 04/10/22 | `0.6.13` | See [release page](https://github.com/ncclient/ncclient/releases/tag/v0.6.13) |
