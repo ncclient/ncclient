@@ -1,0 +1,65 @@
+name: Release to TestPyPI
+
+on:
+  push:
+    tags:
+      - "v*.*.*rc*"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+
+      - name: Validate release candidate tag
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          if [[ ! "${tag}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+rc[0-9]+$ ]]; then
+            echo "Tag ${tag} does not match vX.Y.ZrcN"
+            exit 1
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@7f4fc3e22c37d6ff65e88745f38bd3157c663f7c # v4
+        with:
+          python-version: "3.12.9"
+
+      - name: Build distributions for TestPyPI
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install hatch twine
+          sed -i 's/^name = "ncclient"$/name = "ncclient_test"/' pyproject.toml
+          grep '^name = "ncclient_test"$' pyproject.toml
+          hatch build
+          ls dist/ncclient_test-*
+          python -m twine check dist/*
+
+      - name: Upload distributions
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: error
+          name: python-distributions
+          path: dist/*
+
+  publish:
+    needs: build
+    runs-on: ubuntu-22.04
+    permissions:
+      id-token: write
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/ncclient_test
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: python-distributions
+          path: dist
+
+      - name: Publish package distributions to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
