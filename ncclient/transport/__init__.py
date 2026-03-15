@@ -15,6 +15,7 @@
 "Transport layer"
 
 import sys
+from importlib.metadata import metadata, PackageNotFoundError
 
 from ncclient.transport.session import Session, SessionListener, NetconfBase
 from ncclient.transport.errors import *
@@ -68,8 +69,8 @@ if sys.platform != 'win32':
 # check if ssh-python is installed
 #
 try:
-    import ssh
-except ImportError:
+    metadata('ssh-python')
+except PackageNotFoundError:
     pass
 else:
     from ncclient.transport.libssh import LibSSHSession
