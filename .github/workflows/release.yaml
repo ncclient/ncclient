@@ -28,17 +28,20 @@ jobs:
           python-version: "3.12.9"
 
       - name: Build distributions for TestPyPI
+        env:
+          SETUPTOOLS_SCM_PRETEND_VERSION: ${{ github.ref_name }}
         run: |
           python -m pip install --upgrade pip
-          python -m pip install hatch twine
+          python -m pip install hatchling hatch-vcs twine
+          export SETUPTOOLS_SCM_PRETEND_VERSION="${SETUPTOOLS_SCM_PRETEND_VERSION#v}"
           sed -i 's/^name = "ncclient"$/name = "ncclient_test"/' pyproject.toml
           grep '^name = "ncclient_test"$' pyproject.toml
-          hatch build
-          ls dist/ncclient_test-*
+          hatchling build -c
+          ls "dist/ncclient_test-${SETUPTOOLS_SCM_PRETEND_VERSION}"*
           python -m twine check dist/*
 
       - name: Upload distributions
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           if-no-files-found: error
           name: python-distributions
@@ -54,7 +57,7 @@ jobs:
       url: https://test.pypi.org/p/ncclient_test
     steps:
       - name: Download distributions
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: python-distributions
           path: dist
