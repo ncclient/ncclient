@@ -16,9 +16,9 @@ Base types
 SSH session implementation
 --------------------------
 
-.. automethod:: ssh.default_unknown_host_cb
+.. autofunction:: ncclient.transport.ssh.default_unknown_host_cb
 
-.. autoclass:: SSHSession
+.. autoclass:: ncclient.transport.ssh.SSHSession
     :show-inheritance:
     :members: load_known_hosts, close, transport
 

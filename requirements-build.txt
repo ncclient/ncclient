@@ -1,3 +1,4 @@
-setuptools
+hatch
+hatchling
+hatch-vcs
 twine
-

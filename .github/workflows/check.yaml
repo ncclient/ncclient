@@ -11,22 +11,21 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        python-version: ['3.7.17', '3.8.18', '3.9.20', '3.10.15', '3.11.10', '3.12.9', '3.13.2']
+        python-version: ['3.8.18', '3.9.20', '3.10.15', '3.11.10', '3.12.9', '3.13.2']
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+      - uses: actions/checkout@v6
         with:
           submodules: 'recursive'
 
       - name: Setup Python
-        uses: actions/setup-python@7f4fc3e22c37d6ff65e88745f38bd3157c663f7c # v4
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
-          python -m pip install -r requirements-test.txt
+          python -m pip install -e .[test]
 
       - name: Run Check Scripts
         run: |
@@ -44,15 +43,14 @@ jobs:
           submodules: 'recursive'
 
       - name: Setup Python
-        uses: actions/setup-python@7f4fc3e22c37d6ff65e88745f38bd3157c663f7c # v4
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
-          python -m pip install -r requirements-test.txt
+          python -m pip install -e .[test]
           python -m pip install -U coverage==7.6.12 coveralls==4.0.1
 
       - name: Run Check Scripts
@@ -74,20 +72,19 @@ jobs:
       matrix:
         python-version: ['3.11.9', '3.12.9', '3.13.2']
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+      - uses: actions/checkout@v6
         with:
           submodules: 'recursive'
 
       - name: Set up Python
-        uses: actions/setup-python@7f4fc3e22c37d6ff65e88745f38bd3157c663f7c # v4
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
-          python -m pip install -r requirements-test.txt
+          python -m pip install -e .[test]
   
       - name: Run Check Scripts
         run: |
@@ -106,3 +103,22 @@ jobs:
         coveralls --service=github --finish
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build_distributions:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: 'recursive'
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12.9'
+
+      - name: Build and Verify Artifacts
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install hatchling hatch-vcs twine
+          hatchling build
+          python -m twine check dist/*
