@@ -62,6 +62,7 @@ jobs:
     if: ${{ needs.build.outputs.valid_tag == 'true' }}
     runs-on: ubuntu-22.04
     permissions:
+      contents: write
       id-token: write
     environment:
       name: release
@@ -75,3 +76,11 @@ jobs:
 
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" dist/* \
+            --generate-notes \
+            --verify-tag
