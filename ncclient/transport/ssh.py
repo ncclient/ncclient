@@ -41,6 +41,7 @@ import logging
 logger = logging.getLogger("ncclient.transport.ssh")
 
 PORT_NETCONF_DEFAULT = 830
+RSA_SHA2_HOST_KEY_ALGORITHMS = ("rsa-sha2-512", "rsa-sha2-256")
 
 BUF_SIZE = 4096
 
@@ -75,6 +76,19 @@ def _colonify(fp):
     for idx in range(2, len(fp), 2):
         finga += ":" + fp[idx:idx+2]
     return finga
+
+
+def _preferred_host_key_algorithms(key_types):
+    preferred_keys = list(key_types)
+    if "ssh-rsa" not in preferred_keys:
+        return preferred_keys
+
+    insert_at = preferred_keys.index("ssh-rsa")
+    for algorithm in RSA_SHA2_HOST_KEY_ALGORITHMS:
+        if algorithm not in preferred_keys:
+            preferred_keys.insert(insert_at, algorithm)
+            insert_at += 1
+    return preferred_keys
 
 
 class SSHSession(Session):
@@ -301,7 +315,9 @@ class SSHSession(Session):
             if not hostkey_obj:
                 # We've tried all known host key types and haven't found a suitable one to use - bail
                 raise SSHError("Couldn't find suitable paramiko key class for host key %s" % hostkey_b64)
-            self._transport._preferred_keys = [hostkey_obj.get_name()]
+            self._transport._preferred_keys = _preferred_host_key_algorithms(
+                [hostkey_obj.get_name()]
+            )
         elif self._host_keys:
             # Else set preferred host keys to those we possess for the host
             # (avoids situation where known_hosts contains a valid key for the host, but that key type is not selected during negotiation)
@@ -309,7 +325,9 @@ class SSHSession(Session):
             host_port = '[%s]:%s' % (host, port)
             known_host_keys_for_this_host.update(self._host_keys.lookup(host_port) or {})
             if known_host_keys_for_this_host:
-                self._transport._preferred_keys = list(known_host_keys_for_this_host)
+                self._transport._preferred_keys = _preferred_host_key_algorithms(
+                    known_host_keys_for_this_host
+                )
 
         # Connect
         try:
