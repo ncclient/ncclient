@@ -7,6 +7,7 @@ except (ImportError, AttributeError):
 from ncclient import manager
 from ncclient.devices.junos import JunosDeviceHandler
 import logging
+import socket
 
 
 class TestManager(unittest.TestCase):
@@ -359,6 +360,49 @@ class TestManager(unittest.TestCase):
             mock_ssh.assert_called_once_with(host='0.0.0.0',
                                                 port=1234,
                                                 sock=mock_connected_socket)
+
+    @patch('socket.socket')
+    @patch('ncclient.manager.connect_ssh')
+    def test_call_home_sets_reuseaddr_and_closes_listener(self, mock_ssh, mock_socket_open):
+        mock_connected_socket = MagicMock()
+        mock_server_socket = MagicMock()
+        mock_socket_open.return_value = mock_server_socket
+        mock_server_socket.accept.return_value = (mock_connected_socket, 'remote.host')
+
+        with manager.call_home(host='0.0.0.0', port=1234):
+            pass
+
+        mock_server_socket.setsockopt.assert_called_once_with(
+            socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        mock_ssh.assert_called_once_with(host='0.0.0.0', port=1234,
+                                         sock=mock_connected_socket)
+        mock_server_socket.close.assert_called_once()
+
+    @patch('socket.socket')
+    @patch('ncclient.manager.connect_ssh')
+    def test_call_home_closes_listener_when_connect_fails(self, mock_ssh, mock_socket_open):
+        mock_server_socket = MagicMock()
+        mock_socket_open.return_value = mock_server_socket
+        mock_server_socket.accept.return_value = (MagicMock(), 'remote.host')
+        mock_ssh.side_effect = Exception('SSH banner error')
+
+        with self.assertRaises(Exception):
+            manager.call_home(host='0.0.0.0', port=1234)
+
+        mock_server_socket.close.assert_called_once()
+
+    @patch('socket.socket')
+    @patch('ncclient.manager.connect_ssh')
+    def test_call_home_closes_listener_on_accept_timeout(self, mock_ssh, mock_socket_open):
+        mock_server_socket = MagicMock()
+        mock_socket_open.return_value = mock_server_socket
+        mock_server_socket.accept.side_effect = socket.timeout()
+
+        with self.assertRaises(socket.timeout):
+            manager.call_home(host='0.0.0.0', port=1234)
+
+        mock_server_socket.close.assert_called_once()
+        mock_ssh.assert_not_called()
 
 
 if __name__ == "__main__":
