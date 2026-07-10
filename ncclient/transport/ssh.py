@@ -165,7 +165,9 @@ class SSHSession(Session):
             bind_addr           = None,
             sock                = None,
             keepalive           = None,
-            environment         = None):
+            environment         = None,
+            banner_timeout      = None,
+            auth_timeout        = None):
 
         """Connect via SSH and initialize the NETCONF session. First attempts the publickey authentication method and then password authentication.
 
@@ -204,6 +206,10 @@ class SSHSession(Session):
         *keepalive* Turn on/off keepalive packets (default is off). If this is set, after interval seconds without sending any data over the connection, a "keepalive" packet will be sent (and ignored by the remote host). This can be useful to keep connections alive over a NAT.
 
         *environment* a dictionary containing the name and respective values to set
+
+        *banner_timeout* is an optional timeout (in seconds) for reading the remote SSH protocol banner. When unset, paramiko's default is used. Raise this for slow devices that intermittently fail with "Error reading SSH protocol banner".
+
+        *auth_timeout* is an optional timeout (in seconds) for the SSH authentication phase. When unset, paramiko's default is used. Raise this for devices with slow authentication backends.
         """
         if not (host or sock_fd or sock):
             raise SSHError("Missing host, socket or socket fd")
@@ -285,6 +291,10 @@ class SSHSession(Session):
             sock.settimeout(timeout)
 
         self._transport = paramiko.Transport(sock)
+        if banner_timeout is not None:
+            self._transport.banner_timeout = banner_timeout
+        if auth_timeout is not None:
+            self._transport.auth_timeout = auth_timeout
         self._transport.set_log_channel(logger.name)
         if config.get("compression") == 'yes':
             self._transport.use_compression()

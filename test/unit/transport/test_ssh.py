@@ -350,6 +350,33 @@ class TestSSH(unittest.TestCase):
         hk_inst.load.assert_called_once_with('file_name')
         mock_os.mock_calls == [call('~/.ssh/config'), call('known_hosts_file')]
 
+    @patch('paramiko.Transport')
+    @patch('ncclient.transport.ssh.SSHSession._post_connect')
+    @patch('ncclient.transport.ssh.SSHSession._auth')
+    def test_connect_banner_and_auth_timeout(self, mock_auth, mock_pc,
+                                             mock_transport):
+        device_handler = JunosDeviceHandler({'name': 'junos'})
+        obj = SSHSession(device_handler)
+        obj.connect(host='h', sock=MagicMock(), hostkey_verify=False,
+                    banner_timeout=42, auth_timeout=99)
+        self.assertEqual(mock_transport.return_value.banner_timeout, 42)
+        self.assertEqual(mock_transport.return_value.auth_timeout, 99)
+
+    @patch('paramiko.Transport')
+    @patch('ncclient.transport.ssh.SSHSession._post_connect')
+    @patch('ncclient.transport.ssh.SSHSession._auth')
+    def test_connect_timeouts_unset_leaves_paramiko_defaults(
+            self, mock_auth, mock_pc, mock_transport):
+        transport = MagicMock()
+        transport.banner_timeout = 'sentinel-banner'
+        transport.auth_timeout = 'sentinel-auth'
+        mock_transport.return_value = transport
+        device_handler = JunosDeviceHandler({'name': 'junos'})
+        obj = SSHSession(device_handler)
+        obj.connect(host='h', sock=MagicMock(), hostkey_verify=False)
+        self.assertEqual(transport.banner_timeout, 'sentinel-banner')
+        self.assertEqual(transport.auth_timeout, 'sentinel-auth')
+
     @patch('ncclient.transport.ssh.SSHSession.close')
     @patch('paramiko.channel.Channel.recv')
     @patch('selectors.DefaultSelector.select')
