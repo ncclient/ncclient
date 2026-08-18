@@ -112,6 +112,70 @@ xml7 = """<rpc-error xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
 	  </rpc-error>
 """
 
+# Regression XMLs for issue #662: multi-error severity scenarios
+xml_warning_only = """<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="urn:uuid:001">
+	<rpc-error>
+		<error-type>application</error-type>
+		<error-tag>invalid-value</error-tag>
+		<error-severity>warning</error-severity>
+		<error-message>non-fatal warning</error-message>
+	</rpc-error>
+</rpc-reply>"""
+
+xml_error_only = """<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="urn:uuid:002">
+	<rpc-error>
+		<error-type>application</error-type>
+		<error-tag>invalid-value</error-tag>
+		<error-severity>error</error-severity>
+		<error-message>fatal error</error-message>
+	</rpc-error>
+</rpc-reply>"""
+
+xml_warning_then_error = """<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="urn:uuid:003">
+	<rpc-error>
+		<error-type>application</error-type>
+		<error-tag>invalid-value</error-tag>
+		<error-severity>warning</error-severity>
+		<error-message>non-fatal warning</error-message>
+	</rpc-error>
+	<rpc-error>
+		<error-type>protocol</error-type>
+		<error-tag>missing-element</error-tag>
+		<error-severity>error</error-severity>
+		<error-message>fatal error</error-message>
+	</rpc-error>
+</rpc-reply>"""
+
+xml_error_then_warning = """<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="urn:uuid:004">
+	<rpc-error>
+		<error-type>protocol</error-type>
+		<error-tag>missing-element</error-tag>
+		<error-severity>error</error-severity>
+		<error-message>fatal error</error-message>
+	</rpc-error>
+	<rpc-error>
+		<error-type>application</error-type>
+		<error-tag>invalid-value</error-tag>
+		<error-severity>warning</error-severity>
+		<error-message>non-fatal warning</error-message>
+	</rpc-error>
+</rpc-reply>"""
+
+xml_warning_only_two = """<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="urn:uuid:005">
+	<rpc-error>
+		<error-type>application</error-type>
+		<error-tag>invalid-value</error-tag>
+		<error-severity>warning</error-severity>
+		<error-message>first warning</error-message>
+	</rpc-error>
+	<rpc-error>
+		<error-type>application</error-type>
+		<error-tag>invalid-value</error-tag>
+		<error-severity>warning</error-severity>
+		<error-message>second warning</error-message>
+	</rpc-error>
+</rpc-reply>"""
+
 class TestRPC(unittest.TestCase):
 
     def test_rpc_reply(self):
@@ -308,6 +372,55 @@ class TestRPC(unittest.TestCase):
         self.assertEqual(result.find('configuration-text').text, huge_configuration_text)
         obj.huge_tree = False
         self.assertFalse(obj.huge_tree)
+
+    # --- Issue #662: RaiseMode.ERRORS should raise if ANY rpc-error has severity "error" ---
+
+    @patch('ncclient.transport.Session.send')
+    @patch(patch_str)
+    def test_rpc_error_raise_mode_warning_only_no_raise(self, mock_thread, mock_send):
+        device_handler, session = self._mock_device_handler_and_session()
+        obj = RPC(session, device_handler, raise_mode=RaiseMode.ERRORS, timeout=0)
+        obj.deliver_reply(xml_warning_only)
+        node = new_ele("commit")
+        result = obj._request(node)
+        self.assertIsNotNone(result)
+
+    @patch('ncclient.transport.Session.send')
+    @patch(patch_str)
+    def test_rpc_error_raise_mode_error_only_raises(self, mock_thread, mock_send):
+        device_handler, session = self._mock_device_handler_and_session()
+        obj = RPC(session, device_handler, raise_mode=RaiseMode.ERRORS, timeout=0)
+        obj.deliver_reply(xml_error_only)
+        node = new_ele("commit")
+        self.assertRaises(RPCError, obj._request, node)
+
+    @patch('ncclient.transport.Session.send')
+    @patch(patch_str)
+    def test_rpc_error_raise_mode_warning_then_error_raises(self, mock_thread, mock_send):
+        device_handler, session = self._mock_device_handler_and_session()
+        obj = RPC(session, device_handler, raise_mode=RaiseMode.ERRORS, timeout=0)
+        obj.deliver_reply(xml_warning_then_error)
+        node = new_ele("commit")
+        self.assertRaises(RPCError, obj._request, node)
+
+    @patch('ncclient.transport.Session.send')
+    @patch(patch_str)
+    def test_rpc_error_raise_mode_error_then_warning_raises(self, mock_thread, mock_send):
+        device_handler, session = self._mock_device_handler_and_session()
+        obj = RPC(session, device_handler, raise_mode=RaiseMode.ERRORS, timeout=0)
+        obj.deliver_reply(xml_error_then_warning)
+        node = new_ele("commit")
+        self.assertRaises(RPCError, obj._request, node)
+
+    @patch('ncclient.transport.Session.send')
+    @patch(patch_str)
+    def test_rpc_error_raise_mode_two_warnings_no_raise(self, mock_thread, mock_send):
+        device_handler, session = self._mock_device_handler_and_session()
+        obj = RPC(session, device_handler, raise_mode=RaiseMode.ERRORS, timeout=0)
+        obj.deliver_reply(xml_warning_only_two)
+        node = new_ele("commit")
+        result = obj._request(node)
+        self.assertIsNotNone(result)
 
     def _mock_device_handler_and_session(self):
         device_handler = manager.make_device_handler({'name': 'junos'})

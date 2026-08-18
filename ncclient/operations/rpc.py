@@ -367,7 +367,7 @@ class RPC:
                 if self._reply.error is not None and not self._device_handler.is_rpc_error_exempt(self._reply.error.message):
                     # <rpc-error>'s [ RPCError ]
 
-                    if self._raise_mode == RaiseMode.ALL or (self._raise_mode == RaiseMode.ERRORS and self._reply.error.severity == "error"):
+                    if self._raise_mode == RaiseMode.ALL or (self._raise_mode == RaiseMode.ERRORS and any(e.severity == "error" for e in self._reply.errors)):
                         errlist = []
                         errors = self._reply.errors
                         if len(errors) > 1:
