@@ -350,6 +350,47 @@ class TestSSH(unittest.TestCase):
         hk_inst.load.assert_called_once_with('file_name')
         mock_os.mock_calls == [call('~/.ssh/config'), call('known_hosts_file')]
 
+    @patch('ncclient.transport.ssh.hexlify')
+    @patch('os.path.expanduser')
+    @patch('paramiko.HostKeys')
+    @patch('paramiko.Transport')
+    @patch('ncclient.transport.ssh.SSHSession._post_connect')
+    @patch('ncclient.transport.ssh.SSHSession._auth')
+    def test_ssh_known_hosts_preserves_rsa_sha2_algorithms(
+            self, mock_auth, mock_pc, mock_transport, mock_hk, mock_os,
+            mock_hex):
+        mock_os.return_value = "file_name"
+        hk_inst = MagicMock(check=MagicMock(return_value=True))
+        hk_inst.lookup.side_effect = [
+            {},
+            {"ssh-rsa": MagicMock()},
+        ]
+        mock_hk.return_value = hk_inst
+        device_handler = JunosDeviceHandler({'name': 'junos'})
+        obj = SSHSession(device_handler)
+        obj.connect(host='h', sock=MagicMock())
+        self.assertEqual(
+            mock_transport.return_value._preferred_keys,
+            ["rsa-sha2-512", "rsa-sha2-256", "ssh-rsa"])
+
+    @patch('ncclient.transport.ssh.hexlify')
+    @patch('paramiko.RSAKey')
+    @patch('paramiko.Transport')
+    @patch('ncclient.transport.ssh.SSHSession._post_connect')
+    @patch('ncclient.transport.ssh.SSHSession._auth')
+    def test_ssh_hostkey_b64_preserves_rsa_sha2_algorithms(
+            self, mock_auth, mock_pc, mock_transport, mock_rsa_key, mock_hex):
+        mock_rsa_key.return_value.get_name.return_value = "ssh-rsa"
+        mock_transport.return_value.get_remote_server_key.return_value = (
+            mock_rsa_key.return_value
+        )
+        device_handler = JunosDeviceHandler({'name': 'junos'})
+        obj = SSHSession(device_handler)
+        obj.connect(host='h', sock=MagicMock(), hostkey_b64='AAAA')
+        self.assertEqual(
+            mock_transport.return_value._preferred_keys,
+            ["rsa-sha2-512", "rsa-sha2-256", "ssh-rsa"])
+
     @patch('ncclient.transport.ssh.SSHSession.close')
     @patch('paramiko.channel.Channel.recv')
     @patch('selectors.DefaultSelector.select')
