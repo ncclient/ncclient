@@ -243,13 +243,22 @@ def connect(*args, **kwds):
 
 def call_home(*args, **kwds):
     host = kwds["host"]
-    port = kwds.get("port",4334)
+    port = kwds.get("port", 4334)
     srv_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    srv_socket.bind((host, port))
-    srv_socket.settimeout(kwds.get("timeout", 10))
-    srv_socket.listen()
-
-    sock, remote_host = srv_socket.accept()
+    # Allow the listening port to be re-bound immediately. Without SO_REUSEADDR a
+    # failed call-home attempt (e.g. the server RSTs the connection) can leave the
+    # address in TIME_WAIT/listening state and the next attempt fails with EADDRINUSE.
+    srv_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    try:
+        srv_socket.bind((host, port))
+        srv_socket.settimeout(kwds.get("timeout", 10))
+        srv_socket.listen()
+        sock, remote_host = srv_socket.accept()
+    finally:
+        # The listening socket has served its purpose once a connection has been
+        # accepted (call-home is single-shot). Always close it so a failed attempt
+        # does not leak the bound port and block subsequent retries.
+        srv_socket.close()
     logger.info('Callhome connection initiated from remote host {0}'.format(remote_host))
     kwds['sock'] = sock
     return connect_ssh(*args, **kwds)
