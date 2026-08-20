@@ -165,7 +165,8 @@ class SSHSession(Session):
             bind_addr           = None,
             sock                = None,
             keepalive           = None,
-            environment         = None):
+            environment         = None,
+            auth_handler        = None):
 
         """Connect via SSH and initialize the NETCONF session. First attempts the publickey authentication method and then password authentication.
 
@@ -203,7 +204,9 @@ class SSHSession(Session):
 
         *keepalive* Turn on/off keepalive packets (default is off). If this is set, after interval seconds without sending any data over the connection, a "keepalive" packet will be sent (and ignored by the remote host). This can be useful to keep connections alive over a NAT.
 
-        *environment* a dictionary containing the name and respective values to set
+        *environment* a dictionary containing the name and respective values to set.
+
+        *auth_handler* is a handler function to use for interactive authentication (e.g. two-factor challenge).
         """
         if not (host or sock_fd or sock):
             raise SSHError("Missing host, socket or socket fd")
@@ -346,7 +349,7 @@ class SSHSession(Session):
         else:
             key_filenames = key_filename
 
-        self._auth(username, password, key_filenames, allow_agent, look_for_keys)
+        self._auth(username, password, key_filenames, allow_agent, look_for_keys, auth_handler)
 
         self._connected = True      # there was no error authenticating
         self._closing.clear()
@@ -392,7 +395,7 @@ class SSHSession(Session):
                        " SSH subsystem name.")
 
     def _auth(self, username, password, key_filenames, allow_agent,
-              look_for_keys):
+              look_for_keys, auth_handler):
         saved_exception = None
         encoded_password = None if password is None else password.encode('utf-8')
         
@@ -476,6 +479,14 @@ class SSHSession(Session):
                 self.logger.debug("Trying discovered key %s in %s",
                                   hexlify(key.get_fingerprint()), filename)
                 self._transport.auth_publickey(username, key)
+                return
+            except Exception as e:
+                saved_exception = e
+                self.logger.debug(e)
+
+        if auth_handler is not None:
+            try:
+                self._transport.auth_interactive(username, auth_handler)
                 return
             except Exception as e:
                 saved_exception = e
