@@ -4,6 +4,7 @@ try:
 except ImportError:
     from mock import patch
 from ncclient.transport.session import *
+from ncclient.transport.session import NetconfBase
 from ncclient.devices.junos import JunosDeviceHandler
 try:
     from Queue import Queue, Empty
@@ -183,7 +184,7 @@ class TestSession(unittest.TestCase):
         obj = Session(cap)
         obj._connected = True
         obj.send("Hello World")
-        self.assertEqual("Hello World", obj._q.get())
+        self.assertEqual(("Hello World", NetconfBase.BASE_10), obj._q.get())
 
     def test_send_disconnected(self):
         cap = [':candidate']
