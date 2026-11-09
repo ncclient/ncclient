@@ -432,8 +432,9 @@ class TestSSH(unittest.TestCase):
         obj = SSHSession(device_handler)
         obj._channel = paramiko.Channel("c100")
         msg = "naïve garçon"
-        obj._q.put(msg)
+        obj._connected = True
         obj._base = base
+        obj.send(msg)
         obj.run()
         self.assertEqual(mock_send.call_args_list[0][0][0], chunker(msg))
         self.assertTrue(
@@ -454,7 +455,7 @@ class TestSSH(unittest.TestCase):
         device_handler = JunosDeviceHandler({'name': 'junos'})
         obj = SSHSession(device_handler)
         obj._channel = paramiko.Channel("c100")
-        obj._q.put("rpc")
+        obj._q.put(("rpc", NetconfBase.BASE_10))
         obj.run()
         self.assertEqual(mock_send.call_args_list[0][0][0], "rpc]]>]]>")
         self.assertTrue(

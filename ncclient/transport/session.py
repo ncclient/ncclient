@@ -219,8 +219,9 @@ class Session(Thread):
                 
                 if not q.empty() and self._send_ready():
                     self.logger.debug("Sending message")
-                    data = q.get().encode()
-                    if self._base == NetconfBase.BASE_11:
+                    message, base = q.get()
+                    data = message.encode()
+                    if base == NetconfBase.BASE_11:
                         data = b"%s%s%s" % (start_delim(len(data)), data, END_DELIM)
                     else:
                         data = b"%s%s" % (data, MSG_DELIM)
@@ -257,7 +258,7 @@ class Session(Thread):
         if not self.connected:
             raise TransportError('Not connected to NETCONF server')
         self.logger.debug('queueing %s', message)
-        self._q.put(message)
+        self._q.put((message, self._base))
 
     def scp(self):
         raise NotImplementedError
