@@ -136,6 +136,10 @@ class TLSSession(Session):
     def _transport_read(self):
         return self._socket.recv(BUF_SIZE)
 
+    def _transport_read_ready(self):
+        # recv() may leave decrypted bytes even when the fd is no longer ready.
+        return self._socket.pending() > 0
+
     def _transport_write(self, data):
         return self._socket.send(data)
 
