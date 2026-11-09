@@ -176,6 +176,10 @@ class Session(Thread):
         """
         raise NotImplementedError
 
+    def _transport_read_ready(self):
+        """Whether the transport has data buffered above the selected fd."""
+        return False
+
     def _transport_write(self, data):
         """
         Write data into underlying Transport layer, either SSH or TLS, as
@@ -231,8 +235,7 @@ class Session(Thread):
                             raise SessionCloseError(self._buffer.getvalue(), data)
                         data = data[n:]
                         
-                events = s.select(timeout=TICK)
-                if events:
+                if self._transport_read_ready() or s.select(timeout=TICK):
                     data = self._transport_read()
                     if data:
                         try:
