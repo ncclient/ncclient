@@ -18,7 +18,6 @@ import sys
 import threading
 
 from io import BytesIO as StringIO
-from socket import AF_INET, SOCK_STREAM
 from ssl import CERT_REQUIRED, SSLContext, SSLError
 
 from ncclient.capabilities import Capabilities
@@ -112,20 +111,24 @@ class TLSSession(Session):
             except IOError:
                 raise TLSError('CA certificate file not found')
 
-        sock = socket.socket(AF_INET, SOCK_STREAM)
-        ssl_sock = ssl_context.wrap_socket(
-            sock, do_handshake_on_connect=False,
-            server_hostname=server_hostname or host)
-        ssl_sock.settimeout(timeout)
-
         try:
-            ssl_sock.connect((host, port))
+            sock = socket.create_connection((host, port), timeout=timeout)
         except Exception:
             raise TLSError("Could not connect to %s:%s" % (host, port))
 
         try:
+            ssl_sock = ssl_context.wrap_socket(
+                sock, do_handshake_on_connect=False,
+                server_hostname=server_hostname or host)
+        except Exception:
+            sock.close()
+            raise
+
+        try:
+            ssl_sock.settimeout(timeout)
             ssl_sock.do_handshake()
         except Exception:
+            ssl_sock.close()
             raise TLSError("Unsuccessful TLS handshake with %s:%s" % (host, port))
 
         self._host = host
