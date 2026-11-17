@@ -26,7 +26,8 @@ except ImportError:
     tls_proto = PROTOCOL_TLS
 
 from ncclient.transport.errors import TLSError
-from ncclient.transport.tls import TLSSession, DEFAULT_TLS_NETCONF_PORT
+from ncclient.transport.tls import (
+    TLSSession, DEFAULT_TLS_NETCONF_PORT, DEFAULT_TLS_TIMEOUT)
 
 
 HOST = '10.10.10.10'
@@ -38,6 +39,11 @@ CERTFILE_WITH_KEY = 'test/unit/transport/certs/test.pem'
 
 class TestTLS(unittest.TestCase):
 
+    def setUp(self):
+        create_connection = patch('socket.create_connection')
+        self.mock_create_connection = create_connection.start()
+        self.addCleanup(create_connection.stop)
+
     @patch('ssl.SSLContext.wrap_socket')
     @patch('ncclient.transport.Session._post_connect')
     def test_connect_tls_certfile_with_key(self, mock_post_connect, mock_wrap_socket_fn):
@@ -46,8 +52,8 @@ class TestTLS(unittest.TestCase):
         mock_wrap_socket_fn.return_value = mock_wrap_socket
         session.connect(host=HOST, certfile=CERTFILE_WITH_KEY,
                         protocol=tls_proto)
-        mock_wrap_socket.connect.assert_called_once_with(
-            (HOST, DEFAULT_TLS_NETCONF_PORT))
+        self.mock_create_connection.assert_called_once_with(
+            (HOST, DEFAULT_TLS_NETCONF_PORT), timeout=DEFAULT_TLS_TIMEOUT)
         self.assertTrue(session.connected)
 
     @patch('ssl.SSLContext.wrap_socket')
@@ -58,8 +64,8 @@ class TestTLS(unittest.TestCase):
         mock_wrap_socket_fn.return_value = mock_wrap_socket
         session.connect(host=HOST, certfile=CERTFILE_WO_KEY, keyfile=KEYFILE,
                         protocol=tls_proto)
-        mock_wrap_socket.connect.assert_called_once_with(
-            (HOST, DEFAULT_TLS_NETCONF_PORT))
+        self.mock_create_connection.assert_called_once_with(
+            (HOST, DEFAULT_TLS_NETCONF_PORT), timeout=DEFAULT_TLS_TIMEOUT)
         self.assertTrue(session.connected)
 
     @unittest.skipIf(sys.version_info < (3, 6), "test not supported < Python3.6")
