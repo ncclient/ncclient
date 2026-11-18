@@ -55,7 +55,7 @@ TICK = 0.1
 # * result.group(1) will contain the digit string for a chunk
 # * result.group(2) will be defined if '##' found
 #
-RE_NC11_DELIM = re.compile(r'\n(?:#([0-9]+)|(##))\n')
+RE_NC11_DELIM = re.compile(br'\n(?:#([0-9]+)|(##))\n')
 
 def textify(buf):
     return buf.decode('UTF-8')
@@ -119,10 +119,10 @@ class DefaultXMLParser:
         self.logger.debug("parsing netconf v1.0")
         buf = self._session._buffer
         buf.seek(self._parsing_pos10)
-        if MSG_DELIM in buf.read().decode('UTF-8'):
+        if MSG_DELIM.encode('UTF-8') in buf.read():
             buf.seek(0)
-            msg, _, remaining = buf.read().decode('UTF-8').partition(MSG_DELIM)
-            msg = msg.strip()
+            msg, _, remaining = buf.read().partition(MSG_DELIM.encode('UTF-8'))
+            msg = textify(msg).strip()
             self._session._dispatch_message(msg)
             self._session._buffer = StringIO()
             self._parsing_pos10 = 0
@@ -131,10 +131,10 @@ class DefaultXMLParser:
                 # buffer, so we should try to parse again.
                 if type(self._session.parser) != DefaultXMLParser:
                     self.logger.debug('send remaining data to SAX parser')
-                    self._session.parser.parse(remaining.encode())
+                    self._session.parser.parse(remaining)
                 else:
                     self.logger.debug('Trying another round of parsing since there is still data')
-                    self._session._buffer.write(remaining.encode())
+                    self._session._buffer.write(remaining)
                     self._parse10()
         else:
             # handle case that MSG_DELIM is split over two chunks
@@ -164,13 +164,13 @@ class DefaultXMLParser:
         while True and start < data_len:
             # match to see if we found at least some kind of delimiter
             self.logger.debug('_parse11: matching from %d bytes from start of buffer', start)
-            re_result = RE_NC11_DELIM.match(data[start:].decode('utf-8', errors='ignore'))
+            re_result = RE_NC11_DELIM.match(data[start:])
             if not re_result:
 
                 # not found any kind of delimiter just break; this should only
                 # ever happen if we just have the first few characters of a
                 # message such that we don't yet have a full delimiter
-                self.logger.debug('_parse11: no delimiter found, buffer="%s"', data[start:].decode())
+                self.logger.debug('_parse11: no delimiter found, buffer="%s"', data[start:])
                 break
 
             # save useful variables for reuse
@@ -188,7 +188,7 @@ class DefaultXMLParser:
                 # whole message, save back remainder (if any) to buffer
                 # and dispatch the message
                 start += re_end
-                message = ''.join(self._session._message_list)
+                message = textify(b''.join(self._session._message_list))
                 self._session._message_list = []
                 self.logger.debug('_parse11: found end of message delimiter')
                 self._session._dispatch_message(message)
@@ -204,7 +204,7 @@ class DefaultXMLParser:
                 self.logger.debug('_parse11: chunk size %d bytes', digits)
                 if (data_len-start) >= (re_end + digits):
                     # we have enough data for the chunk
-                    fragment = textify(data[start+re_end:start+re_end+digits])
+                    fragment = data[start+re_end:start+re_end+digits]
                     self._session._message_list.append(fragment)
                     start += re_end + digits
                     self.logger.debug('_parse11: appending %d bytes', digits)
